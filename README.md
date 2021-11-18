@@ -3,6 +3,7 @@
 A simplified version of Fedora Toolbox written in Posix Sh
 
 ![Screenshot from 2021-11-18 17-47-14](https://user-images.githubusercontent.com/598882/142459870-6447300f-3bdd-4518-ad2b-e13d29552ace.png)
+![Screenshot from 2021-11-18 18-57-11](https://user-images.githubusercontent.com/598882/142470693-eabf33a4-6309-425a-bb2f-eb43770f1618.png)
 
 
 ## What it does
