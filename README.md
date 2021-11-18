@@ -6,6 +6,8 @@ A simplified version of Fedora Toolbox written in Posix Sh
 
 It implements what https://github.com/containers/toolbox does but in a simplified and less-featured way.
 
+All the props goes to them as they had the great idea to implement this stuff.
+
 ## What it does not
 
 It **doesn NOT want** to be a replacement for the full toolbox tool, it's not battle tested (yet)
