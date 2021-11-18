@@ -19,6 +19,27 @@ This project aims to bring `toolbox` to any distro supporting podman.
 It has been written in posix sh to be as portable as possible and not have problems
 with glibc compatibility or versions.
 
+It also is a bit faster to enter the toolbox, which adds up if you use the toolbox
+as your default environment for your terminal:
+
+These are some simple results of `toolbox enter` on the same container on my weak laptop:
+
+```
+luca-linux@x250:~$ time bin/toolbox_enter -n fedora-toolbox-35 -- whoami
+luca-linux
+
+real	0m0.494s
+user	0m0.135s
+sys	0m0.070s
+luca-linux@x250:~$ time toolbox run -c fedora-toolbox-35 whoami
+luca-linux
+
+real	0m1.165s
+user	0m0.298s
+sys	0m0.200s
+luca-linux@x250:~$
+```
+
 ## Compatibility
 
 It supports any `toolbox` approved image
