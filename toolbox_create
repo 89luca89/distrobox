@@ -1,0 +1,141 @@
+#!/bin/sh
+# POSIX
+
+container_user_home="${HOME}"
+container_user_name="${USER}"
+container_user_gid="$(id -rg)"
+container_user_uid="$(id -ru)"
+toolbox_entrypoint_path="$(which toolbox_init)"
+
+# Defaults
+container_image="registry.fedoraproject.org/fedora-toolbox:35"
+container_name="fedora-toolbox-35"
+verbose=0
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	echo "USAGE:
+	toolbox_create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
+
+	Arguments:
+		--image/-i: image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
+		--name/-n:  name for the toolbox			default: fedora-toolbox-35
+		--help/-h:	show this message
+		-v:			show more verbosity
+	"
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit
+		;;
+	-v)
+		verbose=1
+		shift
+		;;
+	-i | --image)
+		if [ -n "$2" ]; then
+			container_image="$2"
+			shift
+			shift
+		fi
+		;;
+	-n | --name)
+		if [ -n "$2" ]; then
+			container_name="$2"
+			shift
+			shift
+		fi
+		;;
+	--) # End of all options.
+		shift
+		break
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		break ;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "$verbose" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# Generate Podman command to execute.
+# Arguments:
+#   None
+# Outputs:
+#   prints the podman command to create the toolbox container
+generate_command() {
+	# Set the container hostname the same as the container name.
+	# use the host's namespace for ipc, network, pid, ulimit
+	echo "podman create
+	--dns none
+	--env XDG_RUNTIME_DIR=/run/user/${container_user_uid}
+	--hostname ${container_name}
+	--ipc host"
+	if [ -f /dev/pts ]; then
+		echo "--mount type=devpts,destination=/dev/pts"
+	fi
+	# mount useful stuff inside the container.
+	# we also mount host's root filesystem to /run/host, to be
+	# able to syphon dynamic configurations from the host
+	#
+	# also mount the toolbox_init utility as the container entrypoint
+	echo "--name ${container_name}
+	--network host
+	--no-hosts
+	--pid host
+	--privileged
+	--security-opt label=disable
+	--ulimit host
+	--user root:root
+	--userns keep-id
+	--volume ${toolbox_entrypoint_path}:/usr/bin/entrypoint:ro
+	--volume ${container_user_home}:${container_user_home}:rslave
+	--volume /:/run/host:rslave
+	--volume /dev:/dev:rslave
+	--volume /etc:/run/host/etc
+	--volume /media:/media:rslave
+	--volume /mnt:/mnt:rslave
+	--volume /run:/run/host/run:rslave
+	--volume /tmp:/run/host/tmp:rslave
+	--volume /usr:/run/host/usr:rw,rslave
+	--volume /var:/run/host/var:rslave"
+	if [ -d /run/media ]; then
+		echo "--volume /run/media:/run/media:rslave"
+	fi
+	# mount also the XDG_RUNTIME_DIR to ensure functionality of the apps
+	if [ -d /run/user/"${container_user_uid}" ]; then
+		echo "--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
+	fi
+	# find all the user's socket and mount them inside the container
+	# this will allow for continuity of functionality between host and container
+	# for example using `podman --remote` to control the host's podman from inside
+	# the container
+	for socket in $(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null); do
+		echo "--volume ${socket}:${socket}"
+	done
+	# now execute the entrypoint, refer to `toolbox_init -h` for instructions
+	echo "${container_image} /usr/bin/entrypoint -v --name ${container_user_name} --user ${container_user_uid} --group ${container_user_gid} --home ${container_user_home}"
+}
+
+# First, check if the image exists in the host
+if ! podman image exists "${container_image}"; then
+	echo "Image not found, run this command first:"
+	echo "	podman pull ${container_image}"
+	exit 1
+fi
+
+# Generate the command and execute
+$(generate_command)

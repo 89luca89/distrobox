@@ -1,0 +1,184 @@
+#!/bin/sh
+# POSIX
+
+# Defaults
+verbose=0
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	echo "USAGE:
+	toolbox_init --name $USER --user $(id -ru) --group $(id -rg) --home $HOME
+
+	Arguments:
+		--name/-n:		user name
+		--user/-u:		uid of the user
+		--group/-g:		gid of the user
+		--home/-d:		path/to/home of the user
+		--help/-h:		show this message
+		-v:			show more verbosity
+	"
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit
+		;;
+	-v)
+		shift
+		verbose=1
+		;;
+	-n | --name)
+		if [ -n "$2" ]; then
+			container_user_name="$2"
+			shift
+			shift
+		fi
+		;;
+	-d | --home)
+		if [ -n "$2" ]; then
+			container_user_home="$2"
+			shift
+			shift
+		fi
+		;;
+	-u | --user)
+		if [ -n "$2" ]; then
+			container_user_uid="$2"
+			shift
+			shift
+		fi
+		;;
+	-g | --group)
+		if [ -n "$2" ]; then
+			container_user_gid="$2"
+			shift
+			shift
+		fi
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		break ;;
+	esac
+done
+
+# Ensure the foundamental variables are set and not empty, we will not proceed if
+# they are not all set.
+[ -z "$container_user_name" ] && echo "Invalid arguments, missing username" && exit 1
+[ -z "$container_user_uid" ] && echo "Invalid arguments, missing user uid" && exit 1
+[ -z "$container_user_gid" ] && echo "Invalid arguments, missing user gud" && exit 1
+[ -z "$container_user_home" ] && echo "Invalid argument, missing user home" && exit 1
+
+# Also check we're running inside a container and not on the host
+if [ ! -f /run/.containerenv ]; then
+	echo "You must run init inside a container..."
+	exit 1
+fi
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "$verbose" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# Bind mount or error.
+# Arguments:
+#   source_dir
+#	target_dir
+#	mount_flags -> optional
+# Outputs:
+#   No output if all ok
+#	Error if not
+mount_bind() (
+	source_dir="$1"
+	target_dir="$2"
+	mount_flags="$3"
+	mount_o=""
+
+	# if source dir doesn't exist, just exit normally
+	! [ -d "$source_dir" ] && ! [ -f "$source_dir" ] && return 0
+
+	# if the source_dir exists, then create the target_dir
+	if [ -d "$source_dir" ]; then
+		# exit if not successful
+		if ! mkdir --parents "$target_dir"; then
+			return 1
+		fi
+	fi
+
+	# Add mountflags if needed
+	[ "$mount_flags" = "" ] || mount_o="-o $mount_flags"
+	# bind mount source_dir to target_dir, return error if not successful
+	if ! mount --rbind $mount_o "$source_dir" "$target_dir"; then
+		return 1
+	fi
+
+	return 0
+)
+
+# Return sudoers groups.
+# Arguments:
+#   None
+# Outputs:
+#   return all sudoers groups, error if not present.
+list_sudo_groups() (
+	group=""
+	if getent group sudo >/dev/null; then
+		group="sudo"
+	elif getent group wheel >/dev/null; then
+		group="wheel"
+	else
+		return 1
+	fi
+
+	echo "$group"
+	return 0
+)
+
+# We will use host's dynamic config for some functionalities, ensure they are
+# symlinks to host's file inside the container.
+HOST_LINKS="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
+for link in $HOST_LINKS; do
+	rm --force "${link}"
+	ln --symbolic /run/host"${link}" "${link}"
+done
+
+# We'll also bind mount in READ-ONLY useful folders from the host
+HOST_MOUNTS_RO="/etc/machine-id /var/lib/flatpak /var/lib/systemd/coredump /var/log/journal"
+for mount_ro in $HOST_MOUNTS_RO; do
+	mount_bind /run/host"${mount_ro}" "${mount_ro}" ro
+done
+
+# We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
+# the host to the container
+HOST_MOUNTS="/media /mnt /run/host/run/systemd/journal /run/libvirt /var/mnt /var/lib/libvirt"
+for mount in $HOST_MOUNTS; do
+	mount_bind /run/host"${mount}" "${mount}" rw
+done
+
+# Let's add our user to the container
+# if the user already exists, just add it to the sudoers groups
+if ! useradd \
+	--home-dir "${container_user_home}" \
+	--no-create-home \
+	--shell /bin/bash \
+	--uid "${container_user_uid}" \
+	--gid "${container_user_gid}" \
+	--groups "$(list_sudo_groups)" \
+	"${container_user_name}"; then
+
+	usermod -aG wheel "${container_user_name}"
+fi
+# Delete password for root and user
+passwd --delete "${container_user_name}"
+passwd --delete root
+
+# Keepalive loop
+sleep infinity

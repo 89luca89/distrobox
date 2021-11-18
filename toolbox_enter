@@ -1,0 +1,97 @@
+#!/bin/sh
+# POSIX
+
+# Defaults
+verbose=0
+container_name="fedora-toolbox-35"
+container_command="bash -l"
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	echo "USAGE:
+	toolbox_enter --name fedora-toolbox-35 -- bash -l
+
+	Arguments:
+		--name/-n:		name for the toolbox			default: fedora-toolbox-35
+		--:			end arguments execute the rest as command to execute at login		default: bash -l
+		--help/-h:		show this message
+		-v:			show more verbosity
+	"
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit
+		;;
+	-v)
+		shift
+		verbose=1
+		;;
+	-n | --name)
+		if [ -n "$2" ]; then
+			container_name="$2"
+			shift
+			shift
+		fi
+		;;
+	-e | --exec | --)
+		shift
+		container_command=$*
+		break
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		break ;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "$verbose" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# Generate Podman command to execute.
+# Arguments:
+#   None
+# Outputs:
+#   prints the podman command to enter the toolbox container
+generate_command() {
+	# If the container is not already running, we need to start if first
+	if ! podman ps | grep -q "$container_name"; then
+		# if container is not running, start it first
+		if ! podman start "$container_name" >/dev/null; then
+
+			# if cannot start, container not found!
+			# prompt to create it first
+			echo "" 1>&2
+			echo "Try running first:" 1>&2
+			echo "" 1>&2
+			echo "    toolbox_create --name <name-of-container> --image <remote>/<docker>:<tag>" 1>&2
+			exit 1
+		else
+			echo "Starting container..."
+			sleep 10
+		fi
+	fi
+
+	# entering container using our user and workdir
+	echo "podman exec --interactive --tty --user=$USER --workdir=$HOME"
+	# exporting current environment to container
+	for i in $(printenv | grep '=' | head -n -2); do
+		echo "--env=$i"
+	done
+	# run selected pod with command+args
+	echo "$container_name $container_command "
+}
+
+# Generate the command and execute
+$(generate_command)
