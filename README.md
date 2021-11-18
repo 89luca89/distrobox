@@ -2,6 +2,9 @@
 
 A simplified version of Fedora Toolbox written in Posix Sh
 
+![Screenshot from 2021-11-18 17-47-14](https://user-images.githubusercontent.com/598882/142459870-6447300f-3bdd-4518-ad2b-e13d29552ace.png)
+
+
 ## What it does
 
 It implements what https://github.com/containers/toolbox does but in a simplified and less-featured way.
