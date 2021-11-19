@@ -44,9 +44,39 @@ sys	0m0.200s
 luca-linux@x250:~$
 ```
 
-## Compatibility
+# Compatibility
 
-It supports any `toolbox` approved image
+Differently from the original project, this one does **not need** a dedicated image
+but can use normal images in example from docker hub.
+
+Granted, they may not be as featureful as expected (some of them do not even have `which` )
+but that's all doable in the toolbox itself after bootstrapping it.
+
+Main concern is having basic user management utilities (`usermod, passwd`) and `sudo` correctly
+set.
+
+Host compatibility tested on:
+
+- Fedora 34
+- Fedora 35
+- Ubuntu 20.04
+- Ubuntu 21.10
+- Debian 11
+- Centos 8 Stream
+
+Toolbox tested with the following containers:
+
+- Alpine Linux	(docker.io/library/alpine:latest)
+- Archlinux		(docker.io/library/archlinux:latest)
+- Centos 7		(quay.io/centos/centos:7)
+- Centos 8		(quay.io/centos/centos:8)
+- Debian 11		(docker.io/library/debian:latest)
+- Fedora 34		(registry.fedoraproject.org/fedora-toolbox:34, docker.io/library/fedora:34)
+- Fedora 35		(registry.fedoraproject.org/fedora-toolbox:35, docker.io/library/fedora:35)
+- Opensuse Leap	(registry.opensuse.org/opensuse/leap:latest)
+- Opensuse Tumbleweed	(registry.opensuse.org/opensuse/thumbleweed:latest)
+- Ubuntu 20.04	(docker.io/library/ubuntu:20.04)
+- Ubuntu 21.10	(docker.io/library/ubuntu:21.10)
 
 # Usage
 
@@ -99,27 +129,6 @@ place the three files somewhere in your $PATH.
 It depends on `podman` configured in `rootless mode`
 
 Check out your distro's documentation to check how to.
-
-# Compatibility
-
-It has been tested on:
-
-- Fedora 34
-- Fedora 35
-- Ubuntu 20.04
-- Ubuntu 21.10
-- Debian 11
-- Centos 8 Stream
-
-Using as toolbox the following distros:
-
-- Fedora 34
-- Fedora 35
-- Debian 11
-- Opensuse Leap
-- Ubuntu 20.04
-- Ubuntu 21.04
-- Centos 7
 
 ## Authors
 
