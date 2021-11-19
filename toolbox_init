@@ -108,7 +108,12 @@ mount_bind() (
 	# if the source_dir exists, then create the target_dir
 	if [ -d "$source_dir" ]; then
 		# exit if not successful
-		if ! mkdir --parents "$target_dir"; then
+		if ! mkdir -p "$target_dir"; then
+			return 1
+		fi
+	elif [ -f "$source_dir" ]; then
+		# exit if not successful
+		if ! touch "$target_dir"; then
 			return 1
 		fi
 	fi
@@ -146,8 +151,8 @@ list_sudo_groups() (
 # symlinks to host's file inside the container.
 HOST_LINKS="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
 for link in $HOST_LINKS; do
-	rm --force "${link}"
-	ln --symbolic /run/host"${link}" "${link}"
+	rm -f "${link}"
+	ln -s /run/host"${link}" "${link}"
 done
 
 # We'll also bind mount in READ-ONLY useful folders from the host
