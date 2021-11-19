@@ -68,7 +68,7 @@ generate_command() {
 	# If the container is not already running, we need to start if first
 	if ! podman ps | grep -q "${container_name}$"; then
 		# if container is not running, start it first
-		if ! podman start "${container_name}" 2>/dev/null; then
+		if ! podman start "${container_name}" >/dev/null; then
 
 			# if cannot start, container not found!
 			# prompt to create it first
