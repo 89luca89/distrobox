@@ -155,6 +155,26 @@ for link in $HOST_LINKS; do
 	ln -s /run/host"${link}" "${link}"
 done
 
+# Check if sudo is installed
+if ! command -v sudo || ! command -v passwd || ! command -v useradd || ! command -v usermod || ! command -v mount; then
+	if command -v apk; then
+		apk add --no-cache sudo shadow util-linux
+	elif command -v apt; then
+		apt update && apt install -y --no-install-recommends sudo shadow util-linux
+	elif command -v dnf; then
+		dnf install -y --setopt=install_weak_deps=False sudo shadow-utils passwd util-linux
+	elif command -v pacman; then
+		pacman -Sy --noconfirm sudo shadow util-linux
+	elif command -v yum; then
+		yum install -y --setopt=install_weak_deps=False sudo shadow-utils passwd util-linux
+	elif command -v zypper; then
+		zypper install -y --no-recommends sudo shadow util-linux
+	else
+		echo "FAILED TO INSTALL BASE DEPENDENCIES"
+		exit 127
+	fi
+fi
+
 # We'll also bind mount in READ-ONLY useful folders from the host
 HOST_MOUNTS_RO="/etc/machine-id /var/lib/flatpak /var/lib/systemd/coredump /var/log/journal"
 for mount_ro in $HOST_MOUNTS_RO; do
@@ -167,26 +187,6 @@ HOST_MOUNTS="/media /mnt /run/host/run/systemd/journal /run/libvirt /var/mnt /va
 for mount in $HOST_MOUNTS; do
 	mount_bind /run/host"${mount}" "${mount}" rw
 done
-
-# Check if sudo is installed
-if ! command -v sudo || ! command -v passwd || ! command -v useradd || ! command -v usermod; then
-	if command -v apk; then
-		apk add --no-cache sudo shadow
-	elif command -v apt; then
-		apt update && apt install -y --no-install-recommends sudo shadow
-	elif command -v dnf; then
-		dnf install -y --setopt=install_weak_deps=False sudo shadow-utils passwd
-	elif command -v pacman; then
-		pacman -Sy --noconfirm sudo shadow
-	elif command -v yum; then
-		yum install -y --setopt=install_weak_deps=False sudo shadow-utils passwd
-	elif command -v zypper; then
-		zypper install -y --no-recommends sudo shadow
-	else
-		echo "FAILED TO INSTALL BASE DEPENDENCIES"
-		exit 127
-	fi
-fi
 
 # Ensure passwordless sudo is set up for user
 if ! mkdir -p /etc/sudoers.d/; then
