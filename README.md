@@ -74,7 +74,7 @@ Toolbox tested with the following containers:
 - Fedora 34		(registry.fedoraproject.org/fedora-toolbox:34, docker.io/library/fedora:34)
 - Fedora 35		(registry.fedoraproject.org/fedora-toolbox:35, docker.io/library/fedora:35)
 - Opensuse Leap	(registry.opensuse.org/opensuse/leap:latest)
-- Opensuse Tumbleweed	(registry.opensuse.org/opensuse/thumbleweed:latest)
+- Opensuse Tumbleweed	(registry.opensuse.org/opensuse/thumbleweed:latest, registry.opensuse.org/opensuse/toolbox:latest)
 - Ubuntu 20.04	(docker.io/library/ubuntu:20.04)
 - Ubuntu 21.10	(docker.io/library/ubuntu:21.10)
 
