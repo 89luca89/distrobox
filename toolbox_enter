@@ -55,7 +55,7 @@ done
 set -o errexit
 set -o nounset
 # set verbosity
-if [ "$verbose" -ne 0 ]; then
+if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
@@ -96,7 +96,7 @@ generate_command() {
 		echo "--env=$i"
 	done
 	# run selected pod with command+args
-	echo "$container_name $container_command"
+	echo "${container_name} ${container_command}"
 }
 
 # Generate the command and execute

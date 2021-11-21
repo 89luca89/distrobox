@@ -70,10 +70,10 @@ done
 
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
-[ -z "$container_user_name" ] && echo "Invalid arguments, missing username" && exit 1
-[ -z "$container_user_uid" ] && echo "Invalid arguments, missing user uid" && exit 1
-[ -z "$container_user_gid" ] && echo "Invalid arguments, missing user gud" && exit 1
-[ -z "$container_user_home" ] && echo "Invalid argument, missing user home" && exit 1
+[ -z "${container_user_name}" ] && echo "Invalid arguments, missing username" && exit 1
+[ -z "${container_user_uid}" ] && echo "Invalid arguments, missing user uid" && exit 1
+[ -z "${container_user_gid}" ] && echo "Invalid arguments, missing user gud" && exit 1
+[ -z "${container_user_home}" ] && echo "Invalid argument, missing user home" && exit 1
 
 # Also check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ]; then
@@ -84,7 +84,7 @@ fi
 set -o errexit
 set -o nounset
 # set verbosity
-if [ "$verbose" -ne 0 ]; then
+if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 

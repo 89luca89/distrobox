@@ -67,7 +67,7 @@ done
 set -o errexit
 set -o nounset
 # set verbosity
-if [ "$verbose" -ne 0 ]; then
+if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
