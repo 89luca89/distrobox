@@ -123,6 +123,18 @@ setting up sudo, mountpoints and exports.
 This is used to enter the toolbox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
 
 # Application and service exporting
+```
+	toolbox_export --app mpv
+	toolbox_export --service syncthing
+
+	Note you can use --app OR --service but not together.
+
+	Arguments:
+			--app/-a:               name of the application to export
+			--service/-s:           name of the service to export
+			--help/-h:              show this message
+			-v:                     show more verbosity
+```
 
 You may want to install graphical applications or user services in your toolbox.
 Using `toolbox_eport` from **inside** the container, will let you use them from the host itself.
@@ -130,6 +142,7 @@ Using `toolbox_eport` from **inside** the container, will let you use them from 
 Examples:
 
 `toolbox_export --app abiword`
+
 `toolbox_export --service syncthing`
 
 This tool will simply copy the original `.desktop` files (with needed icons) or `.service` files,
