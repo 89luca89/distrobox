@@ -3,7 +3,6 @@
 A simplified version of Fedora Toolbox written in Posix Sh
 
 ![Screenshot from 2021-11-18 17-47-14](https://user-images.githubusercontent.com/598882/142459870-6447300f-3bdd-4518-ad2b-e13d29552ace.png)
-![Screenshot from 2021-11-18 18-57-11](https://user-images.githubusercontent.com/598882/142470693-eabf33a4-6309-425a-bb2f-eb43770f1618.png)
 
 
 ## What it does
@@ -130,12 +129,18 @@ Using `toolbox_eport` from **inside** the container, will let you use them from 
 
 Examples:
 
-`toolbox_export --app mpv`
+`toolbox_export --app abiword`
 `toolbox_export --service syncthing`
 
 This tool will simply copy the original `.desktop` files (with needed icons) or `.service` files,
 add the prefix `/usr/local/bin/toolbox_enter -n fedora-toolbox -e ... ` to the commands to run, and
 save them in your home to be used directly from the host as a normal app or `systemctl --user` service.
+
+
+![Screenshot from 2021-11-18 18-57-11](https://user-images.githubusercontent.com/598882/142470693-eabf33a4-6309-425a-bb2f-eb43770f1618.png)
+![Screenshot from 2021-11-21 15-55-46](https://user-images.githubusercontent.com/598882/142767208-4523c886-e258-446c-875d-3d9467bf187f.png)
+
+
 
 # Installation
 
