@@ -78,6 +78,11 @@ Toolbox tested with the following containers:
 - Ubuntu 20.04	(docker.io/library/ubuntu:20.04)
 - Ubuntu 21.10	(docker.io/library/ubuntu:21.10)
 
+Note however that if you use a non-toolbox pre configured image, the **first** `toolbox_enter` (or to be more precise the `podman start`) you perform
+will take a while as it will install with the pkg manager the missing dependencies.
+A small time-tax to pay for the ability to use any type of image.
+This will **not** occur after the first time, and will enter directly.
+
 # Usage
 
 ### Create the toolbox
