@@ -183,10 +183,17 @@ done
 
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
-HOST_MOUNTS="/media /mnt /run/host/run/systemd/journal /run/libvirt /var/mnt /var/lib/libvirt"
+HOST_MOUNTS="/media /mnt /run/systemd/journal /run/libvirt /var/mnt /var/lib/libvirt"
 for mount in $HOST_MOUNTS; do
 	mount_bind /run/host"${mount}" "${mount}" rw
 done
+
+# If not present, mount host's theme folder in ~/.themes
+if [ -d "${container_user_home}/.themes" ]; then
+	if ! ln -s /run/host/usr/share/themes "${container_user_home}/.themes"; then
+		exit 1
+	fi
+fi
 
 # Ensure passwordless sudo is set up for user
 if ! mkdir -p /etc/sudoers.d/; then
