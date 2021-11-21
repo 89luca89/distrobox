@@ -1,6 +1,8 @@
 #!/bin/sh
 # POSIX
 
+trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
+
 # Defaults
 verbose=0
 

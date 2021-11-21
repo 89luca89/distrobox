@@ -1,0 +1,152 @@
+#!/bin/sh
+# POSIX
+
+trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
+
+# Defaults
+container_app=""
+container_app_delete=0
+verbose=0
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	echo "USAGE:
+	toolbox_export --app mpv
+	toolbox_export --service syncthing
+
+	Note you can use --app OR --service but not together.
+
+	Arguments:
+		--app/-a:		name of the application to export
+		--service/-s:		name of the service to export
+		--help/-h:		show this message
+		-v:			show more verbosity
+	"
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit
+		;;
+	-v)
+		shift
+		verbose=1
+		;;
+	-a | --app)
+		if [ -n "$2" ]; then
+			container_app="$2"
+			shift
+			shift
+		fi
+		;;
+	-s | --service)
+		if [ -n "$2" ]; then
+			container_service="$2"
+			shift
+			shift
+		fi
+		;;
+	-d | --delete)
+		container_app_delete=1
+		shift
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		break ;;
+	esac
+done
+# Ensure the foundamental variables are set and not empty, we will not proceed if
+# they are not all set.
+if [ -z "${container_app}" ] && [ -z "${container_service}" ]; then
+	echo "Invalid arguments, missing app or service to export"
+	exit 1
+fi
+if [ -n "${container_app}" ] && [ -n "${container_service}" ]; then
+	echo "Invalid arguments, choose an app OR a service to export"
+	exit 1
+fi
+
+# Also check we're running inside a container and not on the host
+if [ ! -f /run/.containerenv ]; then
+	echo "You must run init inside a container..."
+	exit 1
+fi
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+container_name=$(grep "name=" /run/.containerenv | cut -d'"' -f2)
+# Prefix to add to an existing command to work throught the container
+container_command_prefix="${TOOLBOX_HOST_PATH} --name ${container_name} -e "
+
+# Work on a desktop app export
+if [ -n "${container_app}" ]; then
+	# Find desktop file for the application to export
+	desktop_files=$(grep -ril "${container_app}" /usr/share/applications)
+	icon_files=$(find /usr/share/icons -iname "*${container_app}*")
+
+	# copy icons in home directory
+	for icon in $icon_files; do
+		icon_home_folder="$(dirname "${icon}" | sed "s|/usr/share/|${HOME}/.local/share/|g")"
+
+		# check if we're exporting or deleting
+		if [ "${container_app_delete}" -ne 0 ]; then
+			# we need to remove, not export
+			rm -f "${icon_home_folder}"/"$(basename "${icon}")"
+		else
+			# we wanto to export the application's icons
+			mkdir -p "${icon_home_folder}"
+			cp "${icon}" "${icon_home_folder}"
+		fi
+	done
+
+	# create desktop files for the toolbox
+	for desktop_file in $desktop_files; do
+		desktop_home_file="$(basename "${desktop_file}")"
+
+		# check if we're exporting or deleting
+		if [ "${container_app_delete}" -ne 0 ]; then
+			rm -f "${HOME}/.local/share/applications/${desktop_home_file}"
+		else
+			# If a TryExec is present, we have to fake it as it will not work throught the
+			# toolbox separation
+			sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
+				sed "s|^TryExec=.*|TryExec=true|g" \
+					>"${HOME}/.local/share/applications/${desktop_home_file}"
+		fi
+	done
+elif [ -n "${container_service}" ]; then
+	# Ensure we're working with fresh data
+	systemctl --user daemon-reload
+	# Fetch original service file
+	service_file="${HOME}/.config/systemd/user/${container_service}.service"
+	# Create temp file with random name
+	temp_file="/tmp/$(
+		tr -dc A-Za-z0-9 </dev/urandom | head -c 13
+		echo ''
+	)"
+	# Replace all Exec occurrencies
+	for cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
+		# Save to temp file
+		systemctl --user cat "${container_service}.service" >"${temp_file}" 2>/dev/null
+		# Add prefix only if not present
+		if ! grep "${cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
+			tail -n+2 "${temp_file}" | sed "s|^${cmd}=|${cmd}=${container_command_prefix} |g" >"${service_file}"
+		fi
+	done
+	# Cleanup
+	rm -f "${temp_file}"
+	# Reload
+	systemctl --user daemon-reload
+fi

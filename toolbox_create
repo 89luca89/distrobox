@@ -1,11 +1,14 @@
 #!/bin/sh
 # POSIX
 
+trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
+
 container_user_home="${HOME}"
 container_user_name="${USER}"
 container_user_gid="$(id -rg)"
 container_user_uid="$(id -ru)"
-toolbox_entrypoint_path="$(which toolbox_init)"
+toolbox_entrypoint_path="$(command -v toolbox_init)"
+toolbox_export_path="$(command -v toolbox_export)"
 
 # Defaults
 container_image="registry.fedoraproject.org/fedora-toolbox:35"
@@ -102,6 +105,7 @@ generate_command() {
 	--user root:root
 	--userns keep-id
 	--volume ${toolbox_entrypoint_path}:/usr/bin/entrypoint:ro
+	--volume ${toolbox_export}:/usr/bin/toolbox_export:ro
 	--volume ${container_user_home}:${container_user_home}:rslave
 	--volume /:/run/host:rslave
 	--volume /dev:/dev:rslave

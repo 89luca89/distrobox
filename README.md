@@ -12,18 +12,13 @@ It implements what https://github.com/containers/toolbox does but in a simplifie
 
 All the props goes to them as they had the great idea to implement this stuff.
 
-## What it does not
-
-It **doesn NOT want** to be a replacement for the full toolbox tool, it's not battle tested (yet)
-And it probably doesn't cover some of the cornercases I've not encountered yet :-)
-
 # Aims
 
 This project aims to bring `toolbox` to any distro supporting podman.
 It has been written in posix sh to be as portable as possible and not have problems
 with glibc compatibility or versions.
 
-It also is a bit faster to enter the toolbox, which adds up if you use the toolbox
+It also is a bit faster to enter the container, which adds up if you use the it
 as your default environment for your terminal:
 
 These are some simple results of `toolbox enter` on the same container on my weak laptop:
@@ -44,13 +39,16 @@ sys	0m0.200s
 luca-linux@x250:~$
 ```
 
+It also includes a `toolbox_export` functionality to export applications and services from
+the container onto the host.
+
 # Compatibility
 
 Differently from the original project, this one does **not need** a dedicated image
 but can use normal images in example from docker hub.
 
 Granted, they may not be as featureful as expected (some of them do not even have `which` )
-but that's all doable in the toolbox itself after bootstrapping it.
+but that's all doable in the container itself after bootstrapping it.
 
 Main concern is having basic user management utilities (`usermod, passwd`) and `sudo` correctly
 set.
@@ -64,7 +62,7 @@ Host compatibility tested on:
 - Debian 11
 - Centos 8 Stream
 
-Toolbox tested with the following containers:
+tested with the following container images:
 
 - Alpine Linux	(docker.io/library/alpine:latest)
 - Archlinux		(docker.io/library/archlinux:latest)
@@ -124,6 +122,20 @@ setting up sudo, mountpoints and exports.
 		-v:			show more verbosity
 
 This is used to enter the toolbox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
+
+# Application and service exporting
+
+You may want to install graphical applications or user services in your toolbox.
+Using `toolbox_eport` from **inside** the container, will let you use them from the host itself.
+
+Examples:
+
+`toolbox_export --app mpv`
+`toolbox_export --service syncthing`
+
+This tool will simply copy the original `.desktop` files (with needed icons) or `.service` files,
+add the prefix `/usr/local/bin/toolbox_enter -n fedora-toolbox -e ... ` to the commands to run, and
+save them in your home to be used directly from the host as a normal app or `systemctl --user` service.
 
 # Installation
 
