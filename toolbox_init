@@ -108,25 +108,28 @@ mount_bind() (
 	mount_o=""
 
 	# if source dir doesn't exist, just exit normally
-	! [ -d "$source_dir" ] && ! [ -f "$source_dir" ] && return 0
+	! [ -d "${source_dir}" ] && ! [ -f "${source_dir}" ] && return 0
 
 	# if the source_dir exists, then create the target_dir
-	if [ -d "$source_dir" ]; then
+	if [ -d "${source_dir}" ]; then
 		# exit if not successful
-		if ! mkdir -p "$target_dir"; then
+		if ! mkdir -p "${target_dir}"; then
+			echo "Cannot create mount target directory: ${target_dir}"
 			return 1
 		fi
-	elif [ -f "$source_dir" ]; then
+	elif [ -f "${source_dir}" ]; then
 		# exit if not successful
-		if ! touch "$target_dir"; then
+		if ! touch "${target_dir}"; then
+			echo "Cannot create mount target file: ${target_dir}"
 			return 1
 		fi
 	fi
 
 	# Add mountflags if needed
-	[ "$mount_flags" = "" ] || mount_o="-o $mount_flags"
+	[ "${mount_flags}" = "" ] || mount_o="-o ${mount_flags}"
 	# bind mount source_dir to target_dir, return error if not successful
-	if ! mount --rbind $mount_o "$source_dir" "$target_dir"; then
+	if ! mount --rbind ${mount_o} "${source_dir}" "${target_dir}"; then
+		echo "Failed to bind mount ${source_dir} to ${target_dir}"
 		return 1
 	fi
 
@@ -140,9 +143,9 @@ mount_bind() (
 #   return all sudoers groups, error if not present.
 list_sudo_groups() (
 	group=""
-	if getent group sudo >/dev/null; then
+	if grep -q "sudo:" /etc/group; then
 		group="sudo"
-	elif getent group wheel >/dev/null; then
+	elif grep -q "wheel:" /etc/group; then
 		group="wheel"
 	else
 		# No group for root, create one
@@ -150,7 +153,7 @@ list_sudo_groups() (
 		group="wheel"
 	fi
 
-	echo "$group"
+	echo "${group}"
 	return 0
 )
 
@@ -204,12 +207,14 @@ done
 # If not present, mount host's theme folder in ~/.themes
 if [ ! -d "${container_user_home}/.themes" ]; then
 	if ! ln -s /run/host/usr/share/themes "${container_user_home}/.themes"; then
+		echo "Error: cannot link container's themes to host home."
 		exit 1
 	fi
 fi
 # If not present, mount host's icons folder in ~/.themes
 if [ ! -d "${container_user_home}/.icons" ]; then
 	if ! ln -s /run/host/usr/share/icons "${container_user_home}/.icons"; then
+		echo "Error: cannot link container's icons to host home."
 		exit 1
 	fi
 fi

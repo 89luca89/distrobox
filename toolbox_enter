@@ -85,6 +85,7 @@ generate_command() {
 			# if cannot start, container not found!
 			# prompt to create it first
 			echo "" 1>&2
+			echo "Cannot start container, does it exist?" 1>&2
 			echo "Try running first:" 1>&2
 			echo "" 1>&2
 			echo "    toolbox_create --name <name-of-container> --image <remote>/<docker>:<tag>" 1>&2
