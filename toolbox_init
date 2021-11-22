@@ -79,7 +79,7 @@ done
 
 # Also check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ]; then
-	echo "You must run init inside a container..."
+	echo "You must run $(basename "$0") inside a container..."
 	exit 1
 fi
 
