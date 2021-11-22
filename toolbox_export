@@ -1,5 +1,9 @@
 #!/bin/sh
 # POSIX
+# Expected env variables:
+#	HOME
+#	USER
+#	TOOLBOX_HOST_PATH
 
 trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
 

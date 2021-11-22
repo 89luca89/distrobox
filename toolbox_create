@@ -1,5 +1,8 @@
 #!/bin/sh
 # POSIX
+# Expected env variables:
+#	HOME
+#	USER
 
 trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
 
