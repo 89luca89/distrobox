@@ -8,6 +8,15 @@ container_app=""
 container_app_delete=0
 verbose=0
 
+# We depend on some commands, let's be sure we have them
+base_dependencies="basename grep sed find"
+for dep in ${base_dependencies}; do
+	if ! command -v "${dep}" >/dev/null; then
+		echo "Missing dependency: ${dep}"
+		exit 127
+	fi
+done
+
 # Print usage to stdout.
 # Arguments:
 #   None
@@ -23,6 +32,7 @@ show_help() {
 	Arguments:
 		--app/-a:		name of the application to export
 		--service/-s:		name of the service to export
+		--delete/-d:		delete exported application or service
 		--help/-h:		show this message
 		-v:			show more verbosity
 	"
@@ -92,6 +102,11 @@ container_command_prefix="${TOOLBOX_HOST_PATH} --name ${container_name} -e "
 
 # Work on a desktop app export
 if [ -n "${container_app}" ]; then
+	# Ensure the app we're exporting is installed
+	if ! command -v "${container_app}" >/dev/null; then
+		echo "Error: trying to export a non-installed application"
+		exit 127
+	fi
 	# Find desktop file for the application to export
 	desktop_files=$(grep -ril "${container_app}" /usr/share/applications)
 	icon_files=$(find /usr/share/icons -iname "*${container_app}*")
@@ -127,6 +142,11 @@ if [ -n "${container_app}" ]; then
 		fi
 	done
 elif [ -n "${container_service}" ]; then
+	# If we're managing services, let's be sure we have systemctl
+	if ! command -v systemctl >/dev/null; then
+		echo "Missing dependency: systemd"
+		exit 127
+	fi
 	# Ensure we're working with fresh data
 	systemctl --user daemon-reload
 	# Fetch original service file
@@ -142,7 +162,8 @@ elif [ -n "${container_service}" ]; then
 		systemctl --user cat "${container_service}.service" >"${temp_file}" 2>/dev/null
 		# Add prefix only if not present
 		if ! grep "${cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
-			tail -n+2 "${temp_file}" | sed "s|^${cmd}=|${cmd}=${container_command_prefix} |g" >"${service_file}"
+			tail -n+2 "${temp_file}" |
+				sed "s|^${cmd}=|${cmd}=${container_command_prefix} |g" >"${service_file}"
 		fi
 	done
 	# Cleanup

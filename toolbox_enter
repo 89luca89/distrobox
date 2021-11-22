@@ -3,10 +3,16 @@
 
 trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
 
+# We depend on podman let's be sure we have it
+if ! command -v podman >/dev/null; then
+	echo "Missing dependency: podman"
+	exit 127
+fi
+
 # Defaults
 verbose=0
 container_name="fedora-toolbox-35"
-container_command="bash -l"
+container_command="${SHELL} -l"
 
 # Print usage to stdout.
 # Arguments:
