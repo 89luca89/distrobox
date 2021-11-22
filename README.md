@@ -123,6 +123,7 @@ setting up sudo, mountpoints and exports.
 This is used to enter the toolbox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
 
 # Application and service exporting
+
 ```
 	toolbox_export --app mpv
 	toolbox_export --service syncthing
@@ -132,6 +133,7 @@ This is used to enter the toolbox itself, personally I just create multiple prof
 	Arguments:
 			--app/-a:               name of the application to export
 			--service/-s:           name of the service to export
+			--delete/-d:		delete exported application or service
 			--help/-h:              show this message
 			-v:                     show more verbosity
 ```
