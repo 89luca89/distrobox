@@ -11,6 +11,25 @@ It implements what https://github.com/containers/toolbox does but in a simplifie
 
 All the props goes to them as they had the great idea to implement this stuff.
 
+## But what is a toolbox?
+
+Toolbox is a tool for Linux operating systems, which allows the use of containerized
+command line environments.
+It is built on top of Podman and other standard container technologies from OCI.
+
+The intention is to provide a mutable environment on a host where the filesystem is immutable (Like Suse's MicroOS or Fedora Silverblue)
+or where the user doesn't have privileges to modify the host (non-sudo users for example)
+
+So even if you're not a sudoer or your distro doesn't have access to a traditional package manager, you
+will still be able to perform your `apt/dnf/pacman/pkg/zypper` shenanigans.
+
+The toolbox environment is based on an OCI image.
+This image is used to create a toolbox container that seamlessly integrates with the rest of the
+operating system by providing access to the user's home directory,
+the Wayland and X11 sockets, networking (including Avahi),
+removable devices (like USB sticks), systemd journal, SSH agent, D-Bus,
+ulimits, /dev and the udev database, etc..
+
 # Aims
 
 This project aims to bring `toolbox` to any distro supporting podman.
