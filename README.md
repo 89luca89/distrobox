@@ -124,7 +124,6 @@ This is used to enter the toolbox itself, personally I just create multiple prof
 
 # Application and service exporting
 
-```
 	toolbox_export --app mpv
 	toolbox_export --service syncthing
 
@@ -136,7 +135,6 @@ This is used to enter the toolbox itself, personally I just create multiple prof
 			--delete/-d:		delete exported application or service
 			--help/-h:              show this message
 			-v:                     show more verbosity
-```
 
 You may want to install graphical applications or user services in your toolbox.
 Using `toolbox_eport` from **inside** the container, will let you use them from the host itself.
