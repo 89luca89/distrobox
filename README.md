@@ -36,27 +36,33 @@ This project aims to bring `toolbox` to any distro supporting podman.
 It has been written in posix sh to be as portable as possible and not have problems
 with glibc compatibility or versions.
 
-It also is a bit faster to enter the container, which adds up if you use the it
+It also aims to enter the container as fast as possible, every millisecond adds up if you use the it
 as your default environment for your terminal:
 
 These are some simple results of `toolbox enter` on the same container on my weak laptop:
 
 ```
-luca-linux@x250:~$ time bin/toolbox_enter -n fedora-toolbox-35 -- whoami
+luca-linux@x250:~$ time toolbox_enter -n fedora-toolbox-35 -- whoami
 luca-linux
 
 real	0m0.494s
 user	0m0.135s
 sys	0m0.070s
-luca-linux@x250:~$ time toolbox run -c fedora-toolbox-35 whoami
+
+luca-linux@x250:~$ time toolbox_enter -n fedora-toolbox-35 -- whoami
 luca-linux
 
-real	0m1.165s
-user	0m0.298s
-sys	0m0.200s
-luca-linux@x250:~$
-```
+real	0m0,302s
+user	0m0,118s
+sys	0m0,095s
 
+luca-linux@x250:~$ time toolbox_enter -n fedora-toolbox-35 -- whoami
+luca-linux
+
+real	0m0,281s
+user	0m0,116s
+sys	0m0,063s
+```
 It also includes a `toolbox_export` functionality to export applications and services from
 the container onto the host.
 
@@ -80,19 +86,30 @@ Host compatibility tested on:
 - Debian 11
 - Centos 8 Stream
 
-tested with the following container images:
+Toolbox guests tested with the following container images:
 
-- Alpine Linux	(docker.io/library/alpine:latest)
-- Archlinux		(docker.io/library/archlinux:latest)
-- Centos 7		(quay.io/centos/centos:7)
-- Centos 8		(quay.io/centos/centos:8)
-- Debian 11		(docker.io/library/debian:latest)
-- Fedora 34		(registry.fedoraproject.org/fedora-toolbox:34, docker.io/library/fedora:34)
-- Fedora 35		(registry.fedoraproject.org/fedora-toolbox:35, docker.io/library/fedora:35)
-- Opensuse Leap	(registry.opensuse.org/opensuse/leap:latest)
-- Opensuse Tumbleweed	(registry.opensuse.org/opensuse/thumbleweed:latest, registry.opensuse.org/opensuse/toolbox:latest)
-- Ubuntu 20.04	(docker.io/library/ubuntu:20.04)
-- Ubuntu 21.10	(docker.io/library/ubuntu:21.10)
+|	Distro  |	Images	|
+| --- | --- |
+| AlmaLinux 8	 	| docker.io/library/almalinux:8	|
+| Alpine Linux		| docker.io/library/alpine:latest	|
+| AmazonLinux 2  	| docker.io/library/amazonlinux:2.0.20211005.0	|
+| Archlinux		 	| docker.io/library/archlinux:latest	|
+| Centos 7		 	| quay.io/centos/centos:7	|
+| Centos 8		 	| quay.io/centos/centos:8	|
+| Debian 11			| docker.io/library/debian:stable, docker.io/library/debian:stable-backports	|
+| Debian Testing	| docker.io/library/debian:testing, docker.io/library/debian:testing-backports	|
+| Debian Unstable	| docker.io/library/debian:unstable	|
+| Fedora 34			| registry.fedoraproject.org/fedora-toolbox:34, docker.io/library/fedora:34	|
+| Fedora 35			| registry.fedoraproject.org/fedora-toolbox:35, docker.io/library/fedora:35	|
+| Opensuse Leap		| registry.opensuse.org/opensuse/leap:latest	|
+| Opensuse Tumbleweed	| registry.opensuse.org/opensuse/thumbleweed:latest, registry.opensuse.org/opensuse/toolbox:latest	|
+| Oracle Linux 7 	| container-registry.oracle.com/os/oraclelinux:7	|
+| Oracle Linux 8 	| container-registry.oracle.com/os/oraclelinux:8	|
+| Rocky Linux 8		| docker.io/rockylinux/rockylinux:8	|
+| Scientific Linux 7| docker.io/library/sl:7	|
+| Ubuntu 20.04		| docker.io/library/ubuntu:20.04	|
+| Ubuntu 21.10		| docker.io/library/ubuntu:21.10	|
+
 
 Note however that if you use a non-toolbox pre configured image, the **first** `toolbox_enter` (or to be more precise the `podman start`) you perform
 will take a while as it will install with the pkg manager the missing dependencies.
