@@ -210,17 +210,15 @@ for mount in $HOST_MOUNTS; do
 done
 
 # If not present, mount host's theme folder in ~/.themes
-if [ ! -d "${container_user_home}/.themes" ]; then
-	if ! ln -s /run/host/usr/share/themes "${container_user_home}/.themes"; then
+if mkdir -p "${container_user_home}/.themes/"; then
+	if ! ln -s /run/host/usr/share/themes/* "${container_user_home}/.themes/"; then
 		echo "Error: cannot link container's themes to host home."
-		exit 1
 	fi
 fi
 # If not present, mount host's icons folder in ~/.themes
-if [ ! -d "${container_user_home}/.icons" ]; then
-	if ! ln -s /run/host/usr/share/icons "${container_user_home}/.icons"; then
+if mkdir -p "${container_user_home}/.icons/"; then
+	if ! ln -s /run/host/usr/share/icons/* "${container_user_home}/.icons/"; then
 		echo "Error: cannot link container's icons to host home."
-		exit 1
 	fi
 fi
 
