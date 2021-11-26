@@ -178,8 +178,8 @@ if ! command -v mount || ! command -v passwd ||
 	# and make sure we have all the dependencies we need to function.
 	if command -v apk; then
 		apk add --no-cache sudo shadow util-linux "${shell_pkg}"
-	elif command -v apt; then
-		apt update && apt install -y --no-install-recommends sudo passwd util-linux "${shell_pkg}"
+	elif command -v apt-get; then
+		apt-get update && apt-get install -y --no-install-recommends sudo passwd util-linux "${shell_pkg}"
 	elif command -v dnf; then
 		dnf install -y --setopt=install_weak_deps=False sudo shadow-utils passwd util-linux "${shell_pkg}"
 	elif command -v pacman; then
