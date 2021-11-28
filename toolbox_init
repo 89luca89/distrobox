@@ -177,17 +177,17 @@ if ! command -v mount || ! command -v passwd ||
 	# check which pkg manager we have at disposal
 	# and make sure we have all the dependencies we need to function.
 	if command -v apk; then
-		apk add --no-cache sudo shadow util-linux "${shell_pkg}"
+		apk add --no-cache sudo shadow procps util-linux "${shell_pkg}"
 	elif command -v apt-get; then
-		apt-get update && apt-get install -y --no-install-recommends sudo passwd util-linux "${shell_pkg}"
+		apt-get update && apt-get install -y --no-install-recommends sudo apt-utils passwd procps util-linux "${shell_pkg}"
 	elif command -v dnf; then
-		dnf install -y --setopt=install_weak_deps=False sudo shadow-utils passwd util-linux "${shell_pkg}"
+		dnf install -y --setopt=install_weak_deps=False sudo shadow-utils passwd procps-ng util-linux "${shell_pkg}"
 	elif command -v pacman; then
-		pacman -Sy --noconfirm sudo shadow util-linux "${shell_pkg}"
+		pacman -Sy --noconfirm sudo procps-ng shadow util-linux "${shell_pkg}"
 	elif command -v yum; then
-		yum install -y --setopt=install_weak_deps=False sudo shadow-utils passwd util-linux "${shell_pkg}"
+		yum install -y --setopt=install_weak_deps=False sudo shadow-utils passwd procps util-linux "${shell_pkg}"
 	elif command -v zypper; then
-		zypper install -y --no-recommends sudo shadow util-linux "${shell_pkg}"
+		zypper install -y --no-recommends sudo shadow procps util-linux "${shell_pkg}"
 	else
 		echo "FAILED TO INSTALL BASE DEPENDENCIES"
 		# Exit as command not found
