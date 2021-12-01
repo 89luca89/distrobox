@@ -13,10 +13,9 @@ It implements what https://github.com/containers/toolbox does but in a simplifie
 
 All the props goes to them as they had the great idea to implement this stuff.
 
-## But what is a distrobox?
+Simply put is a fancy `podman` wrapper to create and start containers highly integrated with the hosts.
 
-Distrobox is a tool for Linux operating systems, which allows the use of containerized command line environments.
-It is built on top of **podman** and other standard container technologies from OCI.
+## Why?
 
 The intention is to provide a mutable environment on a host where the file-system is immutable (like Suse's MicroOS, Fedora Silverblue, Endless OS or SteamOS3)
 or where the user doesn't have privileges to modify the host (non-sudo users for example)
@@ -29,7 +28,7 @@ This image is used to create a container that seamlessly integrates with the res
 the Wayland and X11 sockets, networking, removable devices (like USB sticks), systemd journal, SSH agent, D-Bus,
 ulimits, /dev and the udev database, etc..
 
-# Aims
+### Aims
 
 This project aims to bring any distro userland to any other distro supporting podman.
 It has been written in posix sh to be as portable as possible and not have problems with glibc compatibility or versions.
@@ -157,7 +156,7 @@ setting up sudo, mountpoints and exports.
 
 This is used to enter the distrobox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
 
-# Application and service exporting
+### Application and service exporting
 
 	distrobox-export --app mpv
 	distrobox-export --service syncthing
