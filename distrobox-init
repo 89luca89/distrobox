@@ -16,7 +16,7 @@ verbose=0
 #   print usage with examples.
 show_help() {
 	echo "USAGE:
-	toolbox_init --name $USER --user $(id -ru) --group $(id -rg) --home $HOME
+	distrobox-init --name $USER --user $(id -ru) --group $(id -rg) --home $HOME
 
 	Arguments:
 		--name/-n:		user name

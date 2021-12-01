@@ -3,7 +3,7 @@
 # Expected env variables:
 #	HOME
 #	USER
-#	TOOLBOX_HOST_PATH
+#	DISTROBOX_ENTER_PATH
 
 trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
 
@@ -28,8 +28,8 @@ done
 #   print usage with examples.
 show_help() {
 	echo "USAGE:
-	toolbox_export --app mpv
-	toolbox_export --service syncthing
+	distrobox-export --app mpv
+	distrobox-export --service syncthing
 
 	Note you can use --app OR --service but not together.
 
@@ -102,7 +102,7 @@ fi
 
 container_name=$(grep "name=" /run/.containerenv | cut -d'"' -f2)
 # Prefix to add to an existing command to work throught the container
-container_command_prefix="${TOOLBOX_HOST_PATH} --name ${container_name} -e "
+container_command_prefix="${DISTROBOX_ENTER_PATH} --name ${container_name} -e "
 
 # Work on a desktop app export
 if [ -n "${container_app}" ]; then
@@ -112,7 +112,7 @@ if [ -n "${container_app}" ]; then
 		exit 127
 	fi
 	# Find desktop file for the application to export
-	desktop_files=$(grep -ril "${container_app}" /usr/share/applications)
+	desktop_files=$(grep -ril "${container_app}" /usr/share/applications/*)
 	icon_files=$(find /usr/share/icons -iname "*${container_app}*")
 
 	# copy icons in home directory
@@ -130,7 +130,7 @@ if [ -n "${container_app}" ]; then
 		fi
 	done
 
-	# create desktop files for the toolbox
+	# create desktop files for the distrobox
 	for desktop_file in $desktop_files; do
 		desktop_home_file="$(basename "${desktop_file}")"
 
@@ -139,7 +139,7 @@ if [ -n "${container_app}" ]; then
 			rm -f "${HOME}/.local/share/applications/${desktop_home_file}"
 		else
 			# If a TryExec is present, we have to fake it as it will not work throught the
-			# toolbox separation
+			# container separation
 			sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
 				sed "s|^TryExec=.*|TryExec=true|g" \
 					>"${HOME}/.local/share/applications/${desktop_home_file}"
