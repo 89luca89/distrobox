@@ -1,0 +1,97 @@
+#!/bin/sh
+# POSIX
+
+dest_path="/usr/local/bin"
+verbose=0
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	echo "USAGE:
+    install -p /usr/local/bin
+
+	Arguments:
+		--path/-p:		path where to deploy the files (default /usr/local/bin)
+		--help/-h:		show this message
+		-v:			show more verbosity
+	"
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit
+		;;
+	-v)
+		shift
+		verbose=1
+		;;
+	-p | --path)
+		if [ -n "$2" ]; then
+			dest_path="$2"
+			shift
+			shift
+		fi
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		break ;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# Ensure the foundamental variables are set and not empty, we will not proceed if
+# they are not all set.
+[ ! -d "${dest_path}" ] && echo "Path ${dest_path} does not exist." && exit 1
+[ ! -w "${dest_path}" ] && echo "Cannot write into ${dest_path}, permission denied." && exit 1
+
+# get current dir
+curr_dir=$(dirname "$0")
+cd "${curr_dir}" || exit 1
+
+# if files are available, install files in dest folder
+# else download targz and uncompress it
+if [ -f "${curr_dir}/distrobox-enter" ]; then
+	for file in distrobox-*; do
+		cp "${file}" "${dest_path}"
+		chmod 0755 "${dest_path}/${file}"
+	done
+else
+
+	# check that we have base dependencies
+	if ! command -v curl || ! command -v tar; then
+		echo "Online install depends on curl and tar"
+		exit 1
+	fi
+
+	release_ver=$(curl -L https://github.com/89luca89/distrobox/releases/latest | grep 'refs/tags' | tail -1 | cut -d'"' -f2)
+	release_name=$(echo "${release_ver}" | rev | cut -d'/' -f1 | rev)
+
+	# go in tmp
+	cd /tmp
+	# download our target
+	curl -L "https://github.com/${release_ver}" -o "${release_name}"
+	# uncompress
+	tar xvf "${release_name}"
+	# deploy our files
+	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox-*; do
+		cp "${file}" "${dest_path}"
+		chmod 0755 "${dest_path}/${file}"
+	done
+
+	# securely delete unneeded files
+	rm -f "${release_name}"
+	rm -f "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/*
+	rmdir "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"
+fi

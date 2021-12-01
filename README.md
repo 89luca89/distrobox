@@ -16,25 +16,23 @@ All the props goes to them as they had the great idea to implement this stuff.
 ## But what is a distrobox?
 
 Distrobox is a tool for Linux operating systems, which allows the use of containerized command line environments.
-It is built on top of Podman and other standard container technologies from OCI.
+It is built on top of **podman** and other standard container technologies from OCI.
 
-The intention is to provide a mutable environment on a host where the filesystem is immutable (like Suse's MicroOS, Fedora Silverblue, Endless OS or SteamOS3)
+The intention is to provide a mutable environment on a host where the file-system is immutable (like Suse's MicroOS, Fedora Silverblue, Endless OS or SteamOS3)
 or where the user doesn't have privileges to modify the host (non-sudo users for example)
 
 So even if you're not a sudoer or your distro doesn't have access to a traditional package manager, you
 will still be able to perform your `apt/dnf/pacman/pkg/zypper` shenanigans.
 
 The distrobox environment is based on an OCI image.
-This image is used to create a distrobox container that seamlessly integrates with the rest of the
-operating system by providing access to the user's home directory,
+This image is used to create a container that seamlessly integrates with the rest of the operating system by providing access to the user's home directory,
 the Wayland and X11 sockets, networking, removable devices (like USB sticks), systemd journal, SSH agent, D-Bus,
 ulimits, /dev and the udev database, etc..
 
 # Aims
 
 This project aims to bring any distro userland to any other distro supporting podman.
-It has been written in posix sh to be as portable as possible and not have problems
-with glibc compatibility or versions.
+It has been written in posix sh to be as portable as possible and not have problems with glibc compatibility or versions.
 
 It also aims to enter the container as fast as possible, every millisecond adds up if you use the it
 as your default environment for your terminal:
@@ -63,8 +61,8 @@ real	0m0,281s
 user	0m0,116s
 sys	0m0,063s
 ```
-It also includes a `distrobox-export` functionality to export applications and services from
-the container onto the host.
+
+It is included also a `distrobox-export` functionality to export applications and services from the container onto the host.
 
 # Compatibility
 
@@ -194,9 +192,18 @@ save them in your home to be used directly from the host as a normal app or `sys
 
 # Installation
 
-Clone the project using `git clone` or using the `download` button above to get the zip file.
-Enter the folder an copy the script files anywhere in your `$PATH`, remember to mark them as executable.
+If you like to live your life dangerously, you can trust me and simply run this in your terminal:
 
+`curl https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh`
+
+or if you want to select a custom folder to install without sudo:
+
+`curl https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- -p ~/.local/bin`
+
+Else you can clone the project using `git clone` or using the `download zip` voice after clicking the green button above.
+
+Enter the folder and run `./install`, by default it will attemp to install in `/usr/local/bin`, you can specify another folder if needed with `./install -p ~/.local/bin` 
+ 
 # Dependencies
 
 It depends on `podman` configured in `rootless mode`
