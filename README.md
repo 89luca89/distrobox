@@ -1,10 +1,11 @@
-![](./pics/distrobox-logo.png)
+![distrobox-logo](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png)
 
 # Distrobox
 
 Use any linux distribution inside your terminal.
 
-![](./pics/overview.png)
+![overview](https://user-images.githubusercontent.com/598882/144294862-f6684334-ccf4-4e5e-85f8-1d66210a0fff.png)
+
 
 ## What it does
 
@@ -185,8 +186,11 @@ This tool will simply copy the original `.desktop` files (with needed icons) or 
 add the prefix `/usr/local/bin/distrobox-enter -n fedora-35 -e ... ` to the commands to run, and
 save them in your home to be used directly from the host as a normal app or `systemctl --user` service.
 
-![](./pics/app-export.png)
-![](./pics/service-export.png)
+![app-export](https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)
+
+
+![service-export](https://user-images.githubusercontent.com/598882/144294314-29a8921f-4511-453d-bf8e-d0d1e336db91.png)
+
 
 # Installation
 
