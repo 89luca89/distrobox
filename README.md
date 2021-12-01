@@ -116,6 +116,8 @@ This will **not** occur after the first time, and will enter directly.
 
 # Usage
 
+## Outside the distrobox
+
 ### Create the distrobox
 
 	distrobox-create --image registry.fedoraproject.org/fedora:35 --name fedora-35
@@ -127,6 +129,20 @@ This will **not** occur after the first time, and will enter directly.
 		-v:			show more verbosity
 
 If the image is not present you'll be prompted to `podman pull` it.
+
+### Enter the distrobox
+
+	distrobox-enter --name fedora-35 -- bash -l
+
+	Arguments:
+		--name/-n:		name for the distrobox			default: fedora-35
+		--:			end arguments execute the rest as command to execute at login		default: bash -l
+		--help/-h:		show this message
+		-v:			show more verbosity
+
+This is used to enter the distrobox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
+
+## Inside the distrobox
 
 ### Init the distrobox
 
@@ -143,18 +159,7 @@ If the image is not present you'll be prompted to `podman pull` it.
 
 This is used as entrypoint for the created container, it will take care of creating the users,
 setting up sudo, mountpoints and exports.
-
-### Enter the distrobox
-
-	distrobox-enter --name fedora-35 -- bash -l
-
-	Arguments:
-		--name/-n:		name for the distrobox			default: fedora-35
-		--:			end arguments execute the rest as command to execute at login		default: bash -l
-		--help/-h:		show this message
-		-v:			show more verbosity
-
-This is used to enter the distrobox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
+**You should not have to touch or launch this manually**
 
 ### Application and service exporting
 
