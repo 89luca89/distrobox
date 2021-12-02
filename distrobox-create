@@ -48,7 +48,7 @@ while :; do
 		show_help
 		exit
 		;;
-	-v)
+	-v | --verbose)
 		verbose=1
 		shift
 		;;
@@ -88,10 +88,16 @@ fi
 # Outputs:
 #   prints the podman command to create the distrobox container
 generate_command() {
+
+	host_folders="/ /etc /media /mnt /run /tmp /usr /var"
+
 	# Set the container hostname the same as the container name.
 	# use the host's namespace for ipc, network, pid, ulimit
-	echo "podman create
-	--dns none
+	echo "podman create"
+	if [ "${verbose}" -ne 0 ]; then
+		echo "--log-level debug"
+	fi
+	echo "--dns none
 	--env XDG_RUNTIME_DIR=/run/user/${container_user_uid}
 	--hostname ${container_name}
 	--ipc host"
@@ -114,27 +120,31 @@ generate_command() {
 	--user root:root
 	--userns keep-id
 	--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro"
+
 	# let's check if we can include distrobox-export or not
 	if [ -n "${distrobox_export_path}" ]; then
 		echo "--volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
 	fi
+
 	echo "--volume ${container_user_home}:${container_user_home}:rslave
-	--volume /:/run/host:rslave
-	--volume /dev:/dev:rslave
-	--volume /etc:/run/host/etc
-	--volume /media:/media:rslave
-	--volume /mnt:/mnt:rslave
-	--volume /run:/run/host/run:rslave
-	--volume /tmp:/run/host/tmp:rslave
-	--volume /usr:/run/host/usr:rw,rslave
-	--volume /var:/run/host/var:rslave"
+	--volume /dev:/dev:rslave"
+
+	# Check if host folder exists before mounting it
+	for host_folder in ${host_folders}; do
+		if [ -d "${host_folder}" ]; then
+			echo "--volume "${host_folder}":/run/host"${host_folder}":rslave"
+		fi
+	done
+
 	if [ -d /run/media ]; then
 		echo "--volume /run/media:/run/media:rslave"
 	fi
+
 	# mount also the XDG_RUNTIME_DIR to ensure functionality of the apps
 	if [ -d /run/user/"${container_user_uid}" ]; then
 		echo "--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
 	fi
+
 	# find all the user's socket and mount them inside the container
 	# this will allow for continuity of functionality between host and container
 	# for example using `podman --remote` to control the host's podman from inside
@@ -142,12 +152,17 @@ generate_command() {
 	for socket in $(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null); do
 		echo "--volume ${socket}:${socket}"
 	done
+
 	# now execute the entrypoint, refer to `distrobox-init -h` for instructions
 	echo "${container_image}
 	/usr/bin/entrypoint -v --name ${container_user_name}
 	--user ${container_user_uid} --group ${container_user_gid}
 	--home ${container_user_home}"
 }
+
+# check that we have a complete distrobox installation or
+# entrypoint and export will not work.
+[ -z "${distrobox_entrypoint_path}" ] && echo "Error: no distrobox-init found in $PATH" && exit 1
 
 # First, check if the image exists in the host
 if ! podman image exists "${container_image}"; then
