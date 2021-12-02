@@ -48,7 +48,7 @@ while :; do
 		show_help
 		exit
 		;;
-	-v)
+	-v | --verbose)
 		verbose=1
 		shift
 		;;
