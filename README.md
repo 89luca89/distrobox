@@ -15,6 +15,13 @@ All the props goes to them as they had the great idea to implement this stuff.
 
 Simply put it's a fancy `podman` wrapper to create and start containers highly integrated with the hosts.
 
+It is divided in 4 parts:
+
+- `distrobox-create` - creates the container
+- `distrobox-enter`  - to enter the container
+- `distrobox-init`   - it's the entrypoint of the container (not meant to be used manually)
+- `distrobox-export` - it is meant to be used inside the container, useful to export apps and services from the container to the host
+
 ## Why?
 
 The intention is to provide a mutable environment on a host where the file-system is immutable (like Suse's MicroOS, Fedora Silverblue, Endless OS or SteamOS3)
@@ -63,8 +70,6 @@ real	0m0,281s
 user	0m0,116s
 sys	0m0,063s
 ```
-
-It is included also a `distrobox-export` functionality to export applications and services from the container onto the host.
 
 # Compatibility
 
