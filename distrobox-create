@@ -93,8 +93,11 @@ generate_command() {
 
 	# Set the container hostname the same as the container name.
 	# use the host's namespace for ipc, network, pid, ulimit
-	echo "podman create
-	--dns none
+	echo "podman create"
+	if [ "${verbose}" -ne 0 ]; then
+		echo "--log-level debug"
+	fi
+	echo "--dns none
 	--env XDG_RUNTIME_DIR=/run/user/${container_user_uid}
 	--hostname ${container_name}
 	--ipc host"

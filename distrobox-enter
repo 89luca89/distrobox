@@ -103,7 +103,11 @@ generate_command() {
 	fi
 
 	# entering container using our user and workdir
-	echo "podman exec --interactive --tty --user=${USER} --workdir=${HOME}"
+	echo "podman exec"
+	if [ "${verbose}" -ne 0 ]; then
+		echo "--log-level debug"
+	fi
+	echo "--interactive --tty --user=${USER} --workdir=${HOME}"
 	echo "--env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
 	# exporting current environment to container
 	for i in $(printenv | grep '=' | head -n -2); do
