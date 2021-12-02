@@ -13,7 +13,7 @@ It implements what https://github.com/containers/toolbox does but in a simplifie
 
 All the props goes to them as they had the great idea to implement this stuff.
 
-Simply put is a fancy `podman` wrapper to create and start containers highly integrated with the hosts.
+Simply put it's a fancy `podman` wrapper to create and start containers highly integrated with the hosts.
 
 ## Why?
 
@@ -22,6 +22,9 @@ or where the user doesn't have privileges to modify the host (non-sudo users for
 
 So even if you're not a sudoer or your distro doesn't have access to a traditional package manager, you
 will still be able to perform your `apt/dnf/pacman/pkg/zypper` shenanigans.
+
+Or for example if you want to mix and match a stable base system (eg. Ubuntu LTS, RedHat8) with
+a bleeding edge environment for development or gaming (eg. Arch, Suse Tumbleweed, Fedora)
 
 The distrobox environment is based on an OCI image.
 This image is used to create a container that seamlessly integrates with the rest of the operating system by providing access to the user's home directory,
@@ -206,13 +209,79 @@ or if you want to select a custom folder to install without sudo:
 
 Else you can clone the project using `git clone` or using the `download zip` voice after clicking the green button above.
 
-Enter the folder and run `./install`, by default it will attemp to install in `/usr/local/bin`, you can specify another folder if needed with `./install -p ~/.local/bin` 
- 
+Enter the folder and run `./install`, by default it will attemp to install in `/usr/local/bin`, you can specify another folder if needed with `./install -p ~/.local/bin`
+
 # Dependencies
 
 It depends on `podman` configured in `rootless mode`
 
 Check out your distro's documentation to check how to.
+
+
+# Useful tips
+
+## Container save and restore
+
+To save, export and reuse an already configured container, you can leverage `podman save` and `podman import`
+to basically create snapshots of your environment.
+
+---
+
+To save a container to an image:
+
+```
+podman container commit -p distrobox_name image_name_you_choose
+
+podman save image_name_you_choose:latest | gzip > image_name_you_choose.tar.gz
+```
+
+This will create a tar.gz of the container of your choice in that exact moment.
+
+---
+
+Now you can backup that archive or transfer it to another host, and to restore it
+just run
+
+`podman import image_name_you_choose.tar.gz`
+
+And create a new container based on that image:
+
+```
+distrobox-create --image image_name_you_choose:latest --name distrobox_name
+distrobox-enter --name distrobox_name
+```
+
+And you're good to go, now you can reproduce your personal environment everywhere
+in simple (and scriptable) steps.
+
+## Check used resources
+
+- You can always check how much space a `distrobox` is taking by using `podman` command:
+
+	`podman system df -v`
+
+- You can check running `distrobox` using:
+
+	`podman ps -a`
+
+- You can remove a `distrobox` using
+
+	`podman rm distrobox_name`
+
+## Using podman inside a distrobox
+
+You can use `podman socket` to control host's podman from inside a `distrobox`,
+just use:
+
+`podman --remote`
+
+inside the `distrobox` to use it.
+
+It may be necessary to enable the socket on your host system by using:
+
+`systemctl --user enable --now podman.socket`
+
+
 
 ## Authors
 
