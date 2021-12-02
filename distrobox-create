@@ -164,4 +164,4 @@ if ! podman image exists "${container_image}"; then
 fi
 
 # Generate the command and execute
-echo $(generate_command)
+$(generate_command)
