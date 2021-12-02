@@ -88,6 +88,9 @@ fi
 # Outputs:
 #   prints the podman command to create the distrobox container
 generate_command() {
+
+	host_folders="/ /etc /media /mnt /run /tmp /usr /var"
+
 	# Set the container hostname the same as the container name.
 	# use the host's namespace for ipc, network, pid, ulimit
 	echo "podman create
@@ -119,15 +122,14 @@ generate_command() {
 		echo "--volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
 	fi
 	echo "--volume ${container_user_home}:${container_user_home}:rslave
-	--volume /:/run/host:rslave
-	--volume /dev:/dev:rslave
-	--volume /etc:/run/host/etc
-	--volume /media:/media:rslave
-	--volume /mnt:/mnt:rslave
-	--volume /run:/run/host/run:rslave
-	--volume /tmp:/run/host/tmp:rslave
-	--volume /usr:/run/host/usr:rw,rslave
-	--volume /var:/run/host/var:rslave"
+	--volume /dev:/dev:rslave"
+
+	# Check if host folder exists before mounting it
+	for host_folder in ${host_folders}; do
+		if [ -d "${host_folder}" ]; then
+			echo "--volume "${host_folder}":/run/host"${host_folder}":rslave"
+		fi
+	done
 	if [ -d /run/media ]; then
 		echo "--volume /run/media:/run/media:rslave"
 	fi
@@ -149,6 +151,11 @@ generate_command() {
 	--home ${container_user_home}"
 }
 
+# check that we have a complete distrobox installation or
+# entrypoint and export will not work.
+[ -z "${distrobox_entrypoint_path}" ] && echo "Error: missing distrobox-init" && exit 1
+[ -z "${distrobox_export_path}" ] && echo "Error: missing distrobox-export" && exit 1
+
 # First, check if the image exists in the host
 if ! podman image exists "${container_image}"; then
 	echo "Image not found, run this command first:"
@@ -157,4 +164,4 @@ if ! podman image exists "${container_image}"; then
 fi
 
 # Generate the command and execute
-$(generate_command)
+echo $(generate_command)
