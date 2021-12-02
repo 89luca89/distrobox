@@ -242,7 +242,9 @@ This will create a tar.gz of the container of your choice in that exact moment.
 Now you can backup that archive or transfer it to another host, and to restore it
 just run
 
-`podman import image_name_you_choose.tar.gz`
+```
+podman import image_name_you_choose.tar.gz
+```
 
 And create a new container based on that image:
 
