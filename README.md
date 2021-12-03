@@ -115,6 +115,7 @@ distrobox guests tested with the following container images:
 | Scientific Linux 7| docker.io/library/sl:7	|
 | Ubuntu 20.04		| docker.io/library/ubuntu:20.04	|
 | Ubuntu 21.10		| docker.io/library/ubuntu:21.10	|
+| Kali Linux		| docker.io/kalilinux/kali-rolling:latest |
 
 
 Note however that if you use a non-toolbox pre configured image (e.g. images pre-baked to work with https://github.com/containers/toolbox),
