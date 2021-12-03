@@ -103,8 +103,10 @@ distrobox guests tested with the following container images:
 | Debian 11			| docker.io/library/debian:stable, docker.io/library/debian:stable-backports	|
 | Debian Testing	| docker.io/library/debian:testing, docker.io/library/debian:testing-backports	|
 | Debian Unstable	| docker.io/library/debian:unstable	|
+| Neurodebian	| docker.io/library/neurodebian |
 | Fedora 34			| registry.fedoraproject.org/fedora-toolbox:34, docker.io/library/fedora:34	|
 | Fedora 35			| registry.fedoraproject.org/fedora-toolbox:35, docker.io/library/fedora:35	|
+| Mageia 8			| docker.io/library/mageia |
 | Opensuse Leap		| registry.opensuse.org/opensuse/leap:latest	|
 | Opensuse Tumbleweed	| registry.opensuse.org/opensuse/tumbleweed:latest, registry.opensuse.org/opensuse/toolbox:latest	|
 | Oracle Linux 7 	| container-registry.oracle.com/os/oraclelinux:7	|
