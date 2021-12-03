@@ -92,30 +92,30 @@ Host compatibility tested on:
 
 distrobox guests tested with the following container images:
 
-|	Distro  |	Images	|
-| --- | --- |
-| AlmaLinux 8	 	| docker.io/library/almalinux:8	|
-| Alpine Linux		| docker.io/library/alpine:latest	|
-| AmazonLinux 2  	| docker.io/library/amazonlinux:2.0.20211005.0	|
-| Archlinux		 	| docker.io/library/archlinux:latest	|
-| Centos 7		 	| quay.io/centos/centos:7	|
-| Centos 8		 	| quay.io/centos/centos:8	|
-| Debian 11			| docker.io/library/debian:stable, docker.io/library/debian:stable-backports	|
-| Debian Testing	| docker.io/library/debian:testing, docker.io/library/debian:testing-backports	|
-| Debian Unstable	| docker.io/library/debian:unstable	|
-| Neurodebian	| docker.io/library/neurodebian |
-| Fedora 34			| registry.fedoraproject.org/fedora-toolbox:34, docker.io/library/fedora:34	|
-| Fedora 35			| registry.fedoraproject.org/fedora-toolbox:35, docker.io/library/fedora:35	|
-| Mageia 8			| docker.io/library/mageia |
-| Opensuse Leap		| registry.opensuse.org/opensuse/leap:latest	|
-| Opensuse Tumbleweed	| registry.opensuse.org/opensuse/tumbleweed:latest, registry.opensuse.org/opensuse/toolbox:latest	|
-| Oracle Linux 7 	| container-registry.oracle.com/os/oraclelinux:7	|
-| Oracle Linux 8 	| container-registry.oracle.com/os/oraclelinux:8	|
-| Rocky Linux 8		| docker.io/rockylinux/rockylinux:8	|
-| Scientific Linux 7| docker.io/library/sl:7	|
-| Ubuntu 20.04		| docker.io/library/ubuntu:20.04	|
-| Ubuntu 21.10		| docker.io/library/ubuntu:21.10	|
-| Kali Linux		| docker.io/kalilinux/kali-rolling:latest |
+| Distro             | Images |
+| ------------------ | --- |
+| AlmaLinux 8        | `docker.io/library/almalinux:8` [🔗](https://docker.io/library/almalinux:8)|
+| Alpine Linux       | `docker.io/library/alpine:latest` [🔗](https://docker.io/library/alpine:latest) |
+| AmazonLinux 2      | `docker.io/library/amazonlinux:2.0.20211005.0` [🔗](https://docker.io/library/amazonlinux:2.0.20211005.0) |
+| Archlinux          | `docker.io/library/archlinux:latest` [🔗](https://docker.io/library/archlinux:latest) |
+| Centos 7           | `quay.io/centos/centos:7` [🔗](https://quay.io/centos/centos:7) |
+| Centos 8           | `quay.io/centos/centos:8` [🔗](https://quay.io/centos/centos:8) |
+| Debian 11          | `docker.io/library/debian:stable` [🔗](https://docker.io/library/debian:stable), `docker.io/library/debian:stable-backports` [🔗](https://docker.io/library/debian:stable-backports) |
+| Debian Testing     | `docker.io/library/debian:testing` [🔗](https://docker.io/library/debian:testing), `docker.io/library/debian:testing-backports` [🔗](https://docker.io/library/debian:testing-backports) |
+| Debian Unstable    | `docker.io/library/debian:unstable` [🔗](https://docker.io/library/debian:unstable) |
+| Neurodebian        | `docker.io/library/neurodebian` [🔗](https://docker.io/library/neurodebian) |
+| Fedora 34          | `registry.fedoraproject.org/fedora-toolbox:34` [🔗](https://registry.fedoraproject.org/fedora-toolbox:34), `docker.io/library/fedora:34` [🔗](https://docker.io/library/fedora:34) |
+| Fedora 35          | `registry.fedoraproject.org/fedora-toolbox:35` [🔗](https://registry.fedoraproject.org/fedora-toolbox:35), `docker.io/library/fedora:35` [🔗](https://docker.io/library/fedora:35) |
+| Mageia 8           | `docker.io/library/mageia` [🔗](https://docker.io/library/mageia) |
+| Opensuse Leap      | `registry.opensuse.org/opensuse/leap:latest` [🔗](https://registry.opensuse.org/opensuse/leap:latest) |
+| Opensuse Tumbleweed| `registry.opensuse.org/opensuse/tumbleweed:latest` [🔗](https://registry.opensuse.org/opensuse/tumbleweed:latest), `registry.opensuse.org/opensuse/toolbox:latest` [🔗](https://registry.opensuse.org/opensuse/toolbox:latest) |
+| Oracle Linux 7     | `container-registry.oracle.com/os/oraclelinux:7` [🔗](https://container-registry.oracle.com/os/oraclelinux:7) |
+| Oracle Linux 8     | `container-registry.oracle.com/os/oraclelinux:8` [🔗](https://container-registry.oracle.com/os/oraclelinux:8) |
+| Rocky Linux 8      | `docker.io/rockylinux/rockylinux:8` [🔗](https://docker.io/rockylinux/rockylinux:8) |
+| Scientific Linux 7 | `docker.io/library/sl:7` [🔗](https://docker.io/library/sl:7) |
+| Ubuntu 20.04       | `docker.io/library/ubuntu:20.04` [🔗](https://docker.io/library/ubuntu:20.04) |
+| Ubuntu 21.10       | `docker.io/library/ubuntu:21.10` [🔗](https://docker.io/library/ubuntu:21.10) |
+| Kali Linux         | `docker.io/kalilinux/kali-rolling:latest` [🔗](https://docker.io/kalilinux/kali-rolling:latest) |
 
 
 Note however that if you use a non-toolbox pre configured image (e.g. images pre-baked to work with https://github.com/containers/toolbox),
