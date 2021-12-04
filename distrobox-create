@@ -162,7 +162,7 @@ generate_command() {
 
 # check that we have a complete distrobox installation or
 # entrypoint and export will not work.
-[ -z "${distrobox_entrypoint_path}" ] && echo "Error: no distrobox-init found in $PATH" && exit 1
+[ -z "${distrobox_entrypoint_path}" ] && echo "Error: no distrobox-init found in ${PATH}" && exit 1
 
 # First, check if the image exists in the host
 if ! podman image exists "${container_image}"; then
