@@ -84,11 +84,11 @@ generate_command() {
 
 			# if cannot start, container not found!
 			# prompt to create it first
-			echo "" 1>&2
-			echo "Cannot start container, does it exist?" 1>&2
-			echo "Try running first:" 1>&2
-			echo "" 1>&2
-			echo "    distrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>" 1>&2
+			echo >&2 ""
+			echo >&2 "Cannot start container, does it exist?"
+			echo >&2 "Try running first:"
+			echo >&2 ""
+			echo >&2 "    distrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>"
 			exit 1
 		else
 			echo >&2 "Starting container"
