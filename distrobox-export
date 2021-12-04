@@ -116,7 +116,7 @@ if [ -n "${container_app}" ]; then
 	icon_files=$(find /usr/share/icons -iname "*${container_app}*")
 
 	# copy icons in home directory
-	for icon in $icon_files; do
+	for icon in ${icon_files}; do
 		icon_home_folder="$(dirname "${icon}" | sed "s|/usr/share/|${HOME}/.local/share/|g")"
 
 		# check if we're exporting or deleting
@@ -131,7 +131,7 @@ if [ -n "${container_app}" ]; then
 	done
 
 	# create desktop files for the distrobox
-	for desktop_file in $desktop_files; do
+	for desktop_file in ${desktop_files}; do
 		desktop_home_file="$(basename "${desktop_file}")"
 
 		# check if we're exporting or deleting

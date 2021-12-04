@@ -16,7 +16,7 @@ verbose=0
 #   print usage with examples.
 show_help() {
 	echo "USAGE:
-	distrobox-init --name $USER --user $(id -ru) --group $(id -rg) --home $HOME
+	distrobox-init --name ${USER} --user $(id -ru) --group $(id -rg) --home ${HOME}
 
 	Arguments:
 		--name/-n:		user name
@@ -163,7 +163,7 @@ list_sudo_groups() (
 # We do this before checking dependencies, as network access will be needed to
 # install them if not found.
 HOST_LINKS="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
-for link in $HOST_LINKS; do
+for link in ${HOST_LINKS}; do
 	rm -f "${link}"
 	ln -s /run/host"${link}" "${link}"
 done
@@ -198,14 +198,14 @@ fi
 
 # We'll also bind mount in READ-ONLY useful folders from the host
 HOST_MOUNTS_RO="/etc/machine-id /var/lib/flatpak /var/lib/systemd/coredump /var/log/journal"
-for mount_ro in $HOST_MOUNTS_RO; do
+for mount_ro in ${HOST_MOUNTS_RO}; do
 	mount_bind /run/host"${mount_ro}" "${mount_ro}" ro
 done
 
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
 HOST_MOUNTS="/media /mnt /run/systemd/journal /run/libvirt /var/mnt /var/lib/libvirt"
-for mount in $HOST_MOUNTS; do
+for mount in ${HOST_MOUNTS}; do
 	mount_bind /run/host"${mount}" "${mount}" rw
 done
 
