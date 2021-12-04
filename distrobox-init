@@ -128,6 +128,7 @@ mount_bind() (
 	# Add mountflags if needed
 	[ "${mount_flags}" = "" ] || mount_o="-o ${mount_flags}"
 	# bind mount source_dir to target_dir, return error if not successful
+	# shellcheck disable=SC2086
 	if ! mount --rbind ${mount_o} "${source_dir}" "${target_dir}"; then
 		echo "Failed to bind mount ${source_dir} to ${target_dir}"
 		return 1
