@@ -166,16 +166,17 @@ generate_command() {
 
 # First, check if the image exists in the host
 if ! podman image exists "${container_image}"; then
-    echo "Image not found."
-    read -n1 -p "Do you want to pull the image now?[y/n] " yn
+    echo >&2 "Image not found."
+    echo >&2 "Do you want to pull the image now?[y/n]"
+    read -r yn
     case $yn in
         [Yy]* )
             podman pull ${container_image}
             break
             ;;
         [Nn]* )
-            echo "next time, run this command first:"
-            echo "  podman pull ${container_image}"
+            echo >&2 "next time, run this command first:"
+            echo >&2 "  podman pull ${container_image}"
             exit 1
             ;;
     esac
