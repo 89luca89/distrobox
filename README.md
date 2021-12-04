@@ -125,6 +125,11 @@ will take a while as it will install with the pkg manager the missing dependenci
 A small time-tax to pay for the ability to use any type of image.
 This will **not** occur after the first time, and will enter directly.
 
+## New Distro support
+
+If your distro of choice is not in the list, just try using it anyway, if it works, open an issue
+and it will be added to the list
+
 # Usage
 
 ## Outside the distrobox
