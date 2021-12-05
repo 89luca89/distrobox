@@ -165,7 +165,8 @@ generate_command() {
 	# this will allow for continuity of functionality between host and container
 	# for example using `podman --remote` to control the host's podman from inside
 	# the container
-	for socket in $(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null); do
+	host_sockets="$(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null || true)"
+	for socket in ${host_sockets}; do
 		echo "--volume ${socket}:${socket}"
 	done
 
