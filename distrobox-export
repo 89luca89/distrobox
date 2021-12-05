@@ -118,7 +118,7 @@ fi
 
 container_name=$(grep "name=" /run/.containerenv | cut -d'"' -f2)
 # Prefix to add to an existing command to work throught the container
-container_command_prefix="${DISTROBOX_ENTER_PATH} --name ${container_name} -e "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -e "
 
 # Work on a desktop app export
 if [ -n "${container_app}" ]; then
