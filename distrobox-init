@@ -232,6 +232,7 @@ echo "${container_user_name} ALL = (root) NOPASSWD:ALL" >>/etc/sudoers
 
 # Let's add our user to the container
 # if the user already exists, just add it to the sudoers groups
+groupadd --force --gid "${container_user_uid}" "${container_user_name}"
 if ! useradd \
 	--home-dir "${container_user_home}" \
 	--no-create-home \
