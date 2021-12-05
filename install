@@ -109,5 +109,6 @@ else
 	# securely delete unneeded files
 	rm -f "${release_name}"
 	rm -f "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/*
+	rm -rf "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/.github
 	rmdir "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"
 fi
