@@ -1,4 +1,20 @@
 #!/bin/sh
+# Copyright (C) 2021 Luca Di Maio
+# This file is part of distrobox <https://github.com/89luca89/distrobox>.
+#
+# distrobox is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# distrobox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox. If not, see <http://www.gnu.org/licenses/>.
+
 # POSIX
 # Expected env variables:
 #	HOME
@@ -101,9 +117,9 @@ generate_command() {
 	--env XDG_RUNTIME_DIR=/run/user/${container_user_uid}
 	--hostname ${container_name}
 	--ipc host"
-	if [ -f /dev/pts ]; then
-		echo "--mount type=devpts,destination=/dev/pts"
-	fi
+	# if [ -f /dev/pts ]; then
+	# 	echo "--mount type=devpts,destination=/dev/pts"
+	# fi
 	# mount useful stuff inside the container.
 	# we also mount host's root filesystem to /run/host, to be
 	# able to syphon dynamic configurations from the host
