@@ -19,6 +19,7 @@
 # Expected env variables:
 #	HOME
 #	USER
+#	SHELL
 
 trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
 
@@ -185,6 +186,8 @@ for link in ${HOST_LINKS}; do
 	ln -s /run/host"${link}" "${link}"
 done
 
+# Extract shell name from the $SHELL environment variable
+# If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL}")"
 # Check if dependencies are met for the script to run.
 if ! command -v mount || ! command -v passwd ||
