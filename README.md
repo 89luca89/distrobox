@@ -230,6 +230,13 @@ It depends on `podman` configured in `rootless mode`
 
 Check out your distro's documentation to check how to.
 
+---
+
+Please be aware that old version of podman (prior to 1.6.4) have an issue with restarting a stopped container, this will create problems to re-enter an already created distrobox.
+
+Follow the official installation guide here: https://podman.io/getting-started/installation
+
+To ensure you have a recent version on your host.
 
 # Useful tips
 
