@@ -21,7 +21,7 @@
 #	USER
 #	SHELL
 
-trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
+trap 'if [ "$?" -ne 0 ]; then echo An error occurred; fi; rm "$env_file"' EXIT
 
 # We depend on podman let's be sure we have it
 if ! command -v podman >/dev/null; then
@@ -33,6 +33,8 @@ fi
 verbose=0
 container_name="fedora-toolbox-35"
 container_command="${SHELL} -l"
+
+env_file="$(mktemp /tmp/distrobox-env.XXXXXX)"
 
 # Print usage to stdout.
 # Arguments:
@@ -126,9 +128,8 @@ generate_command() {
 	echo "--interactive --tty --user=${USER} --workdir=${HOME}"
 	echo "--env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
 	# exporting current environment to container
-	for i in $(printenv); do
-		echo "--env=\"${i}\""
-	done
+	printenv > "${env_file}"
+	echo "--env-file=${env_file}"
 	# run selected pod with command+args
 	echo "${container_name} ${container_command}"
 }
