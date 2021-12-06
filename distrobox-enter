@@ -127,11 +127,12 @@ generate_command() {
 	echo "--env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
 	# exporting current environment to container
 	for i in $(printenv); do
-		echo "--env=${i}"
+		echo "--env=\"${i}\""
 	done
 	# run selected pod with command+args
 	echo "${container_name} ${container_command}"
 }
 
 # Generate the command and execute
-$(generate_command)
+# shellcheck disable=SC2046
+eval $(generate_command)

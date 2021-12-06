@@ -114,7 +114,7 @@ generate_command() {
 		echo "--log-level debug"
 	fi
 	echo "--dns none
-	--env XDG_RUNTIME_DIR=/run/user/${container_user_uid}
+	--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
 	--hostname ${container_name}
 	--ipc host"
 	# if [ -f /dev/pts ]; then
@@ -126,7 +126,7 @@ generate_command() {
 	#
 	# also mount the distrobox-init utility as the container entrypoint
 	echo "--name ${container_name}
-	--env=SHELL=${SHELL}
+	--env=\"SHELL=${SHELL}\"
 	--network host
 	--no-hosts
 	--pid host
@@ -201,4 +201,5 @@ if ! podman image exists "${container_image}"; then
 fi
 
 # Generate the command and execute
-$(generate_command)
+# shellcheck disable=SC2046
+eval $(generate_command)
