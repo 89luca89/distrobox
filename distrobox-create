@@ -1,4 +1,20 @@
 #!/bin/sh
+# Copyright (C) 2021 Luca Di Maio
+# This file is part of distrobox <https://github.com/89luca89/distrobox>.
+#
+# distrobox is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# distrobox is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox. If not, see <http://www.gnu.org/licenses/>.
+
 # POSIX
 # Expected env variables:
 #	HOME
@@ -98,19 +114,19 @@ generate_command() {
 		echo "--log-level debug"
 	fi
 	echo "--dns none
-	--env XDG_RUNTIME_DIR=/run/user/${container_user_uid}
+	--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
 	--hostname ${container_name}
 	--ipc host"
-	if [ -f /dev/pts ]; then
-		echo "--mount type=devpts,destination=/dev/pts"
-	fi
+	# if [ -f /dev/pts ]; then
+	# 	echo "--mount type=devpts,destination=/dev/pts"
+	# fi
 	# mount useful stuff inside the container.
 	# we also mount host's root filesystem to /run/host, to be
 	# able to syphon dynamic configurations from the host
 	#
 	# also mount the distrobox-init utility as the container entrypoint
 	echo "--name ${container_name}
-	--env=SHELL=${SHELL}
+	--env=\"SHELL=${SHELL}\"
 	--network host
 	--no-hosts
 	--pid host
@@ -132,7 +148,7 @@ generate_command() {
 	# Check if host folder exists before mounting it
 	for host_folder in ${host_folders}; do
 		if [ -d "${host_folder}" ]; then
-			echo "--volume "${host_folder}":/run/host"${host_folder}":rslave"
+			echo "--volume ${host_folder}:/run/host${host_folder}:rslave"
 		fi
 	done
 
@@ -149,7 +165,8 @@ generate_command() {
 	# this will allow for continuity of functionality between host and container
 	# for example using `podman --remote` to control the host's podman from inside
 	# the container
-	for socket in $(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null); do
+	host_sockets="$(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null || true)"
+	for socket in ${host_sockets}; do
 		echo "--volume ${socket}:${socket}"
 	done
 
@@ -162,7 +179,7 @@ generate_command() {
 
 # check that we have a complete distrobox installation or
 # entrypoint and export will not work.
-[ -z "${distrobox_entrypoint_path}" ] && echo "Error: no distrobox-init found in $PATH" && exit 1
+[ -z "${distrobox_entrypoint_path}" ] && echo "Error: no distrobox-init found in ${PATH}" && exit 1
 
 # First, check if the image exists in the host
 if ! podman image exists "${container_image}"; then
@@ -172,4 +189,5 @@ if ! podman image exists "${container_image}"; then
 fi
 
 # Generate the command and execute
-$(generate_command)
+# shellcheck disable=SC2046
+eval $(generate_command)
