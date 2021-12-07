@@ -182,8 +182,12 @@ list_sudo_groups() (
 # install them if not found.
 HOST_LINKS="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
 for link in ${HOST_LINKS}; do
-	rm -f "${link}"
-	ln -s /run/host"${link}" "${link}"
+	# Check if the file exists first
+	if [ -f /run/host"${link}" ]; then
+		rm -f "${link}"
+		# Use realpath to not have multi symlink messes
+		ln -s "$(realpath /run/host"${link}")" "${link}"
+	fi
 done
 
 # Extract shell name from the $SHELL environment variable
@@ -229,8 +233,9 @@ for mount in ${HOST_MOUNTS}; do
 	mount_bind /run/host"${mount}" "${mount}" rw
 done
 
-# Ensure passwordless sudo is set up for user
+# Do not check fqdn when doing sudo, it will not work anyways
 echo "Defaults !fqdn" >>/etc/sudoers
+# Ensure passwordless sudo is set up for user
 echo "${container_user_name} ALL = (root) NOPASSWD:ALL" >>/etc/sudoers
 
 # Let's add our user to the container
