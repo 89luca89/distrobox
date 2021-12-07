@@ -126,7 +126,7 @@ generate_command() {
 	echo "--interactive --tty --user=${USER} --workdir=${HOME}"
 	echo "--env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
 	# exporting current environment to container
-	for i in $(printenv); do
+	for i in $(printenv | grep '=' | grep -v ' '); do
 		echo "--env=\"${i}\""
 	done
 	# run selected pod with command+args
