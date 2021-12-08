@@ -29,6 +29,8 @@ done
 #   print usage with examples.
 show_help() {
 	echo "USAGE:
+	distrobox version: ${version}
+
 	distrobox-export --app mpv
 	distrobox-export --service syncthing
 
