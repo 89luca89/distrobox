@@ -9,6 +9,7 @@ trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
 
 # Defaults
 verbose=0
+version="distrobox_version_placeholder"
 
 # Print usage to stdout.
 # Arguments:
@@ -40,6 +41,10 @@ while :; do
 	-v | --verbose)
 		shift
 		verbose=1
+		;;
+	-V | --version)
+		echo "distrobox: ${version}"
+		exit
 		;;
 	-n | --name)
 		if [ -n "$2" ]; then

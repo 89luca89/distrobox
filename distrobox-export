@@ -11,6 +11,7 @@ trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
 container_app=""
 container_app_delete=0
 verbose=0
+version="distrobox_version_placeholder"
 
 # We depend on some commands, let's be sure we have them
 base_dependencies="basename grep sed find"
@@ -53,6 +54,10 @@ while :; do
 	-v | --verbose)
 		shift
 		verbose=1
+		;;
+	-V | --version)
+		echo "distrobox: ${version}"
+		exit
 		;;
 	-a | --app)
 		if [ -n "$2" ]; then
