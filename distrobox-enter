@@ -26,6 +26,8 @@ container_command="${SHELL} -l"
 #   print usage with examples.
 show_help() {
 	echo "USAGE:
+	distrobox version: ${version}
+
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 
 	Arguments:

@@ -18,6 +18,8 @@ version="distrobox_version_placeholder"
 #   print usage with examples.
 show_help() {
 	echo "USAGE:
+	distrobox version: ${version}
+
 	distrobox-init --name ${USER} --user $(id -ru) --group $(id -rg) --home ${HOME}
 
 	Arguments:

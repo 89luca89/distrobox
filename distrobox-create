@@ -31,6 +31,8 @@ version="distrobox_version_placeholder"
 #   print usage with examples.
 show_help() {
 	echo "USAGE:
+	distrobox version: ${version}
+
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 
 	Arguments:
