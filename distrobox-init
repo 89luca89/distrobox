@@ -164,21 +164,6 @@ list_sudo_groups() (
 	return 0
 )
 
-# We will use host's dynamic config for some functionalities, ensure they are
-# symlinks to host's file inside the container.
-#
-# We do this before checking dependencies, as network access will be needed to
-# install them if not found.
-HOST_LINKS="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
-for link in ${HOST_LINKS}; do
-	# Check if the file exists first
-	if [ -f /run/host"${link}" ]; then
-		rm -f "${link}"
-		# Use realpath to not have multi symlink messes
-		ln -s "$(realpath /run/host"${link}")" "${link}"
-	fi
-done
-
 # Extract shell name from the $SHELL environment variable
 # If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL}")"
