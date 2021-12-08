@@ -91,7 +91,7 @@ else
 	# deploy our files
 	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox-*; do
 		cp "${file}" "${dest_path}"
-		sed -i "s/distrobox_version_placeholder/${release_name}/g" "${dest_path}/$(basename "${file}")"
+		sed -i "s/distrobox_version_placeholder/$(echo "${release_name}" | sed 's/.tar.gz//g')/g" "${dest_path}/$(basename "${file}")"
 		chmod 0755 "${dest_path}/$(basename "${file}")"
 	done
 
