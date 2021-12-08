@@ -9,6 +9,8 @@ trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
 
 # Defaults
 container_app=""
+container_service=""
+extra_flags=""
 container_app_delete=0
 verbose=0
 version="distrobox_version_placeholder"
@@ -41,6 +43,7 @@ show_help() {
 		--service/-s:		name of the service to export
 		--delete/-d:		delete exported application or service
 		--help/-h:		show this message
+		--extra-flags/-ef:		extra flags to add to the command
 		-v:			show more verbosity
 	"
 }
@@ -71,6 +74,13 @@ while :; do
 	-s | --service)
 		if [ -n "$2" ]; then
 			container_service="$2"
+			shift
+			shift
+		fi
+		;;
+	-ef | --extra-flags)
+		if [ -n "$2" ]; then
+			extra_flags="$2"
 			shift
 			shift
 		fi
@@ -174,7 +184,8 @@ elif [ -n "${container_service}" ]; then
 		# Add prefix only if not present
 		if ! grep "${cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
 			tail -n+2 "${temp_file}" |
-				sed "s|^${cmd}=|${cmd}=${container_command_prefix} |g" >"${service_file}"
+				sed "s|^${cmd}=|${cmd}=${container_command_prefix} |g" |
+				sed "s|^${cmd}=.*|& ${extra_flags}|g" >"${service_file}"
 		fi
 	done
 	# Cleanup
