@@ -22,6 +22,7 @@ container_user_uid="$(id -ru)"
 distrobox_entrypoint_path="$(command -v distrobox-init)"
 distrobox_export_path="$(command -v distrobox-export)"
 verbose=0
+version="distrobox_version_placeholder"
 
 # Print usage to stdout.
 # Arguments:
@@ -51,6 +52,10 @@ while :; do
 	-v | --verbose)
 		verbose=1
 		shift
+		;;
+	-V | --version)
+		echo "distrobox: ${version}"
+		exit
 		;;
 	-i | --image)
 		if [ -n "$2" ]; then
