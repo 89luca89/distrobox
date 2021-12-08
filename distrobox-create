@@ -90,6 +90,7 @@ fi
 generate_command() {
 
 	host_folders="/ /etc /media /mnt /run /tmp /usr /var"
+	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
 
 	# Set the container hostname the same as the container name.
 	# use the host's namespace for ipc, network, pid, ulimit
@@ -101,9 +102,6 @@ generate_command() {
 	--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
 	--hostname ${container_name}
 	--ipc host"
-	# if [ -f /dev/pts ]; then
-	# 	echo "--mount type=devpts,destination=/dev/pts"
-	# fi
 	# mount useful stuff inside the container.
 	# we also mount host's root filesystem to /run/host, to be
 	# able to syphon dynamic configurations from the host
@@ -129,10 +127,20 @@ generate_command() {
 	echo "--volume ${container_user_home}:${container_user_home}:rslave
 	--volume /dev:/dev:rslave"
 
-	# Check if host folder exists before mounting it
+	# useful mounts from host to the container using /run/host as a base
 	for host_folder in ${host_folders}; do
+		# Check if the folder exists first
 		if [ -d "${host_folder}" ]; then
 			echo "--volume ${host_folder}:/run/host${host_folder}:rslave"
+		fi
+	done
+	# those are dynamic configs needed by the container to function properly
+	# and integrate with the host
+	for link in ${host_links}; do
+		# Check if the file exists first
+		if [ -f "${link}" ]; then
+			# Use realpath to not have multi symlink mess
+			echo "--volume $(realpath "${link}"):${link}:ro"
 		fi
 	done
 
@@ -143,6 +151,10 @@ generate_command() {
 	# mount also the XDG_RUNTIME_DIR to ensure functionality of the apps
 	if [ -d /run/user/"${container_user_uid}" ]; then
 		echo "--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
+	fi
+	# mount devpts
+	if [ -f /dev/pts ]; then
+		echo "--mount type=devpts,destination=/dev/pts"
 	fi
 
 	# find all the user's socket and mount them inside the container
