@@ -220,13 +220,13 @@ If you like to live your life dangerously, you can trust me and simply run this 
 
 `curl https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh`
 
-or if you want to select a custom folder to install without sudo:
+or if you want to select a custom directory to install without sudo:
 
 `curl https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- -p ~/.local/bin`
 
 Else you can clone the project using `git clone` or using the `download zip` voice after clicking the green button above.
 
-Enter the folder and run `./install`, by default it will attemp to install in `/usr/local/bin`, you can specify another folder if needed with `./install -p ~/.local/bin`
+Enter the directory and run `./install`, by default it will attemp to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
 
 # Dependencies
 

@@ -197,7 +197,7 @@ if ! command -v mount || ! command -v passwd ||
 
 fi
 
-# We'll also bind mount in READ-ONLY useful folders from the host
+# We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="/etc/machine-id /var/lib/flatpak /var/lib/systemd/coredump /var/log/journal"
 for mount_ro in ${HOST_MOUNTS_RO}; do
 	mount_bind /run/host"${mount_ro}" "${mount_ro}" ro
