@@ -97,7 +97,7 @@ fi
 #   prints the podman command to create the distrobox container
 generate_command() {
 
-	host_folders="/ /etc /media /mnt /run /tmp /usr /var"
+	host_directories="/ /etc /media /mnt /run /tmp /usr /var"
 	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
 
 	# Set the container hostname the same as the container name.
@@ -136,10 +136,10 @@ generate_command() {
 	--volume /dev:/dev:rslave"
 
 	# useful mounts from host to the container using /run/host as a base
-	for host_folder in ${host_folders}; do
-		# Check if the folder exists first
-		if [ -d "${host_folder}" ]; then
-			echo "--volume ${host_folder}:/run/host${host_folder}:rslave"
+	for host_directory in ${host_directories}; do
+		# Check if the directory exists first
+		if [ -d "${host_directory}" ]; then
+			echo "--volume ${host_directory}:/run/host${host_directory}:rslave"
 		fi
 	done
 	# those are dynamic configs needed by the container to function properly

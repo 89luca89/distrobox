@@ -135,16 +135,16 @@ if [ -n "${container_app}" ]; then
 
 	# copy icons in home directory
 	for icon in ${icon_files}; do
-		icon_home_folder="$(dirname "${icon}" | sed "s|/usr/share/|${HOME}/.local/share/|g")"
+		icon_home_directory="$(dirname "${icon}" | sed "s|/usr/share/|${HOME}/.local/share/|g")"
 
 		# check if we're exporting or deleting
 		if [ "${container_app_delete}" -ne 0 ]; then
 			# we need to remove, not export
-			rm -f "${icon_home_folder}"/"$(basename "${icon}")"
+			rm -f "${icon_home_directory}"/"$(basename "${icon}")"
 		else
 			# we wanto to export the application's icons
-			mkdir -p "${icon_home_folder}"
-			cp "${icon}" "${icon_home_folder}"
+			mkdir -p "${icon_home_directory}"
+			cp "${icon}" "${icon_home_directory}"
 		fi
 	done
 

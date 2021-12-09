@@ -60,7 +60,7 @@ fi
 curr_dir=$(dirname "$0")
 cd "${curr_dir}" || exit 1
 
-# if files are available, install files in dest folder
+# if files are available, install files in dest directory
 # else download targz and uncompress it
 if [ -f "${curr_dir}/distrobox-enter" ]; then
 	release_ver="github-zip-$(date +%F)"
