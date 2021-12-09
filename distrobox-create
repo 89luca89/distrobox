@@ -39,7 +39,8 @@ show_help() {
 		--image/-i: image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 		--name/-n:  name for the distrobox			default: fedora-toolbox-35
 		--help/-h:	show this message
-		-v:			show more verbosity
+		--verbose/-v:			show more verbosity
+		--version/-V:			show version
 	"
 }
 

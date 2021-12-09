@@ -44,7 +44,8 @@ show_help() {
 		--delete/-d:		delete exported application or service
 		--help/-h:		show this message
 		--extra-flags/-ef:		extra flags to add to the command
-		-v:			show more verbosity
+		--verbose/-v:			show more verbosity
+		--version/-V:			show version
 	"
 }
 
