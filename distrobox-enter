@@ -34,7 +34,8 @@ show_help() {
 		--name/-n:		name for the distrobox			default: fedora-toolbox-35
 		--/-e:			end arguments execute the rest as command to execute at login		default: bash -l
 		--help/-h:		show this message
-		-v:			show more verbosity
+		--verbose/-v:			show more verbosity
+		--version/-V:			show version
 	"
 }
 

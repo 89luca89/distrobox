@@ -28,7 +28,8 @@ show_help() {
 		--group/-g:		gid of the user
 		--home/-d:		path/to/home of the user
 		--help/-h:		show this message
-		-v:			show more verbosity
+		--verbose/-v:			show more verbosity
+		--version/-V:			show version
 	"
 }
 
