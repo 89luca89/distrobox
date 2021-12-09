@@ -14,10 +14,10 @@ if ! command -v podman >/dev/null; then
 fi
 
 # Defaults
+container_command="${SHELL} -l"
+container_name="fedora-toolbox-35"
 verbose=0
 version="distrobox_version_placeholder"
-container_name="fedora-toolbox-35"
-container_command="${SHELL} -l"
 
 # Print usage to stdout.
 # Arguments:

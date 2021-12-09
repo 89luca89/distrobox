@@ -8,10 +8,10 @@
 trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
 
 # Defaults
-container_app=""
-container_service=""
+exported_app=""
+exported_delete=0
+exported_service=""
 extra_flags=""
-container_app_delete=0
 verbose=0
 version="distrobox_version_placeholder"
 
@@ -67,14 +67,14 @@ while :; do
 		;;
 	-a | --app)
 		if [ -n "$2" ]; then
-			container_app="$2"
+			exported_app="$2"
 			shift
 			shift
 		fi
 		;;
 	-s | --service)
 		if [ -n "$2" ]; then
-			container_service="$2"
+			exported_service="$2"
 			shift
 			shift
 		fi
@@ -87,7 +87,7 @@ while :; do
 		fi
 		;;
 	-d | --delete)
-		container_app_delete=1
+		exported_delete=1
 		shift
 		;;
 	*) # Default case: If no more options then break out of the loop.
@@ -96,11 +96,11 @@ while :; do
 done
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
-if [ -z "${container_app}" ] && [ -z "${container_service}" ]; then
+if [ -z "${exported_app}" ] && [ -z "${exported_service}" ]; then
 	echo "Invalid arguments, missing app or service to export"
 	exit 2
 fi
-if [ -n "${container_app}" ] && [ -n "${container_service}" ]; then
+if [ -n "${exported_app}" ] && [ -n "${exported_service}" ]; then
 	echo "Invalid arguments, choose an app OR a service to export"
 	exit 2
 fi
@@ -123,22 +123,22 @@ container_name=$(grep "name=" /run/.containerenv | cut -d'"' -f2)
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -e "
 
 # Work on a desktop app export
-if [ -n "${container_app}" ]; then
+if [ -n "${exported_app}" ]; then
 	# Ensure the app we're exporting is installed
-	if ! command -v "${container_app}" >/dev/null; then
+	if ! command -v "${exported_app}" >/dev/null; then
 		echo "Error: trying to export a non-installed application"
 		exit 127
 	fi
 	# Find desktop file for the application to export
-	desktop_files=$(grep -ril "${container_app}" /usr/share/applications/*)
-	icon_files=$(find /usr/share/icons -iname "*${container_app}*")
+	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/*)
+	icon_files=$(find /usr/share/icons -iname "*${exported_app}*")
 
 	# copy icons in home directory
 	for icon in ${icon_files}; do
 		icon_home_directory="$(dirname "${icon}" | sed "s|/usr/share/|${HOME}/.local/share/|g")"
 
 		# check if we're exporting or deleting
-		if [ "${container_app_delete}" -ne 0 ]; then
+		if [ "${exported_delete}" -ne 0 ]; then
 			# we need to remove, not export
 			rm -f "${icon_home_directory}"/"$(basename "${icon}")"
 		else
@@ -153,7 +153,7 @@ if [ -n "${container_app}" ]; then
 		desktop_home_file="$(basename "${desktop_file}")"
 
 		# check if we're exporting or deleting
-		if [ "${container_app_delete}" -ne 0 ]; then
+		if [ "${exported_delete}" -ne 0 ]; then
 			rm -f "${HOME}/.local/share/applications/${desktop_home_file}"
 		else
 			# If a TryExec is present, we have to fake it as it will not work throught the
@@ -164,7 +164,7 @@ if [ -n "${container_app}" ]; then
 					>"${HOME}/.local/share/applications/${desktop_home_file}"
 		fi
 	done
-elif [ -n "${container_service}" ]; then
+elif [ -n "${exported_service}" ]; then
 	# If we're managing services, let's be sure we have systemctl
 	if ! command -v systemctl >/dev/null; then
 		echo "Missing dependency: systemd"
@@ -173,7 +173,7 @@ elif [ -n "${container_service}" ]; then
 	# Ensure we're working with fresh data
 	systemctl --user daemon-reload
 	# Fetch original service file
-	service_file="${HOME}/.config/systemd/user/${container_service}.service"
+	service_file="${HOME}/.config/systemd/user/${exported_service}.service"
 	# Create temp file with random name
 	temp_file="/tmp/$(
 		tr -dc A-Za-z0-9 </dev/urandom | head -c 13
@@ -182,7 +182,7 @@ elif [ -n "${container_service}" ]; then
 	# Replace all Exec occurrencies
 	for cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
 		# Save to temp file
-		systemctl --user cat "${container_service}.service" >"${temp_file}" 2>/dev/null
+		systemctl --user cat "${exported_service}.service" >"${temp_file}" 2>/dev/null
 		# Add prefix only if not present
 		if ! grep "${cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
 			tail -n+2 "${temp_file}" |

@@ -96,10 +96,6 @@ fi
 # Outputs:
 #   prints the podman command to create the distrobox container
 generate_command() {
-
-	host_directories="/ /etc /media /mnt /run /tmp /usr /var"
-	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
-
 	# Set the container hostname the same as the container name.
 	# use the host's namespace for ipc, network, pid, ulimit
 	echo "podman create"
@@ -136,6 +132,7 @@ generate_command() {
 	--volume /dev:/dev:rslave"
 
 	# useful mounts from host to the container using /run/host as a base
+	host_directories="/ /etc /media /mnt /run /tmp /usr /var"
 	for host_directory in ${host_directories}; do
 		# Check if the directory exists first
 		if [ -d "${host_directory}" ]; then
@@ -144,11 +141,12 @@ generate_command() {
 	done
 	# those are dynamic configs needed by the container to function properly
 	# and integrate with the host
-	for link in ${host_links}; do
+	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
+	for host_link in ${host_links}; do
 		# Check if the file exists first
-		if [ -f "${link}" ]; then
+		if [ -f "${host_link}" ]; then
 			# Use realpath to not have multi symlink mess
-			echo "--volume $(realpath "${link}"):${link}:ro"
+			echo "--volume $(realpath "${host_link}"):${host_link}:ro"
 		fi
 	done
 
@@ -189,9 +187,11 @@ generate_command() {
 if ! podman image exists "${container_image}"; then
 	echo >&2 "Image not found."
 	printf >&2 "Do you want to pull the image now?[y/n] "
-	read -r yn
-	case "${yn}" in
+	read -r response
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response}" in
 	y | Y | yes | Yes)
+		# Pull the image
 		podman pull "${container_image}"
 		;;
 	n | N | no | No)
