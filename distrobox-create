@@ -192,7 +192,7 @@ if ! podman image exists "${container_image}"; then
     read -r yn
     case $yn in
         y|Y|yes )
-            podman pull ${container_image}
+            podman pull "${container_image}"
             ;;
         n|N|no )
             echo >&2 "next time, run this command first:"
