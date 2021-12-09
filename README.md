@@ -162,7 +162,6 @@ This is used to enter the distrobox itself, personally I just create multiple pr
 
 ### Init the distrobox
 
-
 	distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
 
 	Arguments:
@@ -185,11 +184,12 @@ setting up sudo, mountpoints and exports.
 	Note you can use --app OR --service but not together.
 
 	Arguments:
-			--app/-a:               name of the application to export
-			--service/-s:           name of the service to export
-			--delete/-d:		delete exported application or service
-			--help/-h:              show this message
-			-v:                     show more verbosity
+		--app/-a:		name of the application to export
+		--service/-s:		name of the service to export
+		--delete/-d:		delete exported application or service
+		--help/-h:		show this message
+		--extra-flags/-ef:		extra flags to add to the command
+		-v:			show more verbosity
 
 You may want to install graphical applications or user services in your distrobox.
 Using `distrobox-eport` from **inside** the container, will let you use them from the host itself.
@@ -206,9 +206,13 @@ save them in your home to be used directly from the host as a normal app or `sys
 
 ![app-export](https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)
 
-
 ![service-export](https://user-images.githubusercontent.com/598882/144294314-29a8921f-4511-453d-bf8e-d0d1e336db91.png)
 
+
+NOTE: some electron apps such as vscode and atom need additional flags to work from inside the
+container, use the `--extra-flags` option to provide a series of flags, for example:
+
+`distrobox-export --app atom --extra-flags "--foreground"`
 
 # Installation
 
