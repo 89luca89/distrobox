@@ -9,6 +9,7 @@ trap '[ "$?" -ne 0 ] && printf "An error occurred\n"' EXIT
 
 # Defaults
 exported_app=""
+exported_bin=""
 exported_delete=0
 exported_service=""
 extra_flags=""
@@ -56,17 +57,39 @@ Note you can use --app OR --service but not together.
 Usage:
 	distrobox-export --app mpv
 	distrobox-export --service syncthing
+	distrobox-export --bin /path/to/bin --export-path ~/.local/bin
 
 
 Options:
 	--app/-a:		name of the application to export
+	--bin/-b:		name of the application to export
 	--service/-s:		name of the service to export
 	--delete/-d:		delete exported application or service
-	--help/-h:		show this message
+	--export-path/-ep:	name of the application to export
 	--extra-flags/-ef:		extra flags to add to the command
+	--help/-h:		show this message
 	--verbose/-v:			show more verbosity
 	--version/-V:			show version
 EOF
+}
+
+# Print generated script from template
+# Arguments:
+#	distrobox name
+#	binary path
+# Outputs:
+#   print generated script.
+generate_script() {
+	distrobox_name=$1
+	binary_path=$2
+	echo "#!/bin/sh
+# distrobox_binary
+# name: ${distrobox_name}
+if [ ! -f /run/.containerenv ]; then
+    distrobox-enter --name ${distrobox_name} -e ${binary_path} ${extra_flags} \$@
+else
+    ${binary_path} \$@
+fi"
 }
 
 # Parse arguments
@@ -92,9 +115,23 @@ while :; do
 			shift
 		fi
 		;;
+	-b | --bin)
+		if [ -n "$2" ]; then
+			exported_bin="$2"
+			shift
+			shift
+		fi
+		;;
 	-s | --service)
 		if [ -n "$2" ]; then
 			exported_service="$2"
+			shift
+			shift
+		fi
+		;;
+	-ep | --export-path)
+		if [ -n "$2" ]; then
+			dest_path="$2"
 			shift
 			shift
 		fi
@@ -116,12 +153,22 @@ while :; do
 done
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
-if [ -z "${exported_app}" ] && [ -z "${exported_service}" ]; then
-	printf >&2 "Invalid arguments, missing app or service to export\n"
+if [ -z "${exported_app}" ] &&
+	[ -z "${exported_bin}" ] &&
+	[ -z "${exported_service}" ]; then
+	printf >&2 "Invalid arguments, choose an action below\n"
+	show_help
 	exit 2
 fi
-if [ -n "${exported_app}" ] && [ -n "${exported_service}" ]; then
-	printf >&2 "Invalid arguments, choose an app OR a service to export\n"
+if [ -n "${exported_app}" ] &&
+	[ -n "${exported_bin}" ] &&
+	[ -n "${exported_service}" ]; then
+	printf >&2 "Invalid arguments, choose only one action below\n"
+	show_help
+	exit 2
+fi
+if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
+	echo "Missing argument export-path"
 	exit 2
 fi
 
@@ -142,8 +189,38 @@ container_name=$(grep "name=" /run/.containerenv | cut -d'"' -f2)
 # Prefix to add to an existing command to work throught the container
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -e "
 
-# Work on a desktop app export
-if [ -n "${exported_app}" ]; then
+if [ -n "${exported_bin}" ]; then
+	# Work on a binary export
+
+	# Ensure the binary we're exporting is installed
+	if [ ! -f "${exported_bin}" ]; then
+		echo "Error: cannot find ${exported_bin}"
+		exit 127
+	fi
+	# generate dest_file path
+	dest_file="${dest_path}/$(basename "${exported_bin}")"
+
+	# If we're deleting it, just do it and exit
+	if [ "${exported_delete}" -ne 0 ] && grep -q "distrobox_binary" "${dest_file}"; then
+		rm -f "${dest_file}"
+		exit 0
+	fi
+
+	# test if we have writing rights on the file
+	if ! touch "${dest_file}"; then
+		echo "Error: cannot create destination file ${dest_file}"
+		exit 1
+	fi
+
+	# create the script from template and write to file
+	generate_script "${container_name}" "${exported_bin}" >"${dest_file}"
+	chmod +x "${dest_file}"
+
+	exit 0
+
+elif [ -n "${exported_app}" ]; then
+	# Work on a desktop app export
+
 	# Ensure the app we're exporting is installed
 	if ! command -v "${exported_app}" >/dev/null; then
 		printf >&2 "Error: trying to export a non-installed application\n"
@@ -154,17 +231,17 @@ if [ -n "${exported_app}" ]; then
 	icon_files=$(find /usr/share/icons -iname "*${exported_app}*")
 
 	# copy icons in home directory
-	for icon in ${icon_files}; do
-		icon_home_directory="$(dirname "${icon}" | sed "s|/usr/share/|${HOME}/.local/share/|g")"
+	for icon_file in ${icon_files}; do
+		icon_home_directory="$(dirname "${icon_file}" | sed "s|/usr/share/|${HOME}/.local/share/|g")"
 
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
 			# we need to remove, not export
-			rm -f "${icon_home_directory}"/"$(basename "${icon}")"
+			rm -f "${icon_home_directory}"/"$(basename "${icon_file}")"
 		else
 			# we wanto to export the application's icons
 			mkdir -p "${icon_home_directory}"
-			cp "${icon}" "${icon_home_directory}"
+			cp "${icon_file}" "${icon_home_directory}"
 		fi
 	done
 
@@ -184,7 +261,12 @@ if [ -n "${exported_app}" ]; then
 					>"${HOME}/.local/share/applications/${desktop_home_file}"
 		fi
 	done
+
+	exit 0
+
 elif [ -n "${exported_service}" ]; then
+	# Work on a service export
+
 	# If we're managing services, let's be sure we have systemctl
 	if ! command -v systemctl >/dev/null; then
 		printf >&2 "Missing dependency: systemd\n"
@@ -194,24 +276,34 @@ elif [ -n "${exported_service}" ]; then
 	systemctl --user daemon-reload
 	# Fetch original service file
 	service_file="${HOME}/.config/systemd/user/${exported_service}.service"
+
+	# If we're deleting it, just do it and exit
+	if [ "${exported_delete}" -ne 0 ]; then
+		rm -f "${HOME}/.config/systemd/user/${exported_service}.service"
+		systemctl --user daemon-reload
+		exit 0
+	fi
+
 	# Create temp file with random name
 	temp_file="/tmp/$(
 		tr -dc A-Za-z0-9 </dev/urandom | head -c 13
 		printf "\n"
 	)"
 	# Replace all Exec occurrencies
-	for cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
+	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
 		# Save to temp file
 		systemctl --user cat "${exported_service}.service" >"${temp_file}" 2>/dev/null
 		# Add prefix only if not present
-		if ! grep "${cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
+		if ! grep "${exec_cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
 			tail -n+2 "${temp_file}" |
-				sed "s|^${cmd}=|${cmd}=${container_command_prefix} |g" |
-				sed "s|^${cmd}=.*|& ${extra_flags}|g" >"${service_file}"
+				sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix} |g" |
+				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" >"${service_file}"
 		fi
 	done
 	# Cleanup
 	rm -f "${temp_file}"
 	# Reload
 	systemctl --user daemon-reload
+
+	exit 0
 fi
