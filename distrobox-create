@@ -190,7 +190,7 @@ if ! podman image exists "${container_image}"; then
     echo >&2 "Image not found."
     echo >&2 "Do you want to pull the image now?[y/n]"
     read -r yn
-    case $yn in
+    case "${yn}" in
         y|Y|yes )
             podman pull "${container_image}"
             ;;
