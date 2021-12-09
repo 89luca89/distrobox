@@ -55,7 +55,7 @@ while :; do
 	-h | --help)
 		# Call a "show_help" function to display a synopsis, then exit.
 		show_help
-		exit
+		exit 0
 		;;
 	-v | --verbose)
 		shift
@@ -63,7 +63,7 @@ while :; do
 		;;
 	-V | --version)
 		echo "distrobox: ${version}"
-		exit
+		exit 0
 		;;
 	-a | --app)
 		if [ -n "$2" ]; then
@@ -98,17 +98,17 @@ done
 # they are not all set.
 if [ -z "${container_app}" ] && [ -z "${container_service}" ]; then
 	echo "Invalid arguments, missing app or service to export"
-	exit 1
+	exit 2
 fi
 if [ -n "${container_app}" ] && [ -n "${container_service}" ]; then
 	echo "Invalid arguments, choose an app OR a service to export"
-	exit 1
+	exit 2
 fi
 
 # Also check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ]; then
 	echo "You must run $(basename "$0") inside a container..."
-	exit 1
+	exit 2
 fi
 
 set -o errexit

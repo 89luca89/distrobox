@@ -50,7 +50,7 @@ while :; do
 	-h | --help)
 		# Call a "show_help" function to display a synopsis, then exit.
 		show_help
-		exit
+		exit 0
 		;;
 	-v | --verbose)
 		verbose=1
@@ -58,7 +58,7 @@ while :; do
 		;;
 	-V | --version)
 		echo "distrobox: ${version}"
-		exit
+		exit 0
 		;;
 	-i | --image)
 		if [ -n "$2" ]; then
@@ -183,24 +183,26 @@ generate_command() {
 
 # check that we have a complete distrobox installation or
 # entrypoint and export will not work.
-[ -z "${distrobox_entrypoint_path}" ] && echo "Error: no distrobox-init found in ${PATH}" && exit 1
+[ -z "${distrobox_entrypoint_path}" ] && echo "Error: no distrobox-init found in ${PATH}" && exit 127
 
 # First, check if the image exists in the host
 if ! podman image exists "${container_image}"; then
 	echo >&2 "Image not found."
-	echo >&2 "Do you want to pull the image now?[y/n]"
+	printf >&2 "Do you want to pull the image now?[y/n] "
 	read -r yn
 	case "${yn}" in
-	y | Y | yes)
+	y | Y | yes | Yes)
 		podman pull "${container_image}"
 		;;
-	n | N | no)
+	n | N | no | No)
 		echo >&2 "next time, run this command first:"
 		echo >&2 "  podman pull ${container_image}"
-		exit 1
+		exit 0
 		;;
 	*) # Default case: If no more options then break out of the loop.
-		echo >&2 "The available choices are: y,Y,yes,n,N,no. Exiting." ;;
+		echo >&2 "The available choices are: y,Y,Yes,yes,n,N,No,no. Exiting."
+		exit 1
+		;;
 	esac
 fi
 

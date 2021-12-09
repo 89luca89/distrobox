@@ -39,7 +39,7 @@ while :; do
 	-h | --help)
 		# Call a "show_help" function to display a synopsis, then exit.
 		show_help
-		exit
+		exit 0
 		;;
 	-v | --verbose)
 		shift
@@ -47,7 +47,7 @@ while :; do
 		;;
 	-V | --version)
 		echo "distrobox: ${version}"
-		exit
+		exit 0
 		;;
 	-n | --name)
 		if [ -n "$2" ]; then
@@ -84,15 +84,15 @@ done
 
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
-[ -z "${container_user_name}" ] && echo "Invalid arguments, missing username" && exit 1
-[ -z "${container_user_uid}" ] && echo "Invalid arguments, missing user uid" && exit 1
-[ -z "${container_user_gid}" ] && echo "Invalid arguments, missing user gud" && exit 1
-[ -z "${container_user_home}" ] && echo "Invalid argument, missing user home" && exit 1
+[ -z "${container_user_name}" ] && echo "Invalid arguments, missing username" && exit 2
+[ -z "${container_user_uid}" ] && echo "Invalid arguments, missing user uid" && exit 2
+[ -z "${container_user_gid}" ] && echo "Invalid arguments, missing user gud" && exit 2
+[ -z "${container_user_home}" ] && echo "Invalid argument, missing user home" && exit 2
 
 # Also check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ]; then
 	echo "You must run $(basename "$0") inside a container..."
-	exit 1
+	exit 126
 fi
 
 set -o errexit

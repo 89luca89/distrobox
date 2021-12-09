@@ -45,7 +45,7 @@ while :; do
 	-h | --help)
 		# Call a "show_help" function to display a synopsis, then exit.
 		show_help
-		exit
+		exit 0
 		;;
 	-v | --verbose)
 		shift
@@ -53,7 +53,7 @@ while :; do
 		;;
 	-V | --version)
 		echo "distrobox: ${version}"
-		exit
+		exit 0
 		;;
 	-n | --name)
 		if [ -n "$2" ]; then
