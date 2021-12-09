@@ -158,6 +158,7 @@ if [ -n "${container_app}" ]; then
 			# If a TryExec is present, we have to fake it as it will not work throught the
 			# container separation
 			sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
+				sed "s|\(%.*\)|${extra_flags} \1|g" |
 				sed "s|^TryExec=.*|TryExec=true|g" \
 					>"${HOME}/.local/share/applications/${desktop_home_file}"
 		fi
