@@ -109,7 +109,7 @@ generate_command() {
 	if [ "${verbose}" -ne 0 ]; then
 		result_command="${result_command} --log-level debug"
 	fi
-	result_command="${result_command} --dns none
+	result_command="${result_command}
 	--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
 	--hostname ${container_name}
 	--ipc host"
@@ -121,7 +121,6 @@ generate_command() {
 	result_command="${result_command} --name ${container_name}
 	--env=\"SHELL=${SHELL}\"
 	--network host
-	--no-hosts
 	--pid host
 	--privileged
 	--security-opt label=disable
