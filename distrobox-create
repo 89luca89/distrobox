@@ -4,11 +4,11 @@
 #	HOME
 #	USER
 
-trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
+trap '[ "$?" -ne 0 ] && printf "An error occurred\n"' EXIT
 
 # We depend on podman let's be sure we have it
 if ! command -v podman >/dev/null; then
-	echo "Missing dependency: podman"
+	printf >&2 "Missing dependency: podman\n"
 	exit 127
 fi
 
@@ -30,18 +30,20 @@ version="distrobox_version_placeholder"
 # Outputs:
 #   print usage with examples.
 show_help() {
-	echo "USAGE:
-	distrobox version: ${version}
+	cat <<EOF
+distrobox version: ${version}
 
+Usage:
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 
-	Arguments:
-		--image/-i: image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
-		--name/-n:  name for the distrobox			default: fedora-toolbox-35
-		--help/-h:	show this message
-		--verbose/-v:			show more verbosity
-		--version/-V:			show version
-	"
+Options:
+	--image/-i: image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
+	--name/-n:  name for the distrobox			default: fedora-toolbox-35
+	--help/-h:	show this message
+	--verbose/-v:			show more verbosity
+	--version/-V:			show version
+"
+EOF
 }
 
 # Parse arguments
@@ -57,7 +59,7 @@ while :; do
 		shift
 		;;
 	-V | --version)
-		echo "distrobox: ${version}"
+		printf "distrobox: %s\n" "${version}"
 		exit 0
 		;;
 	-i | --image)
@@ -98,11 +100,11 @@ fi
 generate_command() {
 	# Set the container hostname the same as the container name.
 	# use the host's namespace for ipc, network, pid, ulimit
-	echo "podman create"
+	result_command="podman create"
 	if [ "${verbose}" -ne 0 ]; then
-		echo "--log-level debug"
+		result_command="${result_command} --log-level debug"
 	fi
-	echo "--dns none
+	result_command="${result_command} --dns none
 	--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
 	--hostname ${container_name}
 	--ipc host"
@@ -111,7 +113,7 @@ generate_command() {
 	# able to syphon dynamic configurations from the host
 	#
 	# also mount the distrobox-init utility as the container entrypoint
-	echo "--name ${container_name}
+	result_command="${result_command} --name ${container_name}
 	--env=\"SHELL=${SHELL}\"
 	--network host
 	--no-hosts
@@ -125,10 +127,10 @@ generate_command() {
 
 	# let's check if we can include distrobox-export or not
 	if [ -n "${distrobox_export_path}" ]; then
-		echo "--volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
+		result_command="${result_command} --volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
 	fi
 
-	echo "--volume ${container_user_home}:${container_user_home}:rslave
+	result_command="${result_command} --volume ${container_user_home}:${container_user_home}:rslave
 	--volume /dev:/dev:rslave"
 
 	# useful mounts from host to the container using /run/host as a base
@@ -136,7 +138,7 @@ generate_command() {
 	for host_directory in ${host_directories}; do
 		# Check if the directory exists first
 		if [ -d "${host_directory}" ]; then
-			echo "--volume ${host_directory}:/run/host${host_directory}:rslave"
+			result_command="${result_command} --volume ${host_directory}:/run/host${host_directory}:rslave"
 		fi
 	done
 	# those are dynamic configs needed by the container to function properly
@@ -146,21 +148,21 @@ generate_command() {
 		# Check if the file exists first
 		if [ -f "${host_link}" ]; then
 			# Use realpath to not have multi symlink mess
-			echo "--volume $(realpath "${host_link}"):${host_link}:ro"
+			result_command="${result_command} --volume $(realpath "${host_link}"):${host_link}:ro"
 		fi
 	done
 
 	if [ -d /run/media ]; then
-		echo "--volume /run/media:/run/media:rslave"
+		result_command="${result_command} --volume /run/media:/run/media:rslave"
 	fi
 
 	# mount also the XDG_RUNTIME_DIR to ensure functionality of the apps
 	if [ -d /run/user/"${container_user_uid}" ]; then
-		echo "--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
+		result_command="${result_command} --volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
 	fi
 	# mount devpts
 	if [ -f /dev/pts ]; then
-		echo "--mount type=devpts,destination=/dev/pts"
+		result_command="${result_command} --mount type=devpts,destination=/dev/pts"
 	fi
 
 	# find all the user's socket and mount them inside the container
@@ -169,23 +171,25 @@ generate_command() {
 	# the container
 	host_sockets="$(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null || :)"
 	for socket in ${host_sockets}; do
-		echo "--volume ${socket}:${socket}"
+		result_command="${result_command} --volume ${socket}:${socket}"
 	done
 
 	# now execute the entrypoint, refer to `distrobox-init -h` for instructions
-	echo "${container_image}
+	result_command="${result_command} ${container_image}
 	/usr/bin/entrypoint -v --name ${container_user_name}
 	--user ${container_user_uid} --group ${container_user_gid}
 	--home ${container_user_home}"
+
+	printf "%s" "${result_command}"
 }
 
 # check that we have a complete distrobox installation or
 # entrypoint and export will not work.
-[ -z "${distrobox_entrypoint_path}" ] && echo "Error: no distrobox-init found in ${PATH}" && exit 127
+[ -z "${distrobox_entrypoint_path}" ] && printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}" && exit 127
 
 # First, check if the image exists in the host
 if ! podman image exists "${container_image}"; then
-	echo >&2 "Image not found."
+	printf >&2 "Image not found.\n"
 	printf >&2 "Do you want to pull the image now?[y/n] "
 	read -r response
 	# Accept only y,Y,Yes,yes,n,N,No,no.
@@ -195,12 +199,12 @@ if ! podman image exists "${container_image}"; then
 		podman pull "${container_image}"
 		;;
 	n | N | no | No)
-		echo >&2 "next time, run this command first:"
-		echo >&2 "  podman pull ${container_image}"
+		printf >&2 "next time, run this command first:\n"
+		printf >&2 "  podman pull %s\n" "${container_image}"
 		exit 0
 		;;
 	*) # Default case: If no more options then break out of the loop.
-		echo >&2 "The available choices are: y,Y,Yes,yes,n,N,No,no. Exiting."
+		printf >&2 "The available choices are: y,Y,Yes,yes,n,N,No,no. Exiting.\n"
 		exit 1
 		;;
 	esac

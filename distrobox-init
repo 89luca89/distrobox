@@ -5,7 +5,7 @@
 #	USER
 #	SHELL
 
-trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
+trap '[ "$?" -ne 0 ] && printf "An error occurred\n"' EXIT
 
 # Defaults
 verbose=0
@@ -17,20 +17,23 @@ version="distrobox_version_placeholder"
 # Outputs:
 #   print usage with examples.
 show_help() {
-	echo "USAGE:
-	distrobox version: ${version}
+	cat <<EOF
+distrobox version: ${version}
+
+Usage:
 
 	distrobox-init --name ${USER} --user $(id -ru) --group $(id -rg) --home ${HOME}
 
-	Arguments:
-		--name/-n:		user name
-		--user/-u:		uid of the user
-		--group/-g:		gid of the user
-		--home/-d:		path/to/home of the user
-		--help/-h:		show this message
-		--verbose/-v:			show more verbosity
-		--version/-V:			show version
-	"
+Options:
+	--name/-n:		user name
+	--user/-u:		uid of the user
+	--group/-g:		gid of the user
+	--home/-d:		path/to/home of the user
+	--help/-h:		show this message
+	--verbose/-v:			show more verbosity
+	--version/-V:			show version
+"
+EOF
 }
 
 # Parse arguments
@@ -46,13 +49,13 @@ while :; do
 		verbose=1
 		;;
 	-V | --version)
-		echo "distrobox: ${version}"
+		printf "distrobox: %s\n" "${version}"
 		exit 0
 		;;
 	-n | --name)
 		if [ -n "$2" ]; then
 			container_user_name="$2"
-			shift
+			s${container_user_name}hift
 			shift
 		fi
 		;;
@@ -84,14 +87,14 @@ done
 
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
-[ -z "${container_user_name}" ] && echo "Invalid arguments, missing username" && exit 2
-[ -z "${container_user_uid}" ] && echo "Invalid arguments, missing user uid" && exit 2
-[ -z "${container_user_gid}" ] && echo "Invalid arguments, missing user gud" && exit 2
-[ -z "${container_user_home}" ] && echo "Invalid argument, missing user home" && exit 2
+[ -z "${container_user_name}" ] && printf >&2 "Invalid arguments, missing username\n" && exit 2
+[ -z "${container_user_uid}" ] && printf >&2 "Invalid arguments, missing user uid\n" && exit 2
+[ -z "${container_user_gid}" ] && printf >&2 "Invalid arguments, missing user gud\n" && exit 2
+[ -z "${container_user_home}" ] && printf >&2 "Invalid argument, missing user home\n" && exit 2
 
 # Also check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ]; then
-	echo "You must run $(basename "$0") inside a container..."
+	printf >&2 "You must run %s inside a container...\n" " $(basename "$0")"
 	exit 126
 fi
 
@@ -123,13 +126,13 @@ mount_bind() (
 	if [ -d "${source_dir}" ]; then
 		# exit if not successful
 		if ! mkdir -p "${target_dir}"; then
-			echo "Cannot create mount target directory: ${target_dir}"
+			printf >&2 "Cannot create mount target directory: %s\n" "${target_dir}"
 			return 1
 		fi
 	elif [ -f "${source_dir}" ]; then
 		# exit if not successful
 		if ! touch "${target_dir}"; then
-			echo "Cannot create mount target file: ${target_dir}"
+			printf >&2 "Cannot create mount target file: %s\n" "${target_dir}"
 			return 1
 		fi
 	fi
@@ -139,7 +142,7 @@ mount_bind() (
 	# bind mount source_dir to target_dir, return error if not successful
 	# shellcheck disable=SC2086
 	if ! mount --rbind ${mount_o} "${source_dir}" "${target_dir}"; then
-		echo "Failed to bind mount ${source_dir} to ${target_dir}"
+		printf >&2 "Failed to bind mount %s to %s\n" "${source_dir}" "${target_dir}"
 		return 1
 	fi
 
@@ -163,7 +166,7 @@ list_sudo_groups() (
 		group="wheel"
 	fi
 
-	echo "${group}"
+	printf "%s" "${group}"
 	return 0
 )
 
@@ -190,7 +193,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v zypper; then
 		zypper install -y --no-recommends sudo shadow procps util-linux "${shell_pkg}"
 	else
-		echo "FAILED TO INSTALL BASE DEPENDENCIES"
+		printf >&2 "FAILED TO INSTALL BASE DEPENDENCIES\n"
 		# Exit as command not found
 		exit 127
 	fi
@@ -211,9 +214,9 @@ for host_mount in ${HOST_MOUNTS}; do
 done
 
 # Do not check fqdn when doing sudo, it will not work anyways
-echo "Defaults !fqdn" >>/etc/sudoers
+printf "Defaults !fqdn\n" >>/etc/sudoers
 # Ensure passwordless sudo is set up for user
-echo "${container_user_name} ALL = (root) NOPASSWD:ALL" >>/etc/sudoers
+printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >>/etc/sudoers
 
 # Let's add our user to the container
 # if the user already exists, just add it to the sudoers groups
@@ -235,6 +238,6 @@ fi
 passwd --delete "${container_user_name}"
 passwd --delete root
 
-echo "container_setup_done"
+printf "container_setup_done\n"
 # Keepalive loop
 sleep infinity

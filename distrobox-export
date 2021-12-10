@@ -5,7 +5,7 @@
 #	USER
 #	DISTROBOX_ENTER_PATH
 
-trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
+trap '[ "$?" -ne 0 ] && printf "An error occurred\n"' EXIT
 
 # Defaults
 exported_app=""
@@ -19,7 +19,7 @@ version="distrobox_version_placeholder"
 base_dependencies="basename grep sed find"
 for dep in ${base_dependencies}; do
 	if ! command -v "${dep}" >/dev/null; then
-		echo "Missing dependency: ${dep}"
+		printf >&2 "Missing dependency: %s\n" "${dep}"
 		exit 127
 	fi
 done
@@ -30,23 +30,25 @@ done
 # Outputs:
 #   print usage with examples.
 show_help() {
-	echo "USAGE:
-	distrobox version: ${version}
+	cat <<EOF
+distrobox version: ${version}
 
+Usage:
 	distrobox-export --app mpv
 	distrobox-export --service syncthing
 
-	Note you can use --app OR --service but not together.
+Note you can use --app OR --service but not together.
 
-	Arguments:
-		--app/-a:		name of the application to export
-		--service/-s:		name of the service to export
-		--delete/-d:		delete exported application or service
-		--help/-h:		show this message
-		--extra-flags/-ef:		extra flags to add to the command
-		--verbose/-v:			show more verbosity
-		--version/-V:			show version
-	"
+Options:
+	--app/-a:		name of the application to export
+	--service/-s:		name of the service to export
+	--delete/-d:		delete exported application or service
+	--help/-h:		show this message
+	--extra-flags/-ef:		extra flags to add to the command
+	--verbose/-v:			show more verbosity
+	--version/-V:			show version
+"
+EOF
 }
 
 # Parse arguments
@@ -62,7 +64,7 @@ while :; do
 		verbose=1
 		;;
 	-V | --version)
-		echo "distrobox: ${version}"
+		printf "distrobox: %s\n" "${version}"
 		exit 0
 		;;
 	-a | --app)
@@ -97,18 +99,18 @@ done
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
 if [ -z "${exported_app}" ] && [ -z "${exported_service}" ]; then
-	echo "Invalid arguments, missing app or service to export"
+	printf >&2 "Invalid arguments, missing app or service to export\n"
 	exit 2
 fi
 if [ -n "${exported_app}" ] && [ -n "${exported_service}" ]; then
-	echo "Invalid arguments, choose an app OR a service to export"
+	printf >&2 "Invalid arguments, choose an app OR a service to export\n"
 	exit 2
 fi
 
 # Also check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ]; then
-	echo "You must run $(basename "$0") inside a container..."
-	exit 2
+	printf >&2 "You must run %s inside a container...\n" " $(basename "$0")"
+	exit 126
 fi
 
 set -o errexit
@@ -126,7 +128,7 @@ container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${co
 if [ -n "${exported_app}" ]; then
 	# Ensure the app we're exporting is installed
 	if ! command -v "${exported_app}" >/dev/null; then
-		echo "Error: trying to export a non-installed application"
+		printf >&2 "Error: trying to export a non-installed application\n"
 		exit 127
 	fi
 	# Find desktop file for the application to export
@@ -167,7 +169,7 @@ if [ -n "${exported_app}" ]; then
 elif [ -n "${exported_service}" ]; then
 	# If we're managing services, let's be sure we have systemctl
 	if ! command -v systemctl >/dev/null; then
-		echo "Missing dependency: systemd"
+		printf >&2 "Missing dependency: systemd\n"
 		exit 127
 	fi
 	# Ensure we're working with fresh data
@@ -177,7 +179,7 @@ elif [ -n "${exported_service}" ]; then
 	# Create temp file with random name
 	temp_file="/tmp/$(
 		tr -dc A-Za-z0-9 </dev/urandom | head -c 13
-		echo ''
+		printf "\n"
 	)"
 	# Replace all Exec occurrencies
 	for cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do

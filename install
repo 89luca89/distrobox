@@ -10,14 +10,15 @@ verbose=0
 # Outputs:
 #   print usage with examples.
 show_help() {
-	echo "USAGE:
-    install -p /usr/local/bin
+	cat <<EOF
+install -p /usr/local/bin
 
-	Arguments:
-		--path/-p:		path where to deploy the files (default /usr/local/bin)
-		--help/-h:		show this message
-		-v:			show more verbosity
-	"
+Options:
+	--path/-p:		path where to deploy the files (default /usr/local/bin)
+	--help/-h:		show this message
+	-v:			show more verbosity
+"
+EOF
 }
 
 # Parse arguments
@@ -53,8 +54,8 @@ fi
 
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
-[ ! -d "${dest_path}" ] && echo "Path ${dest_path} does not exist." && exit 1
-[ ! -w "${dest_path}" ] && echo "Cannot write into ${dest_path}, permission denied." && exit 1
+[ ! -d "${dest_path}" ] && printf >&2 "Path %s does not exist.\n" "${dest_path} " && exit 1
+[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
 
 # get current dir
 curr_dir=$(dirname "$0")
@@ -75,7 +76,7 @@ if [ -f "${curr_dir}/distrobox-enter" ]; then
 else
 	# check that we have base dependencies
 	if ! command -v curl || ! command -v tar; then
-		echo "Online install depends on curl and tar"
+		printf >&2 "Online install depends on curl and tar\n"
 		exit 1
 	fi
 

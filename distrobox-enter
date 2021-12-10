@@ -5,11 +5,11 @@
 #	USER
 #	SHELL
 
-trap '[ "$?" -ne 0 ] && echo An error occurred' EXIT
+trap '[ "$?" -ne 0 ] && printf "An error occurred\n"' EXIT
 
 # We depend on podman let's be sure we have it
 if ! command -v podman >/dev/null; then
-	echo "Missing dependency: podman"
+	printf >&2 "Missing dependency: podman\n"
 	exit 127
 fi
 
@@ -25,18 +25,20 @@ version="distrobox_version_placeholder"
 # Outputs:
 #   print usage with examples.
 show_help() {
-	echo "USAGE:
-	distrobox version: ${version}
+	cat <<EOF
+distrobox version: ${version}
 
+Usage:
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 
-	Arguments:
-		--name/-n:		name for the distrobox			default: fedora-toolbox-35
-		--/-e:			end arguments execute the rest as command to execute at login		default: bash -l
-		--help/-h:		show this message
-		--verbose/-v:			show more verbosity
-		--version/-V:			show version
-	"
+Options:
+	--name/-n:		name for the distrobox			default: fedora-toolbox-35
+	--/-e:			end arguments execute the rest as command to execute at login		default: bash -l
+	--help/-h:		show this message
+	--verbose/-v:			show more verbosity
+	--version/-V:			show version
+"
+EOF
 }
 
 # Parse arguments
@@ -52,7 +54,7 @@ while :; do
 		verbose=1
 		;;
 	-V | --version)
-		echo "distrobox: ${version}"
+		printf "distrobox: %s\n" "${version}"
 		exit 0
 		;;
 	-n | --name)
@@ -92,37 +94,43 @@ generate_command() {
 
 			# if cannot start, container not found!
 			# prompt to create it first
-			echo >&2 ""
-			echo >&2 "Cannot start container, does it exist?"
-			echo >&2 "Try running first:"
-			echo >&2 ""
-			echo >&2 "    distrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>"
+			printf >&2 "%s\n" "
+Cannot start container, does it exist?
+Try running first:
+
+ distrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>
+			"
 			exit 1
 		else
-			echo >&2 "Starting container"
-			echo >&2 "run this command to follow along:"
-			echo >&2 "	podman logs -f ${container_name}"
+			printf >&2 "%s\n" "
+Starting container
+run this command to follow along:
+
+podman logs -f ${container_name}"
 			while ! podman logs "${container_name}" 2>/dev/null | grep -q "container_setup_done"; do
 				printf >&2 "."
 				sleep 1
 			done
-			echo >&2 "done!"
+			printf >&2 "done!\n"
 		fi
 	fi
 
 	# entering container using our user and workdir
-	echo "podman exec"
+	result_command="podman exec"
 	if [ "${verbose}" -ne 0 ]; then
-		echo "--log-level debug"
+		result_command="${result_command} --log-level debug"
 	fi
-	echo "--interactive --tty --user=${USER} --workdir=${HOME}"
-	echo "--env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
+	result_command="${result_command} --interactive --tty"
+	result_command="${result_command} --user=${USER} --workdir=${HOME}"
+	result_command="${result_command} --env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
 	# exporting current environment to container
 	for i in $(printenv | grep '=' | grep -v ' '); do
-		echo "--env=\"${i}\""
+		result_command="${result_command} --env=\"${i}\""
 	done
 	# run selected pod with command+args
-	echo "${container_name} ${container_command}"
+	result_command="${result_command} ${container_name} ${container_command}"
+
+	printf "%s" "${result_command}"
 }
 
 # Generate the command and execute
