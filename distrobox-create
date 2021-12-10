@@ -16,7 +16,7 @@ fi
 container_image="registry.fedoraproject.org/fedora-toolbox:35"
 container_name="fedora-toolbox-35"
 container_user_gid="$(id -rg)"
-container_user_home="${HOME}"
+container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
 distrobox_entrypoint_path="$(command -v distrobox-init)"
