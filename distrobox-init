@@ -62,7 +62,7 @@ while :; do
 	-n | --name)
 		if [ -n "$2" ]; then
 			container_user_name="$2"
-			s${container_user_name}hift
+			shift
 			shift
 		fi
 		;;
