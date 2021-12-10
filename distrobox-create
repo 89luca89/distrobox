@@ -190,7 +190,7 @@ generate_command() {
 [ -z "${distrobox_entrypoint_path}" ] && printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}" && exit 127
 
 # First, check if the image exists in the host
-if ! podman image exists "${container_image}"; then
+if [ -z "$(podman images -q "${container_image}")" ]; then
 	printf >&2 "Image not found.\n"
 	printf >&2 "Do you want to pull the image now?[y/n] "
 	read -r response
