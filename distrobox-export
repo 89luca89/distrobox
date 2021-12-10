@@ -48,6 +48,7 @@ will show the status of the service exported.
 
 Exported binaries will be exported in the "--export-path" of choice as a wrapper
 script that acts naturally both on the host and in the container.
+Note that "--export-path" is NOT OPTIONAL, you have to explicitly set it.
 
 You can specify additional flags to add to the command, for example if you want
 to export an electron app, you could add the "--foreground" flag to the command:
@@ -92,19 +93,21 @@ EOF
 # Arguments:
 #	distrobox name
 #	binary path
+#	extra flags
 # Outputs:
 #   print generated script.
 generate_script() {
 	distrobox_name=$1
-	binary_path=$2
+	exported_bin=$2
+	extra_flags=$3
 	cat <<EOF
 #!/bin/sh
 # distrobox_binary
 # name: ${distrobox_name}
 if [ ! -f /run/.containerenv ]; then
-    distrobox-enter --name ${distrobox_name} -e ${binary_path} ${extra_flags} \$@
+    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${distrobox_name} -- ${exported_bin} ${extra_flags} \$@
 else
-    ${binary_path} \$@
+    ${exported_bin} \$@
 fi
 EOF
 }
@@ -202,10 +205,10 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
+# Prefix to add to an existing command to work throught the container
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- "
 # We can assume this as we set it the same as container name during creation.
 container_name=$(cat /etc/hostname)
-# Prefix to add to an existing command to work throught the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -e "
 
 if [ -n "${exported_bin}" ]; then
 	# Work on a binary export
@@ -303,10 +306,7 @@ elif [ -n "${exported_service}" ]; then
 	fi
 
 	# Create temp file with random name
-	temp_file="/tmp/$(
-		tr -dc A-Za-z0-9 </dev/urandom | head -c 13
-		printf "\n"
-	)"
+	temp_file="$(mktemp -u)"
 	# Replace all Exec occurrencies
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
 		# Save to temp file

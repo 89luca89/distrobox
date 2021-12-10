@@ -231,11 +231,12 @@ if ! grep -q "${container_user_name} ALL = (root) NOPASSWD:ALL" /etc/sudoers; th
 	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >>/etc/sudoers
 fi
 
-# Let's add our user to the container
-# if the user already exists, just add it to the sudoers groups
+# If not existing, ensure we have a group for our user.
 if ! grep -q "${container_user_name}" /etc/group; then
 	groupadd --force --gid "${container_user_uid}" "${container_user_name}"
 fi
+# Let's add our user to the container
+# if the user already exists, just add it to the sudoers groups
 if ! useradd \
 	--home-dir "${container_user_home}" \
 	--no-create-home \
@@ -254,7 +255,6 @@ passwd --delete root
 # Themes and icons integration works using a bind mount inside the container
 # of the host's themes and icons directory. This ensures that the host's home will
 # not be littered with files and directories and broken symlinks.
-# ensure dest directory exists.
 #
 # bind mount distrobox directory for themes and icons
 mount_bind "/run/host/usr/share/themes" "${container_user_home}/.local/share/themes" rw

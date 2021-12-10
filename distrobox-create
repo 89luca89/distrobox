@@ -134,8 +134,8 @@ generate_command() {
 		result_command="${result_command} --volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
 	fi
 
-	result_command="${result_command} --volume ${container_user_home}:${container_user_home}:rslave
-	--volume /dev:/dev:rslave"
+	result_command="${result_command} --volume ${container_user_home}:${container_user_home}:rslave"
+	result_command="${result_command} --volume /dev:/dev:rslave"
 
 	# useful mounts from host to the container using /run/host as a base
 	host_directories="/ /etc /media /mnt /run /tmp /usr /var"
@@ -158,7 +158,7 @@ generate_command() {
 	done
 
 	# mount also the XDG_RUNTIME_DIR to ensure functionality of the apps
-	if [ -d /run/user/"${container_user_uid}" ]; then
+	if [ -d "/run/user/${container_user_uid}" ]; then
 		result_command="${result_command} --volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
 	fi
 	result_command="${result_command} --mount type=devpts,destination=/dev/pts"
@@ -174,9 +174,10 @@ generate_command() {
 
 	# now execute the entrypoint, refer to `distrobox-init -h` for instructions
 	result_command="${result_command} ${container_image}
-	/usr/bin/entrypoint -v --name ${container_user_name}
-	--user ${container_user_uid} --group ${container_user_gid}
-	--home ${container_user_home}"
+		/usr/bin/entrypoint -v --name ${container_user_name}
+			--user ${container_user_uid}
+			--group ${container_user_gid}
+			--home ${container_user_home}"
 
 	printf "%s" "${result_command}"
 }
