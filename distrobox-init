@@ -20,6 +20,14 @@ show_help() {
 	cat <<EOF
 distrobox version: ${version}
 
+distrobox-init is the entrypoint of a created distrobox.
+Note that this HAS to run from inside a distrobox, will not work if you run it
+from your host.
+
+distrobox-init will take care of installing missing dependencies (eg. sudo), set
+up the user and groups, mount folders from the host to ensure the tight
+integration.
+
 Usage:
 
 	distrobox-init --name ${USER} --user $(id -ru) --group $(id -rg) --home ${HOME}
@@ -32,7 +40,6 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:			show more verbosity
 	--version/-V:			show version
-"
 EOF
 }
 
@@ -208,7 +215,7 @@ done
 
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
-HOST_MOUNTS="/media /mnt /run/systemd/journal /run/libvirt /var/mnt /var/lib/libvirt"
+HOST_MOUNTS="/media /run/media /mnt /run/systemd/journal /run/libvirt /var/mnt /var/lib/libvirt"
 for host_mount in ${HOST_MOUNTS}; do
 	mount_bind /run/host"${host_mount}" "${host_mount}" rw
 done

@@ -28,6 +28,10 @@ show_help() {
 	cat <<EOF
 distrobox version: ${version}
 
+distrobox-enter takes care of entering the container with the name specified.
+Default command executed is your SHELL, buf you can specify different shells or
+entire commands to execute.
+
 Usage:
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 
@@ -37,7 +41,6 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:			show more verbosity
 	--version/-V:			show version
-"
 EOF
 }
 
@@ -117,6 +120,7 @@ podman logs -f ${container_name}"
 
 	# entering container using our user and workdir
 	result_command="podman exec"
+	# add podman verbose if -v is specified
 	if [ "${verbose}" -ne 0 ]; then
 		result_command="${result_command} --log-level debug"
 	fi
@@ -134,5 +138,6 @@ podman logs -f ${container_name}"
 }
 
 # Generate the command and execute
-# shellcheck disable=SC2046
-eval $(generate_command)
+cmd="$(generate_command)"
+# shellcheck disable=SC2086
+eval ${cmd}

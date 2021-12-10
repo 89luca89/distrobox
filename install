@@ -17,7 +17,6 @@ Options:
 	--path/-p:		path where to deploy the files (default /usr/local/bin)
 	--help/-h:		show this message
 	-v:			show more verbosity
-"
 EOF
 }
 

@@ -33,6 +33,11 @@ show_help() {
 	cat <<EOF
 distrobox version: ${version}
 
+distrobox-create takes care of creating the container with input name and image.
+Created container will be tightly integrated with the host, allowing to share
+the HOME folder of the user, external storage, external usb devices and
+graphical apps (X11/Wayland) and audio.
+
 Usage:
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 
@@ -42,7 +47,6 @@ Options:
 	--help/-h:	show this message
 	--verbose/-v:			show more verbosity
 	--version/-V:			show version
-"
 EOF
 }
 
@@ -101,6 +105,7 @@ generate_command() {
 	# Set the container hostname the same as the container name.
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="podman create"
+	# add podman verbose if -v is specified
 	if [ "${verbose}" -ne 0 ]; then
 		result_command="${result_command} --log-level debug"
 	fi
@@ -141,9 +146,10 @@ generate_command() {
 			result_command="${result_command} --volume ${host_directory}:/run/host${host_directory}:rslave"
 		fi
 	done
+
 	# those are dynamic configs needed by the container to function properly
 	# and integrate with the host
-	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime /etc/timezone"
+	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime"
 	for host_link in ${host_links}; do
 		# Check if the file exists first
 		if [ -f "${host_link}" ]; then
@@ -151,10 +157,6 @@ generate_command() {
 			result_command="${result_command} --volume $(realpath "${host_link}"):${host_link}:ro"
 		fi
 	done
-
-	if [ -d /run/media ]; then
-		result_command="${result_command} --volume /run/media:/run/media:rslave"
-	fi
 
 	# mount also the XDG_RUNTIME_DIR to ensure functionality of the apps
 	if [ -d /run/user/"${container_user_uid}" ]; then
@@ -211,5 +213,6 @@ if ! podman image exists "${container_image}"; then
 fi
 
 # Generate the command and execute
-# shellcheck disable=SC2046
-eval $(generate_command)
+cmd="$(generate_command)"
+# shellcheck disable=SC2086
+eval ${cmd}

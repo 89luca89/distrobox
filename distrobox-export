@@ -33,11 +33,30 @@ show_help() {
 	cat <<EOF
 distrobox version: ${version}
 
+distrobox-export takes care of exporting an app or a service from the container
+to the host.
+Exported app will be easily available in your normal launcher and it will
+automatically be launched from the container it is exported from.
+Exported servicess will be available in the host's user's systemd session, so
+
+	systemctl --user status exported_service_name
+
+will show the status of the service exported.
+You can specifi additional flags to add to the command, for example if you want
+to export an electron app, you could add the "--foreground" flag to the command:
+
+	distrobox-export --app atom --extra-flags "--foreground"
+
+This works for both services and apps.
+
+Note you can use --app OR --service but not together.
+
+
+
 Usage:
 	distrobox-export --app mpv
 	distrobox-export --service syncthing
 
-Note you can use --app OR --service but not together.
 
 Options:
 	--app/-a:		name of the application to export
@@ -47,7 +66,6 @@ Options:
 	--extra-flags/-ef:		extra flags to add to the command
 	--verbose/-v:			show more verbosity
 	--version/-V:			show version
-"
 EOF
 }
 
