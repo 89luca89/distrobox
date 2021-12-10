@@ -195,6 +195,8 @@ if ! command -v mount || ! command -v passwd ||
 		dnf install -y --setopt=install_weak_deps=False sudo shadow-utils passwd procps-ng util-linux "${shell_pkg}"
 	elif command -v pacman; then
 		pacman -Sy --noconfirm sudo procps-ng shadow util-linux "${shell_pkg}"
+	elif command -v xbps-install; then
+		xbps-install -Sy sudo procps-ng shadow util-linux "${shell_pkg}"
 	elif command -v yum; then
 		yum install -y --setopt=install_weak_deps=False sudo shadow-utils passwd procps util-linux "${shell_pkg}"
 	elif command -v zypper; then
