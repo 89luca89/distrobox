@@ -25,7 +25,7 @@ Note that this HAS to run from inside a distrobox, will not work if you run it
 from your host.
 
 distrobox-init will take care of installing missing dependencies (eg. sudo), set
-up the user and groups, mount folders from the host to ensure the tight
+up the user and groups, mount directories from the host to ensure the tight
 integration.
 
 Usage:
@@ -247,35 +247,14 @@ fi
 passwd --delete "${container_user_name}"
 passwd --delete root
 
-# Find all hosts icons and link them in home. Exclude hicolor as that will be
-# used to export applications later.
-host_icons="$(find /run/host/usr/share/icons -maxdepth 1 -type d -not -path "*hicolor" | tail -n +2)"
-# ensure dest folder exists.
-if ! mkdir -p "${HOME}/.local/share/icons"; then
-	printf "Warning: could not create icons folder to export.\n"
-	printf "Warning: disabling icons integration.\n"
-fi
-for host_icon in ${host_icons}; do
-	# check if it already exists first.
-	if [ ! -d "${HOME}/.local/share/icons/$(basename "${host_icon}")" ]; then
-		ln -s "${host_icon}" "${HOME}/.local/share/icons/$(basename "${host_icon}")"
-	fi
-done
-
-# Find all hosts themes and link them in home. Exclude hicolor as that will be
-# used to export applications later.
-host_themes="$(find /run/host/usr/share/themes -maxdepth 1 -type d | tail -n +2)"
-# ensure dest folder exists.
-if ! mkdir -p "${HOME}/.local/share/themes"; then
-	printf "Warning: could not create themes folder to export.\n"
-	printf "Warning: disabling theme integration.\n"
-fi
-for host_theme in ${host_themes}; do
-	# check if it already exists first.
-	if [ ! -d "${HOME}/.local/share/themes/$(basename "${host_theme}")" ]; then
-		ln -s "${host_theme}" "${HOME}/.local/share/themes/$(basename "${host_theme}")"
-	fi
-done
+# Themes and icons integration works using a bind mount inside the container
+# of the host's themes and icons directory. This ensures that the host's home will
+# not be littered with files and directories and broken symlinks.
+# ensure dest directory exists.
+#
+# bind mount distrobox directory for themes and icons
+mount_bind "/run/host/usr/share/themes" "${container_user_home}/.local/share/themes" rw
+mount_bind "/run/host/usr/share/icons" "${container_user_home}/.local/share/icons" rw
 
 printf "container_setup_done\n"
 # Keepalive loop
