@@ -57,6 +57,8 @@ to export an electron app, you could add the "--foreground" flag to the command:
 	distrobox-export --service syncthing --extra-flags "-allow-newer-config"
 
 This works for services, binaries and apps.
+Extra flags are only used then the exported app, binary or service is used from
+the host, using them inside the container will not include them.
 
 The option "--delete" will un-export an app, binary or service.
 
