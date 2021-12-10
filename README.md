@@ -136,25 +136,42 @@ and it will be added to the list
 
 ### Create the distrobox
 
-	distrobox-create --image registry.fedoraproject.org/fedora:35 --name fedora-35
+```
+distrobox-create takes care of creating the container with input name and image.
+Created container will be tightly integrated with the host, allowing to share
+the HOME folder of the user, external storage, external usb devices and
+graphical apps (X11/Wayland) and audio.
 
-	Arguments:
-		--image/-i: image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
-		--name/-n:  name for the distrobox			default: fedora-toolbox-35
-		--help/-h:	show this message
-		-v:			show more verbosity
+Usage:
+	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
+
+Options:
+	--image/-i: image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
+	--name/-n:  name for the distrobox			default: fedora-toolbox-35
+	--help/-h:	show this message
+	--verbose/-v:			show more verbosity
+	--version/-V:			show version
+```
 
 If the image is not present you'll be prompted to `podman pull` it.
 
 ### Enter the distrobox
 
-	distrobox-enter --name fedora-35 -- bash -l
+```
+distrobox-enter takes care of entering the container with the name specified.
+Default command executed is your SHELL, buf you can specify different shells or
+entire commands to execute.
 
-	Arguments:
-		--name/-n:		name for the distrobox			default: fedora-35
-		--:			end arguments execute the rest as command to execute at login		default: bash -l
-		--help/-h:		show this message
-		-v:			show more verbosity
+Usage:
+	distrobox-enter --name fedora-toolbox-35 -- bash -l
+
+Options:
+	--name/-n:		name for the distrobox			default: fedora-toolbox-35
+	--/-e:			end arguments execute the rest as command to execute at login		default: bash -l
+	--help/-h:		show this message
+	--verbose/-v:			show more verbosity
+	--version/-V:			show version
+```
 
 This is used to enter the distrobox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
 
@@ -162,15 +179,28 @@ This is used to enter the distrobox itself, personally I just create multiple pr
 
 ### Init the distrobox
 
+```
+distrobox-init is the entrypoint of a created distrobox.
+Note that this HAS to run from inside a distrobox, will not work if you run it
+from your host.
+
+distrobox-init will take care of installing missing dependencies (eg. sudo), set
+up the user and groups, mount folders from the host to ensure the tight
+integration.
+
+Usage:
+
 	distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
 
-	Arguments:
-		--name/-n:		user name
-		--user/-u:		uid of the user
-		--group/-g:		gid of the user
-		--home/-d:		path/to/home of the user
-		--help/-h:		show this message
-		-v:			show more verbosity
+Options:
+	--name/-n:		user name
+	--user/-u:		uid of the user
+	--group/-g:		gid of the user
+	--home/-d:		path/to/home of the user
+	--help/-h:		show this message
+	--verbose/-v:			show more verbosity
+	--version/-V:			show version
+```
 
 This is used as entrypoint for the created container, it will take care of creating the users,
 setting up sudo, mountpoints and exports.
@@ -178,18 +208,59 @@ setting up sudo, mountpoints and exports.
 
 ### Application and service exporting
 
-	distrobox-export --app mpv
-	distrobox-export --service syncthing
+```
+distrobox-export takes care of exporting an app a binary or a service from the container
+to the host.
 
-	Note you can use --app OR --service but not together.
+Exported app will be easily available in your normal launcher and it will
+automatically be launched from the container it is exported from.
 
-	Arguments:
-		--app/-a:		name of the application to export
-		--service/-s:		name of the service to export
-		--delete/-d:		delete exported application or service
-		--help/-h:		show this message
-		--extra-flags/-ef:		extra flags to add to the command
-		-v:			show more verbosity
+Exported services will be available in the host's user's systemd session, so
+
+	systemctl --user status exported_service_name
+
+will show the status of the service exported.
+
+Exported binaries will be exported in the "--export-path" of choice as a wrapper
+script that acts naturally both on the host and in the container.
+
+You can specify additional flags to add to the command, for example if you want
+to export an electron app, you could add the "--foreground" flag to the command:
+
+	distrobox-export --app atom --extra-flags "--foreground"
+	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --extra-flags "-p"
+	distrobox-export --service syncthing --extra-flags "-allow-newer-config"
+
+This works for services, binaries and apps.
+Extra flags are only used then the exported app, binary or service is used from
+the host, using them inside the container will not include them.
+
+The option "--delete" will un-export an app, binary or service.
+
+	distrobox-export --app atom --delete
+	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --delete
+	distrobox-export --service syncthing --delete
+
+Note you can use --app OR --bin OR --service but not together.
+
+
+Usage:
+	distrobox-export --app mpv [--extra-flags "flags"] [--delete]
+	distrobox-export --service syncthing [--extra-flags "flags"] [--delete]
+	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete]
+
+
+Options:
+	--app/-a:		name of the application to export
+	--bin/-b:		absolute path of the binary to export
+	--service/-s:		name of the service to export
+	--delete/-d:		delete exported application or service
+	--export-path/-ep:	path where to export the binary
+	--extra-flags/-ef:		extra flags to add to the command
+	--help/-h:		show this message
+	--verbose/-v:			show more verbosity
+	--version/-V:			show version
+```
 
 You may want to install graphical applications or user services in your distrobox.
 Using `distrobox-eport` from **inside** the container, will let you use them from the host itself.
