@@ -140,7 +140,7 @@ and it will be added to the list
 ```
 distrobox-create takes care of creating the container with input name and image.
 Created container will be tightly integrated with the host, allowing to share
-the HOME folder of the user, external storage, external usb devices and
+the HOME directory of the user, external storage, external usb devices and
 graphical apps (X11/Wayland) and audio.
 
 Usage:
@@ -186,7 +186,7 @@ Note that this HAS to run from inside a distrobox, will not work if you run it
 from your host.
 
 distrobox-init will take care of installing missing dependencies (eg. sudo), set
-up the user and groups, mount folders from the host to ensure the tight
+up the user and groups, mount directories from the host to ensure the tight
 integration.
 
 Usage:

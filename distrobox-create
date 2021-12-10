@@ -35,7 +35,7 @@ distrobox version: ${version}
 
 distrobox-create takes care of creating the container with input name and image.
 Created container will be tightly integrated with the host, allowing to share
-the HOME folder of the user, external storage, external usb devices and
+the HOME directory of the user, external storage, external usb devices and
 graphical apps (X11/Wayland) and audio.
 
 Usage:
