@@ -179,7 +179,7 @@ list_sudo_groups() (
 
 # Extract shell name from the $SHELL environment variable
 # If not present as package in the container, we want to install it.
-shell_pkg="$(basename "${SHELL}")"
+shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Check if dependencies are met for the script to run.
 if ! command -v mount || ! command -v passwd ||
 	! command -v sudo || ! command -v useradd ||
@@ -223,9 +223,13 @@ for host_mount in ${HOST_MOUNTS}; do
 done
 
 # Do not check fqdn when doing sudo, it will not work anyways
-printf "Defaults !fqdn\n" >>/etc/sudoers
+if ! grep -q 'Defaults !fqdn' /etc/sudoers; then
+	printf "Defaults !fqdn\n" >>/etc/sudoers
+fi
 # Ensure passwordless sudo is set up for user
-printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >>/etc/sudoers
+if ! grep -q "${container_user_name} ALL = (root) NOPASSWD:ALL" /etc/sudoers; then
+	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >>/etc/sudoers
+fi
 
 # Let's add our user to the container
 # if the user already exists, just add it to the sudoers groups
