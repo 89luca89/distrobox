@@ -202,7 +202,8 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-container_name=$(grep "name=" /run/.containerenv | cut -d'"' -f2)
+# We can assume this as we set it the same as container name during creation.
+container_name=$(cat /etc/hostname)
 # Prefix to add to an existing command to work throught the container
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -e "
 
