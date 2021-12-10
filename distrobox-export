@@ -32,6 +32,7 @@ done
 #   print usage with examples.
 show_help() {
 	cat <<EOF
+
 distrobox version: ${version}
 
 distrobox-export takes care of exporting an app a binary or a service from the container
@@ -82,10 +83,10 @@ Options:
 	--service/-s:		name of the service to export
 	--delete/-d:		delete exported application or service
 	--export-path/-ep:	path where to export the binary
-	--extra-flags/-ef:		extra flags to add to the command
+	--extra-flags/-ef:	extra flags to add to the command
 	--help/-h:		show this message
-	--verbose/-v:			show more verbosity
-	--version/-V:			show version
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 EOF
 }
 

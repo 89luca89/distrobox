@@ -147,11 +147,11 @@ Usage:
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 
 Options:
-	--image/-i: image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
-	--name/-n:  name for the distrobox			default: fedora-toolbox-35
-	--help/-h:	show this message
-	--verbose/-v:			show more verbosity
-	--version/-V:			show version
+	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
+	--name/-n:		name for the distrobox		default: fedora-toolbox-35
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 ```
 
 If the image is not present you'll be prompted to `podman pull` it.
@@ -167,11 +167,11 @@ Usage:
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 
 Options:
-	--name/-n:		name for the distrobox			default: fedora-toolbox-35
-	--/-e:			end arguments execute the rest as command to execute at login		default: bash -l
+	--name/-n:		name for the distrobox						default: fedora-toolbox-35
+	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
 	--help/-h:		show this message
-	--verbose/-v:			show more verbosity
-	--version/-V:			show version
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 ```
 
 This is used to enter the distrobox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
@@ -199,8 +199,8 @@ Options:
 	--group/-g:		gid of the user
 	--home/-d:		path/to/home of the user
 	--help/-h:		show this message
-	--verbose/-v:			show more verbosity
-	--version/-V:			show version
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 ```
 
 This is used as entrypoint for the created container, it will take care of creating the users,
@@ -224,6 +224,7 @@ will show the status of the service exported.
 
 Exported binaries will be exported in the "--export-path" of choice as a wrapper
 script that acts naturally both on the host and in the container.
+Note that "--export-path" is NOT OPTIONAL, you have to explicitly set it.
 
 You can specify additional flags to add to the command, for example if you want
 to export an electron app, you could add the "--foreground" flag to the command:
@@ -257,10 +258,10 @@ Options:
 	--service/-s:		name of the service to export
 	--delete/-d:		delete exported application or service
 	--export-path/-ep:	path where to export the binary
-	--extra-flags/-ef:		extra flags to add to the command
+	--extra-flags/-ef:	extra flags to add to the command
 	--help/-h:		show this message
-	--verbose/-v:			show more verbosity
-	--version/-V:			show version
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 ```
 
 You may want to install graphical applications or user services in your distrobox.

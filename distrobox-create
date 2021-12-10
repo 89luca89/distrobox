@@ -31,6 +31,7 @@ version="distrobox_version_placeholder"
 #   print usage with examples.
 show_help() {
 	cat <<EOF
+
 distrobox version: ${version}
 
 distrobox-create takes care of creating the container with input name and image.
@@ -42,11 +43,11 @@ Usage:
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 
 Options:
-	--image/-i: image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
-	--name/-n:  name for the distrobox			default: fedora-toolbox-35
-	--help/-h:	show this message
-	--verbose/-v:			show more verbosity
-	--version/-V:			show version
+	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
+	--name/-n:		name for the distrobox		default: fedora-toolbox-35
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 EOF
 }
 

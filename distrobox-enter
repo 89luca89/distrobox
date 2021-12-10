@@ -26,6 +26,7 @@ version="distrobox_version_placeholder"
 #   print usage with examples.
 show_help() {
 	cat <<EOF
+
 distrobox version: ${version}
 
 distrobox-enter takes care of entering the container with the name specified.
@@ -36,11 +37,11 @@ Usage:
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 
 Options:
-	--name/-n:		name for the distrobox			default: fedora-toolbox-35
-	--/-e:			end arguments execute the rest as command to execute at login		default: bash -l
+	--name/-n:		name for the distrobox						default: fedora-toolbox-35
+	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
 	--help/-h:		show this message
-	--verbose/-v:			show more verbosity
-	--version/-V:			show version
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 EOF
 }
 

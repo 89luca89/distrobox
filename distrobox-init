@@ -18,6 +18,7 @@ version="distrobox_version_placeholder"
 #   print usage with examples.
 show_help() {
 	cat <<EOF
+
 distrobox version: ${version}
 
 distrobox-init is the entrypoint of a created distrobox.
@@ -38,8 +39,8 @@ Options:
 	--group/-g:		gid of the user
 	--home/-d:		path/to/home of the user
 	--help/-h:		show this message
-	--verbose/-v:			show more verbosity
-	--version/-V:			show version
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 EOF
 }
 
