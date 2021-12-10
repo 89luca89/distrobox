@@ -116,6 +116,7 @@ distrobox guests tested with the following container images:
 | Ubuntu 20.04		| docker.io/library/ubuntu:20.04	|
 | Ubuntu 21.10		| docker.io/library/ubuntu:21.10	|
 | Kali Linux		| docker.io/kalilinux/kali-rolling:latest |
+| Void Linux		| ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64, ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64-musl, ghcr.io/void-linux/void-linux:latest-full-x86_64, ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
 
 
 Note however that if you use a non-toolbox pre configured image (e.g. images pre-baked to work with https://github.com/containers/toolbox),
