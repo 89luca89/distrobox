@@ -34,38 +34,51 @@ show_help() {
 	cat <<EOF
 distrobox version: ${version}
 
-distrobox-export takes care of exporting an app or a service from the container
+distrobox-export takes care of exporting an app a binary or a service from the container
 to the host.
+
 Exported app will be easily available in your normal launcher and it will
 automatically be launched from the container it is exported from.
-Exported servicess will be available in the host's user's systemd session, so
+
+Exported services will be available in the host's user's systemd session, so
 
 	systemctl --user status exported_service_name
 
 will show the status of the service exported.
-You can specifi additional flags to add to the command, for example if you want
+
+Exported binaries will be exported in the "--export-path" of choice as a wrapper
+script that acts naturally both on the host and in the container.
+
+You can specify additional flags to add to the command, for example if you want
 to export an electron app, you could add the "--foreground" flag to the command:
 
 	distrobox-export --app atom --extra-flags "--foreground"
+	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --extra-flags "-p"
+	distrobox-export --service syncthing --extra-flags "-allow-newer-config"
 
-This works for both services and apps.
+This works for services, binaries and apps.
 
-Note you can use --app OR --service but not together.
+The option "--delete" will un-export an app, binary or service.
 
+	distrobox-export --app atom --delete
+	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --delete
+	distrobox-export --service syncthing --delete
+
+Note you can use --app OR --bin OR --service but not together.
 
 
 Usage:
-	distrobox-export --app mpv
-	distrobox-export --service syncthing
-	distrobox-export --bin /path/to/bin --export-path ~/.local/bin
+	distrobox-export --app mpv [--extra-flags "flags"] [--delete]
+	distrobox-export --service syncthing [--extra-flags "flags"] [--delete]
+	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete]
 
 
 Options:
 	--app/-a:		name of the application to export
-	--bin/-b:		name of the application to export
+	--bin/-b:		absolute path of the binary to export
 	--service/-s:		name of the service to export
 	--delete/-d:		delete exported application or service
-	--export-path/-ep:	name of the application to export
+	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:		extra flags to add to the command
 	--help/-h:		show this message
 	--verbose/-v:			show more verbosity
@@ -82,14 +95,16 @@ EOF
 generate_script() {
 	distrobox_name=$1
 	binary_path=$2
-	echo "#!/bin/sh
+	cat <<EOF
+#!/bin/sh
 # distrobox_binary
 # name: ${distrobox_name}
 if [ ! -f /run/.containerenv ]; then
     distrobox-enter --name ${distrobox_name} -e ${binary_path} ${extra_flags} \$@
 else
     ${binary_path} \$@
-fi"
+fi
+EOF
 }
 
 # Parse arguments
@@ -168,7 +183,7 @@ if [ -n "${exported_app}" ] &&
 	exit 2
 fi
 if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
-	echo "Missing argument export-path"
+	printf >&2 "Missing argument export-path\n"
 	exit 2
 fi
 
@@ -194,7 +209,7 @@ if [ -n "${exported_bin}" ]; then
 
 	# Ensure the binary we're exporting is installed
 	if [ ! -f "${exported_bin}" ]; then
-		echo "Error: cannot find ${exported_bin}"
+		printf >&2 "Error: cannot find %s\n" "${exported_bin}"
 		exit 127
 	fi
 	# generate dest_file path
@@ -208,7 +223,7 @@ if [ -n "${exported_bin}" ]; then
 
 	# test if we have writing rights on the file
 	if ! touch "${dest_file}"; then
-		echo "Error: cannot create destination file ${dest_file}"
+		printf >&2 "Error: cannot create destination file %s\n" "${dest_file}"
 		exit 1
 	fi
 
