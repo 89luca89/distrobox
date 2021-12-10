@@ -161,10 +161,7 @@ generate_command() {
 	if [ -d /run/user/"${container_user_uid}" ]; then
 		result_command="${result_command} --volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
 	fi
-	# mount devpts
-	if [ -f /dev/pts ]; then
-		result_command="${result_command} --mount type=devpts,destination=/dev/pts"
-	fi
+	result_command="${result_command} --mount type=devpts,destination=/dev/pts"
 
 	# find all the user's socket and mount them inside the container
 	# this will allow for continuity of functionality between host and container
