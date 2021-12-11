@@ -142,7 +142,7 @@ generate_command() {
 	result_command="${result_command} --volume /dev:/dev:rslave"
 
 	# useful mounts from host to the container using /run/host as a base
-	host_directories="/ /etc /media /mnt /run /tmp /usr /var"
+	host_directories="/ /etc /mnt /run /tmp /usr /var"
 	for host_directory in ${host_directories}; do
 		# Check if the directory exists first
 		if [ -d "${host_directory}" ]; then
