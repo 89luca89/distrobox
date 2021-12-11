@@ -100,7 +100,6 @@ EOF
 generate_script() {
 	distrobox_name=$1
 	exported_bin=$2
-	extra_flags=$3
 	cat <<EOF
 #!/bin/sh
 # distrobox_binary
