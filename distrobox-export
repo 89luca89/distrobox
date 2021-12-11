@@ -268,6 +268,10 @@ elif [ -n "${exported_app}" ]; then
 	for desktop_file in ${desktop_files}; do
 		desktop_home_file="$(basename "${desktop_file}")"
 
+		# create applications dir if not existing
+		if [ ! -d "/run/host/${HOME}/.local/share/applications" ]; then
+			mkdir -p "/run/host/${HOME}/.local/share/applications"
+		fi
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
 			rm -f "/run/host/${HOME}/.local/share/applications/${desktop_home_file}"
