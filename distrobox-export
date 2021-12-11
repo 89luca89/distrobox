@@ -206,10 +206,10 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# Prefix to add to an existing command to work throught the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- "
 # We can assume this as we set it the same as container name during creation.
 container_name=$(cat /etc/hostname)
+# Prefix to add to an existing command to work throught the container
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- "
 
 if [ -n "${exported_bin}" ]; then
 	# Work on a binary export
