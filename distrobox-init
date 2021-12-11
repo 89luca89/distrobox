@@ -220,7 +220,9 @@ done
 # the host to the container
 HOST_MOUNTS="/media /run/media /mnt /run/systemd/journal /run/libvirt /var/mnt /var/lib/libvirt"
 for host_mount in ${HOST_MOUNTS}; do
-	mount_bind /run/host"${host_mount}" "${host_mount}" rw
+	if ! mount_bind /run/host"${host_mount}" "${host_mount}" rw; then
+		printf >&2 "Warning: Cannot bind mound %s to /run/host%s\n" "${host_mount}" "${host_mount}"
+	fi
 done
 
 # Do not check fqdn when doing sudo, it will not work anyways
@@ -258,8 +260,19 @@ passwd --delete root
 # not be littered with files and directories and broken symlinks.
 #
 # bind mount distrobox directory for themes and icons
-mount_bind "/run/host/usr/share/themes" "${container_user_home}/.local/share/themes" rw
-mount_bind "/run/host/usr/share/icons" "${container_user_home}/.local/share/icons" rw
+mkdir -p "${container_user_home}/.local/share/themes"
+mkdir -p "${container_user_home}/.local/share/icons"
+# Fix permissions for homw folders
+chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/themes"
+chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/icons"
+if ! mount_bind "/run/host/usr/share/themes" "${container_user_home}/.local/share/themes" rw; then
+	printf >&2 "Warning: Cannot bind mound /run/host/usr/share/themes to %s/.local/share/themes\n" "${container_user_home}"
+	printf >&2 "Warning: Themes integration with the host is disabled.\n"
+fi
+if ! mount_bind "/run/host/usr/share/icons" "${container_user_home}/.local/share/icons" rw; then
+	printf >&2 "Warning: Cannot bind mound /run/host/usr/share/icons to %s/.local/share/icons\n" "${container_user_home}"
+	printf >&2 "Warning: Icons integration with the host is disabled.\n"
+fi
 
 printf "container_setup_done\n"
 # Keepalive loop

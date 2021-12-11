@@ -98,14 +98,12 @@ EOF
 # Outputs:
 #   print generated script.
 generate_script() {
-	distrobox_name=$1
-	exported_bin=$2
 	cat <<EOF
 #!/bin/sh
 # distrobox_binary
-# name: ${distrobox_name}
+# name: ${container_name}
 if [ ! -f /run/.containerenv ]; then
-    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${distrobox_name} -- ${exported_bin} ${extra_flags} \$@
+    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- ${exported_bin} ${extra_flags} \$@
 else
     ${exported_bin} \$@
 fi

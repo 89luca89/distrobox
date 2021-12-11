@@ -92,7 +92,7 @@ fi
 #   prints the podman command to enter the distrobox container
 generate_command() {
 	# If the container is not already running, we need to start if first
-	if ! podman ps | grep -q "${container_name}$"; then
+	if ! podman ps | grep -q "${container_name}"; then
 		# if container is not running, start it first
 		if ! podman start "${container_name}" >/dev/null; then
 
@@ -126,7 +126,10 @@ podman logs -f ${container_name}"
 		result_command="${result_command} --log-level debug"
 	fi
 	result_command="${result_command} --interactive --tty"
-	result_command="${result_command} --user=${USER} --workdir=${PWD:-${HOME:-"/"}}"
+	result_command="${result_command} --user=${USER}"
+	# start container from working directory. Else default to home. Else do /.
+	result_command="${result_command} --workdir=${PWD:-${HOME:-"/"}}"
+	# pass distrobox-enter path, it will be used in the distrobox-export tool.
 	result_command="${result_command} --env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
 	# exporting current environment to container
 	for i in $(printenv | grep '=' | grep -v ' '); do

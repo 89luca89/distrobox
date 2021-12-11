@@ -111,31 +111,34 @@ generate_command() {
 		result_command="${result_command} --log-level debug"
 	fi
 	result_command="${result_command}
-	--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
-	--hostname ${container_name}
-	--ipc host"
+		--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
+		--hostname ${container_name}
+		--ipc host"
 	# mount useful stuff inside the container.
 	# we also mount host's root filesystem to /run/host, to be
 	# able to syphon dynamic configurations from the host
 	#
 	# also mount the distrobox-init utility as the container entrypoint
 	result_command="${result_command} --name ${container_name}
-	--env=\"SHELL=${SHELL}\"
-	--network host
-	--pid host
-	--privileged
-	--security-opt label=disable
-	--ulimit host
-	--user root:root
-	--userns keep-id
-	--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro"
+		--env=\"SHELL=${SHELL}\"
+		--network host
+		--pid host
+		--privileged
+		--security-opt label=disable
+		--ulimit host
+		--user root:root
+		--userns keep-id
+		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro"
 
 	# let's check if we can include distrobox-export or not
 	if [ -n "${distrobox_export_path}" ]; then
 		result_command="${result_command} --volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
 	fi
 
+	# mount user home
 	result_command="${result_command} --volume ${container_user_home}:${container_user_home}:rslave"
+	# mount dev inside container. This grants access to external devices
+	# like usb webcams, disks and so on.
 	result_command="${result_command} --volume /dev:/dev:rslave"
 
 	# useful mounts from host to the container using /run/host as a base
