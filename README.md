@@ -2,18 +2,54 @@
 
 # Distrobox
 
-Use any linux distribution inside your terminal.
+Use any linux distribution inside your terminal.  
+Distrobox uses `podman` to create containers using the linux distribution of your choice.  
+Created container will be tightly integrated with the host, allowing to share
+the HOME directory of the user, external storage, external usb devices and
+graphical apps (X11/Wayland) and audio.
+
+---
 
 ![overview](https://user-images.githubusercontent.com/598882/144294862-f6684334-ccf4-4e5e-85f8-1d66210a0fff.png)
+
+---
+
+- [Distrobox](#distrobox)
+  * [What it does](#what-it-does)
+  * [Why?](#why-)
+    + [Aims](#aims)
+- [Compatibility](#compatibility)
+    + [Host Ditros](#host-ditros)
+      - [New Host Distro support](#new-host-distro-support)
+    + [Containers Ditros](#containers-ditros)
+      - [New Distro support](#new-distro-support)
+- [Usage](#usage)
+  * [Outside the distrobox](#outside-the-distrobox)
+    + [Create the distrobox](#create-the-distrobox)
+    + [Enter the distrobox](#enter-the-distrobox)
+  * [Inside the distrobox](#inside-the-distrobox)
+    + [Application and service exporting](#application-and-service-exporting)
+      - [Init the distrobox](#init-the-distrobox)
+- [Installation](#installation)
+- [Dependencies](#dependencies)
+- [Useful tips](#useful-tips)
+  * [Container save and restore](#container-save-and-restore)
+  * [Check used resources](#check-used-resources)
+  * [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
 
 
 ## What it does
 
-It implements what https://github.com/containers/toolbox does but in a simplified way using POSIX sh and with broader compatibility.
+Simply put it's a fancy `podman` wrapper to create and start containers highly integrated with the hosts.
+
+The distrobox environment is based on an OCI image.  
+This image is used to create a container that seamlessly integrates with the rest of the operating system by providing access to the user's home directory,
+the Wayland and X11 sockets, networking, removable devices (like USB sticks), systemd journal, SSH agent, D-Bus,
+ulimits, /dev and the udev database, etc..
+
+It implements the same concepts introduced by https://github.com/containers/toolbox but in a simplified way using POSIX sh and aiming at a broader compatibility.
 
 All the props goes to them as they had the great idea to implement this stuff.
-
-Simply put it's a fancy `podman` wrapper to create and start containers highly integrated with the hosts.
 
 It is divided in 4 parts:
 
@@ -24,114 +60,122 @@ It is divided in 4 parts:
 
 ## Why?
 
-The intention is to provide a mutable environment on a host where the file-system is immutable (like Suse's MicroOS, Fedora Silverblue, Endless OS or SteamOS3)
-or where the user doesn't have privileges to modify the host (non-sudo users for example)
-
-So even if you're not a sudoer or your distro doesn't have access to a traditional package manager, you
-will still be able to perform your `apt/dnf/pacman/pkg/zypper` shenanigans.
-
-Or for example if you want to mix and match a stable base system (eg. Ubuntu LTS, RedHat8) with
-a bleeding edge environment for development or gaming (eg. Arch, Suse Tumbleweed, Fedora)
-
-The distrobox environment is based on an OCI image.
-This image is used to create a container that seamlessly integrates with the rest of the operating system by providing access to the user's home directory,
-the Wayland and X11 sockets, networking, removable devices (like USB sticks), systemd journal, SSH agent, D-Bus,
-ulimits, /dev and the udev database, etc..
+- Provide a mutable environment on an immutable OS, like Endless OS, Fedora Silverblue, OpenSUSE MicroOS or SteamOS3
+- Provide a locally privileged environment for sudoless setups (eg. company provided laptops, security reasons, etc...)
+- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat) with a bleeding edge environment for development or gaming (eg. Arch, Suse Tumbleweed, Fedora)
+- Leverage high abundance of curated distro images for docker/podman to manage multiple environments
 
 ### Aims
 
-This project aims to bring any distro userland to any other distro supporting podman.
-It has been written in posix sh to be as portable as possible and not have problems with glibc compatibility or versions.
+This project aims to bring **any distro userland to any other distro** supporting podman.
+It has been written in posix sh to be as portable as possible and not have problems with glibc version's compatibility.
 
-It also aims to enter the container as fast as possible, every millisecond adds up if you use the it
+It also aims to enter the container **as fast as possible**, every millisecond adds up if you use the it
 as your default environment for your terminal:
 
-These are some simple results of `distrobox-enter` on the same container on my weak laptop:
+These are some sample results of `distrobox-enter` on the same container on my weak laptop:
 
 ```
 luca-linux@x250:~$ time distrobox-enter -n fedora-distrobox-35 -- whoami
 luca-linux
 
-real	0m0.494s
-user	0m0.135s
-sys	0m0.070s
+real    0m0,302s
+user    0m0,118s
+sys     0m0,095s
 
 luca-linux@x250:~$ time distrobox-enter -n fedora-distrobox-35 -- whoami
 luca-linux
 
-real	0m0,302s
-user	0m0,118s
-sys	0m0,095s
+real   0m0,281s
+user   0m0,116s
+sys    0m0,063s
 
-luca-linux@x250:~$ time distrobox-enter -n fedora-distrobox-35 -- whoami
-luca-linux
-
-real	0m0,281s
-user	0m0,116s
-sys	0m0,063s
 ```
+
+I would like to keep it always below the [Doherty Treshold](https://lawsofux.com/doherty-threshold/) of 400ms.
 
 # Compatibility
 
-This project does **not need** a dedicated image but can use normal images in example from docker hub.
+This project **does not need a dedicated image** but can use normal images in example from docker hub.
 
-Granted, they may not be as featureful as expected (some of them do not even have `which` )
+Granted, they may not be as featurefull as expected (some of them do not even have `which`, `mount`, `less` or `vi`)
 but that's all doable in the container itself after bootstrapping it.
 
-Main concern is having basic user management utilities (`usermod, passwd`) and `sudo` correctly
-set.
+Main concern is having basic linux utilities (`mount`), basic user management utilities (`usermod, passwd`) and `sudo` correctly set.
 
-Host compatibility tested on:
+### Host Ditros
 
-- Fedora 34
-- Fedora 35
-- Ubuntu 20.04
-- Ubuntu 21.10
-- Debian 11
-- Centos 8 Stream
+Distrobox has been successfully tested on:
 
-distrobox guests tested with the following container images:
+|    Distro  |    Version    | Notes |
+| --- | --- | --- |
+| Arch Linux | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
+| Manjaro | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
+| Centos | 8, 8 Stream | Works with corresponding RedHat releases. |
+| Debian | 11 | |
+| Fedora | 34, 35 | |
+| Fedora Silverblue | 34, 35 | |
+| OpenSUSE | Leap 15, Tumbleweed | |
+| Ubuntu | 20.04, 21.10 | Older versions based on 20.04 needs external repos to install newer Podman releases. </br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. |
+| EndlessOS | 4.0.0 | |
+| OpenSUSE MicroOS | 20211209 | |
 
-|	Distro  |	Images	|
-| --- | --- |
-| AlmaLinux 8	 	| docker.io/library/almalinux:8	|
-| Alpine Linux		| docker.io/library/alpine:latest	|
-| AmazonLinux 2  	| docker.io/library/amazonlinux:2.0.20211005.0	|
-| Archlinux		 	| docker.io/library/archlinux:latest	|
-| Centos 7		 	| quay.io/centos/centos:7	|
-| Centos 8		 	| quay.io/centos/centos:8	|
-| Debian 11			| docker.io/library/debian:stable, docker.io/library/debian:stable-backports	|
-| Debian Testing	| docker.io/library/debian:testing, docker.io/library/debian:testing-backports	|
-| Debian Unstable	| docker.io/library/debian:unstable	|
-| Neurodebian	| docker.io/library/neurodebian |
-| Fedora 34			| registry.fedoraproject.org/fedora-toolbox:34, docker.io/library/fedora:34	|
-| Fedora 35			| registry.fedoraproject.org/fedora-toolbox:35, docker.io/library/fedora:35	|
-| Mageia 8			| docker.io/library/mageia |
-| Opensuse Leap		| registry.opensuse.org/opensuse/leap:latest	|
-| Opensuse Tumbleweed	| registry.opensuse.org/opensuse/tumbleweed:latest, registry.opensuse.org/opensuse/toolbox:latest	|
-| Oracle Linux 7 	| container-registry.oracle.com/os/oraclelinux:7	|
-| Oracle Linux 8 	| container-registry.oracle.com/os/oraclelinux:8	|
-| Rocky Linux 8		| docker.io/rockylinux/rockylinux:8	|
-| Scientific Linux 7| docker.io/library/sl:7	|
-| Ubuntu 20.04		| docker.io/library/ubuntu:20.04	|
-| Ubuntu 21.10		| docker.io/library/ubuntu:21.10	|
-| Kali Linux		| docker.io/kalilinux/kali-rolling:latest |
-| Void Linux		| ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64, ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64-musl, ghcr.io/void-linux/void-linux:latest-full-x86_64, ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
+#### New Host Distro support
+
+If your distro of choice is not in the list open an issue requesting support for it.
+
+Or just try using it anyway, if it works, open an issue
+and it will be added to the list!
+
+---
+
+### Containers Ditros
+
+Distrobox guests tested successfully with the following container images:
+
+|    Distro  |    Version | Images    |
+| --- | --- | --- |
+| AlmaLinux | 8     | docker.io/library/almalinux:8    |
+| Alpine Linux    | 3.14, 3.15 | docker.io/library/alpine:latest    |
+| AmazonLinux | 2  | docker.io/library/amazonlinux:2.0.20211005.0    |
+| Archlinux     | | docker.io/library/archlinux:latest    |
+| Centos | 7 | quay.io/centos/centos:7    |
+| Centos | 8 | quay.io/centos/centos:8    |
+| Debian | 11    | docker.io/library/debian:stable, docker.io/library/debian:stable-backports    |
+| Debian | Testing    | docker.io/library/debian:testing, docker.io/library/debian:testing-backports    |
+| Debian | Unstable | docker.io/library/debian:unstable    |
+| Neurodebian | nd100 | docker.io/library/neurodebian:nd100 |
+| Fedora | 34 | registry.fedoraproject.org/fedora-toolbox:34, docker.io/library/fedora:34    |
+| Fedora | 35 | registry.fedoraproject.org/fedora-toolbox:35, docker.io/library/fedora:35    |
+| Mageia | 8 | docker.io/library/mageia |
+| Opensuse | Leap | registry.opensuse.org/opensuse/leap:latest    |
+| Opensuse | Tumbleweed | registry.opensuse.org/opensuse/tumbleweed:latest, registry.opensuse.org/opensuse/toolbox:latest    |
+| Oracle Linux | 7 | container-registry.oracle.com/os/oraclelinux:7    |
+| Oracle Linux | 8 | container-registry.oracle.com/os/oraclelinux:8    |
+| Rocky Linux | 8 | docker.io/rockylinux/rockylinux:8    |
+| Scientific Linux | 7 | docker.io/library/sl:7    |
+| Ubuntu | 20.04 | docker.io/library/ubuntu:20.04    |
+| Ubuntu | 21.10 | docker.io/library/ubuntu:21.10    |
+| Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
+| Void Linux | | ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64, ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64-musl, ghcr.io/void-linux/void-linux:latest-full-x86_64, ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
 
 
-Note however that if you use a non-toolbox pre configured image (e.g. images pre-baked to work with https://github.com/containers/toolbox),
-the **first** `distrobox-enter` (or to be more precise the `podman start`) you perform
-will take a while as it will install with the pkg manager the missing dependencies.
+Note however that if you use a non-toolbox pre configured image (e.g. images pre-baked to work with https://github.com/containers/toolbox), the **first** `distrobox-enter` you'll perform
+can take a while as it will download and install with the pkg manager the missing dependencies.
 
 A small time-tax to pay for the ability to use any type of image.
-This will **not** occur after the first time, and will enter directly.
+This will **not** occur after the first time, **subsequent enters will be much faster.**
 
-## New Distro support
+#### New Distro support
 
-If your distro of choice is not in the list, just try using it anyway, if it works, open an issue
-and it will be added to the list
+If your distro of choice is not in the list open an issue requesting support for it.
+
+Or just try using it anyway, if it works, open an issue
+and it will be added to the list!
 
 # Usage
+
+As stated above, there are 4 tools at dispose, 2 have to be used **outside the distrobox (from the host)** and 2 have to be used **inside the distrobox (from the container)**.
 
 ## Outside the distrobox
 
@@ -154,8 +198,6 @@ Options:
 	--version/-V:		show version
 ```
 
-If the image is not present you'll be prompted to `podman pull` it.
-
 ### Enter the distrobox
 
 ```
@@ -177,35 +219,6 @@ Options:
 This is used to enter the distrobox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
 
 ## Inside the distrobox
-
-### Init the distrobox
-
-```
-distrobox-init is the entrypoint of a created distrobox.
-Note that this HAS to run from inside a distrobox, will not work if you run it
-from your host.
-
-distrobox-init will take care of installing missing dependencies (eg. sudo), set
-up the user and groups, mount directories from the host to ensure the tight
-integration.
-
-Usage:
-
-	distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
-
-Options:
-	--name/-n:		user name
-	--user/-u:		uid of the user
-	--group/-g:		gid of the user
-	--home/-d:		path/to/home of the user
-	--help/-h:		show this message
-	--verbose/-v:		show more verbosity
-	--version/-V:		show version
-```
-
-This is used as entrypoint for the created container, it will take care of creating the users,
-setting up sudo, mountpoints and exports.
-**You should not have to touch or launch this manually**
 
 ### Application and service exporting
 
@@ -286,6 +299,36 @@ NOTE: some electron apps such as vscode and atom need additional flags to work f
 container, use the `--extra-flags` option to provide a series of flags, for example:
 
 `distrobox-export --app atom --extra-flags "--foreground"`
+
+#### Init the distrobox
+
+```
+distrobox-init is the entrypoint of a created distrobox.
+Note that this HAS to run from inside a distrobox, will not work if you run it
+from your host.
+
+distrobox-init will take care of installing missing dependencies (eg. sudo), set
+up the user and groups, mount directories from the host to ensure the tight
+integration.
+
+Usage:
+
+	distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
+
+Options:
+	--name/-n:		user name
+	--user/-u:		uid of the user
+	--group/-g:		gid of the user
+	--home/-d:		path/to/home of the user
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+```
+
+This is used as entrypoint for the created container, it will take care of creating the users,
+setting up sudo, mountpoints and exports.
+
+**You should not have to launch this manually**
 
 # Installation
 
@@ -382,10 +425,10 @@ It may be necessary to enable the socket on your host system by using:
 
 
 
-## Authors
+# Authors
 
 - Luca Di Maio      <luca.dimaio1@gmail.com>
 
-## License
+# License
 
 - GNU GPLv3, See LICENSE file.
