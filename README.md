@@ -2,8 +2,8 @@
 
 # Distrobox
 
-Use any linux distribution inside your terminal.  
-Distrobox uses `podman` to create containers using the linux distribution of your choice.  
+Use any linux distribution inside your terminal.
+Distrobox uses `podman` to create containers using the linux distribution of your choice.
 Created container will be tightly integrated with the host, allowing to share
 the HOME directory of the user, external storage, external usb devices and
 graphical apps (X11/Wayland) and audio.
@@ -42,7 +42,7 @@ graphical apps (X11/Wayland) and audio.
 
 Simply put it's a fancy `podman` wrapper to create and start containers highly integrated with the hosts.
 
-The distrobox environment is based on an OCI image.  
+The distrobox environment is based on an OCI image.
 This image is used to create a container that seamlessly integrates with the rest of the operating system by providing access to the user's home directory,
 the Wayland and X11 sockets, networking, removable devices (like USB sticks), systemd journal, SSH agent, D-Bus,
 ulimits, /dev and the udev database, etc..
@@ -136,20 +136,20 @@ Distrobox guests tested successfully with the following container images:
 |    Distro  |    Version | Images    |
 | --- | --- | --- |
 | AlmaLinux | 8     | docker.io/library/almalinux:8    |
-| Alpine Linux    | 3.14, 3.15 | docker.io/library/alpine:latest    |
+| Alpine Linux    | 3.14 </br> 3.15 | docker.io/library/alpine:latest    |
 | AmazonLinux | 2  | docker.io/library/amazonlinux:2.0.20211005.0    |
 | Archlinux     | | docker.io/library/archlinux:latest    |
 | Centos | 7 | quay.io/centos/centos:7    |
 | Centos | 8 | quay.io/centos/centos:8    |
-| Debian | 11    | docker.io/library/debian:stable, docker.io/library/debian:stable-backports    |
-| Debian | Testing    | docker.io/library/debian:testing, docker.io/library/debian:testing-backports    |
+| Debian | 11    | docker.io/library/debian:stable </br> docker.io/library/debian:stable-backports    |
+| Debian | Testing    | docker.io/library/debian:testing </br> docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
 | Neurodebian | nd100 | docker.io/library/neurodebian:nd100 |
-| Fedora | 34 | registry.fedoraproject.org/fedora-toolbox:34, docker.io/library/fedora:34    |
-| Fedora | 35 | registry.fedoraproject.org/fedora-toolbox:35, docker.io/library/fedora:35    |
+| Fedora | 34 | registry.fedoraproject.org/fedora-toolbox:34 </br> docker.io/library/fedora:34    |
+| Fedora | 35 | registry.fedoraproject.org/fedora-toolbox:35 </br> docker.io/library/fedora:35    |
 | Mageia | 8 | docker.io/library/mageia |
 | Opensuse | Leap | registry.opensuse.org/opensuse/leap:latest    |
-| Opensuse | Tumbleweed | registry.opensuse.org/opensuse/tumbleweed:latest, registry.opensuse.org/opensuse/toolbox:latest    |
+| Opensuse | Tumbleweed | registry.opensuse.org/opensuse/tumbleweed:latest </br> registry.opensuse.org/opensuse/toolbox:latest    |
 | Oracle Linux | 7 | container-registry.oracle.com/os/oraclelinux:7    |
 | Oracle Linux | 8 | container-registry.oracle.com/os/oraclelinux:8    |
 | Rocky Linux | 8 | docker.io/rockylinux/rockylinux:8    |
@@ -157,7 +157,7 @@ Distrobox guests tested successfully with the following container images:
 | Ubuntu | 20.04 | docker.io/library/ubuntu:20.04    |
 | Ubuntu | 21.10 | docker.io/library/ubuntu:21.10    |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
-| Void Linux | | ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64, ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64-musl, ghcr.io/void-linux/void-linux:latest-full-x86_64, ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
+| Void Linux | | ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64 </br> ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64-musl </br> ghcr.io/void-linux/void-linux:latest-full-x86_64 </br> ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
 
 
 Note however that if you use a non-toolbox pre configured image (e.g. images pre-baked to work with https://github.com/containers/toolbox), the **first** `distrobox-enter` you'll perform

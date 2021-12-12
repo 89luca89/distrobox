@@ -125,9 +125,9 @@ generate_command() {
 		--pid host
 		--privileged
 		--security-opt label=disable
-		--ulimit host
 		--user root:root
 		--userns keep-id
+		--ulimit host
 		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro"
 
 	# let's check if we can include distrobox-export or not
@@ -140,15 +140,8 @@ generate_command() {
 	# mount dev inside container. This grants access to external devices
 	# like usb webcams, disks and so on.
 	result_command="${result_command} --volume /dev:/dev:rslave"
-
-	# useful mounts from host to the container using /run/host as a base
-	host_directories="/ /etc /mnt /run /tmp /usr /var"
-	for host_directory in ${host_directories}; do
-		# Check if the directory exists first
-		if [ -d "${host_directory}" ]; then
-			result_command="${result_command} --volume ${host_directory}:/run/host${host_directory}:rslave"
-		fi
-	done
+	result_command="${result_command} --volume /:/run/host:rslave"
+	result_command="${result_command} --mount type=devpts,destination=/dev/pts"
 
 	# those are dynamic configs needed by the container to function properly
 	# and integrate with the host
@@ -165,15 +158,14 @@ generate_command() {
 	if [ -d "/run/user/${container_user_uid}" ]; then
 		result_command="${result_command} --volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
 	fi
-	result_command="${result_command} --mount type=devpts,destination=/dev/pts"
 
 	# find all the user's socket and mount them inside the container
 	# this will allow for continuity of functionality between host and container
 	# for example using `podman --remote` to control the host's podman from inside
 	# the container
 	host_sockets="$(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null || :)"
-	for socket in ${host_sockets}; do
-		result_command="${result_command} --volume ${socket}:${socket}"
+	for host_socket in ${host_sockets}; do
+		result_command="${result_command} --volume ${host_socket}:${host_socket}"
 	done
 
 	# now execute the entrypoint, refer to `distrobox-init -h` for instructions
@@ -207,13 +199,27 @@ if [ -z "$(podman images -q "${container_image}")" ]; then
 		exit 0
 		;;
 	*) # Default case: If no more options then break out of the loop.
-		printf >&2 "The available choices are: y,Y,Yes,yes,n,N,No,no. Exiting.\n"
+		printf >&2 "Invalid input.\n"
+		printf >&2 "The available choices are: y,Y,Yes,yes or n,N,No,no.\nExiting.\n"
 		exit 1
 		;;
 	esac
 fi
 
+# Check if the container already exists.
+if podman ps -a | grep -q "${container_name}\$"; then
+	printf "Distrobox named '%s' already exists." "${container_name}"
+	printf "To enter, run:\n"
+	printf "\tdistrobox-enter --name %s\n" "${container_name}"
+	exit 0
+fi
+
 # Generate the command and execute
 cmd="$(generate_command)"
+# Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
-eval ${cmd}
+if eval ${cmd}; then
+	printf "Distrobox '%s' successfully created." "${container_name}"
+	printf "To enter, run:\n"
+	printf "\tdistrobox-enter --name %s\n" "${container_name}"
+fi

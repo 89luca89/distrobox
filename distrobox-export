@@ -108,6 +108,7 @@ else
     ${exported_bin} \$@
 fi
 EOF
+	return $?
 }
 
 # Parse arguments
@@ -181,19 +182,19 @@ fi
 if [ -z "${exported_app}" ] &&
 	[ -z "${exported_bin}" ] &&
 	[ -z "${exported_service}" ]; then
-	printf >&2 "Invalid arguments, choose an action below\n"
+	printf >&2 "Invalid arguments, choose an action below.\n"
 	show_help
 	exit 2
 fi
 if [ -n "${exported_app}" ] &&
 	[ -n "${exported_bin}" ] &&
 	[ -n "${exported_service}" ]; then
-	printf >&2 "Invalid arguments, choose only one action below\n"
+	printf >&2 "Invalid arguments, choose only one action below.\n"
 	show_help
 	exit 2
 fi
 if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
-	printf >&2 "Missing argument export-path\n"
+	printf >&2 "Missing argument export-path.\n"
 	exit 2
 fi
 
@@ -214,41 +215,63 @@ if [ -n "${exported_bin}" ]; then
 
 	# Ensure the binary we're exporting is installed
 	if [ ! -f "${exported_bin}" ]; then
-		printf >&2 "Error: cannot find %s\n" "${exported_bin}"
+		printf >&2 "Error: cannot find %s.\n" "${exported_bin}"
 		exit 127
 	fi
 	# generate dest_file path
 	dest_file="${dest_path}/$(basename "${exported_bin}")"
 
 	# If we're deleting it, just do it and exit
-	if [ "${exported_delete}" -ne 0 ] && grep -q "distrobox_binary" "${dest_file}"; then
-		rm -f "${dest_file}"
-		exit 0
+	if [ "${exported_delete}" -ne 0 ]; then
+		if [ ! -f "${dest_file}" ]; then
+			printf >&2 "Error: cannot find %s in %s.\nWas it exported?.\n" "${dest_file}" "${dest_path}"
+			exit 1
+		fi
+		if grep -q "distrobox_binary" "${dest_file}"; then
+			if rm -f "${dest_file}"; then
+				printf "OK!\n%s exported from %s removed successfully from %s.\n" "${exported_bin}" "${container_name}" "${dest_path}"
+				exit 0
+			fi
+		else
+			printf >&2 "Error: %s exists but it's not a distrobox exported file.\n" "${dest_file}"
+			printf >&2 "Error: cannot delete: %s.\n" "${dest_file}"
+			exit 2
+		fi
 	fi
 
 	# test if we have writing rights on the file
 	if ! touch "${dest_file}"; then
-		printf >&2 "Error: cannot create destination file %s\n" "${dest_file}"
+		printf >&2 "Error: cannot create destination file %s.\n" "${dest_file}"
 		exit 1
 	fi
 
 	# create the script from template and write to file
-	generate_script "${container_name}" "${exported_bin}" >"${dest_file}"
-	chmod +x "${dest_file}"
+	if generate_script "${container_name}" "${exported_bin}" >"${dest_file}"; then
+		chmod +x "${dest_file}"
+		printf "OK!\n%s from %s exported successfully in %s.\n" "${exported_bin}" "${container_name}" "${dest_path}"
+		exit 0
+	fi
 
-	exit 0
+	printf >&2 "A problem occurred.\n"
+	exit 3
 
 elif [ -n "${exported_app}" ]; then
 	# Work on a desktop app export
 
 	# Ensure the app we're exporting is installed
 	if ! command -v "${exported_app}" >/dev/null; then
-		printf >&2 "Error: trying to export a non-installed application\n"
+		printf >&2 "Error: trying to export a non-installed application.\n"
 		exit 127
 	fi
 	# Find desktop file for the application to export
-	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/*)
+	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/* || :)
 	icon_files=$(find /usr/share/icons -iname "*${exported_app}*")
+	# Check that we found some desktop files first.
+	if [ -z "${desktop_files}" ]; then
+		printf >&2 "Error: cannot find any desktop files.\n"
+		printf >&2 "Error: trying to export a non-installed application.\n"
+		exit 127
+	fi
 
 	# copy icons in home directory
 	for icon_file in ${icon_files}; do
@@ -275,6 +298,10 @@ elif [ -n "${exported_app}" ]; then
 		fi
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
+			if [ ! -f "/run/host/${HOME}/.local/share/applications/${desktop_home_file}" ]; then
+				printf >&2 "Error: trying to remove a non-exported application.\n"
+				exit 1
+			fi
 			rm -f "/run/host/${HOME}/.local/share/applications/${desktop_home_file}"
 		else
 			# If a TryExec is present, we have to fake it as it will not work throught the
@@ -286,7 +313,8 @@ elif [ -n "${exported_app}" ]; then
 		fi
 	done
 
-	exit 0
+	printf "OK!\nApplication %s successfully exported.\n" "${exported_app}"
+	printf "%s will appear in your applications list in a few seconds.\n" "${exported_app}"
 
 elif [ -n "${exported_service}" ]; then
 	# Work on a service export
@@ -299,21 +327,37 @@ elif [ -n "${exported_service}" ]; then
 	# Ensure we're working with fresh data
 	systemctl --user daemon-reload
 	# Fetch original service file
-	service_file="/run/host/${HOME}/.config/systemd/user/${exported_service}.service"
+	service_file="/run/host/${HOME}/.config/systemd/user/${exported_service}-${container_name}.service"
 
 	# If we're deleting it, just do it and exit
 	if [ "${exported_delete}" -ne 0 ]; then
-		rm -f "/run/host/${HOME}/.config/systemd/user/${exported_service}.service"
+		if [ ! -f "${service_file}" ]; then
+			printf >&2 "Error: cannot find service %s.\nWas it exported?.\n" "${exported_service}-${container_name}"
+			exit 1
+		fi
+		rm -f "${service_file}"
 		systemctl --user daemon-reload
+		printf "OK!\nService %s successfully removed.\n" "${exported_service}-${container_name}"
+		exit 0
+	fi
+	# Check if it is already exported
+	if [ -f "${service_file}" ] &&
+		grep -q "${container_command_prefix}" "${service_file}"; then
+
+		printf "Service %s is already exported.\n\n" "${exported_service}-${container_name}"
+		printf "To check the status, run:\n\tsystemctl --user status %s \n" "${exported_service}-${container_name}.service"
+		printf "To start it, run:\n\tsystemctl --user start %s \n" "${exported_service}-${container_name}.service"
+		printf "To start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service}-${container_name}.service"
 		exit 0
 	fi
 
 	# Create temp file with random name
 	temp_file="$(mktemp -u)"
 	# Replace all Exec occurrencies
+	systemctl --user cat "${exported_service}.service" >"${service_file}" 2>/dev/null
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
 		# Save to temp file
-		systemctl --user cat "${exported_service}.service" >"${temp_file}" 2>/dev/null
+		systemctl --user cat "${exported_service}-${container_name}.service" >"${temp_file}" 2>/dev/null
 		# Add prefix only if not present
 		if ! grep "${exec_cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
 			tail -n+2 "${temp_file}" |
@@ -325,6 +369,12 @@ elif [ -n "${exported_service}" ]; then
 	rm -f "${temp_file}"
 	# Reload
 	systemctl --user daemon-reload
+
+	printf "OK!\nService %s successfully exported.\n" "${exported_service}-${container_name}"
+	printf "%s will appear in your services list in a few seconds.\n\n" "${exported_service}-${container_name}"
+	printf "To check the status, run:\n\tsystemctl --user status %s \n" "${exported_service}-${container_name}.service"
+	printf "To start it, run:\n\tsystemctl --user start %s \n" "${exported_service}-${container_name}.service"
+	printf "To start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service}-${container_name}.service"
 
 	exit 0
 fi
