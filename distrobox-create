@@ -112,8 +112,7 @@ generate_command() {
 	fi
 	result_command="${result_command}
 		--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
-		--hostname ${container_name}
-		--ipc host"
+		--hostname ${container_name}"
 	# mount useful stuff inside the container.
 	# we also mount host's root filesystem to /run/host, to be
 	# able to syphon dynamic configurations from the host
@@ -121,6 +120,7 @@ generate_command() {
 	# also mount the distrobox-init utility as the container entrypoint
 	result_command="${result_command} --name ${container_name}
 		--env=\"SHELL=${SHELL}\"
+		--ipc host
 		--network host
 		--pid host
 		--privileged
@@ -207,8 +207,8 @@ if [ -z "$(podman images -q "${container_image}")" ]; then
 fi
 
 # Check if the container already exists.
-if podman ps -a | grep -q "${container_name}\$"; then
-	printf "Distrobox named '%s' already exists." "${container_name}"
+if podman inspect "${container_name}" >/dev/null 2>&1; then
+	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n"
 	printf "\tdistrobox-enter --name %s\n" "${container_name}"
 	exit 0
@@ -219,7 +219,7 @@ cmd="$(generate_command)"
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
 if eval ${cmd}; then
-	printf "Distrobox '%s' successfully created." "${container_name}"
+	printf "Distrobox '%s' successfully created.\n" "${container_name}"
 	printf "To enter, run:\n"
 	printf "\tdistrobox-enter --name %s\n" "${container_name}"
 fi
