@@ -169,6 +169,13 @@ while :; do
 		break ;;
 	esac
 done
+
+# Also check we're running inside a container and not on the host
+if [ ! -f /run/.containerenv ]; then
+	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
+	exit 126
+fi
+
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
 if [ -z "${exported_app}" ] &&
@@ -188,12 +195,6 @@ fi
 if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
 	printf >&2 "Missing argument export-path\n"
 	exit 2
-fi
-
-# Also check we're running inside a container and not on the host
-if [ ! -f /run/.containerenv ]; then
-	printf >&2 "You must run %s inside a container...\n" " $(basename "$0")"
-	exit 126
 fi
 
 set -o errexit

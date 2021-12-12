@@ -93,18 +93,19 @@ while :; do
 	esac
 done
 
+# Also check we're running inside a container and not on the host
+if [ ! -f /run/.containerenv ]; then
+	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
+	printf >&2 "distrobox-init should only be used as an entrypoint for a distrobox!\n"
+	exit 126
+fi
+
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
 [ -z "${container_user_name}" ] && printf >&2 "Invalid arguments, missing username\n" && exit 2
 [ -z "${container_user_uid}" ] && printf >&2 "Invalid arguments, missing user uid\n" && exit 2
 [ -z "${container_user_gid}" ] && printf >&2 "Invalid arguments, missing user gud\n" && exit 2
 [ -z "${container_user_home}" ] && printf >&2 "Invalid argument, missing user home\n" && exit 2
-
-# Also check we're running inside a container and not on the host
-if [ ! -f /run/.containerenv ]; then
-	printf >&2 "You must run %s inside a container...\n" " $(basename "$0")"
-	exit 126
-fi
 
 set -o errexit
 set -o nounset
