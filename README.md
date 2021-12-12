@@ -96,7 +96,7 @@ I would like to keep it always below the [Doherty Treshold](https://lawsofux.com
 
 # Compatibility
 
-This project **does not need a dedicated image** but can use normal images in example from docker hub.
+This project **does not need a dedicated image**. It can use any OCI images from from docker-hub, quay.io or any registry of your choice.
 
 Granted, they may not be as featurefull as expected (some of them do not even have `which`, `mount`, `less` or `vi`)
 but that's all doable in the container itself after bootstrapping it.
@@ -161,7 +161,7 @@ Distrobox guests tested successfully with the following container images:
 
 
 Note however that if you use a non-toolbox pre configured image (e.g. images pre-baked to work with https://github.com/containers/toolbox), the **first** `distrobox-enter` you'll perform
-can take a while as it will download and install with the pkg manager the missing dependencies.
+can take a while as it will download and install the missing dependencies.
 
 A small time-tax to pay for the ability to use any type of image.
 This will **not** occur after the first time, **subsequent enters will be much faster.**
@@ -278,7 +278,7 @@ Options:
 ```
 
 You may want to install graphical applications or user services in your distrobox.
-Using `distrobox-eport` from **inside** the container, will let you use them from the host itself.
+Using `distrobox-export` from **inside** the container, will let you use them from the host itself.
 
 Examples:
 
@@ -287,7 +287,7 @@ Examples:
 `distrobox-export --service syncthing`
 
 This tool will simply copy the original `.desktop` files (with needed icons) or `.service` files,
-add the prefix `/usr/local/bin/distrobox-enter -n fedora-35 -e ... ` to the commands to run, and
+add the prefix `/usr/local/bin/distrobox-enter -n distrobox_name -e ... ` to the commands to run, and
 save them in your home to be used directly from the host as a normal app or `systemctl --user` service.
 
 ![app-export](https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)
