@@ -135,13 +135,13 @@ generate_command() {
 		result_command="${result_command} --volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
 	fi
 
-	# mount user home
-	result_command="${result_command} --volume ${container_user_home}:${container_user_home}:rslave"
-	# mount dev inside container. This grants access to external devices
+	# mount user home, dev and host's root inside container.
+	# This grants access to external devices
 	# like usb webcams, disks and so on.
-	result_command="${result_command} --volume /dev:/dev:rslave"
-	result_command="${result_command} --volume /:/run/host:rslave"
-	result_command="${result_command} --mount type=devpts,destination=/dev/pts"
+	result_command="${result_command}
+		--volume /dev:/dev:rslave
+		--volume /:/run/host:rslave
+		--mount type=devpts,destination=/dev/pts"
 
 	# those are dynamic configs needed by the container to function properly
 	# and integrate with the host
