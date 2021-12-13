@@ -141,6 +141,7 @@ generate_command() {
 	result_command="${result_command}
 		--volume /dev:/dev:rslave
 		--volume /:/run/host:rslave
+		--volume ${container_user_home}:${container_user_home}:rslave
 		--mount type=devpts,destination=/dev/pts"
 
 	# those are dynamic configs needed by the container to function properly
