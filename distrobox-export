@@ -5,7 +5,7 @@
 #	USER
 #	DISTROBOX_ENTER_PATH
 
-trap '[ "$?" -ne 0 ] && printf "An error occurred\n"' EXIT
+trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
 export_action=""

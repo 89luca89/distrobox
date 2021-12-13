@@ -5,7 +5,7 @@
 #	USER
 #	SHELL
 
-trap '[ "$?" -ne 0 ] && printf "An error occurred\n"' EXIT
+trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
 container_command="${SHELL:-"bash"} -l"
@@ -93,49 +93,6 @@ fi
 # Outputs:
 #   prints the podman command to enter the distrobox container
 generate_command() {
-	log_timestamp="$(date +%FT%T.%N%:z)"
-	# If the container is not already running, we need to start if first
-	if ! podman ps | grep -qE "(^| )${container_name}( |$)"; then
-		# if container is not running, start it first
-		if ! podman start "${container_name}" >/dev/null; then
-
-			# if cannot start, container not found!
-			# prompt to create it first
-			printf >&2 "Cannot start container %s, does it exist?\n" "${container_name}"
-			printf >&2 "Try running first:\n\n"
-			printf >&2 "\tdistrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>\n"
-			return 1
-		else
-			printf >&2 "Starting container %s\n" "${container_name}"
-			printf >&2 "run this command to follow along:\n"
-			printf >&2 "\tpodman logs -f %s\n" "${container_name}"
-
-			# Wait for container to start successfully.
-			# We will probe the container logs every 1s to check if we have either
-			# Error or container_setup_done
-			# in the end, print eventual Warnings that occurred.
-			while :; do
-				podman_log="$(podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null)"
-				case "${podman_log}" in
-				*"Error"*)
-					printf >&2 "%s\n" "${podman_log}"
-					return 1
-					;;
-				*"container_setup_done"*)
-					break
-					;;
-				*)
-					printf >&2 "."
-					sleep 1
-					;;
-				esac
-			done
-			printf >&2 "\ndone!\n"
-			# Print eventual warnings in the log.
-			podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null | grep "Warning" >&2 || :
-		fi
-	fi
-
 	# entering container using our user and workdir
 	result_command="podman exec"
 	# add podman verbose if -v is specified
@@ -147,22 +104,70 @@ generate_command() {
 		--tty
 		--user=${USER}"
 	# start container from working directory. Else default to home. Else do /.
-	result_command="${result_command}
-		--workdir=${PWD:-${HOME:-"/"}}"
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
 	result_command="${result_command}
+		--workdir=${PWD:-${HOME:-"/"}}
 		--env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
-	# exporting current environment to container
+
+	# loop through all the environment vars
+	# and export them to the container.
 	for i in $(printenv | grep '=' | grep -v ' '); do
 		result_command="${result_command} --env=\"${i}\""
 	done
-	# run selected pod with command+args
+
+	# run selected container with specified command.
 	result_command="${result_command} ${container_name} ${container_command}"
 
+	# return generated command.
 	printf "%s" "${result_command}"
 }
 
-# Generate the command and execute
+# Does the container exists?
+if ! podman ps -a | grep -qE "(^| )${container_name}( |$)"; then
+	# prompt to create it first
+	printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
+	printf >&2 "\nTry running first:\n"
+	printf >&2 "\tdistrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>\n"
+	exit 1
+fi
+
+# If the container is not already running, we need to start if first
+if ! podman ps | grep -qE "(^| )${container_name}( |$)"; then
+
+	# if container is not running, start it first
+	log_timestamp="$(date +%FT%T.%N%:z)"
+	podman start "${container_name}" >/dev/null
+
+	printf >&2 "Starting container %s\n" "${container_name}"
+	printf >&2 "run this command to follow along:\n"
+	printf >&2 "\tpodman logs -f %s\n" "${container_name}"
+
+	# Wait for container to start successfully.
+	# We will probe the container logs every 1s to check if we have either
+	# Error or container_setup_done
+	# in the end, print eventual Warnings that occurred.
+	while :; do
+		podman_log="$(podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null)"
+		case "${podman_log}" in
+		*"Error"*)
+			printf >&2 "%s\n" "${podman_log}"
+			exit 1
+			;;
+		*"container_setup_done"*)
+			break
+			;;
+		*)
+			printf >&2 "."
+			sleep 1
+			;;
+		esac
+	done
+	printf >&2 "\ndone!\n"
+	# Print eventual warnings in the log.
+	podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null | grep "Warning" >&2 || :
+fi
+
+# Generate the exec command and run it
 cmd="$(generate_command)"
 # shellcheck disable=SC2086
 eval ${cmd}

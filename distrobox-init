@@ -265,7 +265,7 @@ passwd --delete root
 # bind mount distrobox directory for themes and icons
 mkdir -p "${container_user_home}/.local/share/themes"
 mkdir -p "${container_user_home}/.local/share/icons"
-# Fix permissions for homw folders
+# Fix permissions for home directories
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/themes"
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/icons"
 if ! mount_bind "/run/host/usr/share/themes" "${container_user_home}/.local/share/themes" rw; then
