@@ -192,8 +192,8 @@ if [ -z "${exported_app}" ] &&
 fi
 # Ensure we're not receiving more than one action at time.
 if [ -n "${exported_app}" ] && [ -n "${exported_bin}" ] ||
-   [ -n "${exported_app}" ] && [ -n "${exported_service}" ] ||
-   [ -n "${exported_bin}" ] && [ -n "${exported_service}" ]; then
+	[ -n "${exported_app}" ] && [ -n "${exported_service}" ] ||
+	[ -n "${exported_bin}" ] && [ -n "${exported_service}" ]; then
 	printf >&2 "Error: Invalid arguments, choose only one action below.\n"
 	printf >&2 "Error: You can only export one thing at time.\n"
 	exit 2
