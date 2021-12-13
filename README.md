@@ -68,7 +68,7 @@ It is divided in 4 parts:
 ### Aims
 
 This project aims to bring **any distro userland to any other distro** supporting podman.
-It has been written in posix sh to be as portable as possible and not have problems with glibc version's compatibility.
+It has been written in POSIX sh to be as portable as possible and not have problems with glibc version's compatibility.
 
 It also aims to enter the container **as fast as possible**, every millisecond adds up if you use the it
 as your default environment for your terminal:
@@ -96,9 +96,9 @@ I would like to keep it always below the [Doherty Treshold](https://lawsofux.com
 
 # Compatibility
 
-This project **does not need a dedicated image**. It can use any OCI images from from docker-hub, quay.io or any registry of your choice.
+This project **does not need a dedicated image**. It can use any OCI images from docker-hub, quay.io or any registry of your choice.
 
-Granted, they may not be as featurefull as expected (some of them do not even have `which`, `mount`, `less` or `vi`)
+Granted, they may not be as featureful as expected (some of them do not even have `which`, `mount`, `less` or `vi`)
 but that's all doable in the container itself after bootstrapping it.
 
 Main concern is having basic linux utilities (`mount`), basic user management utilities (`usermod, passwd`) and `sudo` correctly set.
@@ -160,7 +160,7 @@ Distrobox guests tested successfully with the following container images:
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64 </br> ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64-musl </br> ghcr.io/void-linux/void-linux:latest-full-x86_64 </br> ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
 
 
-Note however that if you use a non-toolbox pre configured image (e.g. images pre-baked to work with https://github.com/containers/toolbox), the **first** `distrobox-enter` you'll perform
+Note however that if you use a non-toolbox preconfigured image (e.g. images pre-baked to work with https://github.com/containers/toolbox), the **first** `distrobox-enter` you'll perform
 can take a while as it will download and install the missing dependencies.
 
 A small time-tax to pay for the ability to use any type of image.
@@ -342,7 +342,7 @@ or if you want to select a custom directory to install without sudo:
 
 Else you can clone the project using `git clone` or using the `download zip` voice after clicking the green button above.
 
-Enter the directory and run `./install`, by default it will attemp to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
+Enter the directory and run `./install`, by default it will attempt to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
 
 # Dependencies
 
