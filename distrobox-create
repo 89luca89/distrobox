@@ -111,41 +111,64 @@ generate_command() {
 		result_command="${result_command} --log-level debug"
 	fi
 	result_command="${result_command}
-		--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
-		--hostname ${container_name}"
-	# mount useful stuff inside the container.
-	# we also mount host's root filesystem to /run/host, to be
-	# able to syphon dynamic configurations from the host
-	#
-	# also mount the distrobox-init utility as the container entrypoint
-	result_command="${result_command} --name ${container_name}
 		--env=\"SHELL=${SHELL}\"
+		--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
+		--hostname ${container_name}
 		--ipc host
+		--name ${container_name}
 		--network host
 		--pid host
 		--privileged
 		--security-opt label=disable
 		--user root:root
 		--userns keep-id
-		--ulimit host
-		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro"
+		--ulimit host"
 
 	# let's check if we can include distrobox-export or not
 	if [ -n "${distrobox_export_path}" ]; then
-		result_command="${result_command} --volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
+		result_command="${result_command}
+			--volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
 	fi
 
+	# mount useful stuff inside the container.
+	# we also mount host's root filesystem to /run/host, to be
+	# able to syphon dynamic configurations from the host
+	#
 	# mount user home, dev and host's root inside container.
 	# This grants access to external devices
 	# like usb webcams, disks and so on.
+	#
+	# also mount the distrobox-init utility as the container entrypoint
 	result_command="${result_command}
-		--volume /dev:/dev:rslave
-		--volume /:/run/host:rslave
 		--volume ${container_user_home}:${container_user_home}:rslave
+		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro
+		--volume /:/run/host:rslave
+		--volume /dev:/dev:rslave
 		--mount type=devpts,destination=/dev/pts"
+
+	# mount also the XDG_RUNTIME_DIR to ensure functionality of the apps
+	if [ -d "/run/user/${container_user_uid}" ]; then
+		result_command="${result_command}
+			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
+	fi
+
+	# find all the user's socket and mount them inside the container
+	# this will allow for continuity of functionality between host and container
+	#
+	# for example using `podman --remote` to control the host's podman from inside
+	# the container or accessing docker and libvirt sockets.
+	host_sockets="$(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null || :)"
+	for host_socket in ${host_sockets}; do
+		result_command="${result_command} --volume ${host_socket}:${host_socket}"
+	done
 
 	# those are dynamic configs needed by the container to function properly
 	# and integrate with the host
+	#
+	# We're doing this now instead of inside the init because some distros will
+	# have symlinks places for these files that use absolute paths instead of
+	# relative paths. Those symlinks will result broken inside the container so
+	# we need to resolve them now on the host.
 	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime"
 	for host_link in ${host_links}; do
 		# Check if the file exists first
@@ -153,20 +176,6 @@ generate_command() {
 			# Use realpath to not have multi symlink mess
 			result_command="${result_command} --volume $(realpath "${host_link}"):${host_link}:ro"
 		fi
-	done
-
-	# mount also the XDG_RUNTIME_DIR to ensure functionality of the apps
-	if [ -d "/run/user/${container_user_uid}" ]; then
-		result_command="${result_command} --volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
-	fi
-
-	# find all the user's socket and mount them inside the container
-	# this will allow for continuity of functionality between host and container
-	# for example using `podman --remote` to control the host's podman from inside
-	# the container
-	host_sockets="$(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null || :)"
-	for host_socket in ${host_sockets}; do
-		result_command="${result_command} --volume ${host_socket}:${host_socket}"
 	done
 
 	# now execute the entrypoint, refer to `distrobox-init -h` for instructions
@@ -181,7 +190,10 @@ generate_command() {
 
 # check that we have a complete distrobox installation or
 # entrypoint and export will not work.
-[ -z "${distrobox_entrypoint_path}" ] && printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}" && exit 127
+if [ -z "${distrobox_entrypoint_path}" ]; then
+	printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}"
+	exit 127
+fi
 
 # First, check if the image exists in the host
 if [ -z "$(podman images -q "${container_image}")" ]; then
