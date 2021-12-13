@@ -114,7 +114,7 @@ podman logs -f ${container_name}"
 			while :; do
 				podman_log="$(podman logs "${container_name}" 2>/dev/null)"
 				if echo "${podman_log}" | grep -q "container_setup_done"; then
-					break;
+					break
 				else
 					echo "${podman_log}" | grep -E "Error|Warning"
 				fi

@@ -298,7 +298,7 @@ export_application() {
 
 	# Find desktop file for the application to export
 	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/* || :)
-	icon_files=$(find /usr/share/icons -iname "*${exported_app}*" ||:)
+	icon_files=$(find /usr/share/icons -iname "*${exported_app}*" || :)
 	# Check that we found some desktop files first.
 	if [ -z "${desktop_files}" ]; then
 		printf >&2 "Error: cannot find any desktop files.\n"
@@ -344,6 +344,7 @@ export_application() {
 				sed "s|\(%.*\)|\" \1|g" |
 				sed "s|^TryExec=.*|TryExec=true|g" \
 					>"/run/host/${HOME}/.local/share/applications/${desktop_home_file}"
+			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
 	done
 
@@ -408,7 +409,7 @@ export_service() {
 				sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" |
 				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" |
 				sed "s|^${exec_cmd}=.*|&\"|g" >"${exported_service_file}"
-				# in the end we add the final quote we've opened in the "container_command_prefix"
+			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
 	done
 	# Cleanup
@@ -425,18 +426,18 @@ export_service() {
 
 # Main routine
 case "${export_action}" in
-	app )
-		export_application
-		;;
-	bin )
-		exported_bin
-		;;
-	service )
-		export_service
-		;;
-	* )
-		printf >&2 "Invalid arguments, choose an action below.\n"
-		show_help
-		exit 2
-		;;
+app)
+	export_application
+	;;
+bin)
+	exported_bin
+	;;
+service)
+	export_service
+	;;
+*)
+	printf >&2 "Invalid arguments, choose an action below.\n"
+	show_help
+	exit 2
+	;;
 esac
