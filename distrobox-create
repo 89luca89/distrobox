@@ -4,7 +4,7 @@
 #	HOME
 #	USER
 
-trap '[ "$?" -ne 0 ] && printf "An error occurred\n"' EXIT
+trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
 container_image="registry.fedoraproject.org/fedora-toolbox:35"
@@ -187,6 +187,7 @@ generate_command() {
 			--group ${container_user_gid}
 			--home ${container_user_home}"
 
+	# return generated command.
 	printf "%s" "${result_command}"
 }
 
@@ -197,11 +198,23 @@ if [ -z "${distrobox_entrypoint_path}" ]; then
 	exit 127
 fi
 
+# Check if the container already exists.
+# If it does, notify the user and exit.
+if podman ps -a | grep -qE "(^| )${container_name}( |$)"; then
+	printf "Distrobox named '%s' already exists.\n" "${container_name}"
+	printf "To enter, run:\n"
+	printf "\tdistrobox-enter --name %s\n" "${container_name}"
+	exit 0
+fi
+
 # First, check if the image exists in the host
+# If not prompt to download it.
 if [ -z "$(podman images -q "${container_image}")" ]; then
+	# Prompt to download it.
 	printf >&2 "Image not found.\n"
 	printf >&2 "Do you want to pull the image now?[y/n] "
 	read -r response
+
 	# Accept only y,Y,Yes,yes,n,N,No,no.
 	case "${response}" in
 	y | Y | yes | Yes)
@@ -221,15 +234,7 @@ if [ -z "$(podman images -q "${container_image}")" ]; then
 	esac
 fi
 
-# Check if the container already exists.
-if podman inspect "${container_name}" >/dev/null 2>&1; then
-	printf "Distrobox named '%s' already exists.\n" "${container_name}"
-	printf "To enter, run:\n"
-	printf "\tdistrobox-enter --name %s\n" "${container_name}"
-	exit 0
-fi
-
-# Generate the command and execute
+# Generate the create command and run it
 cmd="$(generate_command)"
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
