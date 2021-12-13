@@ -111,7 +111,13 @@ Starting container
 run this command to follow along:
 
 podman logs -f ${container_name}"
-			while ! podman logs "${container_name}" 2>/dev/null | grep -q "container_setup_done"; do
+			while :; do
+				podman_log="$(podman logs "${container_name}" 2>/dev/null)"
+				if echo "${podman_log}" | grep -q "container_setup_done"; then
+					break;
+				else
+					echo "${podman_log}" | grep -E "Error|Warning"
+				fi
 				printf >&2 "."
 				sleep 1
 			done
@@ -125,8 +131,10 @@ podman logs -f ${container_name}"
 	if [ "${verbose}" -ne 0 ]; then
 		result_command="${result_command} --log-level debug"
 	fi
-	result_command="${result_command} --interactive --tty"
-	result_command="${result_command} --user=${USER}"
+	result_command="${result_command}
+		--interactive
+		--tty
+		--user=${USER}"
 	# start container from working directory. Else default to home. Else do /.
 	result_command="${result_command} --workdir=${PWD:-${HOME:-"/"}}"
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
