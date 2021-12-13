@@ -8,11 +8,13 @@
 trap '[ "$?" -ne 0 ] && printf "An error occurred\n"' EXIT
 
 # Defaults
+export_action=""
 exported_app=""
 exported_bin=""
 exported_delete=0
 exported_service=""
 extra_flags=""
+is_sudo=""
 verbose=0
 version="distrobox_version_placeholder"
 
@@ -67,14 +69,18 @@ The option "--delete" will un-export an app, binary or service.
 	distrobox-export --app atom --delete
 	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --delete
 	distrobox-export --service syncthing --delete
+	distrobox-export --service nginx --delete
+
+The option "--sudo" will launch the exported item as root inside the distrobox.
 
 Note you can use --app OR --bin OR --service but not together.
 
+	distrobox-export --service nginx --sudo
 
 Usage:
-	distrobox-export --app mpv [--extra-flags "flags"] [--delete]
-	distrobox-export --service syncthing [--extra-flags "flags"] [--delete]
-	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete]
+	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --service syncthing [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
 
 
 Options:
@@ -84,31 +90,11 @@ Options:
 	--delete/-d:		delete exported application or service
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
+	--sudo/-S:		specify if the exported item should be ran as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 EOF
-}
-
-# Print generated script from template
-# Arguments:
-#	distrobox name
-#	binary path
-#	extra flags
-# Outputs:
-#   print generated script.
-generate_script() {
-	cat <<EOF
-#!/bin/sh
-# distrobox_binary
-# name: ${container_name}
-if [ ! -f /run/.containerenv ]; then
-    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- ${exported_bin} ${extra_flags} \$@
-else
-    ${exported_bin} \$@
-fi
-EOF
-	return $?
 }
 
 # Parse arguments
@@ -129,6 +115,7 @@ while :; do
 		;;
 	-a | --app)
 		if [ -n "$2" ]; then
+			export_action="app"
 			exported_app="$2"
 			shift
 			shift
@@ -136,6 +123,7 @@ while :; do
 		;;
 	-b | --bin)
 		if [ -n "$2" ]; then
+			export_action="bin"
 			exported_bin="$2"
 			shift
 			shift
@@ -143,10 +131,15 @@ while :; do
 		;;
 	-s | --service)
 		if [ -n "$2" ]; then
+			export_action="service"
 			exported_service="$2"
 			shift
 			shift
 		fi
+		;;
+	-S | --sudo)
+		is_sudo="sudo"
+		shift
 		;;
 	-ep | --export-path)
 		if [ -n "$2" ]; then
@@ -208,15 +201,43 @@ fi
 # We can assume this as we set it the same as container name during creation.
 container_name=$(cat /etc/hostname)
 # Prefix to add to an existing command to work throught the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- \"${is_sudo} "
 
-if [ -n "${exported_bin}" ]; then
-	# Work on a binary export
+# Print generated script from template
+# Arguments:
+#	distrobox name
+#	binary path
+#	extra flags
+# Outputs:
+#   print generated script.
+generate_script() {
+	cat <<EOF
+#!/bin/sh
+# distrobox_binary
+# name: ${container_name}
+if [ ! -f /run/.containerenv ]; then
+    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- ${exported_bin} ${extra_flags} \$@
+else
+    ${exported_bin} \$@
+fi
+EOF
+	return $?
+}
 
+# Export binary to destination directory.
+# the following function will use generate_script to create a shell script in
+# dest_path that will execute the exported binary in the selected distrobox.
+#
+# Arguments:
+#	none it will use the ones set up globally
+# Outputs:
+#	a generated_script in dest_path
+#	or error code.
+export_binary() {
 	# Ensure the binary we're exporting is installed
 	if [ ! -f "${exported_bin}" ]; then
 		printf >&2 "Error: cannot find %s.\n" "${exported_bin}"
-		exit 127
+		return 127
 	fi
 	# generate dest_file path
 	dest_file="${dest_path}/$(basename "${exported_bin}")"
@@ -225,52 +246,69 @@ if [ -n "${exported_bin}" ]; then
 	if [ "${exported_delete}" -ne 0 ]; then
 		if [ ! -f "${dest_file}" ]; then
 			printf >&2 "Error: cannot find %s in %s.\nWas it exported?.\n" "${dest_file}" "${dest_path}"
-			exit 1
+			return 1
 		fi
 		if grep -q "distrobox_binary" "${dest_file}"; then
 			if rm -f "${dest_file}"; then
 				printf "OK!\n%s exported from %s removed successfully from %s.\n" "${exported_bin}" "${container_name}" "${dest_path}"
-				exit 0
+				return 0
 			fi
 		else
 			printf >&2 "Error: %s exists but it's not a distrobox exported file.\n" "${dest_file}"
 			printf >&2 "Error: cannot delete: %s.\n" "${dest_file}"
-			exit 2
+			return 2
 		fi
 	fi
 
 	# test if we have writing rights on the file
 	if ! touch "${dest_file}"; then
 		printf >&2 "Error: cannot create destination file %s.\n" "${dest_file}"
-		exit 1
+		return 1
 	fi
 
 	# create the script from template and write to file
 	if generate_script "${container_name}" "${exported_bin}" >"${dest_file}"; then
 		chmod +x "${dest_file}"
 		printf "OK!\n%s from %s exported successfully in %s.\n" "${exported_bin}" "${container_name}" "${dest_path}"
-		exit 0
+		return 0
 	fi
-
+	# Unknown error.
 	printf >&2 "A problem occurred.\n"
-	exit 3
+	return 3
+}
 
-elif [ -n "${exported_app}" ]; then
-	# Work on a desktop app export
-
+# Export graphical application to the host.
+# the following function will scan the distrobox for desktop and icon files for
+# the selected application. It will then put the needed icons in the host's icons
+# directory and create a new .desktop file that will execute the selected application
+# in the distrobox.
+#
+# Arguments:
+#	none it will use the ones set up globally
+# Outputs:
+#	needed icons in /run/host/$HOME/.local/share/icons
+#	needed desktop files in /run/host/$HOME/.local/share/applications
+#	or error code.
+export_application() {
 	# Ensure the app we're exporting is installed
 	if ! command -v "${exported_app}" >/dev/null; then
 		printf >&2 "Error: trying to export a non-installed application.\n"
-		exit 127
+		return 127
 	fi
+
 	# Find desktop file for the application to export
 	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/* || :)
-	icon_files=$(find /usr/share/icons -iname "*${exported_app}*")
+	icon_files=$(find /usr/share/icons -iname "*${exported_app}*" ||:)
 	# Check that we found some desktop files first.
 	if [ -z "${desktop_files}" ]; then
 		printf >&2 "Error: cannot find any desktop files.\n"
 		printf >&2 "Error: trying to export a non-installed application.\n"
-		exit 127
+		return 127
+	fi
+
+	# create applications dir if not existing
+	if [ ! -d "/run/host/${HOME}/.local/share/applications" ]; then
+		mkdir -p "/run/host/${HOME}/.local/share/applications"
 	fi
 
 	# copy icons in home directory
@@ -291,16 +329,11 @@ elif [ -n "${exported_app}" ]; then
 	# create desktop files for the distrobox
 	for desktop_file in ${desktop_files}; do
 		desktop_home_file="$(basename "${desktop_file}")"
-
-		# create applications dir if not existing
-		if [ ! -d "/run/host/${HOME}/.local/share/applications" ]; then
-			mkdir -p "/run/host/${HOME}/.local/share/applications"
-		fi
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
 			if [ ! -f "/run/host/${HOME}/.local/share/applications/${desktop_home_file}" ]; then
 				printf >&2 "Error: trying to remove a non-exported application.\n"
-				exit 1
+				return 1
 			fi
 			rm -f "/run/host/${HOME}/.local/share/applications/${desktop_home_file}"
 		else
@@ -308,6 +341,7 @@ elif [ -n "${exported_app}" ]; then
 			# container separation
 			sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
 				sed "s|\(%.*\)|${extra_flags} \1|g" |
+				sed "s|\(%.*\)|\" \1|g" |
 				sed "s|^TryExec=.*|TryExec=true|g" \
 					>"/run/host/${HOME}/.local/share/applications/${desktop_home_file}"
 		fi
@@ -316,59 +350,69 @@ elif [ -n "${exported_app}" ]; then
 	printf "OK!\nApplication %s successfully exported.\n" "${exported_app}"
 	printf "%s will appear in your applications list in a few seconds.\n" "${exported_app}"
 
-elif [ -n "${exported_service}" ]; then
-	# Work on a service export
+}
 
-	# If we're managing services, let's be sure we have systemctl
-	if ! command -v systemctl >/dev/null; then
-		printf >&2 "Missing dependency: systemd\n"
-		exit 127
-	fi
-	# Ensure we're working with fresh data
-	systemctl --user daemon-reload
-	# Fetch original service file
-	service_file="/run/host/${HOME}/.config/systemd/user/${exported_service}-${container_name}.service"
+# Export systemd service to the host.
+# the following function will export a selected systemd unit from the distrobox
+# to the host. It will modify the original unit to include the container_command_prefix.
+#
+# Arguments:
+#	none it will use the ones set up globally
+# Outputs:
+#	new systemd unit in /run/host/$HOME/.config/systemd/user/
+#	or error code.
+export_service() {
+	# this is the output file we will produce.
+	exported_service_file="/run/host/${HOME}/.config/systemd/user/${exported_service}-${container_name}.service"
 
 	# If we're deleting it, just do it and exit
 	if [ "${exported_delete}" -ne 0 ]; then
-		if [ ! -f "${service_file}" ]; then
+		if [ ! -f "${exported_service_file}" ]; then
 			printf >&2 "Error: cannot find service %s.\nWas it exported?.\n" "${exported_service}-${container_name}"
-			exit 1
+			return 1
 		fi
-		rm -f "${service_file}"
-		systemctl --user daemon-reload
+		rm -f "${exported_service_file}"
 		printf "OK!\nService %s successfully removed.\n" "${exported_service}-${container_name}"
-		exit 0
+		return 0
 	fi
 	# Check if it is already exported
-	if [ -f "${service_file}" ] &&
-		grep -q "${container_command_prefix}" "${service_file}"; then
+	if [ -f "${exported_service_file}" ] &&
+		grep -q "${container_command_prefix}" "${exported_service_file}"; then
 
 		printf "Service %s is already exported.\n\n" "${exported_service}-${container_name}"
 		printf "To check the status, run:\n\tsystemctl --user status %s \n" "${exported_service}-${container_name}.service"
 		printf "To start it, run:\n\tsystemctl --user start %s \n" "${exported_service}-${container_name}.service"
 		printf "To start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service}-${container_name}.service"
-		exit 0
+		return 0
+	fi
+
+	# find the service file in the common
+	service_file=$(find /etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ "${HOME}".config/systemd/user/ -type f -name "${exported_service}*" 2>/dev/null | tail -1)
+	# Check that we found some service files first.
+	if [ -z "${service_file}" ]; then
+		printf >&2 "Error: cannot find any service file for %s.\n" "${exported_service}"
+		printf >&2 "Error: trying to export a non-installed service.\n"
+		return 127
 	fi
 
 	# Create temp file with random name
 	temp_file="$(mktemp -u)"
 	# Replace all Exec occurrencies
-	systemctl --user cat "${exported_service}.service" >"${service_file}" 2>/dev/null
+	cat "${service_file}" >"${exported_service_file}" 2>/dev/null
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
 		# Save to temp file
-		systemctl --user cat "${exported_service}-${container_name}.service" >"${temp_file}" 2>/dev/null
+		cat "${exported_service_file}" >"${temp_file}" 2>/dev/null
 		# Add prefix only if not present
 		if ! grep "${exec_cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
 			tail -n+2 "${temp_file}" |
-				sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix} |g" |
-				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" >"${service_file}"
+				sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" |
+				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" |
+				sed "s|^${exec_cmd}=.*|&\"|g" >"${exported_service_file}"
+				# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
 	done
 	# Cleanup
 	rm -f "${temp_file}"
-	# Reload
-	systemctl --user daemon-reload
 
 	printf "OK!\nService %s successfully exported.\n" "${exported_service}-${container_name}"
 	printf "%s will appear in your services list in a few seconds.\n\n" "${exported_service}-${container_name}"
@@ -376,5 +420,23 @@ elif [ -n "${exported_service}" ]; then
 	printf "To start it, run:\n\tsystemctl --user start %s \n" "${exported_service}-${container_name}.service"
 	printf "To start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service}-${container_name}.service"
 
-	exit 0
-fi
+	return 0
+}
+
+# Main routine
+case "${export_action}" in
+	app )
+		export_application
+		;;
+	bin )
+		exported_bin
+		;;
+	service )
+		export_service
+		;;
+	* )
+		printf >&2 "Invalid arguments, choose an action below.\n"
+		show_help
+		exit 2
+		;;
+esac
