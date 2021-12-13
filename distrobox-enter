@@ -81,7 +81,7 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# We depend on podman let's be sure we have it
+# We depend on podman let's be sure we have it.
 if ! command -v podman >/dev/null; then
 	printf >&2 "Missing dependency: podman\n"
 	exit 127
@@ -93,7 +93,6 @@ fi
 # Outputs:
 #   prints the podman command to enter the distrobox container
 generate_command() {
-	# entering container using our user and workdir
 	result_command="podman exec"
 	# add podman verbose if -v is specified
 	if [ "${verbose}" -ne 0 ]; then
@@ -103,28 +102,29 @@ generate_command() {
 		--interactive
 		--tty
 		--user=${USER}"
-	# start container from working directory. Else default to home. Else do /.
+	# Entering container using our user and workdir.
+	# Start container from working directory. Else default to home. Else do /.
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
 	result_command="${result_command}
 		--workdir=${PWD:-${HOME:-"/"}}
 		--env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
 
-	# loop through all the environment vars
+	# Loop through all the environment vars
 	# and export them to the container.
 	for i in $(printenv | grep '=' | grep -v ' '); do
 		result_command="${result_command} --env=\"${i}\""
 	done
 
-	# run selected container with specified command.
+	# Run selected container with specified command.
 	result_command="${result_command} ${container_name} ${container_command}"
 
-	# return generated command.
+	# Return generated command.
 	printf "%s" "${result_command}"
 }
 
 # Does the container exists?
 if ! podman ps -a | grep -qE "(^| )${container_name}( |$)"; then
-	# prompt to create it first
+	# If not, prompt to create it first
 	printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
 	printf >&2 "\nTry running first:\n"
 	printf >&2 "\tdistrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>\n"
@@ -133,8 +133,9 @@ fi
 
 # If the container is not already running, we need to start if first
 if ! podman ps | grep -qE "(^| )${container_name}( |$)"; then
-
-	# if container is not running, start it first
+	# If container is not running, start it first
+	# Here, we save the timestamp before launching the start command, so we can
+	# be sure we're working with this very same session of logs later.
 	log_timestamp="$(date +%FT%T.%N%:z)"
 	podman start "${container_name}" >/dev/null
 
@@ -143,9 +144,10 @@ if ! podman ps | grep -qE "(^| )${container_name}( |$)"; then
 	printf >&2 "\tpodman logs -f %s\n" "${container_name}"
 
 	# Wait for container to start successfully.
-	# We will probe the container logs every 1s to check if we have either
+	# We will probe the container logs every 1s to check if we have either:
 	# Error or container_setup_done
-	# in the end, print eventual Warnings that occurred.
+	#
+	# In the end, print eventual Warnings that occurred.
 	while :; do
 		podman_log="$(podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null)"
 		case "${podman_log}" in

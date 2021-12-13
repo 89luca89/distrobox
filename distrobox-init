@@ -101,7 +101,7 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# Also check we're running inside a container and not on the host
+# Check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
 	printf >&2 "distrobox-init should only be used as an entrypoint for a distrobox!\n"
@@ -110,10 +110,10 @@ fi
 
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
-[ -z "${container_user_name}" ] && printf >&2 "Invalid arguments, missing username\n" && exit 2
-[ -z "${container_user_uid}" ] && printf >&2 "Invalid arguments, missing user uid\n" && exit 2
-[ -z "${container_user_gid}" ] && printf >&2 "Invalid arguments, missing user gud\n" && exit 2
-[ -z "${container_user_home}" ] && printf >&2 "Invalid argument, missing user home\n" && exit 2
+[ -z "${container_user_gid}" ] && printf "Error: Invalid arguments, missing user gud\n" && exit 2
+[ -z "${container_user_home}" ] && printf "Error: Invalid argument, missing user home\n" && exit 2
+[ -z "${container_user_name}" ] && printf "Error: Invalid arguments, missing username\n" && exit 2
+[ -z "${container_user_uid}" ] && printf "Error: Invalid arguments, missing user uid\n" && exit 2
 
 # Bind mount or error.
 # Arguments:
@@ -172,7 +172,9 @@ list_sudo_groups() (
 		group="wheel"
 	else
 		# No group for root, create one
-		groupadd wheel
+		if ! groupadd wheel; then
+			return 1
+		fi
 		group="wheel"
 	fi
 

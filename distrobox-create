@@ -132,15 +132,14 @@ generate_command() {
 			--volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
 	fi
 
-	# mount useful stuff inside the container.
-	# we also mount host's root filesystem to /run/host, to be
-	# able to syphon dynamic configurations from the host
+	# Mount useful stuff inside the container.
+	# We also mount host's root filesystem to /run/host, to be able to syphon
+	# dynamic configurations from the host.
 	#
-	# mount user home, dev and host's root inside container.
-	# This grants access to external devices
-	# like usb webcams, disks and so on.
+	# Mount user home, dev and host's root inside container.
+	# This grants access to external devices like usb webcams, disks and so on.
 	#
-	# also mount the distrobox-init utility as the container entrypoint
+	# Mount also the distrobox-init utility as the container entrypoint.
 	result_command="${result_command}
 		--volume ${container_user_home}:${container_user_home}:rslave
 		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro
@@ -148,13 +147,13 @@ generate_command() {
 		--volume /dev:/dev:rslave
 		--mount type=devpts,destination=/dev/pts"
 
-	# mount also the XDG_RUNTIME_DIR to ensure functionality of the apps
+	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
 	if [ -d "/run/user/${container_user_uid}" ]; then
 		result_command="${result_command}
 			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
 	fi
 
-	# find all the user's socket and mount them inside the container
+	# Find all the user's socket and mount them inside the container
 	# this will allow for continuity of functionality between host and container
 	#
 	# for example using `podman --remote` to control the host's podman from inside
@@ -164,7 +163,7 @@ generate_command() {
 		result_command="${result_command} --volume ${host_socket}:${host_socket}"
 	done
 
-	# those are dynamic configs needed by the container to function properly
+	# These are dynamic configs needed by the container to function properly
 	# and integrate with the host
 	#
 	# We're doing this now instead of inside the init because some distros will
@@ -180,18 +179,18 @@ generate_command() {
 		fi
 	done
 
-	# now execute the entrypoint, refer to `distrobox-init -h` for instructions
+	# Now execute the entrypoint, refer to `distrobox-init -h` for instructions
 	result_command="${result_command} ${container_image}
 		/usr/bin/entrypoint -v --name ${container_user_name}
 			--user ${container_user_uid}
 			--group ${container_user_gid}
 			--home ${container_user_home}"
 
-	# return generated command.
+	# Return generated command.
 	printf "%s" "${result_command}"
 }
 
-# check that we have a complete distrobox installation or
+# Check that we have a complete distrobox installation or
 # entrypoint and export will not work.
 if [ -z "${distrobox_entrypoint_path}" ]; then
 	printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}"
@@ -207,7 +206,7 @@ if podman ps -a | grep -qE "(^| )${container_name}( |$)"; then
 	exit 0
 fi
 
-# First, check if the image exists in the host
+# First, check if the image exists in the host.
 # If not prompt to download it.
 if [ -z "$(podman images -q "${container_image}")" ]; then
 	# Prompt to download it.

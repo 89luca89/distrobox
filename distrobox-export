@@ -173,30 +173,34 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# Also check we're running inside a container and not on the host
+# Check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
 	exit 126
 fi
 
-# Ensure the foundamental variables are set and not empty, we will not proceed if
-# they are not all set.
+# Ensure the foundamental variables are set and not empty, we will not proceed
+# if they are not all set.
 if [ -z "${exported_app}" ] &&
 	[ -z "${exported_bin}" ] &&
 	[ -z "${exported_service}" ]; then
-	printf >&2 "Invalid arguments, choose an action below.\n"
-	show_help
+	printf >&2 "Error: Invalid arguments.\n"
+	printf >&2 "Error: missing export target. Run\n"
+	printf >&2 "\tdistrobox-export --help\n"
+	printf >&2 "for more informations.\n"
 	exit 2
 fi
-if [ -n "${exported_app}" ] &&
-	[ -n "${exported_bin}" ] &&
-	[ -n "${exported_service}" ]; then
-	printf >&2 "Invalid arguments, choose only one action below.\n"
-	show_help
+# Ensure we're not receiving more than one action at time.
+if [ -n "${exported_app}" ] && [ -n "${exported_bin}" ] ||
+   [ -n "${exported_app}" ] && [ -n "${exported_service}" ] ||
+   [ -n "${exported_bin}" ] && [ -n "${exported_service}" ]; then
+	printf >&2 "Error: Invalid arguments, choose only one action below.\n"
+	printf >&2 "Error: You can only export one thing at time.\n"
 	exit 2
 fi
+# Ensure we have the export-path set when exporting a binary.
 if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
-	printf >&2 "Missing argument export-path.\n"
+	printf >&2 "Error: Missing argument export-path.\n"
 	exit 2
 fi
 
@@ -207,9 +211,7 @@ container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${co
 
 # Print generated script from template
 # Arguments:
-#	distrobox name
-#	binary path
-#	extra flags
+#	none it will use the ones set up globally
 # Outputs:
 #   print generated script.
 generate_script() {
@@ -218,7 +220,7 @@ generate_script() {
 # distrobox_binary
 # name: ${container_name}
 if [ ! -f /run/.containerenv ]; then
-    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- ${exported_bin} ${extra_flags} \$@
+    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} --${is_sudo} ${exported_bin} ${extra_flags} \$@
 else
     ${exported_bin} \$@
 fi
@@ -247,12 +249,12 @@ export_binary() {
 	# If we're deleting it, just do it and exit
 	if [ "${exported_delete}" -ne 0 ]; then
 		if [ ! -f "${dest_file}" ]; then
-			printf >&2 "Error: cannot find %s in %s.\nWas it exported?.\n" "${dest_file}" "${dest_path}"
+			printf >&2 "Error: cannot find %s in %s.\nWas it exported?.\n" "$(basename "${exported_bin}")" "${dest_path}"
 			return 1
 		fi
 		if grep -q "distrobox_binary" "${dest_file}"; then
 			if rm -f "${dest_file}"; then
-				printf "OK!\n%s exported from %s removed successfully from %s.\n" "${exported_bin}" "${container_name}" "${dest_path}"
+				printf "%s from %s removed successfully from %s.\nOK!\n" "${exported_bin}" "${container_name}" "${dest_path}"
 				return 0
 			fi
 		else
@@ -269,9 +271,9 @@ export_binary() {
 	fi
 
 	# create the script from template and write to file
-	if generate_script "${container_name}" "${exported_bin}" >"${dest_file}"; then
+	if generate_script >"${dest_file}"; then
 		chmod +x "${dest_file}"
-		printf "OK!\n%s from %s exported successfully in %s.\n" "${exported_bin}" "${container_name}" "${dest_path}"
+		printf "%s from %s exported successfully in %s.\nOK!\n" "${exported_bin}" "${container_name}" "${dest_path}"
 		return 0
 	fi
 	# Unknown error.
@@ -350,7 +352,7 @@ export_application() {
 		fi
 	done
 
-	printf "OK!\nApplication %s successfully exported.\n" "${exported_app}"
+	printf "Application %s successfully exported.\nOK!\n" "${exported_app}"
 	printf "%s will appear in your applications list in a few seconds.\n" "${exported_app}"
 
 }
@@ -375,7 +377,7 @@ export_service() {
 			return 1
 		fi
 		rm -f "${exported_service_file}"
-		printf "OK!\nService %s successfully removed.\n" "${exported_service}-${container_name}"
+		printf "Service %s successfully removed.\nOK!\n" "${exported_service}-${container_name}"
 		return 0
 	fi
 	# Check if it is already exported
@@ -417,7 +419,7 @@ export_service() {
 	# Cleanup
 	rm -f "${temp_file}"
 
-	printf "OK!\nService %s successfully exported.\n" "${exported_service}-${container_name}"
+	printf "Service %s successfully exported.\nOK\n" "${exported_service}-${container_name}"
 	printf "%s will appear in your services list in a few seconds.\n\n" "${exported_service}-${container_name}"
 	printf "To check the status, run:\n\tsystemctl --user status %s \n" "${exported_service}-${container_name}.service"
 	printf "To start it, run:\n\tsystemctl --user start %s \n" "${exported_service}-${container_name}.service"
@@ -432,7 +434,7 @@ app)
 	export_application
 	;;
 bin)
-	exported_bin
+	export_binary
 	;;
 service)
 	export_service
