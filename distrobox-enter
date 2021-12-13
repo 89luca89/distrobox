@@ -104,11 +104,11 @@ generate_command() {
 			printf >&2 "Cannot start container %s, does it exist?\n" "${container_name}"
 			printf >&2 "Try running first:\n\n"
 			printf >&2 "\tdistrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>\n"
-			exit 1
+			return 1
 		else
 			printf >&2 "Starting container %s\n" "${container_name}"
 			printf >&2 "run this command to follow along:\n"
-			printf >&2 "\tpodman logs -f %s" "${container_name}"
+			printf >&2 "\tpodman logs -f %s\n" "${container_name}"
 
 			# Wait for container to start successfully.
 			# We will probe the container logs every 1s to check if we have either
@@ -116,16 +116,22 @@ generate_command() {
 			# in the end, print eventual Warnings that occurred.
 			while :; do
 				podman_log="$(podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null)"
-				if echo "${podman_log}" | grep -q "container_setup_done"; then
+				case "${podman_log}" in
+				*"Error"*)
+					printf >&2 "%s\n" "${podman_log}"
+					return 1
+					;;
+				*"container_setup_done"*)
 					break
-				elif echo "${podman_log}" | grep -E "Error"; then
-					printf >&2 "%s" "${podman_log}"
-					exit 1
-				fi
-				printf >&2 "."
-				sleep 1
+					;;
+				*)
+					printf >&2 "."
+					sleep 1
+					;;
+				esac
 			done
 			printf >&2 "\ndone!\n"
+			# Print eventual warnings in the log.
 			podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null | grep "Warning" >&2 || :
 		fi
 	fi
