@@ -94,6 +94,13 @@ while :; do
 	esac
 done
 
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
 # Also check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
@@ -107,13 +114,6 @@ fi
 [ -z "${container_user_uid}" ] && printf >&2 "Invalid arguments, missing user uid\n" && exit 2
 [ -z "${container_user_gid}" ] && printf >&2 "Invalid arguments, missing user gud\n" && exit 2
 [ -z "${container_user_home}" ] && printf >&2 "Invalid argument, missing user home\n" && exit 2
-
-set -o errexit
-set -o nounset
-# set verbosity
-if [ "${verbose}" -ne 0 ]; then
-	set -o xtrace
-fi
 
 # Bind mount or error.
 # Arguments:
