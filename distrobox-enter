@@ -91,6 +91,7 @@ fi
 # Outputs:
 #   prints the podman command to enter the distrobox container
 generate_command() {
+	log_timestamp="$(date +%FT%T.%N%:z)"
 	# If the container is not already running, we need to start if first
 	if ! podman ps | grep -qE "(^| )${container_name}( |$)"; then
 		# if container is not running, start it first
@@ -112,16 +113,18 @@ run this command to follow along:
 
 podman logs -f ${container_name}"
 			while :; do
-				podman_log="$(podman logs "${container_name}" 2>/dev/null)"
+				podman_log="$(podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null)"
 				if echo "${podman_log}" | grep -q "container_setup_done"; then
 					break
-				else
-					echo "${podman_log}" | grep -E "Error|Warning"
+				elif echo "${podman_log}" | grep -E "Error"; then
+					printf >&2 "%s" "${podman_log}"
+					exit 1
 				fi
 				printf >&2 "."
 				sleep 1
 			done
-			printf >&2 "done!\n"
+			printf >&2 "\ndone!\n"
+			podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null | grep "Warning" >&2 || :
 		fi
 	fi
 
