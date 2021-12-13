@@ -34,6 +34,7 @@ Usage:
 	distrobox-init --name ${USER} --user $(id -ru) --group $(id -rg) --home ${HOME}
 
 Options:
+
 	--name/-n:		user name
 	--user/-u:		uid of the user
 	--group/-g:		gid of the user

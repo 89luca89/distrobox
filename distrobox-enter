@@ -34,9 +34,11 @@ Default command executed is your SHELL, buf you can specify different shells or
 entire commands to execute.
 
 Usage:
+
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 
 Options:
+
 	--name/-n:		name for the distrobox						default: fedora-toolbox-35
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
 	--help/-h:		show this message

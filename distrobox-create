@@ -40,9 +40,11 @@ the HOME directory of the user, external storage, external usb devices and
 graphical apps (X11/Wayland) and audio.
 
 Usage:
+
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 
 Options:
+
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 	--name/-n:		name for the distrobox		default: fedora-toolbox-35
 	--help/-h:		show this message
