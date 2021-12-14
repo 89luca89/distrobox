@@ -145,6 +145,7 @@ generate_command() {
 		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
+		--volume /sys:/sys:rslave
 		--mount type=devpts,destination=/dev/pts"
 
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
