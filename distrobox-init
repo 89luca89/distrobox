@@ -159,29 +159,6 @@ mount_bind() (
 	return 0
 )
 
-# Return sudoers groups.
-# Arguments:
-#   None
-# Outputs:
-#   return all sudoers groups, error if not present.
-list_sudo_groups() (
-	group=""
-	if grep -q "sudo:" /etc/group; then
-		group="sudo"
-	elif grep -q "wheel:" /etc/group; then
-		group="wheel"
-	else
-		# No group for root, create one
-		if ! groupadd wheel; then
-			return 1
-		fi
-		group="wheel"
-	fi
-
-	printf "%s" "${group}"
-	return 0
-)
-
 # Extract shell name from the $SHELL environment variable
 # If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL:-"bash"}")"
@@ -235,9 +212,9 @@ for host_mount in ${HOST_MOUNTS}; do
 done
 
 if [ -d /sys/fs/selinux ] 2>&3; then
-    if ! mount_bind /usr/share/empty /sys/fs/selinux; then
+	if ! mount_bind /usr/share/empty /sys/fs/selinux; then
 		printf "Warning: Cannot bind mound /usr/share/empty to /sys/fs/selinux"
-    fi
+	fi
 fi
 
 # Do not check fqdn when doing sudo, it will not work anyways
@@ -255,16 +232,17 @@ if ! grep -q "${container_user_name}" /etc/group; then
 fi
 # Let's add our user to the container
 # if the user already exists, just add it to the sudoers groups
-if ! useradd \
-	--home-dir "${container_user_home}" \
-	--no-create-home \
-	--shell /bin/bash \
-	--uid "${container_user_uid}" \
-	--gid "${container_user_gid}" \
-	--groups "$(list_sudo_groups)" \
-	"${container_user_name}"; then
+if ! id "${container_user_name}"; then
+	if ! useradd \
+		--home-dir "${container_user_home}" \
+		--no-create-home \
+		--shell /bin/bash \
+		--uid "${container_user_uid}" \
+		--gid "${container_user_gid}" \
+		"${container_user_name}"; then
 
-	usermod -aG "$(list_sudo_groups)" "${container_user_name}"
+		printf "Warning: there was a problem setting up the user\n"
+	fi
 fi
 # Delete password for root and user
 passwd --delete "${container_user_name}"
