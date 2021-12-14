@@ -341,8 +341,11 @@ export_application() {
 			fi
 			rm -f "/run/host/${HOME}/.local/share/applications/${desktop_home_file}"
 		else
-			# If a TryExec is present, we have to fake it as it will not work throught the
-			# container separation
+			# Add commmand_prefix
+			# Add extra flags
+			# Add closing quote
+			# If a TryExec is present, we have to fake it as it will not work
+			# throught the container separation
 			sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
 				sed "s|\(%.*\)|${extra_flags} \1|g" |
 				sed "s|\(%.*\)|\" \1|g" |
@@ -392,7 +395,9 @@ export_service() {
 	fi
 
 	# find the service file in the common
-	service_file=$(find /etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ "${HOME}".config/systemd/user/ -type f -name "${exported_service}*" 2>/dev/null | tail -1)
+	service_file=$(find \
+		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ "${HOME}".config/systemd/user/ \
+		-type f -name "${exported_service}*" 2>/dev/null | tail -1)
 	# Check that we found some service files first.
 	if [ -z "${service_file}" ]; then
 		printf >&2 "Error: cannot find any service file for %s.\n" "${exported_service}"
@@ -409,6 +414,9 @@ export_service() {
 		cat "${exported_service_file}" >"${temp_file}" 2>/dev/null
 		# Add prefix only if not present
 		if ! grep "${exec_cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
+			# Add commmand_prefix
+			# Add extra flags
+			# Add closing quote
 			tail -n+2 "${temp_file}" |
 				sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" |
 				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" |

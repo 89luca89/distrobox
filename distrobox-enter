@@ -155,7 +155,9 @@ if ! podman ps | grep -qE "(^| )${container_name}( |$)"; then
 	#
 	# In the end, print eventual Warnings that occurred.
 	while :; do
-		podman_log="$(podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null)"
+		podman_log="$(podman logs -t -n \
+			--since "${log_timestamp}" \
+			"${container_name}" 2>/dev/null)"
 		case "${podman_log}" in
 		*"Error"*)
 			printf >&2 "%s\n" "${podman_log}"
@@ -172,7 +174,9 @@ if ! podman ps | grep -qE "(^| )${container_name}( |$)"; then
 	done
 	printf >&2 "\ndone!\n"
 	# Print eventual warnings in the log.
-	podman logs -t -n --since "${log_timestamp}" "${container_name}" 2>/dev/null | grep "Warning" >&2 || :
+	podman logs -t -n \
+		--since "${log_timestamp}" \
+		"${container_name}" 2>/dev/null | grep "Warning" >&2 || :
 fi
 
 # Generate the exec command and run it

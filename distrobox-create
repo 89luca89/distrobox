@@ -176,7 +176,8 @@ generate_command() {
 		# Check if the file exists first
 		if [ -f "${host_link}" ]; then
 			# Use realpath to not have multi symlink mess
-			result_command="${result_command} --volume $(realpath "${host_link}"):${host_link}:ro"
+			result_command="${result_command}
+				--volume $(realpath "${host_link}"):${host_link}:ro"
 		fi
 	done
 
