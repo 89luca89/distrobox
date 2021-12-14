@@ -135,13 +135,14 @@ mount_bind() (
 	if [ -d "${source_dir}" ]; then
 		# exit if not successful
 		if ! mkdir -p "${target_dir}"; then
-			printf >&2 "Cannot create mount target directory: %s\n" "${target_dir}"
+			printf "Warning: cannot create mount target directory: %s\n" "${target_dir}"
 			return 1
 		fi
+	# if instead it's a file, create it with touch
 	elif [ -f "${source_dir}" ]; then
 		# exit if not successful
 		if ! touch "${target_dir}"; then
-			printf >&2 "Cannot create mount target file: %s\n" "${target_dir}"
+			printf "Warning: cannot create mount target file: %s\n" "${target_dir}"
 			return 1
 		fi
 	fi
@@ -150,7 +151,7 @@ mount_bind() (
 	[ "${mount_flags}" = "" ] || mount_flags="rslave"
 	# bind mount source_dir to target_dir, return error if not successful
 	if ! mount --rbind -o "${mount_flags}" "${source_dir}" "${target_dir}"; then
-		printf >&2 "Failed to bind mount %s to %s\n" "${source_dir}" "${target_dir}"
+		printf "Warning: failed to bind mount %s to %s\n" "${source_dir}" "${target_dir}"
 		return 1
 	fi
 
@@ -165,26 +166,79 @@ if ! command -v mount || ! command -v passwd ||
 	! command -v sudo || ! command -v useradd ||
 	! command -v usermod || ! command -v "${shell_pkg}"; then
 
-	# check which pkg manager we have at disposal
-	# and make sure we have all the dependencies we need to function.
+	# Detect the available package manager
+	# install minimal dependencies needed to bootstrap the container:
+	#	the same shell that's on the host
+	#	sudo, mount
+	#	passwd, groupadd and useradd
 	if command -v apk; then
-		apk add --no-cache sudo shadow procps util-linux "${shell_pkg}"
+		apk add \
+			"${shell_pkg}" \
+			procps \
+			shadow \
+			sudo \
+			util-linux
+
 	elif command -v apt-get; then
+		export DEBIAN_FRONTEND=noninteractive
 		apt-get update
-		apt-get install -y --no-install-recommends sudo apt-utils passwd procps util-linux "${shell_pkg}"
+		apt-get install -y \
+			"${shell_pkg}" \
+			passwd \
+			procps \
+			sudo \
+			util-linux
+
 	elif command -v dnf; then
-		dnf install -y --setopt=install_weak_deps=False sudo shadow-utils passwd procps-ng util-linux "${shell_pkg}"
+		dnf install -y \
+			"${shell_pkg}" \
+			passwd \
+			procps-ng \
+			shadow-utils \
+			sudo \
+			util-linux
+
 	elif command -v pacman; then
-		pacman -Sy --noconfirm sudo procps-ng shadow util-linux "${shell_pkg}"
+		pacman -Sy --noconfirm \
+			"${shell_pkg}" \
+			procps-ng \
+			shadow \
+			sudo \
+			util-linux
+
 	elif command -v slackpkg; then
 		slackpkg update
-		yes | slackpkg install -default_answer=yes -batch=yes sudo shadow procps util-linux "${shell_pkg}"
+		yes | slackpkg install -default_answer=yes -batch=yes \
+			"${shell_pkg}" \
+			procps \
+			shadow \
+			sudo \
+			util-linux
+
 	elif command -v xbps-install; then
-		xbps-install -Sy sudo procps-ng shadow util-linux "${shell_pkg}"
+		xbps-install -Sy \
+			"${shell_pkg}" \
+			procps-ng \
+			shadow \
+			sudo \
+			util-linux
+
 	elif command -v yum; then
-		yum install -y --setopt=install_weak_deps=False sudo shadow-utils passwd procps util-linux "${shell_pkg}"
+		yum install -y \
+			"${shell_pkg}" \
+			passwd \
+			procps \
+			shadow-utils \
+			sudo \
+			util-linux
+
 	elif command -v zypper; then
-		zypper install -y --no-recommends sudo shadow procps util-linux "${shell_pkg}"
+		zypper install -y \
+			"${shell_pkg}" \
+			procps \
+			shadow \
+			sudo \
+			util-linux
 	else
 		printf "Error: could not find a supported package manager.\n"
 		printf "Error: could not set up base dependencies.\n"
@@ -228,8 +282,7 @@ fi
 if ! grep -q "${container_user_name}" /etc/group; then
 	groupadd --force --gid "${container_user_uid}" "${container_user_name}"
 fi
-# Let's add our user to the container
-# if the user already exists, just add it to the sudoers groups
+# Let's add our user to the container if the user already exists, just go ahead.
 if ! id "${container_user_name}"; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
