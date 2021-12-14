@@ -111,9 +111,15 @@ generate_command() {
 
 	# Loop through all the environment vars
 	# and export them to the container.
+	set +o xtrace
+	# disable logging fot this snippet, or it will be too talkative.
 	for i in $(printenv | grep '=' | grep -v ' '); do
 		result_command="${result_command} --env=\"${i}\""
 	done
+	# re-enable logging if it was enabled previously.
+	if [ "${verbose}" -ne 0 ]; then
+		set -o xtrace
+	fi
 
 	# Run selected container with specified command.
 	result_command="${result_command} ${container_name} ${container_command}"
