@@ -247,7 +247,6 @@ if ! command -v mount || ! command -v passwd ||
 	fi
 
 fi
-
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="/etc/machine-id /var/lib/flatpak /var/lib/systemd/coredump /var/log/journal"
 for host_mount_ro in ${HOST_MOUNTS_RO}; do
@@ -256,17 +255,24 @@ done
 
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
-HOST_MOUNTS="/media /run/media /mnt /var/mnt /run/systemd/journal /run/systemd/resolve /run/libvirt /var/lib/libvirt"
+HOST_MOUNTS="/media /run/media /run/udev/data /mnt /var/mnt /run/systemd/journal /run/libvirt /var/lib/libvirt"
 for host_mount in ${HOST_MOUNTS}; do
 	if ! mount_bind /run/host"${host_mount}" "${host_mount}" rw; then
 		printf "Warning: Cannot bind mound %s to /run/host%s\n" "${host_mount}" "${host_mount}"
 	fi
 done
 
-if [ -d /sys/fs/selinux ] 2>&3; then
-	if ! mount_bind /usr/share/empty /sys/fs/selinux; then
-		printf "Warning: Cannot bind mound /usr/share/empty to /sys/fs/selinux"
-	fi
+# In case of an RPM distro, we can specify that our bind_mount directories
+# are in fact net shares. This prevents conflicts during package installations.
+if [ -d "/usr/lib/rpm/macros.d/" ]; then
+	net_mounts=""
+	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS} '/dev' '/proc' '/sys' '/tmp'; do
+		net_mounts="${net_mount}:${net_mounts}"
+	done
+	net_mounts=${net_mounts%?}
+	cat <<EOF >/usr/lib/rpm/macros.d/macros.distrobox
+%_netsharedpath ${net_mounts}
+EOF
 fi
 
 # Do not check fqdn when doing sudo, it will not work anyways

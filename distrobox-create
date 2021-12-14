@@ -146,6 +146,7 @@ generate_command() {
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
 		--volume /sys:/sys:rslave
+		--volume /tmp:/tmp:rslave
 		--mount type=devpts,destination=/dev/pts"
 
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
