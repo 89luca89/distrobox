@@ -195,11 +195,15 @@ if ! command -v mount || ! command -v passwd ||
 	if command -v apk; then
 		apk add --no-cache sudo shadow procps util-linux "${shell_pkg}"
 	elif command -v apt-get; then
-		apt-get update && apt-get install -y --no-install-recommends sudo apt-utils passwd procps util-linux "${shell_pkg}"
+		apt-get update
+		apt-get install -y --no-install-recommends sudo apt-utils passwd procps util-linux "${shell_pkg}"
 	elif command -v dnf; then
 		dnf install -y --setopt=install_weak_deps=False sudo shadow-utils passwd procps-ng util-linux "${shell_pkg}"
 	elif command -v pacman; then
 		pacman -Sy --noconfirm sudo procps-ng shadow util-linux "${shell_pkg}"
+	elif command -v slackpkg; then
+		slackpkg update
+		yes | slackpkg install -default_answer=yes -batch=yes sudo shadow procps util-linux "${shell_pkg}"
 	elif command -v xbps-install; then
 		xbps-install -Sy sudo procps-ng shadow util-linux "${shell_pkg}"
 	elif command -v yum; then

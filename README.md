@@ -154,6 +154,8 @@ Distrobox guests tested successfully with the following container images:
 | Oracle Linux | 8 | container-registry.oracle.com/os/oraclelinux:8    |
 | Rocky Linux | 8 | docker.io/rockylinux/rockylinux:8    |
 | Scientific Linux | 7 | docker.io/library/sl:7    |
+| Slackware | 14.2 | docker.io/vbatts/slackware:14.2    |
+| Slackware | current | docker.io/vbatts/slackware:current    |
 | Ubuntu | 20.04 | docker.io/library/ubuntu:20.04    |
 | Ubuntu | 21.10 | docker.io/library/ubuntu:21.10    |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
