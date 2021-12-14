@@ -62,7 +62,7 @@ It is divided in 4 parts:
 
 - Provide a mutable environment on an immutable OS, like Endless OS, Fedora Silverblue, OpenSUSE MicroOS or SteamOS3
 - Provide a locally privileged environment for sudoless setups (eg. company provided laptops, security reasons, etc...)
-- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat) with a bleeding edge environment for development or gaming (eg. Arch, Suse Tumbleweed, Fedora)
+- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat) with a bleeding edge environment for development or gaming (eg. Arch or OpenSUSE Tumbleweed or Fedora with latest Mesa)
 - Leverage high abundance of curated distro images for docker/podman to manage multiple environments
 
 ### Aims

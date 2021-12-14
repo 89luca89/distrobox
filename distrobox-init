@@ -127,7 +127,6 @@ mount_bind() (
 	source_dir="$1"
 	target_dir="$2"
 	mount_flags="$3"
-	mount_o=""
 
 	# if source dir doesn't exist, just exit normally
 	! [ -d "${source_dir}" ] && ! [ -f "${source_dir}" ] && return 0
@@ -147,11 +146,10 @@ mount_bind() (
 		fi
 	fi
 
-	# Add mountflags if needed
-	[ "${mount_flags}" = "" ] || mount_o="-o ${mount_flags}"
+	# Add mountflags if needed, if no are specificed, use rslave as default.
+	[ "${mount_flags}" = "" ] || mount_flags="rslave"
 	# bind mount source_dir to target_dir, return error if not successful
-	# shellcheck disable=SC2086
-	if ! mount --rbind ${mount_o} "${source_dir}" "${target_dir}"; then
+	if ! mount --rbind -o "${mount_flags}" "${source_dir}" "${target_dir}"; then
 		printf >&2 "Failed to bind mount %s to %s\n" "${source_dir}" "${target_dir}"
 		return 1
 	fi
