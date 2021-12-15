@@ -370,33 +370,10 @@ export_application() {
 #	new systemd unit in /run/host/$HOME/.config/systemd/user/
 #	or error code.
 export_service() {
-	# this is the output file we will produce.
-	exported_service_file="/run/host/${HOME}/.config/systemd/user/${exported_service}-${container_name}.service"
-
-	# If we're deleting it, just do it and exit
-	if [ "${exported_delete}" -ne 0 ]; then
-		if [ ! -f "${exported_service_file}" ]; then
-			printf >&2 "Error: cannot find service %s.\nWas it exported?.\n" "${exported_service}-${container_name}"
-			return 1
-		fi
-		rm -f "${exported_service_file}"
-		printf "Service %s successfully removed.\nOK!\n" "${exported_service}-${container_name}"
-		return 0
-	fi
-	# Check if it is already exported
-	if [ -f "${exported_service_file}" ] &&
-		grep -q "${container_command_prefix}" "${exported_service_file}"; then
-
-		printf "Service %s is already exported.\n\n" "${exported_service}-${container_name}"
-		printf "To check the status, run:\n\tsystemctl --user status %s \n" "${exported_service}-${container_name}.service"
-		printf "To start it, run:\n\tsystemctl --user start %s \n" "${exported_service}-${container_name}.service"
-		printf "To start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service}-${container_name}.service"
-		return 0
-	fi
 
 	# find the service file in the common
 	service_file=$(find \
-		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ "${HOME}".config/systemd/user/ \
+		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ "${HOME}"/.config/systemd/user/ \
 		-type f -name "${exported_service}*" 2>/dev/null | tail -1)
 	# Check that we found some service files first.
 	if [ -z "${service_file}" ]; then
@@ -405,36 +382,61 @@ export_service() {
 		return 127
 	fi
 
+	# this is the output file we will produce.
+	exported_service_file="${container_name}-$(basename "${service_file}")"
+	exported_service_fullpath="/run/host/${HOME}/.config/systemd/user/${exported_service_file}"
+
+	# If we're deleting it, just do it and exit
+	if [ "${exported_delete}" -ne 0 ]; then
+		if [ ! -f "${exported_service_fullpath}" ]; then
+			printf >&2 "Error: cannot find service %s.\nWas it exported?.\n" "${exported_service_file}"
+			return 1
+		fi
+		rm -f "${exported_service_fullpath}"
+		printf "Service %s successfully removed.\nOK!\n" "${exported_service_file}"
+		return 0
+	fi
+	# Check if it is already exported
+	if [ -f "${exported_service_fullpath}" ] &&
+		grep -q "${container_command_prefix}" "${exported_service_fullpath}"; then
+
+		printf "Service %s is already exported.\n\n" "${exported_service_file}"
+		printf "\nTo check the status, run:\n\tsystemctl --user status %s \n" "${exported_service_file}"
+		printf "\nTo start it, run:\n\tsystemctl --user start %s \n" "${exported_service_file}"
+		printf "\nTo start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service_file}"
+		return 0
+	fi
+
 	# Create temp file with random name
 	temp_file="$(mktemp -u)"
 	# Replace all Exec occurrencies
 	if [ ! -d "/run/host/${HOME}/.config/systemd/user/" ]; then
 		mkdir -p "/run/host/${HOME}/.config/systemd/user/"
 	fi
-	cat "${service_file}" >"${exported_service_file}" 2>/dev/null
+	cat "${service_file}" >"${exported_service_fullpath}" 2>/dev/null
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
 		# Save to temp file
-		cat "${exported_service_file}" >"${temp_file}" 2>/dev/null
+		cat "${exported_service_fullpath}" >"${temp_file}" 2>/dev/null
 		# Add prefix only if not present
 		if ! grep "${exec_cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
 			# Add commmand_prefix
 			# Add extra flags
 			# Add closing quote
-			tail -n+2 "${temp_file}" |
+			cat "${temp_file}" |
 				sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" |
 				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" |
-				sed "s|^${exec_cmd}=.*|&\"|g" >"${exported_service_file}"
+				sed "s|^${exec_cmd}=.*|&\"|g" >"${exported_service_fullpath}"
 			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
 	done
 	# Cleanup
 	rm -f "${temp_file}"
 
-	printf "Service %s successfully exported.\nOK\n" "${exported_service}-${container_name}"
-	printf "%s will appear in your services list in a few seconds.\n\n" "${exported_service}-${container_name}"
-	printf "To check the status, run:\n\tsystemctl --user status %s \n" "${exported_service}-${container_name}.service"
-	printf "To start it, run:\n\tsystemctl --user start %s \n" "${exported_service}-${container_name}.service"
-	printf "To start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service}-${container_name}.service"
+	printf "Service %s successfully exported.\nOK\n" "${exported_service_file}"
+	printf "%s will appear in your services list in a few seconds.\n\n" "${exported_service_file}"
+	printf "\nTo check the status, run:\n\tsystemctl --user status %s \n" "${exported_service_file}"
+	printf "\nTo start it, run:\n\tsystemctl --user start %s \n" "${exported_service_file}"
+	printf "\nTo start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service_file}"
 
 	return 0
 }
