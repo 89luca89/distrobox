@@ -215,7 +215,7 @@ fi
 
 # Check if the container already exists.
 # If it does, notify the user and exit.
-if "${container_manager}" inspect --type container "${container_name}"; then
+if "${container_manager}" inspect --type container "${container_name}" >/dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n"
 	printf "\tdistrobox-enter --name %s\n" "${container_name}"
@@ -224,7 +224,7 @@ fi
 
 # First, check if the image exists in the host.
 # If not prompt to download it.
-if ! ${container_manager} inspect --type image "${container_image}"; then
+if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2>&1; then
 	# Prompt to download it.
 	printf >&2 "Image not found.\n"
 	printf >&2 "Do you want to pull the image now?[y/n] "
