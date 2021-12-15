@@ -174,7 +174,7 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 # Check we're running inside a container and not on the host
-if [ ! -f /run/.containerenv ]; then
+if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
 	exit 126
 fi
@@ -207,7 +207,7 @@ fi
 # We can assume this as we set it the same as container name during creation.
 container_name=$(cat /etc/hostname)
 # Prefix to add to an existing command to work throught the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --name ${container_name} -- \"${is_sudo} "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} --headless --name ${container_name} -- \"${is_sudo} "
 
 # Print generated script from template
 # Arguments:
@@ -408,6 +408,9 @@ export_service() {
 	# Create temp file with random name
 	temp_file="$(mktemp -u)"
 	# Replace all Exec occurrencies
+	if [ ! -d "/run/host/${HOME}/.config/systemd/user/" ]; then
+		mkdir -p "/run/host/${HOME}/.config/systemd/user/"
+	fi
 	cat "${service_file}" >"${exported_service_file}" 2>/dev/null
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
 		# Save to temp file
