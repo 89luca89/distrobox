@@ -148,7 +148,9 @@ mount_bind() (
 	fi
 
 	# Add mountflags if needed, if no are specificed, use rslave as default.
-	[ "${mount_flags}" = "" ] || mount_flags="rslave"
+	if [ "${mount_flags}" = "" ]; then
+		mount_flags="rslave"
+	fi
 	# bind mount source_dir to target_dir, return error if not successful
 	if ! mount --rbind -o "${mount_flags}" "${source_dir}" "${target_dir}"; then
 		printf "Warning: failed to bind mount %s to %s\n" "${source_dir}" "${target_dir}"
