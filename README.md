@@ -19,9 +19,9 @@ graphical apps (X11/Wayland) and audio.
   * [Why?](#why-)
     + [Aims](#aims)
 - [Compatibility](#compatibility)
-    + [Host Ditros](#host-ditros)
+    + [Host Distros](#host-distros)
       - [New Host Distro support](#new-host-distro-support)
-    + [Containers Ditros](#containers-ditros)
+    + [Containers Distros](#containers-distros)
       - [New Distro support](#new-distro-support)
 - [Usage](#usage)
   * [Outside the distrobox](#outside-the-distrobox)
@@ -103,7 +103,7 @@ but that's all doable in the container itself after bootstrapping it.
 
 Main concern is having basic linux utilities (`mount`), basic user management utilities (`usermod, passwd`) and `sudo` correctly set.
 
-### Host Ditros
+### Host Distros
 
 Distrobox has been successfully tested on:
 
@@ -129,7 +129,7 @@ and it will be added to the list!
 
 ---
 
-### Containers Ditros
+### Containers Distros
 
 Distrobox guests tested successfully with the following container images:
 
