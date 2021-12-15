@@ -138,7 +138,8 @@ Distrobox has been successfully tested on:
 
 #### New Host Distro support
 
-If your distro of choice is not in the list open an issue requesting support for it.
+If your distro of choice is not in the list open an issue requesting support for it,
+we can work together to check if it is possible to add support for it.
 
 Or just try using it anyway, if it works, open an issue
 and it will be added to the list!
@@ -186,7 +187,8 @@ This will **not** occur after the first time, **subsequent enters will be much f
 
 #### New Distro support
 
-If your distro of choice is not in the list open an issue requesting support for it.
+If your distro of choice is not in the list open an issue requesting support for it,
+we can work together to check if it is possible to add support for it.
 
 Or just try using it anyway, if it works, open an issue
 and it will be added to the list!
