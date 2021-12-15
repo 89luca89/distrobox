@@ -147,8 +147,11 @@ generate_command() {
 	printf "%s" "${result_command}"
 }
 
-# Does the container exists?
-if ! "${container_manager}" ps -a | grep -qE "(^| )${container_name}( |$)"; then
+# Inspect the container we're working with.
+container_status="$("${container_manager}" inspect --type container "${container_name}" --format '{{.State.Status}}')"
+container_exists="$?"
+# Does the container exists? check if inspect reported errors
+if [ "${container_exists}" -gt 0 ]; then
 	# If not, prompt to create it first
 	printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
 	printf >&2 "\nTry running first:\n"
@@ -157,7 +160,7 @@ if ! "${container_manager}" ps -a | grep -qE "(^| )${container_name}( |$)"; then
 fi
 
 # If the container is not already running, we need to start if first
-if ! "${container_manager}" ps | grep -qE "(^| )${container_name}( |$)"; then
+if [ "${container_status}" != "running" ]; then
 	# If container is not running, start it first
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
@@ -201,4 +204,4 @@ fi
 # Generate the exec command and run it
 cmd="$(generate_command)"
 # shellcheck disable=SC2086
-eval ${cmd}
+${cmd}
