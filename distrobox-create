@@ -166,7 +166,10 @@ generate_command() {
 	# the container or accessing docker and libvirt sockets.
 	host_sockets="$(find /run -iname "*sock" ! -path "/run/user/*" 2>/dev/null || :)"
 	for host_socket in ${host_sockets}; do
-		result_command="${result_command} --volume ${host_socket}:${host_socket}"
+		if [ -r "${host_socket}" ]; then
+			result_command="${result_command}
+				--volume $(realpath "${host_socket}"):${host_socket}"
+		fi
 	done
 
 	# These are dynamic configs needed by the container to function properly
@@ -179,7 +182,7 @@ generate_command() {
 	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime"
 	for host_link in ${host_links}; do
 		# Check if the file exists first
-		if [ -f "${host_link}" ]; then
+		if [ -f "${host_link}" ] && [ -r "${host_link}" ]; then
 			# Use realpath to not have multi symlink mess
 			result_command="${result_command}
 				--volume $(realpath "${host_link}"):${host_link}:ro"
@@ -212,7 +215,7 @@ fi
 
 # Check if the container already exists.
 # If it does, notify the user and exit.
-if "${container_manager}" ps -a | grep -qE "(^| )${container_name}( |$)"; then
+if "${container_manager}" inspect --type container "${container_name}"; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n"
 	printf "\tdistrobox-enter --name %s\n" "${container_name}"
@@ -221,7 +224,7 @@ fi
 
 # First, check if the image exists in the host.
 # If not prompt to download it.
-if [ -z "$(${container_manager} images -q "${container_image}")" ]; then
+if ! ${container_manager} inspect --type image "${container_image}"; then
 	# Prompt to download it.
 	printf >&2 "Image not found.\n"
 	printf >&2 "Do you want to pull the image now?[y/n] "
@@ -250,7 +253,7 @@ fi
 cmd="$(generate_command)"
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
-if eval ${cmd}; then
+if ${cmd}; then
 	printf "Distrobox '%s' successfully created.\n" "${container_name}"
 	printf "To enter, run:\n"
 	printf "\tdistrobox-enter --name %s\n" "${container_name}"
