@@ -164,7 +164,7 @@ generate_command() {
 	#
 	# for example using `podman --remote` to control the host's podman from inside
 	# the container or accessing docker and libvirt sockets.
-	host_sockets="$(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null || :)"
+	host_sockets="$(find /run -iname "*sock" ! -path "/run/user/*" 2>/dev/null || :)"
 	for host_socket in ${host_sockets}; do
 		result_command="${result_command} --volume ${host_socket}:${host_socket}"
 	done
