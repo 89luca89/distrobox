@@ -19,6 +19,7 @@ graphical apps (X11/Wayland) and audio.
   * [Why?](#why-)
     + [Aims](#aims)
 - [Compatibility](#compatibility)
+    + [Supported container managers](#supported-container-managers)
     + [Host Distros](#host-distros)
       - [New Host Distro support](#new-host-distro-support)
     + [Containers Distros](#containers-distros)
@@ -31,7 +32,6 @@ graphical apps (X11/Wayland) and audio.
     + [Application and service exporting](#application-and-service-exporting)
       - [Init the distrobox](#init-the-distrobox)
 - [Installation](#installation)
-- [Dependencies](#dependencies)
 - [Useful tips](#useful-tips)
   * [Container save and restore](#container-save-and-restore)
   * [Check used resources](#check-used-resources)
@@ -104,7 +104,22 @@ but that's all doable in the container itself after bootstrapping it.
 
 Main concern is having basic linux utilities (`mount`), basic user management utilities (`usermod, passwd`) and `sudo` correctly set.
 
-### Host Distros
+### Supported container managers
+
+`distrobox` can run on either `podman` or `docker`
+
+It depends either on `podman` configured in `rootless mode`
+or on `docker` configured without sudo (you're in the `docker` group)
+
+Minimum podman version: **2.1.0**
+Minimum docker version: 18.06.1
+
+Follow the official installation guide here:
+
+  - https://podman.io/getting-started/installation
+  - https://docs.docker.com/engine/install
+
+### Host Ditros
 
 Distrobox has been successfully tested on:
 
@@ -366,21 +381,6 @@ or if you want to select a custom directory to install without sudo:
 Else you can clone the project using `git clone` or using the `download zip` voice after clicking the green button above.
 
 Enter the directory and run `./install`, by default it will attempt to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
-
-# Dependencies
-
-It depends either on `podman` configured in `rootless mode`
-or on `docker` configured without sudo (you're in the `docker` group)
-
-Check out your distro's documentation to check how to.
-
----
-
-Minimum podman version supported is 2.10
-
-Follow the official installation guide here: https://podman.io/getting-started/installation
-
-Minimum docker version supported is 18.03.1
 
 # Useful tips
 
