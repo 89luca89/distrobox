@@ -36,11 +36,13 @@ graphical apps (X11/Wayland) and audio.
   * [Container save and restore](#container-save-and-restore)
   * [Check used resources](#check-used-resources)
   * [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
-
+  * [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
+- [Authors](#authors)
+- [License](#license)
 
 ## What it does
 
-Simply put it's a fancy `podman` wrapper to create and start containers highly integrated with the hosts.
+Simply put it's a fancy wrapper around `podman` or `docker` to create and start containers highly integrated with the hosts.
 
 The distrobox environment is based on an OCI image.
 This image is used to create a container that seamlessly integrates with the rest of the operating system by providing access to the user's home directory,
@@ -67,7 +69,7 @@ It is divided in 4 parts:
 
 ### Aims
 
-This project aims to bring **any distro userland to any other distro** supporting podman.
+This project aims to bring **any distro userland to any other distro** supporting podman or docker.
 It has been written in POSIX sh to be as portable as possible and not have problems with glibc version's compatibility.
 
 It also aims to enter the container **as fast as possible**, every millisecond adds up if you use the it
@@ -91,7 +93,6 @@ user   0m0,116s
 sys    0m0,063s
 
 ```
-
 I would like to keep it always below the [Doherty Treshold](https://lawsofux.com/doherty-threshold/) of 400ms.
 
 # Compatibility
@@ -368,33 +369,42 @@ Enter the directory and run `./install`, by default it will attempt to install i
 
 # Dependencies
 
-It depends on `podman` configured in `rootless mode`
+It depends either on `podman` configured in `rootless mode`
+or on `docker` configured without sudo (you're in the `docker` group)
 
 Check out your distro's documentation to check how to.
 
 ---
 
-Please be aware that old version of podman (prior to 1.6.4) have an issue with restarting a stopped container, this will create problems to re-enter an already created distrobox.
+Minimum podman version supported is 2.10
 
 Follow the official installation guide here: https://podman.io/getting-started/installation
 
-To ensure you have a recent version on your host.
+Minimum docker version supported is 18.03.1
 
 # Useful tips
 
 ## Container save and restore
 
-To save, export and reuse an already configured container, you can leverage `podman save` and `podman import`
+To save, export and reuse an already configured container, you can leverage `podman save` or `docker save` and `podman import` or `docker import`
 to basically create snapshots of your environment.
 
 ---
 
 To save a container to an image:
 
+with podman:
+
 ```
 podman container commit -p distrobox_name image_name_you_choose
-
 podman save image_name_you_choose:latest | gzip > image_name_you_choose.tar.gz
+```
+
+with docker:
+
+```
+docker container commit -p distrobox_name image_name_you_choose
+docker save image_name_you_choose:latest | gzip > image_name_you_choose.tar.gz
 ```
 
 This will create a tar.gz of the container of your choice in that exact moment.
@@ -406,6 +416,12 @@ just run
 
 ```
 podman import image_name_you_choose.tar.gz
+```
+
+or
+
+```
+docker import image_name_you_choose.tar.gz
 ```
 
 And create a new container based on that image:
@@ -422,20 +438,20 @@ in simple (and scriptable) steps.
 
 - You can always check how much space a `distrobox` is taking by using `podman` command:
 
-	`podman system df -v`
+`podman system df -v` or `docker system df -v`
 
 - You can check running `distrobox` using:
 
-	`podman ps -a`
+`podman ps -a` or `docker ps -a`
 
 - You can remove a `distrobox` using
 
-	`podman rm distrobox_name`
+`podman rm distrobox_name` or `docker rm distrobox_name`
 
 ## Using podman inside a distrobox
 
-You can use `podman socket` to control host's podman from inside a `distrobox`,
-just use:
+If `distrobox` is using `podman` as container engine, you can use `podman socket` to
+control host's podman from inside a `distrobox`, just use:
 
 `podman --remote`
 
@@ -445,7 +461,14 @@ It may be necessary to enable the socket on your host system by using:
 
 `systemctl --user enable --now podman.socket`
 
+## Using docker inside a distrobox
 
+You can use `docker` to control host's podman from inside a `distrobox`,
+by default if `distrobox` is using docker as a container engine, it will mount the
+docker.sock into the container.
+
+So in the container just install `docker`, add yourself to the `docker` group, and
+you should be good to go.
 
 # Authors
 
