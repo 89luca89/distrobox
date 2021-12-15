@@ -288,7 +288,7 @@ fi
 
 # If not existing, ensure we have a group for our user.
 if ! grep -q "${container_user_name}" /etc/group; then
-	groupadd --force --gid "${container_user_uid}" "${container_user_name}"
+	groupadd --force --gid "${container_user_gid}" "${container_user_name}"
 fi
 # Let's add our user to the container if the user already exists, just go ahead.
 if ! id "${container_user_name}"; then

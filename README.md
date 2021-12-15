@@ -132,7 +132,7 @@ Distrobox has been successfully tested on:
 | Fedora | 34, 35 | |
 | Fedora Silverblue | 34, 35 | |
 | OpenSUSE | Leap 15, Tumbleweed | |
-| Ubuntu | 20.04, 21.10 | Older versions based on 20.04 needs external repos to install newer Podman releases. </br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. |
+| Ubuntu | 20.04, 21.10 | Older versions based on 20.04 needs external repos to install newer Podman and Docker releases. </br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. |
 | EndlessOS | 4.0.0 | |
 | OpenSUSE MicroOS | 20211209 | |
 
