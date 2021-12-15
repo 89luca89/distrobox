@@ -204,4 +204,4 @@ fi
 # Generate the exec command and run it
 cmd="$(generate_command)"
 # shellcheck disable=SC2086
-${cmd}
+eval ${cmd}
