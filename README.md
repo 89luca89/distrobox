@@ -111,8 +111,8 @@ Main concern is having basic linux utilities (`mount`), basic user management ut
 It depends either on `podman` configured in `rootless mode`
 or on `docker` configured without sudo (you're in the `docker` group)
 
-Minimum podman version: **2.1.0**
-Minimum docker version: 18.06.1
+- Minimum podman version: **2.1.0**
+- Minimum docker version: **18.06.1**
 
 Follow the official installation guide here:
 
