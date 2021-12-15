@@ -132,7 +132,7 @@ generate_command() {
 	# and export them to the container.
 	set +o xtrace
 	# disable logging fot this snippet, or it will be too talkative.
-	for i in $(printenv | grep '=' | grep -v ' '); do
+	for i in $(printenv | grep '=' | grep -v ' ' | grep -v '"'); do
 		result_command="${result_command} --env=\"${i}\""
 	done
 	# re-enable logging if it was enabled previously.
