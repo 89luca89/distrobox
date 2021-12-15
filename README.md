@@ -3,7 +3,7 @@
 # Distrobox
 
 Use any linux distribution inside your terminal.
-Distrobox uses `podman` to create containers using the linux distribution of your choice.
+Distrobox uses `podman` or `docker` to create containers using the linux distribution of your choice.
 Created container will be tightly integrated with the host, allowing to share
 the HOME directory of the user, external storage, external usb devices and
 graphical apps (X11/Wayland) and audio.
