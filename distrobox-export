@@ -422,8 +422,7 @@ export_service() {
 			# Add commmand_prefix
 			# Add extra flags
 			# Add closing quote
-			cat "${temp_file}" |
-				sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" |
+			sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" "${temp_file}" |
 				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" |
 				sed "s|^${exec_cmd}=.*|&\"|g" >"${exported_service_fullpath}"
 			# in the end we add the final quote we've opened in the "container_command_prefix"
