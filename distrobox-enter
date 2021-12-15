@@ -90,12 +90,13 @@ fi
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
 container_manager="podman"
-if ! command -v podman >/dev/null && command -v docker >/dev/null; then
+if ! command -v podman >/dev/null; then
 	container_manager="docker"
-elif ! command -v podman >/dev/null && ! command -v docker >/dev/null; then
-	printf >&2 "Missing dependency: we need a container manager\n."
-	printf >&2 "Please install one of podman or docker.\n"
-	exit 127
+	if ! command -v docker >/dev/null; then
+		printf >&2 "Missing dependency: we need a container manager\n."
+		printf >&2 "Please install one of podman or docker.\n"
+		exit 127
+	fi
 fi
 
 # Generate Podman or Docker command to execute.
