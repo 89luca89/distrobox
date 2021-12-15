@@ -102,7 +102,7 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 # Check we're running inside a container and not on the host
-if [ ! -f /run/.containerenv ]; then
+if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
 	printf >&2 "distrobox-init should only be used as an entrypoint for a distrobox!\n"
 	exit 126

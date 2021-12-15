@@ -19,6 +19,7 @@ graphical apps (X11/Wayland) and audio.
   * [Why?](#why-)
     + [Aims](#aims)
 - [Compatibility](#compatibility)
+    + [Supported container managers](#supported-container-managers)
     + [Host Distros](#host-distros)
       - [New Host Distro support](#new-host-distro-support)
     + [Containers Distros](#containers-distros)
@@ -31,16 +32,17 @@ graphical apps (X11/Wayland) and audio.
     + [Application and service exporting](#application-and-service-exporting)
       - [Init the distrobox](#init-the-distrobox)
 - [Installation](#installation)
-- [Dependencies](#dependencies)
 - [Useful tips](#useful-tips)
   * [Container save and restore](#container-save-and-restore)
   * [Check used resources](#check-used-resources)
   * [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
-
+  * [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
+- [Authors](#authors)
+- [License](#license)
 
 ## What it does
 
-Simply put it's a fancy `podman` wrapper to create and start containers highly integrated with the hosts.
+Simply put it's a fancy wrapper around `podman` or `docker` to create and start containers highly integrated with the hosts.
 
 The distrobox environment is based on an OCI image.
 This image is used to create a container that seamlessly integrates with the rest of the operating system by providing access to the user's home directory,
@@ -67,7 +69,7 @@ It is divided in 4 parts:
 
 ### Aims
 
-This project aims to bring **any distro userland to any other distro** supporting podman.
+This project aims to bring **any distro userland to any other distro** supporting podman or docker.
 It has been written in POSIX sh to be as portable as possible and not have problems with glibc version's compatibility.
 
 It also aims to enter the container **as fast as possible**, every millisecond adds up if you use the it
@@ -91,7 +93,6 @@ user   0m0,116s
 sys    0m0,063s
 
 ```
-
 I would like to keep it always below the [Doherty Treshold](https://lawsofux.com/doherty-threshold/) of 400ms.
 
 # Compatibility
@@ -102,6 +103,21 @@ Granted, they may not be as featureful as expected (some of them do not even hav
 but that's all doable in the container itself after bootstrapping it.
 
 Main concern is having basic linux utilities (`mount`), basic user management utilities (`usermod, passwd`) and `sudo` correctly set.
+
+### Supported container managers
+
+`distrobox` can run on either `podman` or `docker`
+
+It depends either on `podman` configured in `rootless mode`
+or on `docker` configured without sudo (you're in the `docker` group)
+
+- Minimum podman version: **2.1.0**
+- Minimum docker version: **18.06.1**
+
+Follow the official installation guide here:
+
+  - https://podman.io/getting-started/installation
+  - https://docs.docker.com/engine/install
 
 ### Host Distros
 
@@ -122,7 +138,8 @@ Distrobox has been successfully tested on:
 
 #### New Host Distro support
 
-If your distro of choice is not in the list open an issue requesting support for it.
+If your distro of choice is not in the list open an issue requesting support for it,
+we can work together to check if it is possible to add support for it.
 
 Or just try using it anyway, if it works, open an issue
 and it will be added to the list!
@@ -170,7 +187,8 @@ This will **not** occur after the first time, **subsequent enters will be much f
 
 #### New Distro support
 
-If your distro of choice is not in the list open an issue requesting support for it.
+If your distro of choice is not in the list open an issue requesting support for it,
+we can work together to check if it is possible to add support for it.
 
 Or just try using it anyway, if it works, open an issue
 and it will be added to the list!
@@ -205,6 +223,8 @@ Options:
 distrobox-enter takes care of entering the container with the name specified.
 Default command executed is your SHELL, buf you can specify different shells or
 entire commands to execute.
+If using it inside a script, an application or a service, you can specify the
+--headless mode to disable tty and interactivity.
 
 Usage:
 
@@ -214,6 +234,7 @@ Options:
 
 	--name/-n:		name for the distrobox						default: fedora-toolbox-35
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
+	--headless/-H:		do not instantiate a tty
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -366,35 +387,29 @@ Else you can clone the project using `git clone` or using the `download zip` voi
 
 Enter the directory and run `./install`, by default it will attempt to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
 
-# Dependencies
-
-It depends on `podman` configured in `rootless mode`
-
-Check out your distro's documentation to check how to.
-
----
-
-Please be aware that old version of podman (prior to 1.6.4) have an issue with restarting a stopped container, this will create problems to re-enter an already created distrobox.
-
-Follow the official installation guide here: https://podman.io/getting-started/installation
-
-To ensure you have a recent version on your host.
-
 # Useful tips
 
 ## Container save and restore
 
-To save, export and reuse an already configured container, you can leverage `podman save` and `podman import`
+To save, export and reuse an already configured container, you can leverage `podman save` or `docker save` and `podman import` or `docker import`
 to basically create snapshots of your environment.
 
 ---
 
 To save a container to an image:
 
+with podman:
+
 ```
 podman container commit -p distrobox_name image_name_you_choose
-
 podman save image_name_you_choose:latest | gzip > image_name_you_choose.tar.gz
+```
+
+with docker:
+
+```
+docker container commit -p distrobox_name image_name_you_choose
+docker save image_name_you_choose:latest | gzip > image_name_you_choose.tar.gz
 ```
 
 This will create a tar.gz of the container of your choice in that exact moment.
@@ -406,6 +421,12 @@ just run
 
 ```
 podman import image_name_you_choose.tar.gz
+```
+
+or
+
+```
+docker import image_name_you_choose.tar.gz
 ```
 
 And create a new container based on that image:
@@ -422,20 +443,20 @@ in simple (and scriptable) steps.
 
 - You can always check how much space a `distrobox` is taking by using `podman` command:
 
-	`podman system df -v`
+`podman system df -v` or `docker system df -v`
 
 - You can check running `distrobox` using:
 
-	`podman ps -a`
+`podman ps -a` or `docker ps -a`
 
 - You can remove a `distrobox` using
 
-	`podman rm distrobox_name`
+`podman rm distrobox_name` or `docker rm distrobox_name`
 
 ## Using podman inside a distrobox
 
-You can use `podman socket` to control host's podman from inside a `distrobox`,
-just use:
+If `distrobox` is using `podman` as container engine, you can use `podman socket` to
+control host's podman from inside a `distrobox`, just use:
 
 `podman --remote`
 
@@ -445,7 +466,14 @@ It may be necessary to enable the socket on your host system by using:
 
 `systemctl --user enable --now podman.socket`
 
+## Using docker inside a distrobox
 
+You can use `docker` to control host's podman from inside a `distrobox`,
+by default if `distrobox` is using docker as a container engine, it will mount the
+docker.sock into the container.
+
+So in the container just install `docker`, add yourself to the `docker` group, and
+you should be good to go.
 
 # Authors
 

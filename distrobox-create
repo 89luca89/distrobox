@@ -93,25 +93,32 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# We depend on podman let's be sure we have it
+# We depend on a container manager let's be sure we have it
+# First we use podman, else docker
+container_manager="podman"
 if ! command -v podman >/dev/null; then
-	printf >&2 "Missing dependency: podman\n"
-	exit 127
+	container_manager="docker"
+	if ! command -v docker >/dev/null; then
+		printf >&2 "Missing dependency: we need a container manager\n."
+		printf >&2 "Please install one of podman or docker.\n"
+		exit 127
+	fi
 fi
 
-# Generate Podman command to execute.
+# Generate Podman or Docker command to execute.
 # Arguments:
 #   None
 # Outputs:
-#   prints the podman command to create the distrobox container
+#   prints the podman or docker command to create the distrobox container
 generate_command() {
 	# Set the container hostname the same as the container name.
 	# use the host's namespace for ipc, network, pid, ulimit
-	result_command="podman create"
-	# add podman verbose if -v is specified
+	result_command="${container_manager}"
+	# add  verbose if -v is specified
 	if [ "${verbose}" -ne 0 ]; then
 		result_command="${result_command} --log-level debug"
 	fi
+	result_command="${result_command} create"
 	result_command="${result_command}
 		--env=\"SHELL=${SHELL}\"
 		--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
@@ -122,9 +129,7 @@ generate_command() {
 		--pid host
 		--privileged
 		--security-opt label=disable
-		--user root:root
-		--userns keep-id
-		--ulimit host"
+		--user root:root"
 
 	# let's check if we can include distrobox-export or not
 	if [ -n "${distrobox_export_path}" ]; then
@@ -146,8 +151,7 @@ generate_command() {
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
 		--volume /sys:/sys:rslave
-		--volume /tmp:/tmp:rslave
-		--mount type=devpts,destination=/dev/pts"
+		--volume /tmp:/tmp:rslave"
 
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
 	if [ -d "/run/user/${container_user_uid}" ]; then
@@ -160,9 +164,12 @@ generate_command() {
 	#
 	# for example using `podman --remote` to control the host's podman from inside
 	# the container or accessing docker and libvirt sockets.
-	host_sockets="$(find /run -iname "*socket" ! -path "/run/user/*" 2>/dev/null || :)"
+	host_sockets="$(find /run -iname "*sock" ! -path "/run/user/*" 2>/dev/null || :)"
 	for host_socket in ${host_sockets}; do
-		result_command="${result_command} --volume ${host_socket}:${host_socket}"
+		if [ -r "${host_socket}" ]; then
+			result_command="${result_command}
+				--volume $(realpath "${host_socket}"):${host_socket}"
+		fi
 	done
 
 	# These are dynamic configs needed by the container to function properly
@@ -175,13 +182,19 @@ generate_command() {
 	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime"
 	for host_link in ${host_links}; do
 		# Check if the file exists first
-		if [ -f "${host_link}" ]; then
+		if [ -f "${host_link}" ] && [ -r "${host_link}" ]; then
 			# Use realpath to not have multi symlink mess
 			result_command="${result_command}
 				--volume $(realpath "${host_link}"):${host_link}:ro"
 		fi
 	done
 
+	if [ "${container_manager}" = "podman" ]; then
+		result_command="${result_command}
+		--userns keep-id
+		--ulimit host
+		--mount type=devpts,destination=/dev/pts"
+	fi
 	# Now execute the entrypoint, refer to `distrobox-init -h` for instructions
 	result_command="${result_command} ${container_image}
 		/usr/bin/entrypoint -v --name ${container_user_name}
@@ -202,7 +215,7 @@ fi
 
 # Check if the container already exists.
 # If it does, notify the user and exit.
-if podman ps -a | grep -qE "(^| )${container_name}( |$)"; then
+if "${container_manager}" inspect --type container "${container_name}" >/dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n"
 	printf "\tdistrobox-enter --name %s\n" "${container_name}"
@@ -211,7 +224,7 @@ fi
 
 # First, check if the image exists in the host.
 # If not prompt to download it.
-if [ -z "$(podman images -q "${container_image}")" ]; then
+if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2>&1; then
 	# Prompt to download it.
 	printf >&2 "Image not found.\n"
 	printf >&2 "Do you want to pull the image now?[y/n] "
@@ -221,11 +234,11 @@ if [ -z "$(podman images -q "${container_image}")" ]; then
 	case "${response}" in
 	y | Y | yes | Yes)
 		# Pull the image
-		podman pull "${container_image}"
+		"${container_manager}" pull "${container_image}"
 		;;
 	n | N | no | No)
 		printf >&2 "next time, run this command first:\n"
-		printf >&2 "  podman pull %s\n" "${container_image}"
+		printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
 		exit 0
 		;;
 	*) # Default case: If no more options then break out of the loop.
