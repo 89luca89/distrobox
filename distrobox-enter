@@ -8,7 +8,11 @@
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
-container_command="${SHELL:-"bash"} -l"
+container_command="${SHELL:-"bash"}"
+# Work around for shells that are not in the container's file system, nor PATH.
+# For example in hosts that do not follow FHS, like NixOS or for shells in custom
+# exotic paths.
+container_command="$(basename "${container_command}") -l"
 container_name="fedora-toolbox-35"
 headless=0
 verbose=0
