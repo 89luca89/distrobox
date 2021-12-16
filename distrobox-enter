@@ -93,8 +93,10 @@ fi
 # First we use podman, else docker
 container_manager="podman"
 if ! command -v podman >/dev/null; then
+	# If no podman, try docker.
 	container_manager="docker"
 	if ! command -v docker >/dev/null; then
+		# Error: we need at least one between docker or podman.
 		printf >&2 "Missing dependency: we need a container manager\n."
 		printf >&2 "Please install one of podman or docker.\n"
 		exit 127
@@ -116,11 +118,17 @@ generate_command() {
 	result_command="${result_command}
 		--user=${USER}"
 
+	# For some usage, like use in service, or launched by non-terminal
+	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
+	# the container.
+	# To work around this, --headless let's you skip these 2 flags and make it
+	# work in tty-less situations.
 	if [ "${headless}" -eq 0 ]; then
 		result_command="${result_command}
 			--interactive
 			--tty"
 	fi
+
 	# Entering container using our user and workdir.
 	# Start container from working directory. Else default to home. Else do /.
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.

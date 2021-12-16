@@ -97,8 +97,10 @@ fi
 # First we use podman, else docker
 container_manager="podman"
 if ! command -v podman >/dev/null; then
+	# If no podman, try docker.
 	container_manager="docker"
 	if ! command -v docker >/dev/null; then
+		# Error: we need at least one between docker or podman.
 		printf >&2 "Missing dependency: we need a container manager\n."
 		printf >&2 "Please install one of podman or docker.\n"
 		exit 127
@@ -112,16 +114,14 @@ fi
 #   prints the podman or docker command to create the distrobox container
 generate_command() {
 	# Set the container hostname the same as the container name.
-	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${container_manager}"
 	# add  verbose if -v is specified
 	if [ "${verbose}" -ne 0 ]; then
 		result_command="${result_command} --log-level debug"
 	fi
 	result_command="${result_command} create"
+	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
-		--env=\"SHELL=${SHELL}\"
-		--env=\"XDG_RUNTIME_DIR=/run/user/${container_user_uid}\"
 		--hostname ${container_name}
 		--ipc host
 		--name ${container_name}
@@ -189,6 +189,8 @@ generate_command() {
 		fi
 	done
 
+	# These flags are not supported by docker, so we use them only if our
+	# container manager is podman.
 	if [ "${container_manager}" = "podman" ]; then
 		result_command="${result_command}
 		--userns keep-id
