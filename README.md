@@ -133,10 +133,11 @@ Distrobox has been successfully tested on:
 | Fedora | 34, 35 | |
 | Fedora Silverblue | 34, 35 | |
 | Gentoo | | To setup rootless podman, look [HERE](https://wiki.gentoo.org/wiki/Podman) |
-| OpenSUSE | Leap 15, Tumbleweed | |
 | Ubuntu | 20.04, 21.10 | Older versions based on 20.04 needs external repos to install newer Podman and Docker releases. </br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. |
 | EndlessOS | 4.0.0 | |
+| OpenSUSE | Leap 15, Tumbleweed | |
 | OpenSUSE MicroOS | 20211209 | |
+| NixOS | 21.11 | To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker) </br>To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
 
 #### New Host Distro support
 
