@@ -488,6 +488,18 @@ docker.sock into the container.
 So in the container just install `docker`, add yourself to the `docker` group, and
 you should be good to go.
 
+## Using distrobox ad main cli
+
+In case you want (like me) to use your container as the main CLI environment, it comes
+handy to use `gnome-terminal` profiles to create a dedicated setup for it:
+
+![Screenshot from 2021-12-19 22-29-08](https://user-images.githubusercontent.com/598882/146691460-b8a5bb0a-a83d-4e32-abd0-4a0ff9f50eb7.png)
+
+Personally I just bind `Ctrl-Alt-T` to the Distrobox profile and `Super+Enter` to the Host profile.
+
+For other terminals there are similar features (profiles) or  you can setup a dedicated shortcut to 
+launch a terminal directly in the distrobox
+
 # Authors
 
 - Luca Di Maio      <luca.dimaio1@gmail.com>
