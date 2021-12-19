@@ -178,6 +178,7 @@ Distrobox guests tested successfully with the following container images:
 | Slackware | current | docker.io/vbatts/slackware:current    |
 | Ubuntu | 20.04 | docker.io/library/ubuntu:20.04    |
 | Ubuntu | 21.10 | docker.io/library/ubuntu:21.10    |
+| Ubuntu | 22.04 | docker.io/library/ubuntu:22.04    |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64 </br> ghcr.io/void-linux/void-linux:latest-thin-bb-x86_64-musl </br> ghcr.io/void-linux/void-linux:latest-full-x86_64 </br> ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
 
