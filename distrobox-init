@@ -295,7 +295,7 @@ if ! id "${container_user_name}"; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
-		--shell ${SHELL} \
+		--shell "${SHELL}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
 		"${container_user_name}"; then
