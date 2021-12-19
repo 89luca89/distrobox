@@ -96,6 +96,19 @@ fi
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
 container_manager="podman"
+# Small performance optimization, using podman socket shaves
+# about half the time to access informations.
+#
+# Accessed file is /run/user/USER_ID/podman/podman.sock
+#
+# This is not necessary on docker as it is already handled
+# in this way.
+if [ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
+	systemctl --user status podman.socket >/dev/null; then
+
+	container_manager="${container_manager} --remote"
+fi
+# Be sure we have a container manager to work with.
 if ! command -v podman >/dev/null; then
 	# If no podman, try docker.
 	container_manager="docker"
@@ -217,7 +230,7 @@ fi
 
 # Check if the container already exists.
 # If it does, notify the user and exit.
-if "${container_manager}" inspect --type container "${container_name}" >/dev/null 2>&1; then
+if ${container_manager} inspect --type container "${container_name}" >/dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n"
 	printf "\tdistrobox-enter --name %s\n" "${container_name}"
@@ -236,7 +249,7 @@ if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2
 	case "${response}" in
 	y | Y | yes | Yes)
 		# Pull the image
-		"${container_manager}" pull "${container_image}"
+		${container_manager} pull "${container_image}"
 		;;
 	n | N | no | No)
 		printf >&2 "next time, run this command first:\n"
