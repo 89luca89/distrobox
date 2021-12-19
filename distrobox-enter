@@ -119,6 +119,10 @@ if ! command -v podman >/dev/null; then
 		exit 127
 	fi
 fi
+# add  verbose if -v is specified
+if [ "${verbose}" -ne 0 ]; then
+	container_manager="${container_manager} --log-level debug"
+fi
 
 # Generate Podman or Docker command to execute.
 # Arguments:
@@ -126,12 +130,7 @@ fi
 # Outputs:
 #   prints the podman or docker command to enter the distrobox container
 generate_command() {
-	result_command="${container_manager}"
-	# add  verbose if -v is specified
-	if [ "${verbose}" -ne 0 ]; then
-		result_command="${result_command} --log-level debug"
-	fi
-	result_command="${result_command} exec"
+	result_command="${container_manager} exec"
 	result_command="${result_command}
 		--user=${USER}"
 
