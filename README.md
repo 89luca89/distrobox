@@ -392,6 +392,15 @@ Enter the directory and run `./install`, by default it will attempt to install i
 
 # Useful tips
 
+## Improve distrobox-enter performance
+
+If you are experiencing a bit slow performance using `podman` you should enable
+the podman socket using
+
+`systemctl --user enable --now podman.socket`
+
+this will improve a lot `podman`'s command performances.
+
 ## Container save and restore
 
 To save, export and reuse an already configured container, you can leverage `podman save` or `docker save` and `podman import` or `docker import`
