@@ -80,20 +80,6 @@ as your default environment for your terminal:
 These are some sample results of `distrobox-enter` on the same container on my weak laptop from 2015 with 2 core cpu:
 
 ```
-luca-linux@x250:~$ time distrobox-enter -n fedora-distrobox-35 -- whoami
-luca-linux
-
-real    0m0,302s
-user    0m0,118s
-sys     0m0,095s
-
-luca-linux@x250:~$ time distrobox-enter -n fedora-distrobox-35 -- whoami
-luca-linux
-
-real   0m0,281s
-user   0m0,116s
-sys    0m0,063s
-
 Total time for 100 container enters:
 
   luca-linux@x250:~$ time (for i in {1..100}; do distrobox-enter --name fedora-toolbox-35 -- whoami; done)
@@ -104,9 +90,8 @@ Total time for 100 container enters:
 Mean:
 
 36.209s/100 = ~0.362ms mean time to enter the container
-
-
 ```
+
 I would like to keep it always below the [Doherty Treshold](https://lawsofux.com/doherty-threshold/) of 400ms.
 
 # Compatibility
