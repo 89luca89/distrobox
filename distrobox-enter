@@ -200,7 +200,7 @@ if [ "${container_status}" != "running" ]; then
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
 	log_timestamp="$(date +%FT%T.%N%:z)"
-	"${container_manager}" start "${container_name}" >/dev/null
+	${container_manager} start "${container_name}" >/dev/null
 
 	printf >&2 "Starting container %s\n" "${container_name}"
 	printf >&2 "run this command to follow along:\n"
@@ -212,7 +212,7 @@ if [ "${container_status}" != "running" ]; then
 	#
 	# In the end, print eventual Warnings that occurred.
 	while :; do
-		container_manager_log="$("${container_manager}" logs -t \
+		container_manager_log="$(${container_manager} logs -t \
 			--since "${log_timestamp}" \
 			"${container_name}" 2>/dev/null)"
 		case "${container_manager_log}" in
@@ -231,7 +231,7 @@ if [ "${container_status}" != "running" ]; then
 	done
 	printf >&2 "\ndone!\n"
 	# Print eventual warnings in the log.
-	"${container_manager}" logs -t \
+	${container_manager} logs -t \
 		--since "${log_timestamp}" \
 		"${container_name}" 2>/dev/null | grep "Warning" >&2 || :
 fi
