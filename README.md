@@ -33,10 +33,12 @@ graphical apps (X11/Wayland) and audio.
       - [Init the distrobox](#init-the-distrobox)
 - [Installation](#installation)
 - [Useful tips](#useful-tips)
+  * [Improve distrobox-enter performance](#improve-distrobox-enter-performance)
   * [Container save and restore](#container-save-and-restore)
   * [Check used resources](#check-used-resources)
   * [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
   * [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
+  * [Using distrobox as main cli](#using-distrobox-as-main-cli)
 - [Authors](#authors)
 - [License](#license)
 
@@ -488,7 +490,7 @@ docker.sock into the container.
 So in the container just install `docker`, add yourself to the `docker` group, and
 you should be good to go.
 
-## Using distrobox ad main cli
+## Using distrobox as main cli
 
 In case you want (like me) to use your container as the main CLI environment, it comes
 handy to use `gnome-terminal` profiles to create a dedicated setup for it:
@@ -497,7 +499,7 @@ handy to use `gnome-terminal` profiles to create a dedicated setup for it:
 
 Personally I just bind `Ctrl-Alt-T` to the Distrobox profile and `Super+Enter` to the Host profile.
 
-For other terminals there are similar features (profiles) or  you can setup a dedicated shortcut to 
+For other terminals there are similar features (profiles) or  you can setup a dedicated shortcut to
 launch a terminal directly in the distrobox
 
 # Authors
