@@ -77,7 +77,7 @@ It has been written in POSIX sh to be as portable as possible and not have probl
 It also aims to enter the container **as fast as possible**, every millisecond adds up if you use the it
 as your default environment for your terminal:
 
-These are some sample results of `distrobox-enter` on the same container on my weak laptop:
+These are some sample results of `distrobox-enter` on the same container on my weak laptop from 2015 with 2 core cpu:
 
 ```
 luca-linux@x250:~$ time distrobox-enter -n fedora-distrobox-35 -- whoami
@@ -93,6 +93,18 @@ luca-linux
 real   0m0,281s
 user   0m0,116s
 sys    0m0,063s
+
+Total time for 100 container enters:
+
+  luca-linux@x250:~$ time (for i in {1..100}; do distrobox-enter --name fedora-toolbox-35 -- whoami; done)
+  real	0m36.209s
+  user	0m6.520s
+  sys	0m4.803s
+
+Mean:
+
+36.209s/100 = ~0.362ms mean time to enter the container
+
 
 ```
 I would like to keep it always below the [Doherty Treshold](https://lawsofux.com/doherty-threshold/) of 400ms.
