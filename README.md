@@ -2,11 +2,11 @@
 
 # Distrobox
 
-Use any linux distribution inside your terminal.
-Distrobox uses `podman` or `docker` to create containers using the linux distribution of your choice.
-Created container will be tightly integrated with the host, allowing to share
-the HOME directory of the user, external storage, external usb devices and
-graphical apps (X11/Wayland) and audio.
+Use any Linux distribution inside your terminal.
+Distrobox uses `podman` or `docker` to create containers using the Linux distribution of your choice.
+The created container will be tightly integrated with the host, allowing sharing of
+the HOME directory of the user, external storage, external USB devices and
+graphical apps (X11/Wayland), and audio.
 
 ---
 
@@ -49,13 +49,13 @@ Simply put it's a fancy wrapper around `podman` or `docker` to create and start 
 The distrobox environment is based on an OCI image.
 This image is used to create a container that seamlessly integrates with the rest of the operating system by providing access to the user's home directory,
 the Wayland and X11 sockets, networking, removable devices (like USB sticks), systemd journal, SSH agent, D-Bus,
-ulimits, /dev and the udev database, etc..
+ulimits, /dev and the udev database, etc...
 
-It implements the same concepts introduced by https://github.com/containers/toolbox but in a simplified way using POSIX sh and aiming at a broader compatibility.
+It implements the same concepts introduced by https://github.com/containers/toolbox but in a simplified way using POSIX sh and aiming at broader compatibility.
 
-All the props goes to them as they had the great idea to implement this stuff.
+All the props go to them as they had the great idea to implement this stuff.
 
-It is divided in 4 parts:
+It is divided into 4 parts:
 
 - `distrobox-create` - creates the container
 - `distrobox-enter`  - to enter the container
@@ -65,8 +65,8 @@ It is divided in 4 parts:
 ## Why?
 
 - Provide a mutable environment on an immutable OS, like Endless OS, Fedora Silverblue, OpenSUSE MicroOS or SteamOS3
-- Provide a locally privileged environment for sudoless setups (eg. company provided laptops, security reasons, etc...)
-- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat) with a bleeding edge environment for development or gaming (eg. Arch or OpenSUSE Tumbleweed or Fedora with latest Mesa)
+- Provide a locally privileged environment for sudoless setups (eg. company-provided laptops, security reasons, etc...)
+- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat) with a bleeding-edge environment for development or gaming (eg. Arch or OpenSUSE Tumbleweed or Fedora with latest Mesa)
 - Leverage high abundance of curated distro images for docker/podman to manage multiple environments
 
 ### Aims
@@ -74,8 +74,7 @@ It is divided in 4 parts:
 This project aims to bring **any distro userland to any other distro** supporting podman or docker.
 It has been written in POSIX sh to be as portable as possible and not have problems with glibc version's compatibility.
 
-It also aims to enter the container **as fast as possible**, every millisecond adds up if you use the it
-as your default environment for your terminal:
+It also aims to enter the container **as fast as possible**, every millisecond adds up if you use the container as your default environment for your terminal:
 
 These are some sample results of `distrobox-enter` on the same container on my weak laptop from 2015 with 2 core cpu:
 
@@ -96,12 +95,12 @@ I would like to keep it always below the [Doherty Treshold](https://lawsofux.com
 
 # Compatibility
 
-This project **does not need a dedicated image**. It can use any OCI images from docker-hub, quay.io or any registry of your choice.
+This project **does not need a dedicated image**. It can use any OCI images from docker-hub, quay.io, or any registry of your choice.
 
 Granted, they may not be as featureful as expected (some of them do not even have `which`, `mount`, `less` or `vi`)
 but that's all doable in the container itself after bootstrapping it.
 
-Main concern is having basic linux utilities (`mount`), basic user management utilities (`usermod, passwd`) and `sudo` correctly set.
+The main concern is having basic Linux utilities (`mount`), basic user management utilities (`usermod, passwd`), and `sudo` correctly set.
 
 ### Supported container managers
 
@@ -140,7 +139,7 @@ Distrobox has been successfully tested on:
 
 #### New Host Distro support
 
-If your distro of choice is not in the list open an issue requesting support for it,
+If your distro of choice is not on the list, open an issue requesting support for it,
 we can work together to check if it is possible to add support for it.
 
 Or just try using it anyway, if it works, open an issue
@@ -185,12 +184,12 @@ Distrobox guests tested successfully with the following container images:
 Note however that if you use a non-toolbox preconfigured image (e.g. images pre-baked to work with https://github.com/containers/toolbox), the **first** `distrobox-enter` you'll perform
 can take a while as it will download and install the missing dependencies.
 
-A small time-tax to pay for the ability to use any type of image.
+A small time tax to pay for the ability to use any type of image.
 This will **not** occur after the first time, **subsequent enters will be much faster.**
 
 #### New Distro support
 
-If your distro of choice is not in the list open an issue requesting support for it,
+If your distro of choice is not on the list, open an issue requesting support for it,
 we can work together to check if it is possible to add support for it.
 
 Or just try using it anyway, if it works, open an issue
@@ -198,16 +197,16 @@ and it will be added to the list!
 
 # Usage
 
-As stated above, there are 4 tools at dispose, 2 have to be used **outside the distrobox (from the host)** and 2 have to be used **inside the distrobox (from the container)**.
+As stated above, there are 4 tools at disposal, 2 have to be used **outside the distrobox (from the host)** and 2 have to be used **inside the distrobox (from the container)**.
 
 ## Outside the distrobox
 
 ### Create the distrobox
 
 distrobox-create takes care of creating the container with input name and image.
-Created container will be tightly integrated with the host, allowing to share
-the HOME directory of the user, external storage, external usb devices and
-graphical apps (X11/Wayland) and audio.
+The created container will be tightly integrated with the host, allowing sharing of
+the HOME directory of the user, external storage, external USB devices and
+graphical apps (X11/Wayland), and audio.
 
 Usage:
 
@@ -224,9 +223,9 @@ Options:
 ### Enter the distrobox
 
 distrobox-enter takes care of entering the container with the name specified.
-Default command executed is your SHELL, buf you can specify different shells or
+Default command executed is your SHELL, but you can specify different shells or
 entire commands to execute.
-If using it inside a script, an application or a service, you can specify the
+If using it inside a script, an application, or a service, you can specify the
 --headless mode to disable tty and interactivity.
 
 Usage:
@@ -242,7 +241,7 @@ Options:
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-This is used to enter the distrobox itself, personally I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
+This is used to enter the distrobox itself. Personally, I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
 
 ## Inside the distrobox
 
@@ -251,16 +250,16 @@ This is used to enter the distrobox itself, personally I just create multiple pr
 distrobox-export takes care of exporting an app a binary or a service from the container
 to the host.
 
-Exported app will be easily available in your normal launcher and it will
+The exported app will be easily available in your normal launcher and it will
 automatically be launched from the container it is exported from.
 
-Exported services will be available in the host's user's systemd session, so
+The exported services will be available in the host's user's systemd session, so
 
 	systemctl --user status exported_service_name
 
 will show the status of the service exported.
 
-Exported binaries will be exported in the "--export-path" of choice as a wrapper
+The exported binaries will be exported in the "--export-path" of choice as a wrapper
 script that acts naturally both on the host and in the container.
 Note that "--export-path" is NOT OPTIONAL, you have to explicitly set it.
 
@@ -271,11 +270,11 @@ to export an electron app, you could add the "--foreground" flag to the command:
 	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --extra-flags "-p"
 	distrobox-export --service syncthing --extra-flags "-allow-newer-config"
 
-This works for services, binaries and apps.
-Extra flags are only used then the exported app, binary or service is used from
+This works for services, binaries, and apps.
+Extra flags are only used then the exported app, binary, or service is used from
 the host, using them inside the container will not include them.
 
-The option "--delete" will un-export an app, binary or service.
+The option "--delete" will un-export an app, binary, or service.
 
 	distrobox-export --app atom --delete
 	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --delete
@@ -309,7 +308,7 @@ Options:
 	--version/-V:		show version
 
 You may want to install graphical applications or user services in your distrobox.
-Using `distrobox-export` from **inside** the container, will let you use them from the host itself.
+Using `distrobox-export` from **inside** the container will let you use them from the host itself.
 
 App export example:
 
@@ -324,7 +323,7 @@ Service export example:
 	distrobox-export --service syncthing --extra-flags "--allow-newer-config"
 	distrobox-export --service nginx --sudo
 
-For services, it will similarly export the systemd unit inside the container to an `systemctl --user` service,
+For services, it will similarly export the systemd unit inside the container to a `systemctl --user` service,
 prefixing the various `ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost` with the `distrobox-enter` command prefix.
 
 Binary export example:
@@ -332,8 +331,8 @@ Binary export example:
 
 	distrobox-export --bin /usr/bin/code --extra-flags "--foreground" --export-path $HOME/.local/bin
 
-In case of exporting binaries, you will have to specify **where** to export it (`--export-path`) and the tool will create
-a little wrapper script that will `distrobox-enter -e` from the host the desired binary.
+In the case of exporting binaries, you will have to specify **where** to export it (`--export-path`) and the tool will create
+a little wrapper script that will `distrobox-enter -e` from the host, the desired binary.
 This can be handy with the use of `direnv` to have different versions of the same binary based on
 your `env` or project.
 
@@ -372,7 +371,7 @@ Options:
 	--version/-V:		show version
 
 This is used as entrypoint for the created container, it will take care of creating the users,
-setting up sudo, mountpoints and exports.
+setting up sudo, mountpoints, and exports.
 
 **You should not have to launch this manually**
 
@@ -404,7 +403,7 @@ this will improve a lot `podman`'s command performances.
 ## Container save and restore
 
 To save, export and reuse an already configured container, you can leverage `podman save` or `docker save` and `podman import` or `docker import`
-to basically create snapshots of your environment.
+to create snapshots of your environment.
 
 ---
 
@@ -424,7 +423,7 @@ docker container commit -p distrobox_name image_name_you_choose
 docker save image_name_you_choose:latest | gzip > image_name_you_choose.tar.gz
 ```
 
-This will create a tar.gz of the container of your choice in that exact moment.
+This will create a tar.gz of the container of your choice at that exact moment.
 
 ---
 
@@ -467,7 +466,7 @@ in simple (and scriptable) steps.
 
 ## Using podman inside a distrobox
 
-If `distrobox` is using `podman` as container engine, you can use `podman socket` to
+If `distrobox` is using `podman` as the container engine, you can use `podman socket` to
 control host's podman from inside a `distrobox`, just use:
 
 `podman --remote`
@@ -494,9 +493,9 @@ handy to use `gnome-terminal` profiles to create a dedicated setup for it:
 
 ![Screenshot from 2021-12-19 22-29-08](https://user-images.githubusercontent.com/598882/146691460-b8a5bb0a-a83d-4e32-abd0-4a0ff9f50eb7.png)
 
-Personally I just bind `Ctrl-Alt-T` to the Distrobox profile and `Super+Enter` to the Host profile.
+Personally, I just bind `Ctrl-Alt-T` to the Distrobox profile and `Super+Enter` to the Host profile.
 
-For other terminals there are similar features (profiles) or  you can setup a dedicated shortcut to
+For other terminals, there are similar features (profiles) or  you can set up a dedicated shortcut to
 launch a terminal directly in the distrobox
 
 # Authors

@@ -40,16 +40,16 @@ distrobox version: ${version}
 distrobox-export takes care of exporting an app a binary or a service from the container
 to the host.
 
-Exported app will be easily available in your normal launcher and it will
+The exported app will be easily available in your normal launcher and it will
 automatically be launched from the container it is exported from.
 
-Exported services will be available in the host's user's systemd session, so
+The exported services will be available in the host's user's systemd session, so
 
 	systemctl --user status exported_service_name
 
 will show the status of the service exported.
 
-Exported binaries will be exported in the "--export-path" of choice as a wrapper
+The exported binaries will be exported in the "--export-path" of choice as a wrapper
 script that acts naturally both on the host and in the container.
 Note that "--export-path" is NOT OPTIONAL, you have to explicitly set it.
 
@@ -60,11 +60,11 @@ to export an electron app, you could add the "--foreground" flag to the command:
 	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --extra-flags "-p"
 	distrobox-export --service syncthing --extra-flags "-allow-newer-config"
 
-This works for services, binaries and apps.
-Extra flags are only used then the exported app, binary or service is used from
+This works for services, binaries, and apps.
+Extra flags are only used then the exported app, binary, or service is used from
 the host, using them inside the container will not include them.
 
-The option "--delete" will un-export an app, binary or service.
+The option "--delete" will un-export an app, binary, or service.
 
 	distrobox-export --app atom --delete
 	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --delete
