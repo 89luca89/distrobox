@@ -142,15 +142,6 @@ duplicate_container() {
 	# source container is stopped, else the clone will not work,
 	container_source_status="$(${container_manager} inspect --type container \
 		"${container_duplicate}" --format '{{.State.Status}}')"
-	container_exists="$?"
-	# Does the container exists? check if inspect reported errors
-	if [ "${container_exists}" -gt 0 ]; then
-		# If not, prompt to create it first
-		printf >&2 "Cannot find container %s, does it exist?\n" "${container_duplicate}"
-		printf >&2 "\nTry running first:\n"
-		printf >&2 "\tdistrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>\n"
-		return 1
-	fi
 	# If the container is not already running, we need to start if first
 	if [ "${container_source_status}" = "running" ]; then
 		printf >&2 "Container %s, is running.\nPlease stop it first.\n" "${container_duplicate}"
