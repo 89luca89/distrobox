@@ -42,7 +42,7 @@ Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 	--name/-n:		name for the distrobox		default: fedora-toolbox-35
-	--duplicate/-d:		container to use as base for a new container
+	--duplicate/-d:		name of the distrobox container to use as base for a new container
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
