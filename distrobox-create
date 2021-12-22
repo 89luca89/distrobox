@@ -215,15 +215,15 @@ generate_command() {
 		--volume /tmp:/tmp:rslave"
 
 	# Mount also the /var/home dir on ostree based systems
-	if [ -d "/var/home" ]; then
+	if [ -d "/var/home/${container_user_name}" ]; then
 		result_command="${result_command}
-			--volume /var/home:/var/home"
+			--volume /var/home/${container_user_name}:/var/home/${container_user_name}:rslave"
 	fi
 
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
 	if [ -d "/run/user/${container_user_uid}" ]; then
 		result_command="${result_command}
-			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}"
+			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}:rslave"
 	fi
 
 	# Find all the user's socket and mount them inside the container
