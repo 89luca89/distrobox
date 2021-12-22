@@ -17,7 +17,7 @@ container_user_uid="$(id -ru)"
 distrobox_entrypoint_path="$(command -v distrobox-init)"
 distrobox_export_path="$(command -v distrobox-export)"
 verbose=0
-version="1.2.4"
+version="1.2.5"
 
 # Print usage to stdout.
 # Arguments:
