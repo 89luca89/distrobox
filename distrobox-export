@@ -16,7 +16,7 @@ exported_service=""
 extra_flags=""
 is_sudo=""
 verbose=0
-version="1.2.2"
+version="1.2.3"
 
 # We depend on some commands, let's be sure we have them
 base_dependencies="basename grep sed find"
@@ -326,7 +326,7 @@ export_application() {
 		else
 			# we wanto to export the application's icons
 			mkdir -p "${icon_home_directory}"
-			cp "${icon_file}" "${icon_home_directory}"
+			cp -r "${icon_file}" "${icon_home_directory}"
 		fi
 	done
 
