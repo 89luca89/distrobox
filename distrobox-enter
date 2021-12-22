@@ -16,7 +16,7 @@ container_command="$(basename "${container_command}") -l"
 container_name="fedora-toolbox-35"
 headless=0
 verbose=0
-version="1.2.3"
+version="1.2.4"
 
 # Print usage to stdout.
 # Arguments:

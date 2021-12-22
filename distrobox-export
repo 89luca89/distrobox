@@ -16,7 +16,7 @@ exported_service=""
 extra_flags=""
 is_sudo=""
 verbose=0
-version="1.2.3"
+version="1.2.4"
 
 # We depend on some commands, let's be sure we have them
 base_dependencies="basename grep sed find"
