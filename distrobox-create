@@ -7,7 +7,7 @@
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
-container_duplicate=""
+container_clone=""
 container_image=""
 container_name="fedora-toolbox-35"
 container_user_gid="$(id -rg)"
@@ -37,12 +37,15 @@ graphical apps (X11/Wayland), and audio.
 Usage:
 
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
+	distrobox-create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
 
 Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 	--name/-n:		name for the distrobox		default: fedora-toolbox-35
-	--duplicate/-d:		name of the distrobox container to use as base for a new container
+	--clone/-c:		name of the distrobox container to use as base for a new container
+				this will be useful to either rename an existing distrobox or have ultiple copies
+				of the same environment.
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -79,9 +82,9 @@ while :; do
 			shift
 		fi
 		;;
-	-d | --duplicate)
+	-d | --clone)
 		if [ -n "$2" ]; then
-			container_duplicate="$2"
+			container_clone="$2"
 			shift
 			shift
 		fi
@@ -102,15 +105,15 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# We cannot have both a duplicate AND an image name/
-if [ -n "${container_duplicate}" ] && [ -n "${container_image}" ]; then
-	printf >&2 "Error: Invalid arguments, choose only one between duplicate or image name.\n"
+# We cannot have both a clone AND an image name/
+if [ -n "${container_clone}" ] && [ -n "${container_image}" ]; then
+	printf >&2 "Error: Invalid arguments, choose only one between clone or image name.\n"
 	exit 2
 fi
 
-# If no duplicate option and no container image, let's choose a default
+# If no clone option and no container image, let's choose a default
 # image to use. Fedora toolbox is a sensitive default
-if [ -z "${container_duplicate}" ] && [ -z "${container_image}" ]; then
+if [ -z "${container_clone}" ] && [ -z "${container_image}" ]; then
 	container_image="registry.fedoraproject.org/fedora-toolbox:35"
 fi
 
@@ -133,34 +136,34 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
-duplicate_container() {
-	# We need to duplicate a container.
+clone_container() {
+	# We need to clone a container.
 	# to do this we will commit the container and create a new tag. Then use it
 	# as image for the new container.
 	#
 	# to perform this we first ensure the source container exists and that the
 	# source container is stopped, else the clone will not work,
 	container_source_status="$(${container_manager} inspect --type container \
-		"${container_duplicate}" --format '{{.State.Status}}')"
+		"${container_clone}" --format '{{.State.Status}}')"
 	# If the container is not already running, we need to start if first
 	if [ "${container_source_status}" = "running" ]; then
-		printf >&2 "Container %s, is running.\nPlease stop it first.\n" "${container_duplicate}"
-		printf >&2 "Cannot duplicate a running container.\n"
+		printf >&2 "Container %s, is running.\nPlease stop it first.\n" "${container_clone}"
+		printf >&2 "Cannot clone a running container.\n"
 		return 1
 	fi
 
 	# Now we can extract the container ID and commit it to use as source image
 	# for the new container.
 	container_source_id="$(${container_manager} inspect --type container \
-		"${container_duplicate}" --format '{{.Id}}')"
-	container_commit_tag="${container_duplicate}:toolbox-$(date +%F)"
+		"${container_clone}" --format '{{.Id}}')"
+	container_commit_tag="${container_clone}:toolbox-$(date +%F)"
 
 	# Commit current container state to a new image tag
-	printf >&2 "Duplicating %s...\n" "${container_duplicate}"
+	printf >&2 "Duplicating %s...\n" "${container_clone}"
 	if ! ${container_manager} container commit \
 		"${container_source_id}" "${container_commit_tag}" >/dev/null; then
 
-		printf >&2 "Cannot duplicate container: %s\n" "${container_duplicate}"
+		printf >&2 "Cannot clone container: %s\n" "${container_clone}"
 		return 1
 	fi
 
@@ -282,10 +285,10 @@ if ${container_manager} inspect --type container "${container_name}" >/dev/null 
 	exit 0
 fi
 
-# if we are using the duplicate flag, let's set the image variable
+# if we are using the clone flag, let's set the image variable
 # to the output of container duplication
-if [ -n "${container_duplicate}" ]; then
-	container_image="$(duplicate_container)"
+if [ -n "${container_clone}" ]; then
+	container_image="$(clone_container)"
 fi
 # First, check if the image exists in the host.
 # If not prompt to download it.
