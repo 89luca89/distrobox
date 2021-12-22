@@ -214,15 +214,10 @@ generate_command() {
 		--volume /sys:/sys:rslave
 		--volume /tmp:/tmp:rslave"
 
-	# check if $HOME is a symlink
-	if [ -L "${container_user_home}" ]; then
-		# $HOME is a symlink to some other directory.
-		# this will impact the use of workdir as it uses PWD which
-		# resolved the symlinks instead.
-		# To solve this we mount the HOME both in it's original place
-		# and in the symlinked place.
+	# Mount also the /var/home dir on ostree based systems
+	if [ -d "/var/home" ]; then
 		result_command="${result_command}
-			--volume $(realpath "${container_user_home}"):$(realpath "${container_user_home}"):rslave"
+			--volume /var/home:/var/home"
 	fi
 
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
