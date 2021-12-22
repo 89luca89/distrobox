@@ -302,7 +302,7 @@ export_application() {
 
 	# Find desktop file for the application to export
 	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/* || :)
-	icon_files=$(find /usr/share/icons -iname "*${exported_app}*" || :)
+	icon_files=$(find /usr/share/icons /usr/share/pixmaps -iname "*${exported_app}*" || :)
 	# Check that we found some desktop files first.
 	if [ -z "${desktop_files}" ]; then
 		printf >&2 "Error: cannot find any desktop files.\n"
@@ -322,7 +322,7 @@ export_application() {
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
 			# we need to remove, not export
-			rm -f "${icon_home_directory}"/"$(basename "${icon_file}")"
+			rm -rf "${icon_home_directory:?}"/"$(basename "${icon_file:?}")"
 		else
 			# we wanto to export the application's icons
 			mkdir -p "${icon_home_directory}"
@@ -355,8 +355,13 @@ export_application() {
 		fi
 	done
 
-	printf "Application %s successfully exported.\nOK!\n" "${exported_app}"
-	printf "%s will appear in your applications list in a few seconds.\n" "${exported_app}"
+	if [ "${exported_delete}" -ne 0 ]; then
+		printf "Application %s successfully un-exported.\nOK!\n" "${exported_app}"
+		printf "%s will disappear from your applications list in a few seconds.\n" "${exported_app}"
+	else
+		printf "Application %s successfully exported.\nOK!\n" "${exported_app}"
+		printf "%s will appear in your applications list in a few seconds.\n" "${exported_app}"
+	fi
 
 }
 
