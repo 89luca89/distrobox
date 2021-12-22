@@ -213,7 +213,7 @@ Options:
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 	--name/-n:		name for the distrobox		default: fedora-toolbox-35
 	--clone/-c:		name of the distrobox container to use as base for a new container
-				this will be useful to either rename an existing distrobox or have ultiple copies
+				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
