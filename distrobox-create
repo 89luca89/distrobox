@@ -215,7 +215,10 @@ generate_command() {
 		--volume /tmp:/tmp:rslave"
 
 	# Mount also the /var/home dir on ostree based systems
-	if [ -d "/var/home/${container_user_name}" ]; then
+	# do this only if $HOME was not already set to /var/home/username
+	if [ "${container_user_home}" != "/var/home/${container_user_name}" ] &&
+		[ -d "/var/home/${container_user_name}" ]; then
+
 		result_command="${result_command}
 			--volume /var/home/${container_user_name}:/var/home/${container_user_name}:rslave"
 	fi
