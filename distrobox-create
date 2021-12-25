@@ -136,6 +136,11 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
+# Clone a container as a snapshot.
+# Arguments:
+#   None
+# Outputs:
+#   prints the image name of the newly cloned container
 clone_container() {
 	# We need to clone a container.
 	# to do this we will commit the container and create a new tag. Then use it
@@ -156,7 +161,7 @@ clone_container() {
 	# for the new container.
 	container_source_id="$(${container_manager} inspect --type container \
 		"${container_clone}" --format '{{.Id}}')"
-	container_commit_tag="${container_clone}:toolbox-$(date +%F)"
+	container_commit_tag="${container_clone}:$(date +%F)"
 
 	# Commit current container state to a new image tag
 	printf >&2 "Duplicating %s...\n" "${container_clone}"
