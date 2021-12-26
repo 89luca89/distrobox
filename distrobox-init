@@ -250,14 +250,26 @@ if ! command -v mount || ! command -v passwd ||
 
 fi
 # We'll also bind mount in READ-ONLY useful directories from the host
-HOST_MOUNTS_RO="/etc/machine-id /var/lib/flatpak /var/lib/systemd/coredump /var/log/journal"
+HOST_MOUNTS_RO="
+	/etc/machine-id
+	/var/lib/flatpak
+	/var/lib/systemd/coredump
+	/var/log/journal"
 for host_mount_ro in ${HOST_MOUNTS_RO}; do
 	mount_bind /run/host"${host_mount_ro}" "${host_mount_ro}" ro
 done
 
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
-HOST_MOUNTS="/media /run/media /run/udev/data /mnt /var/mnt /run/systemd/journal /run/libvirt /var/lib/libvirt"
+HOST_MOUNTS="
+	/media
+	/mnt
+	/run/libvirt
+	/run/media
+	/run/systemd/journal
+	/run/udev
+	/var/lib/libvirt
+	/var/mnt"
 for host_mount in ${HOST_MOUNTS}; do
 	if ! mount_bind /run/host"${host_mount}" "${host_mount}" rw; then
 		printf "Warning: Cannot bind mound %s to /run/host%s\n" "${host_mount}" "${host_mount}"
