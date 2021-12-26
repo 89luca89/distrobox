@@ -279,10 +279,17 @@ done
 # In case of an RPM distro, we can specify that our bind_mount directories
 # are in fact net shares. This prevents conflicts during package installations.
 if [ -d "/usr/lib/rpm/macros.d/" ]; then
+	# Loop through all the environment vars
+	# and export them to the container.
+	set +o xtrace
 	net_mounts=""
 	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS} '/dev' '/proc' '/sys' '/tmp'; do
 		net_mounts="${net_mount}:${net_mounts}"
 	done
+	# re-enable logging if it was enabled previously.
+	if [ "${verbose}" -ne 0 ]; then
+		set -o xtrace
+	fi
 	net_mounts=${net_mounts%?}
 	cat <<EOF >/usr/lib/rpm/macros.d/macros.distrobox
 %_netsharedpath ${net_mounts}
