@@ -348,7 +348,7 @@ export_application() {
 			# throught the container separation
 			sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
 				sed "s|\(%.*\)|${extra_flags} \1|g" |
-				sed "s|^Exec=.*|&\"|g" |
+				sed 's|^Exec=.*|&"|g' |
 				sed "s|^TryExec=.*|TryExec=true|g" \
 					>"/run/host/${HOME}/.local/share/applications/${desktop_home_file}"
 			# in the end we add the final quote we've opened in the "container_command_prefix"
