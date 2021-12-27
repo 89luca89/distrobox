@@ -126,7 +126,7 @@ Distrobox has been successfully tested on:
 | Alpine Linux | 3.14.3 | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
 | Arch Linux | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | Manjaro | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
-| Centos | 8</br>8 Stream | Works with corresponding RedHat releases. |
+| CentOS | 8</br>8 Stream | Works with corresponding RedHat releases. |
 | Debian | 11</br>Testing</br>Unstable | |
 | Fedora | 34</br>35 | |
 | Fedora Silverblue | 34</br>35 | |
@@ -157,7 +157,8 @@ Distrobox guests tested successfully with the following container images:
 | Alpine Linux    | 3.14</br>3.15 | docker.io/library/alpine:latest    |
 | AmazonLinux | 2  | docker.io/library/amazonlinux:2.0.20211005.0    |
 | Archlinux     | | docker.io/library/archlinux:latest    |
-| Centos | 7</br>8 | quay.io/centos/centos:7</br>quay.io/centos/centos:8  |
+| CentOS | 7</br>8 | quay.io/centos/centos:7</br>quay.io/centos/centos:8  |
+| CentOS Stream | 8</br>9 | quay.io/centos/centos:stream8</br>quay.io/centos/centos:stream9  |
 | Debian | 8</br>9</br>10</br>11 | docker.io/library/debian:8</br>docker.io/library/debian:9</br>docker.io/library/debian:10</br>docker.io/library/debian:stable</br>docker.io/library/debian:stable-backports    |
 | Debian | Testing    | docker.io/library/debian:testing </br> docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
