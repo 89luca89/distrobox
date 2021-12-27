@@ -176,6 +176,7 @@ if ! command -v mount || ! command -v passwd ||
 	if command -v apk; then
 		apk add \
 			"${shell_pkg}" \
+			ncurses \
 			procps \
 			shadow \
 			sudo \
@@ -186,6 +187,7 @@ if ! command -v mount || ! command -v passwd ||
 		apt-get update
 		apt-get install -y \
 			"${shell_pkg}" \
+			ncurses-base \
 			passwd \
 			procps \
 			sudo \
@@ -194,6 +196,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v dnf; then
 		dnf install -y \
 			"${shell_pkg}" \
+			ncurses-base \
 			passwd \
 			procps-ng \
 			shadow-utils \
@@ -203,6 +206,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v pacman; then
 		pacman -Sy --noconfirm \
 			"${shell_pkg}" \
+			ncurses \
 			procps-ng \
 			shadow \
 			sudo \
@@ -212,6 +216,7 @@ if ! command -v mount || ! command -v passwd ||
 		slackpkg update
 		yes | slackpkg install -default_answer=yes -batch=yes \
 			"${shell_pkg}" \
+			ncurses \
 			procps \
 			shadow \
 			sudo \
@@ -220,6 +225,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v xbps-install; then
 		xbps-install -Sy \
 			"${shell_pkg}" \
+			ncurses-base \
 			procps-ng \
 			shadow \
 			sudo \
@@ -228,6 +234,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v yum; then
 		yum install -y \
 			"${shell_pkg}" \
+			ncurses-base \
 			passwd \
 			procps \
 			shadow-utils \
@@ -237,6 +244,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v zypper; then
 		zypper install -y \
 			"${shell_pkg}" \
+			ncurses \
 			procps \
 			shadow \
 			sudo \
@@ -314,7 +322,7 @@ if ! id "${container_user_name}"; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
-		--shell "${SHELL}" \
+		--shell "${SHELL:-"/bin/bash"}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
 		"${container_user_name}"; then
