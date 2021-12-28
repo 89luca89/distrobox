@@ -9,6 +9,7 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 # Defaults
 container_clone=""
 container_image=""
+container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
 container_name="fedora-toolbox-35"
 container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
@@ -105,16 +106,16 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# We cannot have both a clone AND an image name/
+# We cannot have both a clone AND an image name.
 if [ -n "${container_clone}" ] && [ -n "${container_image}" ]; then
 	printf >&2 "Error: Invalid arguments, choose only one between clone or image name.\n"
 	exit 2
 fi
 
-# If no clone option and no container image, let's choose a default
-# image to use. Fedora toolbox is a sensitive default
+# If no clone option and no container image, let's choose a default image to use.
+# Fedora toolbox is a sensitive default
 if [ -z "${container_clone}" ] && [ -z "${container_image}" ]; then
-	container_image="registry.fedoraproject.org/fedora-toolbox:35"
+	container_image="${container_image_default}"
 fi
 
 # We depend on a container manager let's be sure we have it
