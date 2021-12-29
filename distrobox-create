@@ -3,22 +3,26 @@
 # Expected env variables:
 #	HOME
 #	USER
+# Optional env variables:
+#	DB_CONTAINER_IMAGE
+#	DB_CONTAINER_NAME
+#	DB_NON_INTERACTIVE
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
 container_clone=""
-container_image=${DB_CONTAINER_IMAGE:-""}
+container_image="${DB_CONTAINER_IMAGE:-""}"
 container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
-container_name=${DB_CONTAINER_NAME:-""}
+container_name="${DB_CONTAINER_NAME:-""}"
 container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
 distrobox_entrypoint_path="$(command -v distrobox-init)"
 distrobox_export_path="$(command -v distrobox-export)"
+non_interactive="${DB_NON_INTERACTIVE:-0}"
 verbose=0
-non_interactive=${DB_NON_INTERACTIVE:-0}
 version="1.2.5"
 
 # Print usage to stdout.
@@ -40,6 +44,10 @@ Usage:
 
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox-create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
+
+You can also use environment variables to specify container name and image
+
+	DB_NON_INTERACTIVE=1 DB_CONTAINER_NAME=test-alpine DB_CONTAINER_IMAGE=alpine distrobox-create
 
 Options:
 
@@ -130,6 +138,7 @@ fi
 # Examples:
 #	alpine -> alpine
 #	ubuntu:20.04 -> ubuntu-20.04
+#	registry.fedoraproject.org/fedora-toolbox:35 -> fedora-toolbox-35
 #	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
 if [ -z "${container_name}" ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/:/-/g')"
