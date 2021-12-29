@@ -342,6 +342,7 @@ if [ -d "/etc/skel" ]; then
 	for skel_file in ${skel_files}; do
 		if [ ! -f "${container_user_home}/$(basename "${skel_file}")" ]; then
 			cp "${skel_file}" "${container_user_home}"
+			chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/$(basename "${skel_file}")"
 		fi
 	done
 fi
