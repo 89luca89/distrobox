@@ -45,13 +45,13 @@ Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 	--name/-n:		name for the distrobox		default: fedora-toolbox-35
+	--non-interactive/-N:	non-interactive, pull images without asking
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
-	--non-interactive/-n:		non-interactive, pull images without asking
 EOF
 }
 
@@ -92,7 +92,7 @@ while :; do
 			shift
 		fi
 		;;
-	-n | --non-interactive)
+	-N | --non-interactive)
 		non_interactive=1
 		shift
 		;;
@@ -124,6 +124,13 @@ if [ -z "${container_clone}" ] && [ -z "${container_image}" ]; then
 	container_image="${container_image_default}"
 fi
 
+# If no container_name is declared, we build our container name starting from the
+# container image specified.
+#
+# Examples:
+#	alpine -> alpine
+#	ubuntu:20.04 -> ubuntu-20.04
+#	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
 if [ -z "${container_name}" ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/:/-/g')"
 fi
@@ -318,13 +325,13 @@ fi
 # First, check if the image exists in the host.
 # If not prompt to download it.
 if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2>&1; then
-	if [ ${non_interactive} -eq 0 ]; then
+	if [ "${non_interactive}" -eq 0 ]; then
 		# Prompt to download it.
 		printf >&2 "Image not found.\n"
 		printf >&2 "Do you want to pull the image now? [y/n] "
 		read -r response
 	else
-		response=Y
+		response="yes"
 	fi
 
 	# Accept only y,Y,Yes,yes,n,N,No,no.
