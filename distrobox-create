@@ -101,6 +101,13 @@ while :; do
 			shift
 		fi
 		;;
+	-H | --home)
+		if [ -n "$2" ]; then
+			container_user_home="$2"
+			shift
+			shift
+		fi
+		;;
 	-N | --non-interactive)
 		non_interactive=1
 		shift
