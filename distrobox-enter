@@ -164,7 +164,7 @@ generate_command() {
 	container_paths="${PATH}"
 	# add to the PATH only after the host's paths, and only if not already present.
 	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*${standard_path}*}" ]; then
+		if [ -n "${container_paths##*:${standard_path}*}" ]; then
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
