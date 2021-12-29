@@ -32,6 +32,7 @@ graphical apps (X11/Wayland), and audio.
     + [Application and service exporting](#application-and-service-exporting)
       - [Init the distrobox](#init-the-distrobox)
 - [Installation](#installation)
+- [Uninstallation](#uninstallation)
 - [Useful tips](#useful-tips)
   * [Improve distrobox-enter performance](#improve-distrobox-enter-performance)
   * [Container save and restore](#container-save-and-restore)
@@ -388,6 +389,20 @@ or if you want to select a custom directory to install without sudo:
 Else you can clone the project using `git clone` or using the `download zip` voice after clicking the green button above.
 
 Enter the directory and run `./install`, by default it will attempt to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
+
+# Uninstallation
+
+If you installed distrobox in the default install directory use this:
+
+`curl https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sudo sh`
+
+or if you specified a custom path:
+
+`curl https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- -p ~/.local/bin`
+
+Else you can clone the project using `git clone` or using the `download zip` voice after clicking the green button above.
+
+Enter the directory and run `./uninstall`, by default it will assume the install directory was `/usr/local/bin`, you can specify another directory if needed with `./uninstall -p ~/.local/bin`
 
 # Useful tips
 
