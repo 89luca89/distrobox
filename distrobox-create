@@ -5,6 +5,7 @@
 #	USER
 # Optional env variables:
 #	DB_CONTAINER_IMAGE
+#	DB_CONTAINER_MANAGER
 #	DB_CONTAINER_NAME
 #	DB_NON_INTERACTIVE
 
@@ -47,7 +48,7 @@ Usage:
 
 You can also use environment variables to specify container name and image
 
-	DB_NON_INTERACTIVE=1 DB_CONTAINER_NAME=test-alpine DB_CONTAINER_IMAGE=alpine distrobox-create
+	DB_CONTAINER_MANAGER=docker DB_NON_INTERACTIVE=1 DB_CONTAINER_NAME=test-alpine DB_CONTAINER_IMAGE=alpine distrobox-create
 
 Options:
 
