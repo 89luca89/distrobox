@@ -3,20 +3,26 @@
 # Expected env variables:
 #	HOME
 #	USER
+# Optional env variables:
+#	DB_CONTAINER_IMAGE
+#	DB_CONTAINER_MANAGER
+#	DB_CONTAINER_NAME
+#	DB_NON_INTERACTIVE
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
 container_clone=""
-container_image=""
+container_image="${DB_CONTAINER_IMAGE:-""}"
 container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
-container_name="fedora-toolbox-35"
+container_name="${DB_CONTAINER_NAME:-""}"
 container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
 distrobox_entrypoint_path="$(command -v distrobox-init)"
 distrobox_export_path="$(command -v distrobox-export)"
+non_interactive="${DB_NON_INTERACTIVE:-0}"
 verbose=0
 version="1.2.5"
 
@@ -40,10 +46,15 @@ Usage:
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox-create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
 
+You can also use environment variables to specify container name and image
+
+	DB_CONTAINER_MANAGER=docker DB_NON_INTERACTIVE=1 DB_CONTAINER_NAME=test-alpine DB_CONTAINER_IMAGE=alpine distrobox-create
+
 Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 	--name/-n:		name for the distrobox		default: fedora-toolbox-35
+	--non-interactive/-N:	non-interactive, pull images without asking
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
@@ -90,6 +101,10 @@ while :; do
 			shift
 		fi
 		;;
+	-N | --non-interactive)
+		non_interactive=1
+		shift
+		;;
 	--) # End of all options.
 		shift
 		break
@@ -118,11 +133,23 @@ if [ -z "${container_clone}" ] && [ -z "${container_image}" ]; then
 	container_image="${container_image_default}"
 fi
 
+# If no container_name is declared, we build our container name starting from the
+# container image specified.
+#
+# Examples:
+#	alpine -> alpine
+#	ubuntu:20.04 -> ubuntu-20.04
+#	registry.fedoraproject.org/fedora-toolbox:35 -> fedora-toolbox-35
+#	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
+if [ -z "${container_name}" ]; then
+	container_name="$(basename "${container_image}" | sed -E 's/:/-/g')"
+fi
+
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
-container_manager="podman"
+container_manager=${DB_CONTAINER_MANAGER:-"podman"}
 # Be sure we have a container manager to work with.
-if ! command -v podman >/dev/null; then
+if ! command -v "${container_manager}" >/dev/null; then
 	# If no podman, try docker.
 	container_manager="docker"
 	if ! command -v docker >/dev/null; then
@@ -308,10 +335,14 @@ fi
 # First, check if the image exists in the host.
 # If not prompt to download it.
 if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2>&1; then
-	# Prompt to download it.
-	printf >&2 "Image not found.\n"
-	printf >&2 "Do you want to pull the image now? [y/n] "
-	read -r response
+	if [ "${non_interactive}" -eq 0 ]; then
+		# Prompt to download it.
+		printf >&2 "Image not found.\n"
+		printf >&2 "Do you want to pull the image now? [y/n] "
+		read -r response
+	else
+		response="yes"
+	fi
 
 	# Accept only y,Y,Yes,yes,n,N,No,no.
 	case "${response}" in

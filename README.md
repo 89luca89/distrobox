@@ -209,10 +209,15 @@ Usage:
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox-create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
 
+You can also use environment variables to specify container name and image
+
+	DB_CONTAINER_MANAGER=docker DB_NON_INTERACTIVE=1 DB_CONTAINER_NAME=test-alpine DB_CONTAINER_IMAGE=alpine distrobox-create
+
 Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 	--name/-n:		name for the distrobox		default: fedora-toolbox-35
+	--non-interactive/-N:	non-interactive, pull images without asking
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
