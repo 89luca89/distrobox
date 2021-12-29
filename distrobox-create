@@ -8,9 +8,9 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
 container_clone=""
-container_image=""
+container_image=${DB_CONTAINER_IMAGE:-""}
 container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
-container_name="fedora-toolbox-35"
+container_name=${DB_CONTAINER_NAME:-""}
 container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
@@ -18,6 +18,7 @@ container_user_uid="$(id -ru)"
 distrobox_entrypoint_path="$(command -v distrobox-init)"
 distrobox_export_path="$(command -v distrobox-export)"
 verbose=0
+non_interactive=${DB_NON_INTERACTIVE:-0}
 version="1.2.5"
 
 # Print usage to stdout.
@@ -50,6 +51,7 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
+	--non-interactive/-n:		non-interactive, pull images without asking
 EOF
 }
 
@@ -90,6 +92,10 @@ while :; do
 			shift
 		fi
 		;;
+	-n | --non-interactive)
+		non_interactive=1
+		shift
+		;;
 	--) # End of all options.
 		shift
 		break
@@ -118,9 +124,13 @@ if [ -z "${container_clone}" ] && [ -z "${container_image}" ]; then
 	container_image="${container_image_default}"
 fi
 
+if [ "${container_name}" == "" ]; then
+	container_name=$(basename $container_image | sed -E 's/:/_/g')
+fi
+
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
-container_manager="podman"
+container_manager=${DB_CONTAINER_MANAGER:-"podman"}
 # Be sure we have a container manager to work with.
 if ! command -v podman >/dev/null; then
 	# If no podman, try docker.
@@ -308,10 +318,14 @@ fi
 # First, check if the image exists in the host.
 # If not prompt to download it.
 if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2>&1; then
-	# Prompt to download it.
-	printf >&2 "Image not found.\n"
-	printf >&2 "Do you want to pull the image now? [y/n] "
-	read -r response
+	if [ ${non_interactive} == "0" ]; then
+		# Prompt to download it.
+		printf >&2 "Image not found.\n"
+		printf >&2 "Do you want to pull the image now? [y/n] "
+		read -r response
+	else
+		response=Y
+	fi
 
 	# Accept only y,Y,Yes,yes,n,N,No,no.
 	case "${response}" in
