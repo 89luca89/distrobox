@@ -318,7 +318,7 @@ fi
 # First, check if the image exists in the host.
 # If not prompt to download it.
 if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2>&1; then
-	if [ "${non_interactive}" == "0" ]; then
+	if [ ${non_interactive} -eq 0 ]; then
 		# Prompt to download it.
 		printf >&2 "Image not found.\n"
 		printf >&2 "Do you want to pull the image now? [y/n] "
