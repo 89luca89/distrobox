@@ -24,7 +24,7 @@ distrobox_entrypoint_path="$(command -v distrobox-init)"
 distrobox_export_path="$(command -v distrobox-export)"
 non_interactive="${DB_NON_INTERACTIVE:-0}"
 verbose=0
-version="1.2.5"
+version="1.2.6"
 
 # Print usage to stdout.
 # Arguments:
