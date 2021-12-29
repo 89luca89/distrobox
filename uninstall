@@ -56,7 +56,6 @@ fi
 [ ! -d "${dest_path}" ] && printf >&2 "Path %s does not exist.\n" "${dest_path} " && exit 1
 [ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
 
-
 # uninstall
 if [ -f "${dest_path}/distrobox-enter" ]; then
 	for file in distrobox-*; do
