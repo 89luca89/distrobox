@@ -101,6 +101,13 @@ while :; do
 			shift
 		fi
 		;;
+	-H | --home)
+		if [ -n "$2" ]; then
+			container_user_custom_home="$2"
+			shift
+			shift
+		fi
+		;;
 	-N | --non-interactive)
 		non_interactive=1
 		shift
@@ -240,12 +247,22 @@ generate_command() {
 	#
 	# Mount also the distrobox-init utility as the container entrypoint.
 	result_command="${result_command}
+		--env HOME=${container_user_home}
 		--volume ${container_user_home}:${container_user_home}:rslave
 		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
 		--volume /sys:/sys:rslave
 		--volume /tmp:/tmp:rslave"
+
+	# If we have a custom home to use,
+	#	1- override the HOME env variable
+	# 	2- mount the custom home inside the container.
+	if [ -n "${container_user_custom_home}" ]; then
+		result_command="${result_command}
+			--env HOME=${container_user_custom_home}
+			--volume ${container_user_custom_home}:${container_user_custom_home}:rslave"
+	fi
 
 	# Mount also the /var/home dir on ostree based systems
 	# do this only if $HOME was not already set to /var/home/username
@@ -305,7 +322,8 @@ generate_command() {
 		/usr/bin/entrypoint -v --name ${container_user_name}
 			--user ${container_user_uid}
 			--group ${container_user_gid}
-			--home ${container_user_home}"
+			--home ${container_user_custom_home:-"${container_user_home}"}"
+	# use container_user_custom_home if defined, else fallback to normal home.
 
 	# Return generated command.
 	printf "%s" "${result_command}"

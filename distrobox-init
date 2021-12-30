@@ -334,6 +334,19 @@ fi
 passwd --delete "${container_user_name}"
 passwd --delete root
 
+# If we do not have profile files in the home, we should copy the
+# skeleton files, if present.
+# Ensure we copy only if the dotfile is not already present.
+if [ -d "/etc/skel" ]; then
+	skel_files="$(find /etc/skel/ -type f || :)"
+	for skel_file in ${skel_files}; do
+		if [ ! -f "${container_user_home}/$(basename "${skel_file}")" ]; then
+			cp "${skel_file}" "${container_user_home}"
+			chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/$(basename "${skel_file}")"
+		fi
+	done
+fi
+
 # Themes and icons integration works using a bind mount inside the container
 # of the host's themes and icons directory. This ensures that the host's home will
 # not be littered with files and directories and broken symlinks.
