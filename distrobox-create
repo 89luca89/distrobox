@@ -103,7 +103,7 @@ while :; do
 		;;
 	-H | --home)
 		if [ -n "$2" ]; then
-			container_user_home="$2"
+			container_user_custom_home="$2"
 			shift
 			shift
 		fi
@@ -255,6 +255,15 @@ generate_command() {
 		--volume /sys:/sys:rslave
 		--volume /tmp:/tmp:rslave"
 
+	# If we have a custom home to use,
+	#	1- override the HOME env variable
+	# 	2- mount the custom home inside the container.
+	if [ -n "${container_user_custom_home}" ]; then
+		result_command="${result_command}
+			--env HOME=${container_user_custom_home}
+			--volume ${container_user_custom_home}:${container_user_custom_home}:rslave"
+	fi
+
 	# Mount also the /var/home dir on ostree based systems
 	# do this only if $HOME was not already set to /var/home/username
 	if [ "${container_user_home}" != "/var/home/${container_user_name}" ] &&
@@ -313,7 +322,8 @@ generate_command() {
 		/usr/bin/entrypoint -v --name ${container_user_name}
 			--user ${container_user_uid}
 			--group ${container_user_gid}
-			--home ${container_user_home}"
+			--home ${container_user_custom_home:-"${container_user_home}"}"
+	# use container_user_custom_home if defined, else fallback to normal home.
 
 	# Return generated command.
 	printf "%s" "${result_command}"
