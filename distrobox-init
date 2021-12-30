@@ -194,6 +194,7 @@ if ! command -v mount || ! command -v passwd ||
 	if command -v apk; then
 		apk add \
 			"${shell_pkg}" \
+			findutils \
 			ncurses \
 			procps \
 			shadow \
@@ -205,6 +206,7 @@ if ! command -v mount || ! command -v passwd ||
 		apt-get update
 		apt-get install -y \
 			"${shell_pkg}" \
+			findutils \
 			ncurses-base \
 			passwd \
 			procps \
@@ -214,6 +216,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v dnf; then
 		dnf install -y \
 			"${shell_pkg}" \
+			findutils \
 			ncurses-base \
 			passwd \
 			procps-ng \
@@ -224,6 +227,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v pacman; then
 		pacman -Sy --noconfirm \
 			"${shell_pkg}" \
+			findutils \
 			ncurses \
 			procps-ng \
 			shadow \
@@ -234,6 +238,7 @@ if ! command -v mount || ! command -v passwd ||
 		slackpkg update
 		yes | slackpkg install -default_answer=yes -batch=yes \
 			"${shell_pkg}" \
+			findutils \
 			ncurses \
 			procps \
 			shadow \
@@ -243,6 +248,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v xbps-install; then
 		xbps-install -Sy \
 			"${shell_pkg}" \
+			findutils \
 			ncurses-base \
 			procps-ng \
 			shadow \
@@ -252,6 +258,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v yum; then
 		yum install -y \
 			"${shell_pkg}" \
+			findutils \
 			ncurses-base \
 			passwd \
 			procps \
@@ -262,6 +269,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v zypper; then
 		zypper install -y \
 			"${shell_pkg}" \
+			findutils \
 			ncurses \
 			procps \
 			shadow \
