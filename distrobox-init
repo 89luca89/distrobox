@@ -310,6 +310,24 @@ for host_mount in ${HOST_MOUNTS}; do
 	fi
 done
 
+# Find all the user's socket and mount them inside the container
+# this will allow for continuity of functionality between host and container
+#
+# for example using `podman --remote` to control the host's podman from inside
+# the container or accessing docker and libvirt sockets.
+host_sockets="$(find /run/host/run -name 'user' -prune -o -type s  -print 2>/dev/null || :)"
+for host_socket in ${host_sockets}; do
+	container_socket="$(echo "${host_socket}" | sed 's|/run/host||g')"
+	# Check if the socket already exists or the symlink already esists
+	if [ ! -S "${container_socket}" ] && [ ! -L "${container_socket}" ]; then
+		# link it.
+		mkdir -p "$(dirname "${container_socket}")"
+		if ! ln -s "${host_socket}" "${container_socket}"; then
+			printf "Warning: Cannot link socket %s to %s\n" "${host_socket}" "${container_socket}"
+		fi
+	fi
+done
+
 # In case of an RPM distro, we can specify that our bind_mount directories
 # are in fact net shares. This prevents conflicts during package installations.
 if [ -d "/usr/lib/rpm/macros.d/" ]; then
