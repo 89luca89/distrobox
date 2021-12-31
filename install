@@ -85,7 +85,7 @@ if [ -f "${curr_dir}/distrobox-enter" ]; then
 	if [ -d "${curr_dir}/.git" ] && command -v git >/dev/null; then
 		release_ver="git-$(git rev-parse HEAD)"
 	fi
-	for file in distrobox-*; do
+	for file in distrobox*; do
 		cp "${file}" "${dest_path}"
 		chmod 0755 "${dest_path}/${file}"
 	done
@@ -106,7 +106,7 @@ else
 	# uncompress
 	tar xvf "${release_name}"
 	# deploy our files
-	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox-*; do
+	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox*; do
 		cp "${file}" "${dest_path}"
 		chmod 0755 "${dest_path}/$(basename "${file}")"
 	done
