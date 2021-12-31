@@ -1,4 +1,7 @@
 #!/bin/sh
+whoami
+cat /etc/passwd
+ls -la /etc/machine-id
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of the distrobox project: https://github.com/89luca89/distrobox
@@ -321,6 +324,7 @@ for host_socket in ${host_sockets}; do
 	# Check if the socket already exists or the symlink already esists
 	if [ ! -S "${container_socket}" ] && [ ! -L "${container_socket}" ]; then
 		# link it.
+		rm -f "${container_socket}"
 		mkdir -p "$(dirname "${container_socket}")"
 		if ! ln -s "${host_socket}" "${container_socket}"; then
 			printf "Warning: Cannot link socket %s to %s\n" "${host_socket}" "${container_socket}"
