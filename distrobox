@@ -1,0 +1,68 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+set -o errexit
+set -o nounset
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	cat <<EOF
+Choose one of the available commands
+	create
+	enter
+	list
+	rm
+EOF
+}
+
+if [ $# -eq 0 ]; then
+	show_help
+	exit
+fi
+
+distrobox_path="$(dirname "${0}")"
+distrobox_command="${1}"
+shift
+
+# Simple wrapper to the distrobox utilities.
+# We just detect the 1st argument and launch the matching distrobox utility.
+case "${distrobox_command}" in
+create)
+	"${distrobox_path}"/distrobox-create "$@"
+	;;
+enter)
+	"${distrobox_path}"/distrobox-enter "$@"
+	;;
+list)
+	"${distrobox_path}"/distrobox-list "$@"
+	;;
+rm)
+	"${distrobox_path}"/distrobox-rm "$@"
+	;;
+*) # Default case: If no more options then break out of the loop.
+	printf >&2 "Error: invalid command\n"
+	show_help
+	exit 1
+	;;
+esac
