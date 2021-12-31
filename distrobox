@@ -24,4 +24,6 @@ set -o nounset
 COMMAND="$1"
 shift
 
+# Simple wrapper to the distrobox utilities.
+# We just detect the 1st argument and launch the matching distrobox utility.
 exec distrobox-"${COMMAND}" "$@"

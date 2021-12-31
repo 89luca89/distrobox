@@ -98,20 +98,29 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
+# List containers using custom format that inclused MOUNTS
+# we do this as we can detect the custom mounts done by distrobox to distringuish
+# between a normal podman or docker container and a distrobox one.
 container_list=$(${container_manager} ps -a --no-trunc --format "{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}")
 IFS='
 '
-printf " %-30s | %-50s | %-40s | %-30s\n" "ID" "IMAGE" "STATUS" "NAME"
+# Header of the output
+printf " %-12s | %-25s | %-30s | %-30s\n" "ID" "IMAGE" "STATUS" "NAME"
 for container in ${container_list}; do
-	if [ -z "${container##*distrobox*}" ]; then
-		container_id="$(echo "${container}" | cut -d'|' -f1)"
+	# Check if the current container has a custom mount point for distrobox.
+	if [ -z "${container##*/usr/bin/distrobox*}" ]; then
+		# Extract the information for the single container to pretty print it
+		container_id="$(echo "${container}" | cut -d'|' -f1 | cut -c1-12)"
 		container_name="$(echo "${container}" | cut -d'|' -f3)"
 		container_status="$(echo "${container}" | cut -d'|' -f4)"
 		container_image="$(echo "${container}" | cut -d'|' -f2)"
+
+		# If the container is Up and Running, print it in green
 		if [ -z "${container_status##*Up*}" ] || [ -z "${container_status##*running*}" ]; then
-			printf "\033[32m %-30s | %-50s | %-40s | %-30s\n\033[0m" "${container_id}" "${container_image}" "${container_status}" "${container_name}"
+			printf "\033[32m %-12s | %-25s | %-30s | %-30s\n\033[0m" "${container_id}" "${container_name}" "${container_status}" "${container_image}"
+		# Else, print it in yellow
 		else
-			printf "\033[33m %-30s | %-50s | %-40s | %-30s\n\033[0m" "${container_id}" "${container_image}" "${container_status}" "${container_name}"
+			printf "\033[33m %-12s | %-25s | %-30s | %-30s\n\033[0m" "${container_id}" "${container_name}" "${container_status}" "${container_image}"
 		fi
 	fi
 done
