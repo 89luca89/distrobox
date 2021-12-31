@@ -1,0 +1,141 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+
+# Defaults
+container_name="${DB_CONTAINER_NAME:-""}"
+verbose=0
+force=0
+version="1.2.6"
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	cat <<EOF
+
+distrobox version: ${version}
+
+distrobox-rm delete one of the available distroboxes.
+
+Usage:
+
+	distrobox-list
+
+Options:
+	--name/-n:
+	--force/-f:
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+EOF
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit 0
+		;;
+	-v | --verbose)
+		verbose=1
+		shift
+		;;
+	-V | --version)
+		printf "distrobox: %s\n" "${version}"
+		exit 0
+		;;
+	-f | --force)
+		force=1
+		shift
+		;;
+	-n | --name)
+		if [ -n "$2" ]; then
+			container_name="$2"
+			shift
+			shift
+		fi
+		;;
+	--) # End of all options.
+		shift
+		break
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		break ;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# We depend on a container manager let's be sure we have it
+# First we use podman, else docker
+container_manager="podman"
+# Be sure we have a container manager to work with.
+if ! command -v podman >/dev/null; then
+	# If no podman, try docker.
+	container_manager="docker"
+	if ! command -v docker >/dev/null; then
+		# Error: we need at least one between docker or podman.
+		printf >&2 "Missing dependency: we need a container manager\n."
+		printf >&2 "Please install one of podman or docker.\n"
+		exit 127
+	fi
+fi
+# add  verbose if -v is specified
+if [ "${verbose}" -ne 0 ]; then
+	container_manager="${container_manager} --log-level debug"
+fi
+
+# Inspect the container we're working with.
+container_status="$(${container_manager} inspect --type container \
+	"${container_name}" --format '{{.State.Status}}')"
+container_exists="$?"
+# Does the container exists? check if inspect reported errors
+if [ "${container_exists}" -gt 0 ]; then
+	# If not, prompt to create it first
+	printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
+	exit 1
+fi
+
+# If the container is not already running, we need to start if first
+if [ "${container_status}" = "running" ]; then
+	printf >&2 "Starting container %s\n" "${container_name}"
+	if ! ${container_manager} stop "${container_name}"; then
+		printf >&2 "Could not stop container %s\n" "${container_name}"
+		printf >&2 "Please stop container %s before deletion\n" "${container_name}"
+		exit 1
+	fi
+fi
+
+container_delete_command="${container_manager} rm"
+if [ "${force}" -ne 0 ]; then
+	container_delete_command="${container_delete_command} --force"
+fi
+
+${container_delete_command} "${container_name}"
