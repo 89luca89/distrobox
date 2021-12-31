@@ -298,19 +298,6 @@ generate_command() {
 			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}:rslave"
 	fi
 
-	# Find all the user's socket and mount them inside the container
-	# this will allow for continuity of functionality between host and container
-	#
-	# for example using `podman --remote` to control the host's podman from inside
-	# the container or accessing docker and libvirt sockets.
-	host_sockets="$(find /run -name 'user' -prune -o -name "*sock*" -print 2>/dev/null || :)"
-	for host_socket in ${host_sockets}; do
-		if [ -r "${host_socket}" ]; then
-			result_command="${result_command}
-				--volume $(realpath "${host_socket}"):${host_socket}"
-		fi
-	done
-
 	# These are dynamic configs needed by the container to function properly
 	# and integrate with the host
 	#
