@@ -42,8 +42,8 @@ Usage:
 	distrobox-list
 
 Options:
-	--name/-n:
-	--force/-f:
+	--name/-n:		name for the distrobox
+	--force/-f:		force deletion
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -85,6 +85,9 @@ while :; do
 		break ;;
 	esac
 done
+# Ensure the foundamental variables are set and not empty, we will not proceed if
+# they are not all set.
+[ -z "${container_name}" ] && printf "Error: Invalid arguments, missing container name\n" && exit 2
 
 set -o errexit
 set -o nounset
