@@ -39,7 +39,7 @@ distrobox-rm delete one of the available distroboxes.
 
 Usage:
 
-	distrobox-list
+	distrobox-rm --name container-name [--force]
 
 Options:
 	--name/-n:		name for the distrobox
