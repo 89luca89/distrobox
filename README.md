@@ -28,6 +28,8 @@ graphical apps (X11/Wayland), and audio.
   * [Outside the distrobox](#outside-the-distrobox)
     + [Create the distrobox](#create-the-distrobox)
     + [Enter the distrobox](#enter-the-distrobox)
+    + [List containers](#list-containers)
+    + [Remove containers](#remove-containers)
   * [Inside the distrobox](#inside-the-distrobox)
     + [Application and service exporting](#application-and-service-exporting)
       - [Init the distrobox](#init-the-distrobox)
@@ -55,12 +57,16 @@ It implements the same concepts introduced by https://github.com/containers/tool
 
 All the props go to them as they had the great idea to implement this stuff.
 
-It is divided into 4 parts:
+It is divided into 6 commands:
 
 - `distrobox-create` - creates the container
 - `distrobox-enter`  - to enter the container
+- `distrobox-list` - to list containers created with distrobox
+- `distrobox-rm` - to delete a container created with distrobox
 - `distrobox-init`   - it's the entrypoint of the container (not meant to be used manually)
 - `distrobox-export` - it is meant to be used inside the container, useful to export apps and services from the container to the host
+
+It also includes a little wrapper to launch commands with `distrobox COMMAND` instead of calling the single files.
 
 ## Why?
 
@@ -248,6 +254,37 @@ Options:
 	--version/-V:		show version
 
 This is used to enter the distrobox itself. Personally, I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
+
+### List containers
+
+distrobox-list lists available distroboxes. It detects them and lists them separately
+from the rest of normal podman or docker containers.
+
+Usage:
+
+	distrobox-list
+
+Options:
+
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+
+### Remove containers
+
+distrobox-rm delete one of the available distroboxes.
+
+Usage:
+
+	distrobox-rm --name container-name [--force]
+
+Options:
+
+	--name/-n:		name for the distrobox
+	--force/-f:		force deletion
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 
 ## Inside the distrobox
 
@@ -461,14 +498,6 @@ in simple (and scriptable) steps.
 - You can always check how much space a `distrobox` is taking by using `podman` command:
 
 `podman system df -v` or `docker system df -v`
-
-- You can check running `distrobox` using:
-
-`podman ps -a` or `docker ps -a`
-
-- You can remove a `distrobox` using
-
-`podman rm distrobox_name` or `docker rm distrobox_name`
 
 ## Using podman inside a distrobox
 

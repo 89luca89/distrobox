@@ -33,7 +33,8 @@ show_help() {
 
 distrobox version: ${version}
 
-distrobox-list lists available distroboxes.
+distrobox-list lists available distroboxes. It detects them and lists them separately
+from the rest of normal podman or docker containers.
 
 Usage:
 

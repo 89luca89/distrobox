@@ -42,6 +42,7 @@ Usage:
 	distrobox-rm --name container-name [--force]
 
 Options:
+
 	--name/-n:		name for the distrobox
 	--force/-f:		force deletion
 	--help/-h:		show this message
