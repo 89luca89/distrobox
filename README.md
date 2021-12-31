@@ -428,7 +428,7 @@ or if you want to select a custom directory to install without sudo:
 
 `curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- -p ~/.local/bin`
 
-Else you can clone the project using `git clone` or using the `download zip` voice after clicking the green button above.
+Else you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
 
 Enter the directory and run `./install`, by default it will attempt to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
 
