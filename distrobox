@@ -21,9 +21,48 @@
 set -o errexit
 set -o nounset
 
-COMMAND="$1"
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	cat <<EOF
+Choose one of the available commands
+	create
+	enter
+	list
+	rm
+EOF
+}
+
+if [ $# -eq 0 ]; then
+	show_help
+	exit
+fi
+
+distrobox_path="$(dirname "${0}")"
+distrobox_command="${1}"
 shift
 
 # Simple wrapper to the distrobox utilities.
 # We just detect the 1st argument and launch the matching distrobox utility.
-exec distrobox-"${COMMAND}" "$@"
+case "${distrobox_command}" in
+create)
+	"${distrobox_path}"/distrobox-create "$@"
+	;;
+enter)
+	"${distrobox_path}"/distrobox-enter "$@"
+	;;
+list)
+	"${distrobox_path}"/distrobox-list "$@"
+	;;
+rm)
+	"${distrobox_path}"/distrobox-rm "$@"
+	;;
+*) # Default case: If no more options then break out of the loop.
+	printf >&2 "Error: invalid command\n"
+	show_help
+	exit 1
+	;;
+esac
