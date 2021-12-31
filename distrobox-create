@@ -22,18 +22,18 @@
 #	HOME
 #	USER
 # Optional env variables:
-#	DB_CONTAINER_IMAGE
-#	DB_CONTAINER_MANAGER
-#	DB_CONTAINER_NAME
-#	DB_NON_INTERACTIVE
+#	DBX_CONTAINER_IMAGE
+#	DBX_CONTAINER_MANAGER
+#	DBX_CONTAINER_NAME
+#	DBX_NON_INTERACTIVE
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
 container_clone=""
-container_image="${DB_CONTAINER_IMAGE:-""}"
+container_image="${DBX_CONTAINER_IMAGE:-""}"
 container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
-container_name="${DB_CONTAINER_NAME:-""}"
+container_name="${DBX_CONTAINER_NAME:-""}"
 container_user_custom_home=""
 container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
@@ -41,7 +41,7 @@ container_user_name="${USER}"
 container_user_uid="$(id -ru)"
 distrobox_entrypoint_path="$(command -v distrobox-init)"
 distrobox_export_path="$(command -v distrobox-export)"
-non_interactive="${DB_NON_INTERACTIVE:-0}"
+non_interactive="${DBX_NON_INTERACTIVE:-0}"
 verbose=0
 version="1.2.6"
 
@@ -67,7 +67,7 @@ Usage:
 
 You can also use environment variables to specify container name and image
 
-	DB_CONTAINER_MANAGER=docker DB_NON_INTERACTIVE=1 DB_CONTAINER_NAME=test-alpine DB_CONTAINER_IMAGE=alpine distrobox-create
+	DBX_CONTAINER_MANAGER=docker DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
 Options:
 
@@ -173,7 +173,7 @@ fi
 
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
-container_manager=${DB_CONTAINER_MANAGER:-"podman"}
+container_manager=${DBX_CONTAINER_MANAGER:-"podman"}
 # Be sure we have a container manager to work with.
 if ! command -v "${container_manager}" >/dev/null; then
 	# If no podman, try docker.
@@ -357,8 +357,9 @@ if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2
 	if [ "${non_interactive}" -eq 0 ]; then
 		# Prompt to download it.
 		printf >&2 "Image not found.\n"
-		printf >&2 "Do you want to pull the image now? [y/n] "
+		printf >&2 "Do you want to pull the image now? [y/N]: "
 		read -r response
+		response="${response:-"N"}"
 	else
 		response="yes"
 	fi

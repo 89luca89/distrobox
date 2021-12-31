@@ -22,6 +22,9 @@
 #	HOME
 #	USER
 #	SHELL
+# Optional env variables:
+#	DBX_CONTAINER_MANAGER
+#	DBX_CONTAINER_NAME
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
@@ -31,7 +34,7 @@ container_command="${SHELL:-"bash"}"
 # For example in hosts that do not follow FHS, like NixOS or for shells in custom
 # exotic paths.
 container_command="$(basename "${container_command}") -l"
-container_name="fedora-toolbox-35"
+container_name="${DBX_CONTAINER_NAME:-"fedora-toolbox-35"}"
 headless=0
 verbose=0
 version="1.2.6"
@@ -113,21 +116,9 @@ fi
 
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
-container_manager="podman"
-# Small performance optimization, using podman socket shaves
-# about half the time to access informations.
-#
-# Accessed file is /run/user/USER_ID/podman/podman.sock
-#
-# This is not necessary on docker as it is already handled
-# in this way.
-if [ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
-	systemctl --user status podman.socket >/dev/null; then
-
-	container_manager="${container_manager} --remote"
-fi
+container_manager=${DBX_CONTAINER_MANAGER:-"podman"}
 # Be sure we have a container manager to work with.
-if ! command -v podman >/dev/null; then
+if ! command -v "${container_manager}" >/dev/null; then
 	# If no podman, try docker.
 	container_manager="docker"
 	if ! command -v docker >/dev/null; then
@@ -136,6 +127,18 @@ if ! command -v podman >/dev/null; then
 		printf >&2 "Please install one of podman or docker.\n"
 		exit 127
 	fi
+fi
+# Small performance optimization, using podman socket shaves
+# about half the time to access informations.
+#
+# Accessed file is /run/user/USER_ID/podman/podman.sock
+#
+# This is not necessary on docker as it is already handled
+# in this way.
+if [ "${container_manager}" = "podman" ] && [ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
+	systemctl --user status podman.socket >/dev/null; then
+
+	container_manager="${container_manager} --remote"
 fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
