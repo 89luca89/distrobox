@@ -251,12 +251,6 @@ generate_command() {
 		--security-opt label=disable
 		--user root:root"
 
-	# let's check if we can include distrobox-export or not
-	if [ -n "${distrobox_export_path}" ]; then
-		result_command="${result_command}
-			--volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro"
-	fi
-
 	# Mount useful stuff inside the container.
 	# We also mount host's root filesystem to /run/host, to be able to syphon
 	# dynamic configurations from the host.
@@ -269,6 +263,7 @@ generate_command() {
 		--env HOME=${container_user_home}
 		--volume ${container_user_home}:${container_user_home}:rslave
 		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro
+		--volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
 		--volume /sys:/sys:rslave
@@ -337,7 +332,7 @@ generate_command() {
 
 # Check that we have a complete distrobox installation or
 # entrypoint and export will not work.
-if [ -z "${distrobox_entrypoint_path}" ]; then
+if [ -z "${distrobox_entrypoint_path}" ] || [ -z "${distrobox_export_path}" ]; then
 	printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}"
 	exit 127
 fi
