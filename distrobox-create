@@ -23,7 +23,6 @@
 #	USER
 # Optional env variables:
 #	DBX_CONTAINER_IMAGE
-#	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
 #	DBX_NON_INTERACTIVE
 
@@ -67,7 +66,7 @@ Usage:
 
 You can also use environment variables to specify container name and image
 
-	DBX_CONTAINER_MANAGER=docker DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
+	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
 Options:
 
@@ -77,6 +76,7 @@ Options:
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
+	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -173,7 +173,7 @@ fi
 
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
-container_manager=${DBX_CONTAINER_MANAGER:-"podman"}
+container_manager="podman"
 # Be sure we have a container manager to work with.
 if ! command -v "${container_manager}" >/dev/null; then
 	# If no podman, try docker.

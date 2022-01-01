@@ -23,7 +23,6 @@
 #	USER
 #	SHELL
 # Optional env variables:
-#	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
@@ -116,7 +115,7 @@ fi
 
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
-container_manager=${DBX_CONTAINER_MANAGER:-"podman"}
+container_manager="podman"
 # Be sure we have a container manager to work with.
 if ! command -v "${container_manager}" >/dev/null; then
 	# If no podman, try docker.
