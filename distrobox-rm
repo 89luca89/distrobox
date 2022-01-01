@@ -129,17 +129,17 @@ fi
 
 # If the container is not already running, we need to start if first
 if [ "${container_status}" = "running" ]; then
-	printf >&2 "Stopping container %s\n" "${container_name}"
-	if ! ${container_manager} stop "${container_name}"; then
-		printf >&2 "Could not stop container %s\n" "${container_name}"
+	if [ "${force}" -ne 0 ]; then
+		printf >&2 "Stopping container %s\n" "${container_name}"
+		if ! ${container_manager} stop "${container_name}"; then
+			printf >&2 "Could not stop container %s\n" "${container_name}"
+			printf >&2 "Please stop container %s before deletion\n" "${container_name}"
+			exit 1
+		fi
+	else
 		printf >&2 "Please stop container %s before deletion\n" "${container_name}"
 		exit 1
 	fi
 fi
 
-container_delete_command="${container_manager} rm"
-if [ "${force}" -ne 0 ]; then
-	container_delete_command="${container_delete_command} --force"
-fi
-
-${container_delete_command} "${container_name}"
+${container_manager} rm "${container_name}"
