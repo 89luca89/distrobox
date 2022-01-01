@@ -302,6 +302,7 @@ HOST_MOUNTS="
 	/run/media
 	/run/systemd/journal
 	/run/udev
+	/srv
 	/var/lib/libvirt
 	/var/mnt"
 for host_mount in ${HOST_MOUNTS}; do

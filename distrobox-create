@@ -272,10 +272,12 @@ generate_command() {
 
 	# If we have a custom home to use,
 	#	1- override the HOME env variable
-	# 	2- mount the custom home inside the container.
+	#	2- expor the DISTROBOX_HOST_HOME env variable pointing to original HOME
+	# 	3- mount the custom home inside the container.
 	if [ -n "${container_user_custom_home}" ]; then
 		result_command="${result_command}
 			--env HOME=${container_user_custom_home}
+			--env DISTROBOX_HOST_HOME=${container_user_home}
 			--volume ${container_user_custom_home}:${container_user_custom_home}:rslave"
 	fi
 

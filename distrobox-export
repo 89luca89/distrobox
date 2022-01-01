@@ -22,6 +22,7 @@
 #	HOME
 #	USER
 #	DISTROBOX_ENTER_PATH
+#	DISTROBOX_HOST_HOME
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
@@ -32,6 +33,10 @@ exported_bin=""
 exported_delete=0
 exported_service=""
 extra_flags=""
+# Use DBX_HOST_HOME if defined, else fallback to HOME
+#	DBX_HOST_HOME is set in case container is created
+#	with custom --home directory
+host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
 is_sudo=""
 verbose=0
 version="1.2.8"
@@ -308,8 +313,8 @@ export_binary() {
 # Arguments:
 #	none it will use the ones set up globally
 # Outputs:
-#	needed icons in /run/host/$HOME/.local/share/icons
-#	needed desktop files in /run/host/$HOME/.local/share/applications
+#	needed icons in /run/host/$host_home/.local/share/icons
+#	needed desktop files in /run/host/$host_home/.local/share/applications
 #	or error code.
 export_application() {
 	# Ensure the app we're exporting is installed
@@ -320,7 +325,7 @@ export_application() {
 
 	# Find desktop file for the application to export
 	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/* || :)
-	icon_files=$(find /usr/share/icons /usr/share/pixmaps -iname "*${exported_app}*" || :)
+	icon_files=$(find /usr/share/icons /usr/share/pixmaps -iname "*${exported_app}*" 2>/dev/null || :)
 	# Check that we found some desktop files first.
 	if [ -z "${desktop_files}" ]; then
 		printf >&2 "Error: cannot find any desktop files.\n"
@@ -329,13 +334,13 @@ export_application() {
 	fi
 
 	# create applications dir if not existing
-	if [ ! -d "/run/host/${HOME}/.local/share/applications" ]; then
-		mkdir -p "/run/host/${HOME}/.local/share/applications"
+	if [ ! -d "/run/host/${host_home}/.local/share/applications" ]; then
+		mkdir -p "/run/host/${host_home}/.local/share/applications"
 	fi
 
 	# copy icons in home directory
 	for icon_file in ${icon_files}; do
-		icon_home_directory="$(dirname "${icon_file}" | sed "s|/usr/share/|\/run\/host\/${HOME}/.local/share/|g")"
+		icon_home_directory="$(dirname "${icon_file}" | sed "s|/usr/share/|\/run\/host\/${host_home}/.local/share/|g")"
 
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
@@ -353,11 +358,11 @@ export_application() {
 		desktop_home_file="$(basename "${desktop_file}")"
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
-			if [ ! -f "/run/host/${HOME}/.local/share/applications/${desktop_home_file}" ]; then
+			if [ ! -f "/run/host/${host_home}/.local/share/applications/${desktop_home_file}" ]; then
 				printf >&2 "Error: trying to remove a non-exported application.\n"
 				return 1
 			fi
-			rm -f "/run/host/${HOME}/.local/share/applications/${desktop_home_file}"
+			rm -f "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 		else
 			# Add commmand_prefix
 			# Add extra flags
@@ -368,7 +373,7 @@ export_application() {
 				sed "s|\(%.*\)|${extra_flags} \1|g" |
 				sed 's|^Exec=.*|&"|g' |
 				sed "s|^TryExec=.*|TryExec=true|g" \
-					>"/run/host/${HOME}/.local/share/applications/${desktop_home_file}"
+					>"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
 	done
@@ -390,13 +395,13 @@ export_application() {
 # Arguments:
 #	none it will use the ones set up globally
 # Outputs:
-#	new systemd unit in /run/host/$HOME/.config/systemd/user/
+#	new systemd unit in /run/host/$host_home/.config/systemd/user/
 #	or error code.
 export_service() {
 
 	# find the service file in the common
 	service_file=$(find \
-		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ "${HOME}"/.config/systemd/user/ \
+		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ "${host_home}"/.config/systemd/user/ \
 		-type f -name "${exported_service}*" 2>/dev/null | tail -1)
 	# Check that we found some service files first.
 	if [ -z "${service_file}" ]; then
@@ -407,7 +412,7 @@ export_service() {
 
 	# this is the output file we will produce.
 	exported_service_file="${container_name}-$(basename "${service_file}")"
-	exported_service_fullpath="/run/host/${HOME}/.config/systemd/user/${exported_service_file}"
+	exported_service_fullpath="/run/host/${host_home}/.config/systemd/user/${exported_service_file}"
 
 	# If we're deleting it, just do it and exit
 	if [ "${exported_delete}" -ne 0 ]; then
@@ -433,8 +438,8 @@ export_service() {
 	# Create temp file with random name
 	temp_file="$(mktemp -u)"
 	# Replace all Exec occurrencies
-	if [ ! -d "/run/host/${HOME}/.config/systemd/user/" ]; then
-		mkdir -p "/run/host/${HOME}/.config/systemd/user/"
+	if [ ! -d "/run/host/${host_home}/.config/systemd/user/" ]; then
+		mkdir -p "/run/host/${host_home}/.config/systemd/user/"
 	fi
 	cat "${service_file}" >"${exported_service_fullpath}" 2>/dev/null
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
