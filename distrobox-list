@@ -106,15 +106,15 @@ container_list=$(${container_manager} ps -a --no-trunc --format "{{.ID}}|{{.Imag
 IFS='
 '
 # Header of the output
-printf " %-12s | %-25s | %-30s | %-30s\n" "ID" "IMAGE" "STATUS" "NAME"
+printf " %-12s | %-25s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
 for container in ${container_list}; do
 	# Check if the current container has a custom mount point for distrobox.
 	if [ -z "${container##*/usr/bin/distrobox*}" ]; then
 		# Extract the information for the single container to pretty print it
 		container_id="$(printf "%s" "${container}" | cut -d'|' -f1 | cut -c1-12)"
+		container_image="$(printf "%s" "${container}" | cut -d'|' -f2)"
 		container_name="$(printf "%s" "${container}" | cut -d'|' -f3)"
 		container_status="$(printf "%s" "${container}" | cut -d'|' -f4)"
-		container_image="$(printf "%s" "${container}" | cut -d'|' -f2)"
 
 		# If the container is Up and Running, print it in green
 		if [ -z "${container_status##*Up*}" ] || [ -z "${container_status##*running*}" ]; then
