@@ -21,7 +21,7 @@
 
 # Defaults
 verbose=0
-version="1.2.6"
+version="1.2.7"
 
 # Print usage to stdout.
 # Arguments:
