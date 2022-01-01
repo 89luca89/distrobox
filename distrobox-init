@@ -385,7 +385,7 @@ passwd --delete root
 if [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
-        if [ ! -f "${container_user_home}/$(basename "${skel_file}")" -a !-L "${container_user_home}/$(basename "${skel_file}")" ]; then
+		if [ ! -f "${container_user_home}/$(basename "${skel_file}")" -a !-L "${container_user_home}/$(basename "${skel_file}")" ]; then
 			cp "${skel_file}" "${container_user_home}"
 			chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/$(basename "${skel_file}")"
 		fi
