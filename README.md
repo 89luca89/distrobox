@@ -141,7 +141,7 @@ Distrobox has been successfully tested on:
 | EndlessOS | 4.0.0 | |
 | OpenSUSE | Leap 15</br>Tumbleweed | |
 | OpenSUSE MicroOS | 20211209 | |
-| NixOS | 21.11 | To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker) </br>To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
+| NixOS | 21.11 | To install distrobox:</br>`mkdir -p ~/.local/bin`</br>Add `PATH=$PATH:$HOME/.local/bin` to your bashrc</br>Execute [THIS](#installation) command without sudo.</br>To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker) </br>To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
 | Void Linux | glibc | Systemd service export will not work.</br>To setup graphical app exporting, you need to install `xhost` and add this to your `~/.xinitrc`: </br> `xhost +si:localuser:$USER`.  |
 
 #### New Host Distro support
