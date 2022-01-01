@@ -129,7 +129,7 @@ fi
 
 # If the container is not already running, we need to start if first
 if [ "${container_status}" = "running" ]; then
-	printf >&2 "Starting container %s\n" "${container_name}"
+	printf >&2 "Stopping container %s\n" "${container_name}"
 	if ! ${container_manager} stop "${container_name}"; then
 		printf >&2 "Could not stop container %s\n" "${container_name}"
 		printf >&2 "Please stop container %s before deletion\n" "${container_name}"
