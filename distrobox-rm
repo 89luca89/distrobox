@@ -23,7 +23,7 @@
 container_name="${DB_CONTAINER_NAME:-""}"
 verbose=0
 force=0
-version="1.2.7"
+version="1.2.8"
 
 # Print usage to stdout.
 # Arguments:
