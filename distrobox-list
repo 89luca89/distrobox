@@ -109,7 +109,7 @@ IFS='
 printf " %-12s | %-25s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
 for container in ${container_list}; do
 	# Check if the current container has a custom mount point for distrobox.
-	if [ -z "${container##*/usr/bin/distrobox*}" ]; then
+	if [ -z "${container##*distrobox*}" ]; then
 		# Extract the information for the single container to pretty print it
 		container_id="$(printf "%s" "${container}" | cut -d'|' -f1 | cut -c1-12)"
 		container_image="$(printf "%s" "${container}" | cut -d'|' -f2)"

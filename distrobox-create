@@ -260,6 +260,7 @@ generate_command() {
 	#
 	# Mount also the distrobox-init utility as the container entrypoint.
 	result_command="${result_command}
+		--env SHELL=${SHELL:-"/bin/bash"}
 		--env HOME=${container_user_home}
 		--volume ${container_user_home}:${container_user_home}:rslave
 		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro
