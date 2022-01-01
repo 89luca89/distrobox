@@ -1,7 +1,4 @@
 #!/bin/sh
-whoami
-cat /etc/passwd
-ls -la /etc/machine-id
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of the distrobox project: https://github.com/89luca89/distrobox
