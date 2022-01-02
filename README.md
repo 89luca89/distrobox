@@ -36,6 +36,7 @@ graphical apps (X11/Wayland), and audio.
 - [Installation](#installation)
 - [Useful tips](#useful-tips)
   * [Improve distrobox-enter performance](#improve-distrobox-enter-performance)
+  * [Slow creation on podman and image size getting bigger with distrobox-create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   * [Container save and restore](#container-save-and-restore)
   * [Check used resources](#check-used-resources)
   * [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
@@ -444,6 +445,20 @@ the podman socket using
 `systemctl --user enable --now podman.socket`
 
 this will improve a lot `podman`'s command performances.
+
+## Slow creation on podman and image size getting bigger with distrobox-create
+
+For rootless podman 3.4.0 and upward, adding this to your `~/.config/containers/storage.conf` file
+will improve container creation speed and fix issues with images getting bigger when using
+rootless containers.
+
+```
+[storage]
+driver = "overlay"
+
+[storage.options.overlay]
+mount_program = "/usr/bin/fuse-overlayfs"
+```
 
 ## Container save and restore
 
