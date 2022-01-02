@@ -1,3 +1,12 @@
+- [Distrobox](index.md)
+  * [Improve distrobox-enter performance](#improve-distrobox-enter-performance)
+  * [Slow creation on podman and image size getting bigger with distrobox-create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
+  * [Container save and restore](#container-save-and-restore)
+  * [Check used resources](#check-used-resources)
+  * [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
+  * [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
+  * [Using distrobox as main cli](#using-distrobox-as-main-cli)
+
 # Useful tips
 
 ## Improve distrobox-enter performance
