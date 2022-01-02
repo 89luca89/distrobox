@@ -134,7 +134,7 @@ fi
 #
 # This is not necessary on docker as it is already handled
 # in this way.
-if [ "${container_manager}" = "podman" ] &&
+if [ "${container_manager#*podman*}" ] &&
 	[ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
 	systemctl --user status podman.socket >/dev/null; then
 

@@ -315,7 +315,7 @@ generate_command() {
 
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
-	if [ "${container_manager}" = "podman" ]; then
+	if [ "${container_manager#*podman*}" ]; then
 		result_command="${result_command}
 		--userns keep-id
 		--ulimit host
