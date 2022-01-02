@@ -22,6 +22,7 @@ graphical apps (X11/Wayland), and audio.
 - [Compatibility](compatibility.md)
 - [Usage](usage.md)
 - [Useful tips](useful_tips.md)
+- [Featured Articles](featured_articles.md)
 
 ## What it does
 
