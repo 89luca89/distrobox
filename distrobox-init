@@ -307,7 +307,7 @@ HOST_MOUNTS="
 	/var/mnt"
 for host_mount in ${HOST_MOUNTS}; do
 	if ! mount_bind /run/host"${host_mount}" "${host_mount}" rw; then
-		printf "Warning: Cannot bind mound %s to /run/host%s\n" "${host_mount}" "${host_mount}"
+		printf "Warning: Cannot bind mount %s to /run/host%s\n" "${host_mount}" "${host_mount}"
 	fi
 done
 
@@ -404,11 +404,11 @@ mkdir -p "${container_user_home}/.local/share/icons"
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/themes"
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/icons"
 if ! mount_bind "/run/host/usr/share/themes" "${container_user_home}/.local/share/themes" rw; then
-	printf "Warning: Cannot bind mound /run/host/usr/share/themes to %s/.local/share/themes\n" "${container_user_home}"
+	printf "Warning: Cannot bind mount /run/host/usr/share/themes to %s/.local/share/themes\n" "${container_user_home}"
 	printf "Warning: Themes integration with the host is disabled.\n"
 fi
 if ! mount_bind "/run/host/usr/share/icons" "${container_user_home}/.local/share/icons" rw; then
-	printf "Warning: Cannot bind mound /run/host/usr/share/icons to %s/.local/share/icons\n" "${container_user_home}"
+	printf "Warning: Cannot bind mount /run/host/usr/share/icons to %s/.local/share/icons\n" "${container_user_home}"
 	printf "Warning: Icons integration with the host is disabled.\n"
 fi
 
