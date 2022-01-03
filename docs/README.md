@@ -19,7 +19,7 @@ graphical apps (X11/Wayland), and audio.
   * [Why?](#why-)
     + [Aims](#aims)
 - [Installation](#installation)
-- [Unissnstallation](#uninstallation)
+- [Uninstallation](#uninstallation)
 - [Compatibility](compatibility.md)
 - [Usage](usage.md)
 - [Useful tips](useful_tips.md)
@@ -115,5 +115,4 @@ Else you can clone the project using `git clone` or using the `download zip` voi
 Enter the directory and run `./uninstall`, by default it will assume the install directory was `/usr/local/bin`, you can specify another directory if needed with `./uninstall -p ~/.local/bin`
 
 You can take a look at some usage examples [HERE](usage.md) <br>
-with a list of useful tips [HERE](useful_tips.md).
-
+with a list of useful tips [HERE](useful_tips.md)
