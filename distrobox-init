@@ -1,4 +1,22 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
 # POSIX
 # Expected env variables:
 #	HOME
@@ -9,7 +27,7 @@ trap '[ "$?" -ne 0 ] && printf "Error: An error occurred\n"' EXIT
 
 # Defaults
 verbose=0
-version="1.2.5"
+version="1.2.10"
 
 # Print usage to stdout.
 # Arguments:
@@ -164,9 +182,9 @@ mount_bind() (
 # If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Check if dependencies are met for the script to run.
-if ! command -v mount || ! command -v passwd ||
-	! command -v sudo || ! command -v useradd ||
-	! command -v usermod || ! command -v "${shell_pkg}"; then
+if ! command -v mount || ! command -v mount || ! command -v passwd ||
+	! command -v sudo || ! command -v useradd || ! command -v usermod ||
+	! command -v "${shell_pkg}"; then
 
 	# Detect the available package manager
 	# install minimal dependencies needed to bootstrap the container:
@@ -176,6 +194,7 @@ if ! command -v mount || ! command -v passwd ||
 	if command -v apk; then
 		apk add \
 			"${shell_pkg}" \
+			findutils \
 			ncurses \
 			procps \
 			shadow \
@@ -187,6 +206,7 @@ if ! command -v mount || ! command -v passwd ||
 		apt-get update
 		apt-get install -y \
 			"${shell_pkg}" \
+			findutils \
 			ncurses-base \
 			passwd \
 			procps \
@@ -196,6 +216,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v dnf; then
 		dnf install -y \
 			"${shell_pkg}" \
+			findutils \
 			ncurses-base \
 			passwd \
 			procps-ng \
@@ -206,6 +227,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v pacman; then
 		pacman -Sy --noconfirm \
 			"${shell_pkg}" \
+			findutils \
 			ncurses \
 			procps-ng \
 			shadow \
@@ -216,6 +238,7 @@ if ! command -v mount || ! command -v passwd ||
 		slackpkg update
 		yes | slackpkg install -default_answer=yes -batch=yes \
 			"${shell_pkg}" \
+			findutils \
 			ncurses \
 			procps \
 			shadow \
@@ -225,6 +248,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v xbps-install; then
 		xbps-install -Sy \
 			"${shell_pkg}" \
+			findutils \
 			ncurses-base \
 			procps-ng \
 			shadow \
@@ -234,6 +258,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v yum; then
 		yum install -y \
 			"${shell_pkg}" \
+			findutils \
 			ncurses-base \
 			passwd \
 			procps \
@@ -244,6 +269,7 @@ if ! command -v mount || ! command -v passwd ||
 	elif command -v zypper; then
 		zypper install -y \
 			"${shell_pkg}" \
+			findutils \
 			ncurses \
 			procps \
 			shadow \
@@ -276,11 +302,31 @@ HOST_MOUNTS="
 	/run/media
 	/run/systemd/journal
 	/run/udev
+	/srv
 	/var/lib/libvirt
 	/var/mnt"
 for host_mount in ${HOST_MOUNTS}; do
 	if ! mount_bind /run/host"${host_mount}" "${host_mount}" rw; then
-		printf "Warning: Cannot bind mound %s to /run/host%s\n" "${host_mount}" "${host_mount}"
+		printf "Warning: Cannot bind mount %s to /run/host%s\n" "${host_mount}" "${host_mount}"
+	fi
+done
+
+# Find all the user's socket and mount them inside the container
+# this will allow for continuity of functionality between host and container
+#
+# for example using `podman --remote` to control the host's podman from inside
+# the container or accessing docker and libvirt sockets.
+host_sockets="$(find /run/host/run -name 'user' -prune -o -type s -print 2>/dev/null || :)"
+for host_socket in ${host_sockets}; do
+	container_socket="$(printf "%s" "${host_socket}" | sed 's|/run/host||g')"
+	# Check if the socket already exists or the symlink already esists
+	if [ ! -S "${container_socket}" ] && [ ! -L "${container_socket}" ]; then
+		# link it.
+		rm -f "${container_socket}"
+		mkdir -p "$(dirname "${container_socket}")"
+		if ! ln -s "${host_socket}" "${container_socket}"; then
+			printf "Warning: Cannot link socket %s to %s\n" "${host_socket}" "${container_socket}"
+		fi
 	fi
 done
 
@@ -318,7 +364,7 @@ if ! grep -q "${container_user_name}" /etc/group; then
 	groupadd --force --gid "${container_user_gid}" "${container_user_name}"
 fi
 # Let's add our user to the container if the user already exists, just go ahead.
-if ! id "${container_user_name}"; then
+if ! grep -q "${container_user_name}" /etc/passwd; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
@@ -334,6 +380,19 @@ fi
 passwd --delete "${container_user_name}"
 passwd --delete root
 
+# If we do not have profile files in the home, we should copy the
+# skeleton files, if present.
+# Ensure we copy only if the dotfile is not already present.
+if [ -d "/etc/skel" ]; then
+	skel_files="$(find /etc/skel/ -type f || :)"
+	for skel_file in ${skel_files}; do
+		if [ ! -f "${container_user_home}/$(basename "${skel_file}")" ] && [ ! -L "${container_user_home}/$(basename "${skel_file}")" ]; then
+			cp "${skel_file}" "${container_user_home}"
+			chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/$(basename "${skel_file}")"
+		fi
+	done
+fi
+
 # Themes and icons integration works using a bind mount inside the container
 # of the host's themes and icons directory. This ensures that the host's home will
 # not be littered with files and directories and broken symlinks.
@@ -345,14 +404,15 @@ mkdir -p "${container_user_home}/.local/share/icons"
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/themes"
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/icons"
 if ! mount_bind "/run/host/usr/share/themes" "${container_user_home}/.local/share/themes" rw; then
-	printf "Warning: Cannot bind mound /run/host/usr/share/themes to %s/.local/share/themes\n" "${container_user_home}"
+	printf "Warning: Cannot bind mount /run/host/usr/share/themes to %s/.local/share/themes\n" "${container_user_home}"
 	printf "Warning: Themes integration with the host is disabled.\n"
 fi
 if ! mount_bind "/run/host/usr/share/icons" "${container_user_home}/.local/share/icons" rw; then
-	printf "Warning: Cannot bind mound /run/host/usr/share/icons to %s/.local/share/icons\n" "${container_user_home}"
+	printf "Warning: Cannot bind mount /run/host/usr/share/icons to %s/.local/share/icons\n" "${container_user_home}"
 	printf "Warning: Icons integration with the host is disabled.\n"
 fi
 
 printf "container_setup_done\n"
 # Keepalive loop
 sleep infinity
+
