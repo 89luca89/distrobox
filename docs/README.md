@@ -116,3 +116,4 @@ Enter the directory and run `./uninstall`, by default it will assume the install
 
 You can take a look at some usage examples [HERE](usage.md) <br>
 with a list of useful tips [HERE](useful_tips.md)
+
