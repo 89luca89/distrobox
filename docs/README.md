@@ -52,13 +52,17 @@ It also includes a little wrapper to launch commands with `distrobox COMMAND` in
 
 - Provide a mutable environment on an immutable OS, like Endless OS, Fedora Silverblue, OpenSUSE MicroOS or SteamOS3
 - Provide a locally privileged environment for sudoless setups (eg. company-provided laptops, security reasons, etc...)
-- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat) with a bleeding-edge environment for development or gaming (eg. Arch or OpenSUSE Tumbleweed or Fedora with latest Mesa)
+- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat) with a bleeding-edge environment for development or gaming (eg. Arch, OpenSUSE Tumbleweed or Fedora with latest Mesa)
 - Leverage high abundance of curated distro images for docker/podman to manage multiple environments
+
+Refer to the compatiblity list for an overview of supported host's distro [HERE](compatibility.md#host-distros) and container's distro [HERE](compatibility.md#containers-distros).
 
 ### Aims
 
 This project aims to bring **any distro userland to any other distro** supporting podman or docker.
-It has been written in POSIX sh to be as portable as possible and not have problems with glibc version's compatibility.
+It has been written in POSIX sh to be as portable as possible and not have problems with dependencies and glibc version's compatibility.
+
+Refer [HERE](compatibility.md#supported-container-managers) for a list of supported container managers and minimum supported versions.
 
 It also aims to enter the container **as fast as possible**, every millisecond adds up if you use the container as your default environment for your terminal:
 
@@ -92,3 +96,8 @@ or if you want to select a custom directory to install without sudo:
 Else you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
 
 Enter the directory and run `./install`, by default it will attempt to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
+
+---
+
+You can take a look at some usage examples [HERE](usage.md) <br>
+with a list of useful tips [HERE](useful_tips.md).

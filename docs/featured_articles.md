@@ -1,4 +1,4 @@
-- [Distrobox](index.md)
+- [Distrobox](README.md)
   * [Featured articles](#featured-articles)
 
 ## Featured articles

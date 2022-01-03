@@ -1,4 +1,4 @@
-- [Distrobox](index.md)
+- [Distrobox](README.md)
   * [Improve distrobox-enter performance](#improve-distrobox-enter-performance)
   * [Slow creation on podman and image size getting bigger with distrobox-create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   * [Container save and restore](#container-save-and-restore)

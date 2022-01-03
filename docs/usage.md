@@ -1,4 +1,4 @@
-- [Distrobox](index.md)
+- [Distrobox](README.md)
   * [Outside the distrobox](#outside-the-distrobox)
     + [Create the distrobox](#create-the-distrobox)
     + [Enter the distrobox](#enter-the-distrobox)
@@ -6,7 +6,7 @@
     + [Remove containers](#remove-containers)
   * [Inside the distrobox](#inside-the-distrobox)
     + [Application and service exporting](#application-and-service-exporting)
-      - [Init the distrobox](#init-the-distrobox)
+    + [Init the distrobox](#init-the-distrobox)
 
 # Usage
 
@@ -97,6 +97,9 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
+
+
+---
 
 ## Inside the distrobox
 
@@ -201,7 +204,7 @@ container, use the `--extra-flags` option to provide a series of flags, for exam
 
 `distrobox-export --app atom --extra-flags "--foreground"`
 
-#### Init the distrobox
+### Init the distrobox (not to be launched manually)
 
 distrobox-init is the entrypoint of a created distrobox.
 Note that this HAS to run from inside a distrobox, will not work if you run it
@@ -228,4 +231,5 @@ Options:
 This is used as entrypoint for the created container, it will take care of creating the users,
 setting up sudo, mountpoints, and exports.
 
-**You should not have to launch this manually**
+**You should not have to launch this manually**, this is used by `distrobox create` to set up
+container's entrypoint.
