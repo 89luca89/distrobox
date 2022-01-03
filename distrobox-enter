@@ -1,9 +1,29 @@
 #!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
 # POSIX
 # Expected env variables:
 #	HOME
 #	USER
 #	SHELL
+# Optional env variables:
+#	DBX_CONTAINER_NAME
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
@@ -13,10 +33,10 @@ container_command="${SHELL:-"bash"}"
 # For example in hosts that do not follow FHS, like NixOS or for shells in custom
 # exotic paths.
 container_command="$(basename "${container_command}") -l"
-container_name="fedora-toolbox-35"
+container_name="${DBX_CONTAINER_NAME:-"fedora-toolbox-35"}"
 headless=0
 verbose=0
-version="1.2.5"
+version="1.2.10"
 
 # Print usage to stdout.
 # Arguments:
@@ -96,20 +116,8 @@ fi
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
 container_manager="podman"
-# Small performance optimization, using podman socket shaves
-# about half the time to access informations.
-#
-# Accessed file is /run/user/USER_ID/podman/podman.sock
-#
-# This is not necessary on docker as it is already handled
-# in this way.
-if [ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
-	systemctl --user status podman.socket >/dev/null; then
-
-	container_manager="${container_manager} --remote"
-fi
 # Be sure we have a container manager to work with.
-if ! command -v podman >/dev/null; then
+if ! command -v "${container_manager}" >/dev/null; then
 	# If no podman, try docker.
 	container_manager="docker"
 	if ! command -v docker >/dev/null; then
@@ -118,6 +126,19 @@ if ! command -v podman >/dev/null; then
 		printf >&2 "Please install one of podman or docker.\n"
 		exit 127
 	fi
+fi
+# Small performance optimization, using podman socket shaves
+# about half the time to access informations.
+#
+# Accessed file is /run/user/USER_ID/podman/podman.sock
+#
+# This is not necessary on docker as it is already handled
+# in this way.
+if [ -z "${container_manager#*podman*}" ] &&
+	[ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
+	systemctl --user status podman.socket >/dev/null; then
+
+	container_manager="${container_manager} --remote"
 fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
@@ -156,7 +177,11 @@ generate_command() {
 	# and export them to the container.
 	set +o xtrace
 	# disable logging fot this snippet, or it will be too talkative.
-	for i in $(printenv | grep '=' | grep -v ' ' | grep -v '"'); do
+	for i in $(printenv | grep '=' | grep -Ev ' |"' | grep -Ev '^(HOST|HOSTNAME|HOME|PATH|SHELL|USER|_)'); do
+		# We filter the environment so that we do not have strange variables,
+		# multiline or containing spaces.
+		# We also NEED to ignore the HOME variable, as this is set at create time
+		# and needs to stay that way to use custom home dirs.
 		result_command="${result_command} --env=\"${i}\""
 	done
 	# Ensure the standard FHS program paths are in PATH environment
@@ -164,7 +189,7 @@ generate_command() {
 	container_paths="${PATH}"
 	# add to the PATH only after the host's paths, and only if not already present.
 	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*${standard_path}*}" ]; then
+		if [ -n "${container_paths##*:${standard_path}*}" ]; then
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done

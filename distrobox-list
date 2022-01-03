@@ -1,0 +1,127 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+
+# Defaults
+verbose=0
+version="1.2.10"
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	cat <<EOF
+
+distrobox version: ${version}
+
+distrobox-list lists available distroboxes. It detects them and lists them separately
+from the rest of normal podman or docker containers.
+
+Usage:
+
+	distrobox-list
+
+Options:
+
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+EOF
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit 0
+		;;
+	-v | --verbose)
+		verbose=1
+		shift
+		;;
+	-V | --version)
+		printf "distrobox: %s\n" "${version}"
+		exit 0
+		;;
+	--) # End of all options.
+		shift
+		break
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		break ;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# We depend on a container manager let's be sure we have it
+# First we use podman, else docker
+container_manager="podman"
+# Be sure we have a container manager to work with.
+if ! command -v podman >/dev/null; then
+	# If no podman, try docker.
+	container_manager="docker"
+	if ! command -v docker >/dev/null; then
+		# Error: we need at least one between docker or podman.
+		printf >&2 "Missing dependency: we need a container manager\n."
+		printf >&2 "Please install one of podman or docker.\n"
+		exit 127
+	fi
+fi
+# add  verbose if -v is specified
+if [ "${verbose}" -ne 0 ]; then
+	container_manager="${container_manager} --log-level debug"
+fi
+
+# List containers using custom format that inclused MOUNTS
+# we do this as we can detect the custom mounts done by distrobox to distringuish
+# between a normal podman or docker container and a distrobox one.
+container_list=$(${container_manager} ps -a --no-trunc --format "{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}")
+IFS='
+'
+# Header of the output
+printf " %-12s | %-25s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
+for container in ${container_list}; do
+	# Check if the current container has a custom mount point for distrobox.
+	if [ -z "${container##*distrobox*}" ]; then
+		# Extract the information for the single container to pretty print it
+		container_id="$(printf "%s" "${container}" | cut -d'|' -f1 | cut -c1-12)"
+		container_image="$(printf "%s" "${container}" | cut -d'|' -f2)"
+		container_name="$(printf "%s" "${container}" | cut -d'|' -f3)"
+		container_status="$(printf "%s" "${container}" | cut -d'|' -f4)"
+
+		# If the container is Up and Running, print it in green
+		if [ -z "${container_status##*Up*}" ] || [ -z "${container_status##*running*}" ]; then
+			printf "\033[32m %-12s | %-25s | %-30s | %-30s\n\033[0m" "${container_id}" "${container_name}" "${container_status}" "${container_image}"
+		# Else, print it in yellow
+		else
+			printf "\033[33m %-12s | %-25s | %-30s | %-30s\n\033[0m" "${container_id}" "${container_name}" "${container_status}" "${container_image}"
+		fi
+	fi
+done
