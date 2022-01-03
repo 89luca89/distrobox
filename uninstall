@@ -1,0 +1,85 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+
+dest_path="/usr/local/bin"
+verbose=0
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	cat <<EOF
+uninstall -p /usr/local/bin
+
+Options:
+	--path/-p:		path where the files are located (default /usr/local/bin)
+	--help/-h:		show this message
+	-v:			show more verbosity
+EOF
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit
+		;;
+	-v | --verbose)
+		shift
+		verbose=1
+		;;
+	-p | --path)
+		if [ -n "$2" ]; then
+			dest_path="$2"
+			shift
+			shift
+		fi
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		break ;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# Ensure the foundamental variables are set and not empty, we will not proceed if
+# they are not all set.
+[ ! -d "${dest_path}" ] && printf >&2 "Path %s does not exist.\n" "${dest_path} " && exit 1
+[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
+
+# uninstall
+if [ -f "${dest_path}/distrobox-enter" ]; then
+	for file in distrobox*; do
+		rm "${dest_path}${file}"
+	done
+	echo "Thank you for using Distrobox. Uninstall complete."
+else
+	printf >&2 "Distrobox is not installed. Aborting.\n" && exit 1
+fi
