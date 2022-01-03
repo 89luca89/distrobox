@@ -117,4 +117,3 @@ else
 	rm -rf "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/.github
 	rmdir "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"
 fi
-
