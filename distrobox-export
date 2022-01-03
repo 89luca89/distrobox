@@ -485,4 +485,3 @@ service)
 	exit 2
 	;;
 esac
-

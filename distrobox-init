@@ -415,4 +415,3 @@ fi
 printf "container_setup_done\n"
 # Keepalive loop
 sleep infinity
-

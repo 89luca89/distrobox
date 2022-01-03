@@ -66,4 +66,3 @@ rm)
 	exit 1
 	;;
 esac
-

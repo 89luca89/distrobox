@@ -265,4 +265,3 @@ fi
 cmd="$(generate_command)"
 # shellcheck disable=SC2086
 eval ${cmd}
-

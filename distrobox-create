@@ -395,4 +395,3 @@ if eval ${cmd}; then
 	printf "To enter, run:\n"
 	printf "\tdistrobox-enter --name %s\n" "${container_name}"
 fi
-
