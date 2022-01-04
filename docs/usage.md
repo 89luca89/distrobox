@@ -8,9 +8,13 @@
     + [Application and service exporting](#application-and-service-exporting)
     + [Init the distrobox](#init-the-distrobox)
 
+---
+
 # Usage
 
 As stated above, there are 4 tools at disposal, 2 have to be used **outside the distrobox (from the host)** and 2 have to be used **inside the distrobox (from the container)**.
+
+---
 
 ## Outside the distrobox
 

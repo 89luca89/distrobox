@@ -1,6 +1,8 @@
 - [Distrobox](README.md)
   * [Featured articles](#featured-articles)
 
+---
+
 ## Featured articles
 
 - Run Distrobox on Fedora Linux: [https://fedoramagazine.org/run-distrobox-on-fedora-linux/](https://fedoramagazine.org/run-distrobox-on-fedora-linux/)

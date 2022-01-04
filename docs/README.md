@@ -25,6 +25,8 @@ graphical apps (X11/Wayland), and audio.
 - [Useful tips](useful_tips.md)
 - [Featured Articles](featured_articles.md)
 
+---
+
 ## What it does
 
 Simply put it's a fancy wrapper around `podman` or `docker` to create and start containers highly integrated with the hosts.
@@ -116,7 +118,6 @@ Else you can clone the project using `git clone` or using the latest release [HE
 
 Enter the directory and run `./uninstall`, by default it will assume the install directory was `/usr/local/bin`, you can specify another directory if needed with `./uninstall -p ~/.local/bin`
 
----
 ---
 
 You can take a look at some usage examples [HERE](usage.md) <br>

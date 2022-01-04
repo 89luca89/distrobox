@@ -7,6 +7,8 @@
   * [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
   * [Using distrobox as main cli](#using-distrobox-as-main-cli)
 
+---
+
 # Useful tips
 
 ## Improve distrobox-enter performance

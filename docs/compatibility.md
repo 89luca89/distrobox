@@ -5,6 +5,8 @@
     + [Containers Distros](#containers-distros)
       - [New Distro support](#new-distro-support)
 
+---
+
 # Compatibility
 
 This project **does not need a dedicated image**. It can use any OCI images from docker-hub, quay.io, or any registry of your choice.
