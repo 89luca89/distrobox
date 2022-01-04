@@ -77,7 +77,7 @@ fi
 # uninstall
 if [ -f "${dest_path}/distrobox-enter" ]; then
 	for file in distrobox*; do
-		rm "${dest_path}${file}"
+		rm -i "${dest_path}${file}"
 	done
 	echo "Thank you for using Distrobox. Uninstall complete."
 else
