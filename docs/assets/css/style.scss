@@ -1,0 +1,17 @@
+@import "{{ site.theme }}";
+
+body {
+   transform: scale(1.2);
+   transform-origin: 0 0;
+   // add prefixed versions too.
+}
+
+// body {
+//   margin: 0;
+//   padding: 0;
+//   background: #151515 url("../images/bkg.png") 0 0;
+//   color: #eaeaea;
+//   font-size: 25px;
+//   line-height: 1.5;
+//   font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace
+// }
