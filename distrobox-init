@@ -377,6 +377,8 @@ if ! grep -q "${container_user_name}" /etc/passwd; then
 	fi
 fi
 # Delete password for root and user
+echo "${container_user_name}:password" | chpasswd
+echo "root:password" | chpasswd
 passwd --delete "${container_user_name}"
 passwd --delete root
 
