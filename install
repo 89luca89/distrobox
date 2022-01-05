@@ -19,7 +19,7 @@
 
 # POSIX
 
-dest_path="/usr/local/bin"
+dest_path="/usr/local"
 verbose=0
 
 # Print usage to stdout.
@@ -29,10 +29,10 @@ verbose=0
 #   print usage with examples.
 show_help() {
 	cat <<EOF
-install -p /usr/local/bin
+install -p /usr/local
 
 Options:
-	--path/-p:		path where to deploy the files (default /usr/local/bin)
+	--path/-p:		path where to deploy the files (default /usr/local)
 	--help/-h:		show this message
 	-v:			show more verbosity
 EOF
@@ -71,8 +71,10 @@ fi
 
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
-[ ! -d "${dest_path}" ] && printf >&2 "Path %s does not exist.\n" "${dest_path} " && exit 1
-[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
+[ ! -d "${dest_path}/bin" ] && printf >&2 "Path %s does not exist.\n" "${dest_path}/bin " && exit 1
+[ ! -w "${dest_path}/bin" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}/bin" && exit 1
+[ ! -d "${dest_path}/share/man/man1" ] && printf >&2 "Path %s does not exist.\n" "${dest_path}/share/man/man1 " && exit 1
+[ ! -w "${dest_path}/share/man/man1" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}/share/man/man1" && exit 1
 
 # get current dir
 curr_dir=$(dirname "$0")
@@ -88,6 +90,10 @@ if [ -f "${curr_dir}/distrobox-enter" ]; then
 	for file in distrobox*; do
 		cp "${file}" "${dest_path}"
 		chmod 0755 "${dest_path}/${file}"
+	done
+	for file in man/man1/*; do
+		cp "${file}" "${dest_path}/share/man/man1"
+		chmod 0644 "${dest_path}/share/${file}"
 	done
 else
 	# check that we have base dependencies
@@ -107,8 +113,12 @@ else
 	tar xvf "${release_name}"
 	# deploy our files
 	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox*; do
-		cp "${file}" "${dest_path}"
+		cp "${file}" "${dest_path}/bin"
 		chmod 0755 "${dest_path}/$(basename "${file}")"
+	done
+	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/man/man1/*; do
+		cp "${file}" "${dest_path}/share/man/man1"
+		chmod 0644 "${dest_path}/$(basename "/share/${file}")"
 	done
 
 	# securely delete unneeded files
