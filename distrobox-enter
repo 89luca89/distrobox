@@ -171,7 +171,7 @@ generate_command() {
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
 	result_command="${result_command}
 		--workdir=${PWD:-${HOME:-"/"}}
-		--env=DISTROBOX_ENTER_PATH=$(command -v distrobox-enter)"
+		--env=DISTROBOX_ENTER_PATH=$(realpath "${0}")"
 
 	# Loop through all the environment vars
 	# and export them to the container.
