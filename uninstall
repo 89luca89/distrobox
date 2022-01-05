@@ -19,7 +19,7 @@
 
 # POSIX
 
-dest_path="/usr/local/bin"
+dest_path="/usr/local"
 verbose=0
 
 # Print usage to stdout.
@@ -29,10 +29,10 @@ verbose=0
 #   print usage with examples.
 show_help() {
 	cat <<EOF
-uninstall -p /usr/local/bin
+uninstall -p /usr/local
 
 Options:
-	--path/-p:		path where the files are located (default /usr/local/bin)
+	--path/-p:		path where to deploy the files (default /usr/local)
 	--help/-h:		show this message
 	-v:			show more verbosity
 EOF
@@ -71,13 +71,18 @@ fi
 
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
-[ ! -d "${dest_path}" ] && printf >&2 "Path %s does not exist.\n" "${dest_path} " && exit 1
-[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
+[ ! -d "${dest_path}/bin" ] && printf >&2 "Path %s does not exist.\n" "${dest_path}/bin " && exit 1
+[ ! -w "${dest_path}/bin" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}/bin" && exit 1
+[ ! -d "${dest_path}/share/man/man1" ] && printf >&2 "Path %s does not exist.\n" "${dest_path}/share/man/man1 " && exit 1
+[ ! -w "${dest_path}/share/man/man1" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}/share/man/man1" && exit 1
 
 # uninstall
 if [ -f "${dest_path}/distrobox-enter" ]; then
 	for file in distrobox*; do
 		rm -i "${dest_path}/${file}"
+	done
+	for file in "${dest_path}/share/man/man1/distrobox"*; do
+		rm -i "${file}"
 	done
 	echo "Thank you for using Distrobox. Uninstall complete."
 else
