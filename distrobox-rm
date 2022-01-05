@@ -35,7 +35,7 @@ show_help() {
 
 distrobox version: ${version}
 
-distrobox-rm delete one of the available distroboxes.
+distrobox-rm deletes one of the available distroboxes.
 
 Usage:
 

@@ -1,0 +1,34 @@
+.TH DISTROBOX-ENTER "1" "January 2022" "distrobox" "General Commands Manual"
+.SH NAME
+distrobox-enter
+.SH DESCRIPTION
+distrobox\-enter takes care of entering the container with the name specified.
+Default command executed is your SHELL, but you can specify different shells or
+entire commands to execute.
+If using it inside a script, an application, or a service, you can specify the
+\fB\-\-headless\fR mode to disable tty and interactivity.
+.PP
+Usage:
+distrobox\-enter \fB\-\-name\fR fedora\-toolbox\-35 \fB\-\-\fR bash \fB\-l\fR
+.SH OPTIONS
+.TP
+\fB\-\-name\fR/\-n:
+name for the distrobox                                          default: fedora\-toolbox\-35
+.TP
+\fB\-\-\fR/\-e:
+end arguments execute the rest as command to execute at login   default: bash \fB\-l\fR
+.TP
+\fB\-\-headless\fR/\-H:
+do not instantiate a tty
+.TP
+\fB\-\-help\fR/\-h:
+show this message
+.TP
+\fB\-\-verbose\fR/\-v:
+show more verbosity
+.TP
+\fB\-\-version\fR/\-V:
+show version
+.PP
+.SH "SEE ALSO"
+GitHub repository is located at https://github.com/89luca89/distrobox
