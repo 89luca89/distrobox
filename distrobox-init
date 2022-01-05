@@ -402,9 +402,11 @@ fi
 # bind mount distrobox directory for themes and icons
 mkdir -p "${container_user_home}/.local/share/themes"
 mkdir -p "${container_user_home}/.local/share/icons"
+mkdir -p "${container_user_home}/.local/share/fonts"
 # Fix permissions for home directories
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/themes"
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/icons"
+chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/fonts"
 if ! mount_bind "/run/host/usr/share/themes" "${container_user_home}/.local/share/themes" rw; then
 	printf "Warning: Cannot bind mount /run/host/usr/share/themes to %s/.local/share/themes\n" "${container_user_home}"
 	printf "Warning: Themes integration with the host is disabled.\n"
@@ -412,6 +414,10 @@ fi
 if ! mount_bind "/run/host/usr/share/icons" "${container_user_home}/.local/share/icons" rw; then
 	printf "Warning: Cannot bind mount /run/host/usr/share/icons to %s/.local/share/icons\n" "${container_user_home}"
 	printf "Warning: Icons integration with the host is disabled.\n"
+fi
+if ! mount_bind "/run/host/usr/share/fonts" "${container_user_home}/.local/share/fonts" rw; then
+	printf "Warning: Cannot bind mount /run/host/usr/share/fonts to %s/.local/share/fonts\n" "${container_user_home}"
+	printf "Warning: Fonts integration with the host is disabled.\n"
 fi
 
 printf "container_setup_done\n"
