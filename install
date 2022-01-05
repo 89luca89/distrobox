@@ -88,7 +88,7 @@ if [ -f "${curr_dir}/distrobox-enter" ]; then
 		release_ver="git-$(git rev-parse HEAD)"
 	fi
 	for file in distrobox*; do
-		cp "${file}" "${dest_path}"
+		cp "${file}" "${dest_path}/bin"
 		chmod 0755 "${dest_path}/${file}"
 	done
 	for file in man/man1/*; do
