@@ -53,7 +53,9 @@ Distrobox has been successfully tested on:
 | NixOS | 21.11 | __NOTE NixOS support is preliminary, and there are many bugs present, any help in improving support is appreciated__ <br> Currently you must have your default shell set to Bash, if it is not, make sure you edit your configuration.nix so that it is. <br> To install distrobox:<br>`mkdir -p ~/.local/bin`<br>Add `PATH=$PATH:$HOME/.local/bin` to your bashrc<br>Execute [THIS](#installation) command without sudo.<br>To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker) <br>To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
 | Windows WSL2 | | __NOTE WSL2 support is preliminary, and there are many bugs present, any help in improving support is appreciated__ <br> Currently you must work around some incompatibility between WSL2 and Podman, namely [THIS](https://github.com/containers/podman/issues/12236). <br>Install into WSL2 any of the supported distributions in this list. <br> Ensure you have an entry in the `fstab` for the `/tmp` folder:<br> `echo 'tmpfs /tmp tmps defaults 0 0' >> /etc/fstab`.<br>Then reboot the WSL machine `wsl --shutdown` <br>Note that `distrobox export` is not supported on WSL2 and will not work. |
 
-If your container is not able to connect to your host xserver, make sure to install `xhost` on the host machine and run `xhost +si:localuser:$USER` or add it to your `~/.xinitrc`.
+If your container is not able to connect to your host xserver, make sure to install `xhost` on the host machine
+and run `xhost +si:localuser:$USER`. If you wish to enable this functionally on future reboots add it to your `~/.xinitrc`
+or somewhere else tailored to your use case where it would be ran on every startup.
 
 #### New Host Distro support
 
