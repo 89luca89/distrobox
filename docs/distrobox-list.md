@@ -1,4 +1,4 @@
-distrobox-list
+# distrobox-list
 
 ## DESCRIPTION
 

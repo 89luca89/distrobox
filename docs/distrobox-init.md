@@ -1,4 +1,4 @@
-distrobox-init
+# distrobox-init
 
 ## DESCRIPTION
 
