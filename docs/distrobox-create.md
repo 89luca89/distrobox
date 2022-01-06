@@ -1,21 +1,21 @@
-# distrobox-create
+distrobox-create
 
 ## DESCRIPTION
 
-# distrobox-create takes care of creating the container with input name
+distrobox-create takes care of creating the container with input name
 and image. The created container will be tightly integrated with the
 host, allowing sharing of the HOME directory of the user, external
 storage, external usb devices and graphical apps (X11/Wayland), and
 audio.
 
-Usage: # distrobox-create **\--image**
+Usage: distrobox-create **\--image**
 registry.fedoraproject.org/fedora-toolbox:35 **\--name**
-fedora-toolbox-35 # distrobox-create **\--clone** fedora-toolbox-35
+fedora-toolbox-35 distrobox-create **\--clone** fedora-toolbox-35
 **\--name** fedora-toolbox-35-copy
 
 You can also use environment variables to specify container name and
 image DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine
-DBX_CONTAINER_IMAGE=alpine # distrobox-create
+DBX_CONTAINER_IMAGE=alpine distrobox-create
 
 ## OPTIONS
 
