@@ -242,7 +242,7 @@ generate_command() {
 	result_command="${container_manager} create"
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
-		--hostname ${container_name}.$(hostname)
+		--hostname ${container_name}.$(cut -d'.' -f1 /etc/hostname)
 		--ipc host
 		--name ${container_name}
 		--network host
