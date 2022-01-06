@@ -109,11 +109,13 @@ sudo dnf copr enable alciregi/distrobox
 sudo dnf install distrobox
 ```
 
-On Arch Linux systems, `distrobox` is available in the AUR:
+On Arch Linux systems, `distrobox` is available in the AUR and can be installed using your prefered AUR helper:
 
 ```
-yay install distrobox
+yay -S distrobox
 ```
+
+`distrobox-git` is also available. This package pulls directly from the main git branch.
 
 ---
 
