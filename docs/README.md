@@ -102,11 +102,24 @@ Else you can clone the project using `git clone` or using the latest release [HE
 
 Enter the directory and run `./install`, by default it will attempt to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
 
+On Fedora systems, `distrobox` is available in COPR:
+
+```
+sudo dnf copr enable alciregi/distrobox
+sudo dnf install distrobox
+```
+
+On Arch Linux systems, `distrobox` is available in the AUR:
+
+```
+yay install distrobox
+```
+
 ---
 
 # Uninstallation
 
-If you installed distrobox in the default install directory use this:
+If you installed distrobox using the `install` script in the default install directory use this:
 
 `curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sudo sh`
 
@@ -114,9 +127,9 @@ or if you specified a custom path:
 
 `curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- -p ~/.local/bin`
 
-Else you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
+Else if cloned the project using `git clone` or using the latest archive release from [HERE](https://github.com/89luca89/distrobox/releases/latest),
 
-Enter the directory and run `./uninstall`, by default it will assume the install directory was `/usr/local/bin`, you can specify another directory if needed with `./uninstall -p ~/.local/bin`
+enter the directory and run `./uninstall`, by default it will assume the install directory was `/usr/local/bin`, you can specify another directory if needed with `./uninstall -p ~/.local/bin`
 
 ---
 
