@@ -115,7 +115,7 @@ On Arch Linux systems, `distrobox` is available in the AUR and can be installed 
 yay -S distrobox
 ```
 
-`distrobox-git` is also available pulls directly from the main branch.
+`distrobox-git` is also available. This package pulls directly from the main git branch.
 
 ---
 
