@@ -29,10 +29,11 @@ Usage:
 
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox-create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
+	distrobox-create --image alpine my-alpine-container
 
 You can also use environment variables to specify container name and image
 
-	DB_CONTAINER_MANAGER=docker DB_NON_INTERACTIVE=1 DB_CONTAINER_NAME=test-alpine DB_CONTAINER_IMAGE=alpine distrobox-create
+	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
 Options:
 
@@ -42,6 +43,7 @@ Options:
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
+	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -57,6 +59,7 @@ If using it inside a script, an application, or a service, you can specify the
 Usage:
 
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
+	distrobox-enter my-alpine-container -- sh -l
 
 Options:
 
@@ -93,6 +96,7 @@ distrobox-rm delete one of the available distroboxes.
 Usage:
 
 	distrobox-rm --name container-name [--force]
+	distrobox-rm container-name [-f]
 
 Options:
 
@@ -101,7 +105,6 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
-
 
 ---
 
