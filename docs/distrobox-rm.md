@@ -4,7 +4,7 @@
 
 distrobox-rm deletes one of the available distroboxes.
 
-Usage: distrobox-rm **\--name** container-name \[\--force\]
+Usage: distrobox-rm container-name \[\--force\]
 
 ## OPTIONS
 

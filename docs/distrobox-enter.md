@@ -8,7 +8,7 @@ different shells or entire commands to execute. If using it inside a
 script, an application, or a service, you can specify the
 **\--headless** mode to disable tty and interactivity.
 
-Usage: distrobox-enter **\--name** fedora-toolbox-35 **\--** bash **-l**
+Usage: distrobox-enter fedora-toolbox-35 **\--** bash **-l**
 
 ## OPTIONS
 

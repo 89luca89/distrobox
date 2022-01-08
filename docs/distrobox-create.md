@@ -9,9 +9,9 @@ storage, external usb devices and graphical apps (X11/Wayland), and
 audio.
 
 Usage: distrobox-create **\--image**
-registry.fedoraproject.org/fedora-toolbox:35 **\--name**
-fedora-toolbox-35 distrobox-create **\--clone** fedora-toolbox-35
-**\--name** fedora-toolbox-35-copy
+registry.fedoraproject.org/fedora-toolbox:35 fedora-toolbox-35
+distrobox-create **\--clone** fedora-toolbox-35 **\--name**
+fedora-toolbox-35-copy
 
 You can also use environment variables to specify container name and
 image DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine
