@@ -384,13 +384,14 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 EOF
 fi
 
+mkdir -p /etc/sudoers.d
 # Do not check fqdn when doing sudo, it will not work anyways
-if ! grep -q 'Defaults !fqdn' /etc/sudoers; then
-	printf "Defaults !fqdn\n" >>/etc/sudoers
+if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
+	printf "Defaults !fqdn\n" >>/etc/sudoers.d/sudoers
 fi
 # Ensure passwordless sudo is set up for user
-if ! grep -q "${container_user_name} ALL = (root) NOPASSWD:ALL" /etc/sudoers; then
-	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >>/etc/sudoers
+if ! grep -q "${container_user_name} ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
+	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >>/etc/sudoers.d/sudoers
 fi
 
 # If not existing, ensure we have a group for our user.
