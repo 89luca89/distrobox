@@ -24,6 +24,9 @@ graphical apps (X11/Wayland), and audio.
 - [Usage](usage.md)
 - [Useful tips](useful_tips.md)
 - [Featured Articles](featured_articles.md)
+  * [Run Distrobox on Fedora Linux](featured_articles.md#featured-articles)
+  * [Distrobox - A great item in the Linux toolbelt](featured_articles.md#featured-articles)
+  * [Using Distrobox To Augment The Package Selection On Clear Linux](featured_articles.md#featured-articles)
 
 ---
 
