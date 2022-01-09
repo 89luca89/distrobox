@@ -1,9 +1,9 @@
 #!/bin/sh
 
 for file in man1/*; do
-	pandoc -t markdown -f man $file |
-		sed -e "1,2d" |
-		sed -s "s/# /## /g" |
+	pandoc -t markdown -f man ${file} |
+		sed -e '1,2d' |
+		sed -s 's/# /## /g' |
 		sed -e '1 i #' |
-		sed '1{N;s/\n/ /;}' >$(echo $file | sed -e 's/man1/..\/docs/g' | sed -e 's/.1/.md/g')
+		sed '1{N;s/\n/ /;}' >$(echo ${file} | sed -e 's/man1/..\/docs/g' | sed -e 's/.1/.md/g')
 done
