@@ -225,6 +225,16 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			sudo \
 			util-linux
 
+	elif command -v emerge; then
+		# update repos
+		emerge --sync
+		emerge --ask=n --autounmask-continue \
+			"${shell_pkg}" \
+			findutils \
+			procps \
+			shadow \
+			sudo
+
 	elif command -v pacman; then
 		pacman -Sy --noconfirm \
 			"${shell_pkg}" \
@@ -277,15 +287,6 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			shadow \
 			sudo \
 			util-linux
-	elif command -v emerge; then
-		# update repos
-		emerge --sync
-		emerge --ask=n --autounmask-continue \
-			"${shell_pkg}" \
-			findutils \
-			procps \
-			shadow \
-			sudo
 
 	else
 		printf "Error: could not find a supported package manager.\n"
