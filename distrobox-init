@@ -275,6 +275,15 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			shadow \
 			sudo \
 			util-linux
+	elif command -v emerge; then
+		# update repos
+		emerge --sync &&
+			emerge --ask=n --autounmask-continue "${shell_pkg}" \
+				findutils \
+				procps \
+				shadow \
+				sudo
+
 	else
 		printf "Error: could not find a supported package manager.\n"
 		printf "Error: could not set up base dependencies.\n"
@@ -391,8 +400,9 @@ if ! grep -q "${container_user_name}" /etc/passwd; then
 	fi
 fi
 # Delete password for root and user
-printf "password\npassword\n" | passwd "${container_user_name}"
-printf "password\npassword\n" | passwd root
+TEMP_PASSWORD=$(cat /proc/sys/kernel/random/uuid)
+printf "%s\n%s\n" "${TEMP_PASSWORD}" "${TEMP_PASSWORD}" | passwd "${container_user_name}"
+printf "%s\n%s\n" "${TEMP_PASSWORD}" "${TEMP_PASSWORD}" | passwd root
 passwd --delete "${container_user_name}"
 passwd --delete root
 
