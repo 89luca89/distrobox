@@ -203,6 +203,7 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 
 	elif command -v apt-get; then
 		export DEBIAN_FRONTEND=noninteractive
+		# update repos
 		apt-get update
 		apt-get install -y \
 			"${shell_pkg}" \
@@ -235,6 +236,7 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			util-linux
 
 	elif command -v slackpkg; then
+		# update repos
 		slackpkg update
 		yes | slackpkg install -default_answer=yes -batch=yes \
 			"${shell_pkg}" \
@@ -277,12 +279,13 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			util-linux
 	elif command -v emerge; then
 		# update repos
-		emerge --sync &&
-			emerge --ask=n --autounmask-continue "${shell_pkg}" \
-				findutils \
-				procps \
-				shadow \
-				sudo
+		emerge --sync
+		emerge --ask=n --autounmask-continue \
+			"${shell_pkg}" \
+			findutils \
+			procps \
+			shadow \
+			sudo
 
 	else
 		printf "Error: could not find a supported package manager.\n"
@@ -399,10 +402,12 @@ if ! grep -q "${container_user_name}" /etc/passwd; then
 		printf "Warning: there was a problem setting up the user\n"
 	fi
 fi
+
+# We generate a random password to initialize the entry for the user and root.
+temporary_password="$(cat /proc/sys/kernel/random/uuid)"
+printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd "${container_user_name}"
+printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd root
 # Delete password for root and user
-TEMP_PASSWORD=$(cat /proc/sys/kernel/random/uuid)
-printf "%s\n%s\n" "${TEMP_PASSWORD}" "${TEMP_PASSWORD}" | passwd "${container_user_name}"
-printf "%s\n%s\n" "${TEMP_PASSWORD}" "${TEMP_PASSWORD}" | passwd root
 passwd --delete "${container_user_name}"
 passwd --delete root
 
