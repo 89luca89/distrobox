@@ -281,7 +281,7 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 		# this is needed on ubuntu 21.10
 		# works by setting /etc/security/passwdqc.conf to min=1,1,1,1,1 + everything except the first line from
 		# the original
-		printf "min=1,1,1,1,1\n%s" "$(tail -n +2 /etc/security/passwdqc.conf)" > /etc/security/passwdqc.conf
+		printf "min=1,1,1,1,1\n%s" "$(tail -n +2 /etc/security/passwdqc.conf)" >/etc/security/passwdqc.conf
 		# update repos
 		emerge --sync &&
 			emerge --ask=n --autounmask-continue "${shell_pkg}" \
