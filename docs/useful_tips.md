@@ -6,6 +6,8 @@
   * [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
   * [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
   * [Using distrobox as main cli](#using-distrobox-as-main-cli)
+  * [Build a Gentoo distrobox container](#distrobox_gentoo.md)
+  * [Build a Dedicated distrobox container](#distrobox_custom.md)
 
 ---
 
