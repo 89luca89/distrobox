@@ -1,3 +1,8 @@
+- [Distrobox](README.md)
+  - [Useful tips](useful_tips.md)
+
+---
+
 # Gentoo as a distrobox container
 
 ### Image
