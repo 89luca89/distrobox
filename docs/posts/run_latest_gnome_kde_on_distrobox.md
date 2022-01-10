@@ -22,11 +22,15 @@ without giving up on core base os stability.
 
 For this experiment we'll use Fedora Rawhide as our distrobox, and Centos 8 Stream as our host, so:
 
-`distrobox create --name fedora-rawhide --image registry.fedoraproject.org/fedora:rawhide`
+```shell
+distrobox create --name fedora-rawhide --image registry.fedoraproject.org/fedora:rawhide
+```
 
 and
 
-`distrobox enter fedora-rawhide`
+```shell
+distrobox enter fedora-rawhide
+```
 
 ## Running Latest GNOME
 
@@ -121,7 +125,7 @@ Let's add:
 chown -R $USER:$USER /tmp/.X11-unix
 ```
 
-to `~/.profile` file.
+to `/etc/profile.d/fix_tmp.sh` file.
 
 We also need to add a process in autostart on which Plasma shell relies on a process called `kactivitymanagerd`.
 Not having host's systemd at disposal we can start it simply adding it to the ~/.profile file, add:
