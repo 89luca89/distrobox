@@ -276,12 +276,6 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			sudo \
 			util-linux
 	elif command -v emerge; then
-		# set the password requirements to the minimum. gentoos passwd policy is stricter than other distros
-		# otherwise setting up the container can fail.
-		# this is needed on ubuntu 21.10
-		# works by setting /etc/security/passwdqc.conf to min=1,1,1,1,1 + everything except the first line from
-		# the original
-		printf "min=1,1,1,1,1\n%s" "$(tail -n +2 /etc/security/passwdqc.conf)" >/etc/security/passwdqc.conf
 		# update repos
 		emerge --sync &&
 			emerge --ask=n --autounmask-continue "${shell_pkg}" \
@@ -406,8 +400,8 @@ if ! grep -q "${container_user_name}" /etc/passwd; then
 	fi
 fi
 # Delete password for root and user
-printf "password\npassword\n" | passwd "${container_user_name}"
-printf "password\npassword\n" | passwd root
+printf "password1234ADFG_+\npassword1234ADFG_+\n" | passwd "${container_user_name}"
+printf "password1234ADFG_+\npassword1234ADFG_+\n" | passwd root
 passwd --delete "${container_user_name}"
 passwd --delete root
 
