@@ -257,6 +257,13 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			sudo \
 			util-linux
 
+	elif command -v swupd; then
+		swupd bundle-add \
+			shells \
+			sudo \
+			findutils \
+			procps-ng
+
 	elif command -v xbps-install; then
 		xbps-install -Sy \
 			"${shell_pkg}" \
@@ -287,13 +294,6 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			shadow \
 			sudo \
 			util-linux
-
-	elif command -v swupd; then
-		swupd bundle-add \
-			shells \
-			sudo \
-			findutils \
-			procps-ng
 
 	else
 		printf "Error: could not find a supported package manager.\n"
