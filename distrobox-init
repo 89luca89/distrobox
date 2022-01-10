@@ -275,6 +275,21 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			shadow \
 			sudo \
 			util-linux
+	elif command -v emerge; then
+		# set the password requirements to the minimum. gentoos passwd policy is stricter than other distros
+		# otherwise setting up the container can fail.
+		# this is needed on ubuntu 21.10
+		# works by setting /etc/security/passwdqc.conf to min=1,1,1,1,1 + everything except the first line from
+		# the original
+		printf "min=1,1,1,1,1\n%s" "$(tail -n +2 /etc/security/passwdqc.conf)" > /etc/security/passwdqc.conf
+		# update repos
+		emerge --sync &&
+			emerge --ask=n --autounmask-continue "${shell_pkg}" \
+				findutils \
+				procps \
+				shadow \
+				sudo
+
 	else
 		printf "Error: could not find a supported package manager.\n"
 		printf "Error: could not set up base dependencies.\n"
