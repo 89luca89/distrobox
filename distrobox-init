@@ -330,6 +330,20 @@ for host_socket in ${host_sockets}; do
 	fi
 done
 
+# This fix is needed as on Selinux systems, the host's selinux sysfs directory
+# will be mounted inside the rootless container.
+#
+# This works around this and allows the rootless container to work when selinux
+# policies are installed inside it.
+#
+# Ref. Podman issue 4452: https://github.com/containers/podman/issues/4452
+if [ -f "/sys/fs/selinux" ]; then
+	mkdir -p /usr/share/empty
+	if ! mount_bind /usr/share/empty /sys/fs/selinux rw; then
+		printf "Warning: Cannot bind mount %s to /run/host%s\n" "/usr/share/empty" " /sys/fs/selinux"
+	fi
+fi
+
 # In case of an RPM distro, we can specify that our bind_mount directories
 # are in fact net shares. This prevents conflicts during package installations.
 if [ -d "/usr/lib/rpm/macros.d/" ]; then
