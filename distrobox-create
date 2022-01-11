@@ -189,7 +189,7 @@ if ! command -v "${container_manager}" >/dev/null; then
 	container_manager="docker"
 	if ! command -v docker >/dev/null; then
 		# Error: we need at least one between docker or podman.
-		printf >&2 "Missing dependency: we need a container manager\n."
+		printf >&2 "Missing dependency: we need a container manager.\n"
 		printf >&2 "Please install one of podman or docker.\n"
 		exit 127
 	fi
@@ -215,7 +215,7 @@ clone_container() {
 		"${container_clone}" --format '{{.State.Status}}')"
 	# If the container is not already running, we need to start if first
 	if [ "${container_source_status}" = "running" ]; then
-		printf >&2 "Container %s, is running.\nPlease stop it first.\n" "${container_clone}"
+		printf >&2 "Container %s is running.\nPlease stop it first.\n" "${container_clone}"
 		printf >&2 "Cannot clone a running container.\n"
 		return 1
 	fi
@@ -378,18 +378,18 @@ if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2
 
 	# Accept only y,Y,Yes,yes,n,N,No,no.
 	case "${response}" in
-	y | Y | yes | Yes)
+	y | Y | Yes | yes | YES)
 		# Pull the image
 		${container_manager} pull "${container_image}"
 		;;
-	n | N | no | No)
+	n | N | No | no | NO)
 		printf >&2 "next time, run this command first:\n"
 		printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
 		exit 0
 		;;
 	*) # Default case: If no more options then break out of the loop.
 		printf >&2 "Invalid input.\n"
-		printf >&2 "The available choices are: y,Y,Yes,yes or n,N,No,no.\nExiting.\n"
+		printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
 		exit 1
 		;;
 	esac

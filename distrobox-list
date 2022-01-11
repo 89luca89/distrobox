@@ -89,7 +89,7 @@ if ! command -v podman >/dev/null; then
 	container_manager="docker"
 	if ! command -v docker >/dev/null; then
 		# Error: we need at least one between docker or podman.
-		printf >&2 "Missing dependency: we need a container manager\n."
+		printf >&2 "Missing dependency: we need a container manager.\n"
 		printf >&2 "Please install one of podman or docker.\n"
 		exit 127
 	fi
