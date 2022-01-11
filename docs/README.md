@@ -122,6 +122,11 @@ yay -S distrobox
 
 `distrobox-git` is also available. This package pulls directly from the main git branch.
 
+## Dependencies
+
+Distrobox depends on a container manager to work, you can choose to install either podman or docker.
+Please look in the [Compatibility Table](compatibility.md#host-distros) for your distribution notes.
+
 ---
 
 # Uninstallation
