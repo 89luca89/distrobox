@@ -350,7 +350,7 @@ done
 # policies are installed inside it.
 #
 # Ref. Podman issue 4452: https://github.com/containers/podman/issues/4452
-if [ -f "/sys/fs/selinux" ]; then
+if [ -d "/sys/fs/selinux" ]; then
 	mkdir -p /usr/share/empty
 	if ! mount_bind /usr/share/empty /sys/fs/selinux rw; then
 		printf "Warning: Cannot bind mount %s to /run/host%s\n" "/usr/share/empty" " /sys/fs/selinux"
