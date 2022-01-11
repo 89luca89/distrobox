@@ -223,7 +223,9 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			procps-ng \
 			shadow-utils \
 			sudo \
-			util-linux
+			util-linux \
+			vte-profile \
+			glibc-langpack-en
 
 	elif command -v emerge; then
 		# update repos
