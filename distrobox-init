@@ -199,15 +199,16 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			procps \
 			shadow \
 			sudo \
-			util-linux
+			util-linux \
+			vte3
 
 	elif command -v apt-get; then
 		export DEBIAN_FRONTEND=noninteractive
-		# update repos
 		apt-get update
 		apt-get install -y \
 			"${shell_pkg}" \
 			findutils \
+			libvte-common \
 			ncurses-base \
 			passwd \
 			procps \
@@ -224,8 +225,7 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			shadow-utils \
 			sudo \
 			util-linux \
-			vte-profile \
-			glibc-langpack-en
+			vte-profile
 
 	elif command -v emerge; then
 		# update repos
@@ -233,9 +233,12 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 		emerge --ask=n --autounmask-continue \
 			"${shell_pkg}" \
 			findutils \
+			ncurses \
 			procps \
 			shadow \
-			sudo
+			sudo \
+			util-linux \
+			vte-profile
 
 	elif command -v pacman; then
 		pacman -Sy --noconfirm \
@@ -245,13 +248,14 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			procps-ng \
 			shadow \
 			sudo \
-			util-linux
+			util-linux \
+			vte-common
 
 	elif command -v slackpkg; then
-		# update repos
 		slackpkg update
 		yes | slackpkg install -default_answer=yes -batch=yes \
 			"${shell_pkg}" \
+			libvte-2 \
 			findutils \
 			ncurses \
 			procps \
@@ -278,12 +282,14 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 			procps \
 			shadow-utils \
 			sudo \
-			util-linux
+			util-linux \
+			vte-profile
 
 	elif command -v zypper; then
 		zypper install -y \
 			"${shell_pkg}" \
 			findutils \
+			libvte-2 \
 			ncurses \
 			procps \
 			shadow \
