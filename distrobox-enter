@@ -37,7 +37,7 @@ container_name="${DBX_CONTAINER_NAME:-""}"
 container_name_default="fedora-toolbox-35"
 headless=0
 verbose=0
-version="1.2.11"
+version="1.2.12"
 
 # Print usage to stdout.
 # Arguments:
