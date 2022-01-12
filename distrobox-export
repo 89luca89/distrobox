@@ -493,6 +493,7 @@ bin)
 	export_binary
 	;;
 service)
+	export_service
 	;;
 *)
 	printf >&2 "Invalid arguments, choose an action below.\n"
