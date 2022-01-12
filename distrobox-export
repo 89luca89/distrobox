@@ -29,6 +29,7 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 # Defaults
 export_action=""
 exported_app=""
+exported_app_label=""
 exported_bin=""
 exported_delete=0
 exported_service=""
@@ -113,6 +114,8 @@ Options:
 	--bin/-b:		absolute path of the binary to export
 	--service/-s:		name of the service to export
 	--delete/-d:		delete exported application or service
+	--export-label/-el:	label to add to exported application name.
+				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
 	--sudo/-S:		specify if the exported item should be ran as sudo
@@ -165,6 +168,13 @@ while :; do
 	-S | --sudo)
 		is_sudo="sudo"
 		shift
+		;;
+	-el | --export-label)
+		if [ -n "$2" ]; then
+			exported_app_label="$2"
+			shift
+			shift
+		fi
 		;;
 	-ep | --export-path)
 		if [ -n "$2" ]; then
@@ -231,6 +241,9 @@ fi
 container_name=$(cut -d'.' -f1 /etc/hostname)
 # Prefix to add to an existing command to work throught the container
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} -H -n ${container_name} -- \"${is_sudo} "
+if [ -z "${exported_app_label}" ]; then
+	exported_app_label=" (on ${container_name})"
+fi
 
 # Print generated script from template
 # Arguments:
@@ -355,13 +368,15 @@ export_application() {
 
 	# create desktop files for the distrobox
 	for desktop_file in ${desktop_files}; do
-		desktop_home_file="$(basename "${desktop_file}")"
+		desktop_original_file="$(basename "${desktop_file}")"
+		desktop_home_file="${container_name}-$(basename "${desktop_file}")"
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
 			if [ ! -f "/run/host/${host_home}/.local/share/applications/${desktop_home_file}" ]; then
 				printf >&2 "Error: trying to remove a non-exported application.\n"
 				return 1
 			fi
+			rm -f "/run/host/${host_home}/.local/share/applications/${desktop_original_file}"
 			rm -f "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 		else
 			# Add commmand_prefix
@@ -372,7 +387,8 @@ export_application() {
 			sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
 				sed "s|\(%.*\)|${extra_flags} \1|g" |
 				sed 's|^Exec=.*|&"|g' |
-				sed "s|^TryExec=.*|TryExec=true|g" \
+				sed "s|^TryExec=.*|TryExec=true|g" |
+				sed "s|Name.*|& ${exported_app_label}|g" \
 					>"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
@@ -477,7 +493,6 @@ bin)
 	export_binary
 	;;
 service)
-	export_service
 	;;
 *)
 	printf >&2 "Invalid arguments, choose an action below.\n"
