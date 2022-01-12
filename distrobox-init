@@ -43,6 +43,9 @@ distrobox-init is the entrypoint of a created distrobox.
 Note that this HAS to run from inside a distrobox, will not work if you run it
 from your host.
 
+This is not intended to be used manually, but instead used by distrobox-enter
+to set up the container's entrypoint.
+
 distrobox-init will take care of installing missing dependencies (eg. sudo), set
 up the user and groups, mount directories from the host to ensure the tight
 integration.
@@ -122,7 +125,9 @@ fi
 # Check we're running inside a container and not on the host
 if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
-	printf >&2 "distrobox-init should only be used as an entrypoint for a distrobox!\n"
+	printf >&2 "distrobox-init should only be used as an entrypoint for a distrobox!\n\n"
+	printf >&2 "This is not intended to be used manually, but instead used by distrobox-enter\n"
+	printf >&2 "to set up the container's entrypoint.\n"
 	exit 126
 fi
 
