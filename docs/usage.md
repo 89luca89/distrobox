@@ -133,7 +133,7 @@ to export an electron app, you could add the "--foreground" flag to the command:
 
 	distrobox-export --app atom --extra-flags "--foreground"
 	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --extra-flags "-p"
-	distrobox-export --service syncthing --extra-flags "-allow-newer-config"
+	distrobox-export --service syncthing.service --extra-flags "-allow-newer-config"
 
 This works for services, binaries, and apps.
 Extra flags are only used then the exported app, binary, or service is used from
@@ -143,7 +143,7 @@ The option "--delete" will un-export an app, binary, or service.
 
 	distrobox-export --app atom --delete
 	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --delete
-	distrobox-export --service syncthing --delete
+	distrobox-export --service syncthing.service --delete
 	distrobox-export --service nginx --delete
 
 The option "--sudo" will launch the exported item as root inside the distrobox.
@@ -155,7 +155,7 @@ Note you can use --app OR --bin OR --service but not together.
 Usage:
 
 	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --service syncthing [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --service syncthing.service [--extra-flags "flags"] [--delete] [--sudo]
 	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
 
 
@@ -187,7 +187,7 @@ save them in your home to be used directly from the host as a normal app.
 
 Service export example:
 
-	distrobox-export --service syncthing --extra-flags "--allow-newer-config"
+	distrobox-export --service syncthing.service --extra-flags "--allow-newer-config"
 	distrobox-export --service nginx --sudo
 
 For services, it will similarly export the systemd unit inside the container to a `systemctl --user` service,
