@@ -353,7 +353,7 @@ export_application() {
 
 	# copy icons in home directory
 	for icon_file in ${icon_files}; do
-		icon_home_directory="$(dirname "${icon_file}" | sed "s|/usr/share/|\/run\/host\/${host_home}/.local/share/|g")"
+		icon_home_directory="$(dirname "${icon_file}" | sed "s|/usr/share/|\/run\/host\/${host_home}/.local/share/|g" | sed "s|pixmaps|icons|g")"
 
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
