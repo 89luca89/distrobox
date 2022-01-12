@@ -25,6 +25,7 @@ graphical apps (X11/Wayland), and audio.
 - [Useful tips](useful_tips.md)
 - [Posts](posts/posts.md)
   * [Run latest GNOME and KDE using distrobox](posts/run_latest_gnome_kde_on_distrobox.md)
+  * [Integrate VSCode and Distrobox](posts/integrate_vscode_distrobox.md)
 - [Featured Articles](featured_articles.md)
   * [Run Distrobox on Fedora Linux](featured_articles.md#featured-articles)
   * [Distrobox - A great item in the Linux toolbelt](featured_articles.md#featured-articles)
