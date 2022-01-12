@@ -165,6 +165,8 @@ Options:
 	--bin/-b:		absolute path of the binary to export
 	--service/-s:		name of the service to export
 	--delete/-d:		delete exported application or service
+	--export-label/-el:	label to add to exported application name.
+				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
 	--sudo/-S:		specify if the exported item should be ran as sudo
@@ -216,6 +218,9 @@ container, use the `--extra-flags` option to provide a series of flags, for exam
 distrobox-init is the entrypoint of a created distrobox.
 Note that this HAS to run from inside a distrobox, will not work if you run it
 from your host.
+
+This is not intended to be used manually, but instead used by distrobox-enter
+to set up the container's entrypoint.
 
 distrobox-init will take care of installing missing dependencies (eg. sudo), set
 up the user and groups, mount directories from the host to ensure the tight
