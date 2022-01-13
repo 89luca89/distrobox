@@ -79,7 +79,7 @@ Distrobox guests tested successfully with the following container images:
 | Archlinux     | | docker.io/library/archlinux:latest    |
 | CentOS | 7<br>8 | quay.io/centos/centos:7<br>quay.io/centos/centos:8  |
 | CentOS Stream | 8<br>9 | quay.io/centos/centos:stream8<br>quay.io/centos/centos:stream9  |
-| RedHat | 7<br>8 | registry.access.redhat.com/ubi7/ubi<br>registry.access.redhat.com/ubi7/ubi-init<br>registry.access.redhat.com/ubi8/ubi<br>registry.access.redhat.com/ubi8/ubi-init  |
+| RedHat (UBI) | 7<br>8 | registry.access.redhat.com/ubi7/ubi<br>registry.access.redhat.com/ubi7/ubi-init<br>registry.access.redhat.com/ubi8/ubi<br>registry.access.redhat.com/ubi8/ubi-init  |
 | Debian | 8<br>9<br>10<br>11 | docker.io/library/debian:8<br>docker.io/library/debian:9<br>docker.io/library/debian:10<br>docker.io/library/debian:stable<br>docker.io/library/debian:stable-backports    |
 | Debian | Testing    | docker.io/library/debian:testing <br> docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
