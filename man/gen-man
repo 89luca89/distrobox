@@ -8,6 +8,7 @@ installation.
 
 https://github.com/rtomayko/ronn
 '
+	exit 1
 fi
 
 for i in "$(dirname "${0}")"/../docs/usage/distrobox-*; do
