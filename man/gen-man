@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if ! command -v ronn; then
+	echo '
+Please install "ronn". This tool is needed to convert markdown to man pages.
+This tool is needed to convert files under docs/usage into man pages for the
+installation.
+
+https://github.com/rtomayko/ronn
+'
+fi
+
+for i in ../docs/usage/distrobox-*; do
+	ronn --manual=Distrobox --name="$(basename "${i}" | cut -d'.' -f1).1" --organization=Distrobox "${i}" -o man1/
+	#> man1/$(basename $i | sed 's|md|1|g')
+	mv man1/"$(basename" ${i}" | cut -d'.' -f1)" "man1/$(basename "${i}" | sed 's|md|1|g')"
+	rm -f man1/*.html
+done
