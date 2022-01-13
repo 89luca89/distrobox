@@ -11,6 +11,10 @@ Usage:
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 	distrobox-enter my-alpine-container -- sh -l
 
+Supported environment variables:
+
+	DBX_CONTAINER_NAME
+
 Options:
 
 	--name/-n:		name for the distrobox						default: fedora-toolbox-35

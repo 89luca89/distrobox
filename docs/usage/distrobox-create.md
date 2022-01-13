@@ -15,6 +15,12 @@ You can also use environment variables to specify container name and image
 
 	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
+Supported environment variables:
+
+	DBX_NON_INTERACTIVE
+	DBX_CONTAINER_NAME
+	DBX_CONTAINER_IMAGE
+
 Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
