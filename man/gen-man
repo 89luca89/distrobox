@@ -13,6 +13,6 @@ fi
 for i in ../docs/usage/distrobox-*; do
 	ronn --manual=Distrobox --name="$(basename "${i}" | cut -d'.' -f1).1" --organization=Distrobox "${i}" -o man1/
 	#> man1/$(basename $i | sed 's|md|1|g')
-	mv man1/$(basename $i | cut -d'.' -f1) man1/$(basename $i | sed 's|md|1|g')
+	mv man1/"$(basename" ${i}" | cut -d'.' -f1)" "man1/$(basename "${i}" | sed 's|md|1|g')"
 	rm -f man1/*.html
 done
