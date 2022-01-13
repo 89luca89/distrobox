@@ -32,10 +32,7 @@ version="1.2.12"
 #   print usage with examples.
 show_help() {
 	cat <<EOF
-
 distrobox version: ${version}
-
-distrobox-rm deletes one of the available distroboxes.
 
 Usage:
 

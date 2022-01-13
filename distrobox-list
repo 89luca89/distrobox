@@ -30,11 +30,7 @@ version="1.2.12"
 #   print usage with examples.
 show_help() {
 	cat <<EOF
-
 distrobox version: ${version}
-
-distrobox-list lists available distroboxes. It detects them and lists them separately
-from the rest of normal podman or docker containers.
 
 Usage:
 
