@@ -1,0 +1,25 @@
+.\" generated with Ronn-NG/v0.9.1
+.\" http://github.com/apjanke/ronn-ng/tree/0.9.1
+.TH "DISTROBOX\-LIST" "" "January 2022" "Distrobox" "Distrobox"
+.SH "NAME"
+\fBdistrobox\-list\fR
+.SS "List containers"
+distrobox\-list lists available distroboxes\. It detects them and lists them separately from the rest of normal podman or docker containers\.
+.P
+Usage:
+.IP "" 4
+.nf
+distrobox\-list
+.fi
+.IP "" 0
+.P
+Options:
+.IP "" 4
+.nf
+\-\-help/\-h:		show this message
+\-\-verbose/\-v:		show more verbosity
+\-\-version/\-V:		show version
+.fi
+.IP "" 0
+.P
+
