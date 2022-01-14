@@ -72,7 +72,6 @@ fi
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
 [ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
-mkdir -p "${dest_path}/../share/man/man1"
 
 man_dest_path="${dest_path}/../share/man/man1"
 
@@ -82,19 +81,19 @@ cd "${curr_dir}" || exit 1
 
 # if files are available, install files in dest directory
 # else download targz and uncompress it
-if [ -f "${curr_dir}/distrobox-enter" ]; then
+if [ -e "${curr_dir}/distrobox-enter" ]; then
 	release_ver="github-zip-$(date +%F)"
 	if [ -d "${curr_dir}/.git" ] && command -v git >/dev/null; then
 		release_ver="git-$(git rev-parse HEAD)"
 	fi
 	for file in distrobox*; do
-		cp "${file}" "${dest_path}"
-		chmod 0755 "${dest_path}/${file}"
+		install -D -m 0755 -t "${dest_path}" "${file}"
 	done
-	for file in man/man1/*; do
-		cp "${file}" "${man_dest_path}"
-		chmod 0644 "${man_dest_path}/$(basename "${file}")"
-	done
+	if [ -e "man" ]; then
+		for file in man/man1/*; do
+			install -D -m 0644 -t "${man_dest_path}" "${file}"
+		done
+	fi
 else
 	# check that we have base dependencies
 	if ! command -v curl || ! command -v tar; then
@@ -106,24 +105,25 @@ else
 	release_name=$(echo "${release_ver}" | rev | cut -d'/' -f1 | rev)
 
 	# go in tmp
-	cd /tmp
+	tmp_dir="$(mktemp -d)"
+	cd "${tmp_dir}"
 	# download our target
 	curl -L "https://github.com/${release_ver}" -o "${release_name}"
 	# uncompress
 	tar xvf "${release_name}"
 	# deploy our files
 	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox*; do
-		cp "${file}" "${dest_path}"
-		chmod 0755 "${dest_path}/$(basename "${file}")"
+		install -D -m 0755 -t "${dest_path}" "${file}"
 	done
-	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/man/*; do
-		cp "${file}" "${man_dest_path}"
-		chmod 0644 "${man_dest_path}/$(basename "${file}")"
-	done
+	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/man/" ]; then
+		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/man/*; do
+			install -D -m 0644 -t "${man_dest_path}" "${file}"
+		done
+	fi
 
 	# securely delete unneeded files
-	rm -f "${release_name}"
-	rm -rf "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/*
-	rm -rf "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/.github
-	rmdir "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"
+	cd
+	if [ -n "${tmp_dir}" ] && [ -e "${tmp_dir}" ]; then
+		rm -rf "${tmp_dir}"
+	fi
 fi

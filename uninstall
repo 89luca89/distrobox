@@ -74,14 +74,10 @@ fi
 [ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}/bin" && exit 1
 
 # uninstall
-if [ -f "${dest_path}/distrobox-enter" ]; then
-	for file in distrobox*; do
-		rm -i "${dest_path}/${file}"
-	done
-	for file in "${dest_path}/../share/man/man1/distrobox"*; do
-		rm -i "${file}"
-	done
-	echo "Thank you for using Distrobox. Uninstall complete."
-else
-	printf >&2 "Distrobox is not installed. Aborting.\n" && exit 1
-fi
+for file in "${dest_path}/distrobox"*; do
+	[ -e "${file}" ] && rm -i "${file}"
+done
+for file in "${dest_path}/../share/man/man1/distrobox"*; do
+	[ -e "${file}" ] && rm -i "${file}"
+done
+echo "Thank you for using Distrobox. Uninstall complete."
