@@ -89,7 +89,7 @@ These are some sample results of `distrobox-enter` on the same container on my w
 ```
 Total time for 100 container enters:
 
-  luca-linux@x250:~$ time (for i in {1..100}; do distrobox-enter --name fedora-toolbox-35 -- whoami; done)
+  ~$ time (for i in {1..100}; do distrobox-enter --name fedora-toolbox-35 -- whoami; done)
   real	0m36.209s
   user	0m6.520s
   sys	0m4.803s

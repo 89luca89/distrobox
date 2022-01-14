@@ -43,7 +43,7 @@ Create an executable file with this content:
 ```shell
 #!/bin/sh
 
-result_command="sudo -E chroot --userspec=luca.di.maio:luca.di.maio /run/host/ /usr/bin/env "
+result_command="sudo -E chroot --userspec=$(id -u):$(id -g) /run/host/ /usr/bin/env "
 for i in $(printenv | grep "=" | grep -Ev ' |"' | grep -Ev "^(_)"); do
 	result_command="$result_command $i"
 done
@@ -97,7 +97,7 @@ it will be automatically executed back on the host:
 ```shell
 user@fedora-distrobox:~$ which podman
 /usr/bin/which: no podman in [...]
-~$ podman version
+user@fedora-distrobox:~$ podman version # <-- this is automatically executed on host.
 Client:
 Version:      3.4.2
 API Version:  3.4.2
