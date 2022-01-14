@@ -7,6 +7,7 @@
       * [Running Latest KDE](#running-latest-kde)
         + [Generate session file](#generate-session-file-1)
         + [Add a couple of fixes](#add-a-couple-of-fixes)
+    - [Using apps from host](#using-apps-from-host)
 
 ---
 
@@ -56,14 +57,29 @@ use it?
 
 ### Generate session file
 
-We need to add a desktop file for the session on the host's file system, so that it appears
+First in the host we need a reliable way to fix the permissions problem of the `/tmp/.X11-unix` directory.
+This directory should either belong to `root` or `$USER`. But in a rootless container, host's `root` is not
+mapped inside the container so we need to change the ownership from `root` to `$USER` each time.
+
+Let's add:
+
+```shell
+chown -R $USER:$USER /tmp/.X11-unix
+```
+
+to `/etc/profile.d/fix_tmp.sh` file.
+
+This is needed for the XWayland session to work properly which right now is necessary to run gnome-shell
+even on wayland.
+
+Then we need to add a desktop file for the session on the host's file system, so that it appears
 on your login manager (Be it SSDM or GDM)
 
 ```shell
 [Desktop Entry]
 Name=GNOME on Wayland (fedora-rawhide distrobox)
 Comment=This session logs you into GNOME
-Exec=/usr/local/bin/distrobox-enter -n fedora-rawhide -- /usr/bin/gnome-session
+Exec=/usr/local/bin/distrobox-enter -n fedora-rawhide -- /usr/bin/gnome-session --builtin
 Type=Application
 DesktopNames=GNOME
 X-GDM-SessionRegisters=true
@@ -145,3 +161,9 @@ Let's log out and voilá!
 
 We now are in latest KDE session inside Fedora Rawhide while our main OS remains
 Centos.
+
+# Using apps from host
+
+Now that we're in a container session, we may want to still use some of the host's apps.
+Refer to [THIS](execute_commands_on_host.md) to create handlers and wrappers to use
+the complete selection of host's apps and binaries inside the container.
