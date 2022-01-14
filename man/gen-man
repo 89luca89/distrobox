@@ -11,8 +11,10 @@ https://github.com/rtomayko/ronn
 	exit 1
 fi
 
-for i in "$(dirname "${0}")"/../docs/usage/distrobox-*; do
+for i in "$(dirname "${0}")"/../docs/usage/distrobox*; do
 	ronn --manual=Distrobox --name="$(basename "${i}" | cut -d'.' -f1).1" --organization=Distrobox "${i}" -o "$(dirname "${0}")"/man1/
 	mv "$(dirname "${0}")/man1/$(basename "${i}" | cut -d'.' -f1)" "$(dirname "${0}")/man1/$(basename "${i}" | sed 's|md|1|g')"
 	rm -f "$(dirname "${0}")"/man1/*.html
 done
+
+cat "$(dirname "${0}")/man1/distrobox-"* >"$(dirname "${0}")/man1/distrobox.1"
