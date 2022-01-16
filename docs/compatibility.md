@@ -4,6 +4,7 @@
       - [New Host Distro support](#new-host-distro-support)
     + [Containers Distros](#containers-distros)
       - [New Distro support](#new-distro-support)
+      - [Older Distributions](#older-distributions)
 
 ---
 
@@ -112,3 +113,15 @@ we can work together to check if it is possible to add support for it.
 
 Or just try using it anyway, if it works, open an issue
 and it will be added to the list!
+
+#### Older distributions
+
+For older distributions like CentOS 6, Debian 7, Ubuntu 12.04, compatibility is not
+assured.
+
+Their `libc` version is incompatible with kernel releases after `>=4.11`.
+A work around this is to use the `vsyscall=emulate` flag in the bootloader of the
+host.
+
+Keep also in mind that mirrors could be down for such old releases, so you will
+need to build a [custom distrobox image to ensure basic dependencies are met](./distrobox_custom.md).
