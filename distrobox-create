@@ -248,6 +248,7 @@ generate_command() {
 		--network host
 		--pid host
 		--privileged
+		--annotation run.oci.keep_original_groups=1
 		--security-opt label=disable
 		--user root:root"
 
