@@ -39,9 +39,10 @@ graphical apps (X11/Wayland), and audio.
     + [Integrate VSCode and Distrobox](posts/integrate_vscode_distrobox.md)
     + [Execute a command on the Host](posts/execute_commands_on_host.md)
 - [Featured Articles](featured_articles.md)
-    + [Run Distrobox on Fedora Linux](featured_articles.md#featured-articles)
-    + [Distrobox - A great item in the Linux toolbelt](featured_articles.md#featured-articles)
-    + [Using Distrobox To Augment The Package Selection On Clear Linux](featured_articles.md#featured-articles)
+    + [Run Distrobox on Fedora Linux - Fedora Magazine](https://fedoramagazine.org/run-distrobox-on-fedora-linux/)
+    + [DistroBox – Run Any Linux Distribution Inside Linux Terminal - TecMint](https://www.tecmint.com/distrobox-run-any-linux-distribution/)
+    + [Using Distrobox To Augment The Package Selection On Clear Linux - Phoronix](https://www.phoronix.com/scan.php?page=news_item&px=Distrobox-Clear-Linux)
+    + [Distrobox - A great item in the Linux toolbelt - phmurphy's blog](https://phmurphy.com/posts/distrobox-toolbelt/)
 
 ---
 
