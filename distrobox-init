@@ -376,6 +376,27 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 	cat <<EOF >/usr/lib/rpm/macros.d/macros.distrobox
 %_netsharedpath ${net_mounts}
 EOF
+# In case of an DEB distro, we can specify that our bind_mount directories
+# have to be ignored. This prevents conflicts during package installations.
+elif [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
+	# Loop through all the environment vars
+	# and export them to the container.
+	set +o xtrace
+	printf "" >/etc/dpkg/dpkg.cfg.d/00_distrobox
+	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
+		printf "path-exclude %s/*\n" "${net_mount}" >>/etc/dpkg/dpkg.cfg.d/00_distrobox
+	done
+	# re-enable logging if it was enabled previously.
+	if [ "${verbose}" -ne 0 ]; then
+		set -o xtrace
+	fi
+
+	# Also we put a hook to clear some critical paths that do not play well
+	# with read only filesystems, like systemd.
+	cat <<EOF >/etc/apt/apt.conf.d/00_distrobox
+DPkg::Pre-Invoke {"umount /var/log/journal";};
+DPkg::Post-Invoke {"mount --rbind -o ro /run/host/var/log/journal /var/log/journal";};
+EOF
 fi
 
 # Do not check fqdn when doing sudo, it will not work anyways
