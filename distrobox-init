@@ -201,6 +201,7 @@ if ! command -v mount || ! command -v mount || ! command -v passwd ||
 		apt-get install -y \
 			"${shell_pkg}" \
 			findutils \
+			libnss-myhostname \
 			libvte-common \
 			ncurses-base \
 			passwd \
