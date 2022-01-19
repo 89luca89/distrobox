@@ -2,6 +2,10 @@
 
 # Distrobox
 
+![Lint](https://github.com/89luca89/distrobox/actions/workflows/main.yml/badge.svg)
+[![GitHub](https://img.shields.io/github/license/89luca89/distrobox)](../COPYING.md)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/89luca89/distrobox)](https://github.com/89luca89/distrobox/releases/latest)
+
 Use any Linux distribution inside your terminal.
 Distrobox uses `podman` or `docker` to create containers using the Linux distribution of your choice.
 The created container will be tightly integrated with the host, allowing sharing of
