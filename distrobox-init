@@ -456,6 +456,8 @@ mkdir -p "${container_user_home}/.local/share/themes"
 mkdir -p "${container_user_home}/.local/share/icons"
 mkdir -p "${container_user_home}/.local/share/fonts"
 # Fix permissions for home directories
+chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local"
+chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share"
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/themes"
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/icons"
 chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/fonts"
