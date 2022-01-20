@@ -401,10 +401,12 @@ elif [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 
 	# Also we put a hook to clear some critical paths that do not play well
 	# with read only filesystems, like systemd.
-	cat <<EOF >/etc/apt/apt.conf.d/00_distrobox
+	if [ -d "/etc/apt/apt.conf.d/" ]; then
+		cat <<EOF >/etc/apt/apt.conf.d/00_distrobox
 DPkg::Pre-Invoke {"umount /var/log/journal";};
 DPkg::Post-Invoke {"mount --rbind -o ro /run/host/var/log/journal /var/log/journal";};
 EOF
+	fi
 fi
 
 mkdir -p /etc/sudoers.d
