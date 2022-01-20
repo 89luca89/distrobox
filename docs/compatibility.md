@@ -79,6 +79,7 @@ Distrobox guests tested successfully with the following container images:
 | Alpine Linux    | 3.14<br>3.15 | docker.io/library/alpine:latest    |
 | AmazonLinux | 2  | docker.io/library/amazonlinux:2.0.20211005.0    |
 | Archlinux     | | docker.io/library/archlinux:latest    |
+| ClearLinux |      | docker.io/library/clearlinux:latest<br>docker.io/library/clearlinux:base    |
 | CentOS | 7<br>8 | quay.io/centos/centos:7<br>quay.io/centos/centos:8  |
 | CentOS Stream | 8<br>9 | quay.io/centos/centos:stream8<br>quay.io/centos/centos:stream9  |
 | RedHat (UBI) | 7<br>8 | registry.access.redhat.com/ubi7/ubi<br>registry.access.redhat.com/ubi7/ubi-init<br>registry.access.redhat.com/ubi8/ubi<br>registry.access.redhat.com/ubi8/ubi-init  |
