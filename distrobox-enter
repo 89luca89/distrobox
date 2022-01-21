@@ -32,6 +32,7 @@ container_command="${SHELL:-"bash"}"
 # Work around for shells that are not in the container's file system, nor PATH.
 # For example in hosts that do not follow FHS, like NixOS or for shells in custom
 # exotic paths.
+container_manager_additional_flags=""
 container_command="$(basename "${container_command}") -l"
 container_name="${DBX_CONTAINER_NAME:-""}"
 container_name_default="fedora-toolbox-35"
@@ -87,6 +88,13 @@ while :; do
 	-n | --name)
 		if [ -n "$2" ]; then
 			container_name="$2"
+			shift
+			shift
+		fi
+		;;
+	--additional-flags)
+		if [ -n "$2" ]; then
+			container_manager_additional_flags="${container_manager_additional_flags} ${2}"
 			shift
 			shift
 		fi
@@ -205,6 +213,9 @@ generate_command() {
 	if [ "${verbose}" -ne 0 ]; then
 		set -o xtrace
 	fi
+
+	# Add additional flags
+	result_command="${result_command} ${container_manager_additional_flags}"
 
 	# Run selected container with specified command.
 	result_command="${result_command} ${container_name} ${container_command}"

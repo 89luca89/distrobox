@@ -29,6 +29,7 @@
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
+container_manager_additional_flags=""
 container_clone=""
 container_image="${DBX_CONTAINER_IMAGE:-""}"
 container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
@@ -124,6 +125,20 @@ while :; do
 	-N | --non-interactive)
 		non_interactive=1
 		shift
+		;;
+	--volume)
+		if [ -n "$2" ]; then
+			container_manager_additional_flags="${container_manager_additional_flags} ${1} ${2}"
+			shift
+			shift
+		fi
+		;;
+	--additional-flags)
+		if [ -n "$2" ]; then
+			container_manager_additional_flags="${container_manager_additional_flags} ${2}"
+			shift
+			shift
+		fi
 		;;
 	--) # End of all options.
 		shift
@@ -324,6 +339,10 @@ generate_command() {
 		--annotation run.oci.keep_original_groups=1
 		--mount type=devpts,destination=/dev/pts"
 	fi
+
+	# Add additional flags
+	result_command="${result_command} ${container_manager_additional_flags}"
+
 	# Now execute the entrypoint, refer to `distrobox-init -h` for instructions
 	result_command="${result_command} ${container_image}
 		/usr/bin/entrypoint -v --name ${container_user_name}
