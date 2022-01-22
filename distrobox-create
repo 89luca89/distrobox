@@ -45,7 +45,7 @@ distrobox_export_path="$(realpath "$(dirname "${0}")"/distrobox-export)"
 [ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(realpath "$(command -v distrobox-export)")"
 non_interactive="${DBX_NON_INTERACTIVE:-0}"
 verbose=0
-version="1.2.12"
+version="1.2.13"
 
 # Print usage to stdout.
 # Arguments:
