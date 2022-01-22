@@ -39,7 +39,7 @@ First we need to change a couple of bits in the distrobox container to make host
 accessible from within the host:
 
 ```shell
-~$ distrobox enter fedora rawhide
+~$ distrobox enter fedora-rawhide
 user@fedora-rawhide:~$ rm -rf /run/systemd/{seats,sessions,system,users}
 user@fedora-rawhide:~$ ln -s /run/host/run/systemd/{seats,sessions,system,users} /run/systemd
 ```
@@ -96,12 +96,12 @@ Let's log out and voilá!
 We now are in a GNOME 42 session inside Fedora Rawhide while our main OS remains
 Centos.
 
-## Running Latest KDE
+## Running Latest KDEffplay
 
 We can do the same with KDE also, let's first set up the host's systemd session sharing with the container:
 
 ```shell
-~$ distrobox enter fedora rawhide
+~$ distrobox enter fedora-rawhide
 user@fedora-rawhide:~$ rm -rf /run/systemd/{seats,sessions,system,users}
 user@fedora-rawhide:~$ ln -s /run/host/run/systemd/{seats,sessions,system,users} /run/systemd
 ```
@@ -121,7 +121,7 @@ on your login manager (Be it SSDM or GDM)
 [Desktop Entry]
 Exec=/usr/local/bin/distrobox-enter -- /usr/libexec/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland
 DesktopNames=KDE
-Name=Plasma on Wayland )fedora-rawhide distrobox)
+Name=Plasma on Wayland (fedora-rawhide distrobox)
 X-KDE-PluginInfo-Version=5.23.3
 ```
 
