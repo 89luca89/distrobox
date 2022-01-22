@@ -175,14 +175,14 @@ mount_bind() (
 # If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Check if dependencies are met for the script to run.
-if ! command -v mount || ! command -v mount || ! command -v passwd ||
+if ! command -v find || ! command -v mount || ! command -v passwd ||
 	! command -v sudo || ! command -v useradd || ! command -v usermod ||
 	! command -v "${shell_pkg}"; then
 
 	# Detect the available package manager
 	# install minimal dependencies needed to bootstrap the container:
 	#	the same shell that's on the host
-	#	sudo, mount
+	#	sudo, mount, find
 	#	passwd, groupadd and useradd
 	if command -v apk; then
 		apk add \
