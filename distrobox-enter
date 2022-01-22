@@ -32,8 +32,8 @@ container_command="${SHELL:-"bash"}"
 # Work around for shells that are not in the container's file system, nor PATH.
 # For example in hosts that do not follow FHS, like NixOS or for shells in custom
 # exotic paths.
-container_manager_additional_flags=""
 container_command="$(basename "${container_command}") -l"
+container_manager_additional_flags=""
 container_name="${DBX_CONTAINER_NAME:-""}"
 container_name_default="fedora-toolbox-35"
 headless=0
@@ -53,12 +53,16 @@ Usage:
 
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 	distrobox-enter my-alpine-container -- sh -l
+	distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
+	distrobox-enter --additional-flags "--env MY_VAR=value" --name test -- bash -l
+	MY_VAR=value distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
 
 Options:
 
 	--name/-n:		name for the distrobox						default: fedora-toolbox-35
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
 	--headless/-H:		do not instantiate a tty
+	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -92,7 +96,7 @@ while :; do
 			shift
 		fi
 		;;
-	--additional-flags)
+	-a | --additional-flags)
 		if [ -n "$2" ]; then
 			container_manager_additional_flags="${container_manager_additional_flags} ${2}"
 			shift

@@ -10,6 +10,8 @@ Usage:
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox-create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
 	distrobox-create --image alpine my-alpine-container
+	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
+	distrobox create --image fedora:35 --name test--additional-flags "--env MY_VAR-value"
 
 You can also use environment variables to specify container name and image
 
@@ -30,6 +32,8 @@ Options:
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
 	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
+	--volume		additional volumes to add to the container
+	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
