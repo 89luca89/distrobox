@@ -387,9 +387,9 @@ if ! ${container_manager} inspect --type image "${container_image}" >/dev/null 2
 	if [ "${non_interactive}" -eq 0 ]; then
 		# Prompt to download it.
 		printf >&2 "Image %s not found.\n" "${container_image}"
-		printf >&2 "Do you want to pull the image now? [y/N]: "
+		printf >&2 "Do you want to pull the image now? [Y/n]: "
 		read -r response
-		response="${response:-"N"}"
+		response="${response:-"Y"}"
 	else
 		response="yes"
 	fi
