@@ -11,6 +11,9 @@ Usage:
 .nf
 distrobox\-enter \-\-name fedora\-toolbox\-35 \-\- bash \-l
 distrobox\-enter my\-alpine\-container \-\- sh \-l
+distrobox\-enter \-\-additional\-flags "\-\-preserve\-fds" \-\-name test \-\- bash \-l
+distrobox\-enter \-\-additional\-flags "\-\-env MY_VAR=value" \-\-name test \-\- bash \-l
+MY_VAR=value distrobox\-enter \-\-additional\-flags "\-\-preserve\-fds" \-\-name test \-\- bash \-l
 .fi
 .IP "" 0
 .P
@@ -27,6 +30,7 @@ Options:
 \-\-name/\-n:		name for the distrobox						default: fedora\-toolbox\-35
 \-\-/\-e:			end arguments execute the rest as command to execute at login	default: bash \-l
 \-\-headless/\-H:		do not instantiate a tty
+\-\-additional\-flags/\-a:	additional flags to pass to the container manager command
 \-\-help/\-h:		show this message
 \-\-verbose/\-v:		show more verbosity
 \-\-version/\-V:		show version
@@ -34,3 +38,20 @@ Options:
 .IP "" 0
 .P
 This is used to enter the distrobox itself\. Personally, I just create multiple profiles in my \fBgnome\-terminal\fR to have multiple distros accessible\.
+.P
+The \fB\-\-additional\-flags\fR or \fB\-a\fR is useful to modify default command when executing in the container\. For example:
+.IP "" 4
+.nf
+distrobox enter \-n dev\-arch \-\-additional\-flags "\-\-env my_var=test" \-\- printenv &| grep my_var
+my_var=test
+.fi
+.IP "" 0
+.P
+This is possible also using normal env variables:
+.IP "" 4
+.nf
+my_var=test distrobox enter \-n dev\-arch \-\-additional\-flags \-\- printenv &| grep my_var
+my_var=test
+.fi
+.IP "" 0
+

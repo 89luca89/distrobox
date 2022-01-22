@@ -32,6 +32,7 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 container_clone=""
 container_image="${DBX_CONTAINER_IMAGE:-""}"
 container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
+container_manager_additional_flags=""
 container_name="${DBX_CONTAINER_NAME:-""}"
 container_user_custom_home=""
 container_user_gid="$(id -rg)"
@@ -60,6 +61,9 @@ Usage:
 	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox-create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
 	distrobox-create --image alpine my-alpine-container
+	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
+	distrobox create --image fedora:35 --name test--additional-flags "--env MY_VAR-value"
+
 	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
 Options:
@@ -71,6 +75,8 @@ Options:
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
 	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
+	--volume		additional volumes to add to the container
+	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -124,6 +130,20 @@ while :; do
 	-N | --non-interactive)
 		non_interactive=1
 		shift
+		;;
+	--volume)
+		if [ -n "$2" ]; then
+			container_manager_additional_flags="${container_manager_additional_flags} ${1} ${2}"
+			shift
+			shift
+		fi
+		;;
+	-a | --additional-flags)
+		if [ -n "$2" ]; then
+			container_manager_additional_flags="${container_manager_additional_flags} ${2}"
+			shift
+			shift
+		fi
 		;;
 	--) # End of all options.
 		shift
@@ -324,6 +344,10 @@ generate_command() {
 		--annotation run.oci.keep_original_groups=1
 		--mount type=devpts,destination=/dev/pts"
 	fi
+
+	# Add additional flags
+	result_command="${result_command} ${container_manager_additional_flags}"
+
 	# Now execute the entrypoint, refer to `distrobox-init -h` for instructions
 	result_command="${result_command} ${container_image}
 		/usr/bin/entrypoint -v --name ${container_user_name}
