@@ -96,7 +96,7 @@ Let's log out and voilá!
 We now are in a GNOME 42 session inside Fedora Rawhide while our main OS remains
 Centos.
 
-## Running Latest KDEffplay
+## Running Latest KDE
 
 We can do the same with KDE also, let's first set up the host's systemd session sharing with the container:
 
