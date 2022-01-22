@@ -37,3 +37,27 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
+
+The `--additional-flags` or `-a` is useful to modify defaults in the container creations.
+For example:
+
+	distrobox create -i docker.io/library/archlinux -n dev-arch
+
+	podman container inspect dev-arch | jq '.[0].HostConfig.PidsLimit'
+	2048
+
+	distrobox rm -f dev-arch
+	distrobox create -i docker.io/library/archlinux -n dev-arch --volume $CBL_TC:/tc --additional-flags "--pids-limit -1"
+
+	podman container inspect dev-arch | jq '.[0].HostConfig,.PidsLimit'
+	0
+
+Additional volumes can be specified using the `--volume` flag. This flag follows the same standard as `docker` and `podman`
+to specify the mount point so `--volume SOURCE_PATH:DEST_PATH:MODE`.
+
+	distrobox create --image docker.io/library/archlinux --name dev-arch --volume /usr/share/:/var/test:ro
+
+During container creation, it is possible to specify (using the additional-flags) some environment variables that will
+persist in the container and be independent from your environment:
+
+	distrobox create --image fedora:35 --name test--additional-flags "--env MY_VAR-value"

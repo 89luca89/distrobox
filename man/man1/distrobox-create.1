@@ -50,4 +50,34 @@ Options:
 \-\-version/\-V:		show version
 .fi
 .IP "" 0
+.P
+The \fB\-\-additional\-flags\fR or \fB\-a\fR is useful to modify defaults in the container creations\. For example:
+.IP "" 4
+.nf
+distrobox create \-i docker\.io/library/archlinux \-n dev\-arch
+
+podman container inspect dev\-arch | jq \'\.[0]\.HostConfig\.PidsLimit\'
+2048
+
+distrobox rm \-f dev\-arch
+distrobox create \-i docker\.io/library/archlinux \-n dev\-arch \-\-volume $CBL_TC:/tc \-\-additional\-flags "\-\-pids\-limit \-1"
+
+podman container inspect dev\-arch | jq \'\.[0]\.HostConfig,\.PidsLimit\'
+0
+.fi
+.IP "" 0
+.P
+Additional volumes can be specified using the \fB\-\-volume\fR flag\. This flag follows the same standard as \fBdocker\fR and \fBpodman\fR to specify the mount point so \fB\-\-volume SOURCE_PATH:DEST_PATH:MODE\fR\.
+.IP "" 4
+.nf
+distrobox create \-\-image docker\.io/library/archlinux \-\-name dev\-arch \-\-volume /usr/share/:/var/test:ro
+.fi
+.IP "" 0
+.P
+During container creation, it is possible to specify (using the additional\-flags) some environment variables that will persist in the container and be independent from your environment:
+.IP "" 4
+.nf
+distrobox create \-\-image fedora:35 \-\-name test\-\-additional\-flags "\-\-env MY_VAR\-value"
+.fi
+.IP "" 0
 

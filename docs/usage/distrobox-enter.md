@@ -29,3 +29,15 @@ Options:
 	--version/-V:		show version
 
 This is used to enter the distrobox itself. Personally, I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
+
+
+The `--additional-flags` or `-a` is useful to modify default command when executing in the container.
+For example:
+
+	distrobox enter -n dev-arch --additional-flags "--env my_var=test" -- printenv &| grep my_var
+	my_var=test
+
+This is possible also using normal env variables:
+
+	my_var=test distrobox enter -n dev-arch --additional-flags -- printenv &| grep my_var
+	my_var=test

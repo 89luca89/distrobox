@@ -38,3 +38,20 @@ Options:
 .IP "" 0
 .P
 This is used to enter the distrobox itself\. Personally, I just create multiple profiles in my \fBgnome\-terminal\fR to have multiple distros accessible\.
+.P
+The \fB\-\-additional\-flags\fR or \fB\-a\fR is useful to modify default command when executing in the container\. For example:
+.IP "" 4
+.nf
+distrobox enter \-n dev\-arch \-\-additional\-flags "\-\-env my_var=test" \-\- printenv &| grep my_var
+my_var=test
+.fi
+.IP "" 0
+.P
+This is possible also using normal env variables:
+.IP "" 4
+.nf
+my_var=test distrobox enter \-n dev\-arch \-\-additional\-flags \-\- printenv &| grep my_var
+my_var=test
+.fi
+.IP "" 0
+
