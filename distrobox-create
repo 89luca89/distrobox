@@ -396,5 +396,5 @@ cmd="$(generate_command)"
 if eval ${cmd}; then
 	printf "Distrobox '%s' successfully created.\n" "${container_name}"
 	printf "To enter, run:\n"
-	printf "\tdistrobox-enter --name %s\n" "${container_name}"
+	printf "\tdistrobox-enter %s\n" "${container_name}"
 fi

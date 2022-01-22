@@ -222,7 +222,7 @@ if [ "${container_exists}" -gt 0 ]; then
 	# If not, prompt to create it first
 	printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
 	printf >&2 "\nTry running first:\n"
-	printf >&2 "\tdistrobox-create --name <name-of-container> --image <remote>/<docker>:<tag>\n"
+	printf >&2 "\tdistrobox-create <name-of-container> --image <remote>/<docker>:<tag>\n"
 	exit 1
 fi
 
