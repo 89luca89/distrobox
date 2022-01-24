@@ -171,6 +171,12 @@ if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
 	exit 126
 fi
 
+# We're working with HOME, so we must run as USER, not as root.
+if [ "$(id -u)" -eq 0 ]; then
+	printf >&2 "You must not run %s as root!\n" " $(basename "$0")"
+	exit 1
+fi
+
 # Ensure the foundamental variables are set and not empty, we will not proceed
 # if they are not all set.
 if [ -z "${exported_app}" ] &&
