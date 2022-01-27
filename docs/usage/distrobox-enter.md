@@ -22,7 +22,7 @@ Options:
 
 	--name/-n:		name for the distrobox						default: fedora-toolbox-35
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
-	--headless/-H:		do not instantiate a tty
+	--no-tty/-T:		do not instantiate a tty
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity

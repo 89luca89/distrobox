@@ -13,7 +13,8 @@ distrobox\-create \-\-image registry\.fedoraproject\.org/fedora\-toolbox:35 \-\-
 distrobox\-create \-\-clone fedora\-toolbox\-35 \-\-name fedora\-toolbox\-35\-copy
 distrobox\-create \-\-image alpine my\-alpine\-container
 distrobox create \-\-image fedora:35 \-\-name test \-\-volume /opt/my\-dir:/usr/local/my\-dir:rw \-\-additional\-flags "\-\-pids\-limit \-1"
-distrobox create \-\-image fedora:35 \-\-name test\-\-additional\-flags "\-\-env MY_VAR\-value"
+distrobox create \-\-image fedora:35 \-\-name test \-\-additional\-flags "\-\-env MY_VAR\-value"
+distrobox create \-\-image alpine:latest \-\-name test \-\-init\-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
 .fi
 .IP "" 0
 .P
@@ -38,13 +39,14 @@ Options:
 .nf
 \-\-image/\-i:		image to use for the container	default: registry\.fedoraproject\.org/fedora\-toolbox:35
 \-\-name/\-n:		name for the distrobox		default: fedora\-toolbox\-35
-\-\-non\-interactive/\-N:	non\-interactive, pull images without asking
+\-\-yes/\-Y:	non\-interactive, pull images without asking
 \-\-clone/\-c:		name of the distrobox container to use as base for a new container
 			this will be useful to either rename an existing distrobox or have multiple copies
 			of the same environment\.
 \-\-home/\-H		select a custom HOME directory for the container\. Useful to avoid host\'s home littering with temp files\.
 \-\-volume		additional volumes to add to the container
 \-\-additional\-flags/\-a:	additional flags to pass to the container manager command
+\-\-init\-hooks		additional commands to execute during container initialization
 \-\-help/\-h:		show this message
 \-\-verbose/\-v:		show more verbosity
 \-\-version/\-V:		show version
@@ -77,7 +79,14 @@ distrobox create \-\-image docker\.io/library/archlinux \-\-name dev\-arch \-\-v
 During container creation, it is possible to specify (using the additional\-flags) some environment variables that will persist in the container and be independent from your environment:
 .IP "" 4
 .nf
-distrobox create \-\-image fedora:35 \-\-name test\-\-additional\-flags "\-\-env MY_VAR\-value"
+distrobox create \-\-image fedora:35 \-\-name test \-\-additional\-flags "\-\-env MY_VAR\-value"
+.fi
+.IP "" 0
+.P
+The \fB\-\-init\-hooks\fR is useful to add commands to the entrypoint (init) of the container\. This could be useful to create containers with a set of programs already installed, add users, groups\.
+.IP "" 4
+.nf
+distrobox create  \-\-image fedora:35 \-\-name test \-\-init\-hooks "dnf groupinstall \-y \e"C Development Tools and Libraries\e""
 .fi
 .IP "" 0
 

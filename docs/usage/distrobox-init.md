@@ -24,6 +24,7 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
+	--:			end arguments execute the rest as command to execute during init
 
 This is used as entrypoint for the created container, it will take care of creating the users,
 setting up sudo, mountpoints, and exports.
