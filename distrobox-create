@@ -298,7 +298,7 @@ generate_command() {
 	# source also in the container.
 	if [ -L "/dev/shm" ]; then
 		result_command="${result_command}
-			--volume $(realpath /dev/shm)=$(realpath /dev/shm)"
+			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
 	fi
 
 	# If we have a custom home to use,
