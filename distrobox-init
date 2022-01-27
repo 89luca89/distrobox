@@ -26,9 +26,9 @@
 trap '[ "$?" -ne 0 ] && printf "Error: An error occurred\n"' EXIT
 
 # Defaults
+init_hook=""
 verbose=0
 version="1.2.13"
-
 # Print usage to stdout.
 # Arguments:
 #   None
@@ -51,6 +51,7 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
+	--:			end arguments execute the rest as command to execute during init
 EOF
 }
 
@@ -97,6 +98,11 @@ while :; do
 			shift
 			shift
 		fi
+		;;
+	--)
+		shift
+		init_hook=$*
+		break
 		;;
 	*) # Default case: If no more options then break out of the loop.
 		break ;;
@@ -484,6 +490,10 @@ if ! mount_bind "/run/host/usr/share/fonts" "${container_user_home}/.local/share
 	printf "Warning: Cannot bind mount /run/host/usr/share/fonts to %s/.local/share/fonts\n" "${container_user_home}"
 	printf "Warning: Fonts integration with the host is disabled.\n"
 fi
+
+# execute eventual init hooks if specified
+# shellcheck disable=SC2086
+eval ${init_hook}
 
 printf "container_setup_done\n"
 # Keepalive loop

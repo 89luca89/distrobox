@@ -32,6 +32,7 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 container_clone=""
 container_image="${DBX_CONTAINER_IMAGE:-""}"
 container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
+container_init_hook=""
 container_manager_additional_flags=""
 container_name="${DBX_CONTAINER_NAME:-""}"
 container_user_custom_home=""
@@ -62,7 +63,8 @@ Usage:
 	distrobox-create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
 	distrobox-create --image alpine my-alpine-container
 	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
-	distrobox create --image fedora:35 --name test--additional-flags "--env MY_VAR-value"
+	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
+	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
 
 	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
@@ -77,6 +79,7 @@ Options:
 	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
 	--volume		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
+	--init-hooks		additional commands to execute during container initialization
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -141,6 +144,13 @@ while :; do
 	-a | --additional-flags)
 		if [ -n "$2" ]; then
 			container_manager_additional_flags="${container_manager_additional_flags} ${2}"
+			shift
+			shift
+		fi
+		;;
+	--init-hooks)
+		if [ -n "$2" ]; then
+			container_init_hook="$2"
 			shift
 			shift
 		fi
@@ -362,7 +372,9 @@ generate_command() {
 		/usr/bin/entrypoint -v --name ${container_user_name}
 			--user ${container_user_uid}
 			--group ${container_user_gid}
-			--home ${container_user_custom_home:-"${container_user_home}"}"
+			--home ${container_user_custom_home:-"${container_user_home}"}
+			-- '${container_init_hook}'
+			"
 	# use container_user_custom_home if defined, else fallback to normal home.
 
 	# Return generated command.
