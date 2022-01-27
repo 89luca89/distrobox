@@ -292,6 +292,15 @@ generate_command() {
 		--volume /sys:/sys:rslave
 		--volume /tmp:/tmp:rslave"
 
+	# In some systems, for example using sysvinit, /dev/shm is a symlink
+	# to /run/shm, instead of the other way around.
+	# Resolve this detecting if /dev/shm is a symlink and mount original
+	# source also in the container.
+	if [ -L "/dev/shm" ]; then
+		result_command="${result_command}
+			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
+	fi
+
 	# If we have a custom home to use,
 	#	1- override the HOME env variable
 	#	2- expor the DISTROBOX_HOST_HOME env variable pointing to original HOME
