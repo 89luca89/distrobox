@@ -60,6 +60,9 @@ list)
 rm)
 	"${distrobox_path}"/distrobox-rm "$@"
 	;;
+help | --help | -h )
+	man distrobox
+	;;
 *) # Default case: If no more options then break out of the loop.
 	printf >&2 "Error: invalid command\n"
 	show_help
