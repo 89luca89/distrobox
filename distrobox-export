@@ -356,7 +356,7 @@ export_application() {
 				sed "s|Name.*|& ${exported_app_label}|g" \
 					>"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 			if ! grep -q "StartupWMClass" "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"; then
-				printf "StartupWMClass=%s\n" "${exported_app}" >> "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+				printf "StartupWMClass=%s\n" "${exported_app}" >>"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 			fi
 			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
