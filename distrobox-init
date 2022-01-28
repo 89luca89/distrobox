@@ -379,7 +379,7 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 	# and export them to the container.
 	set +o xtrace
 	net_mounts=""
-	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS} '/dev' '/proc' '/sys' '/tmp'; do
+	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS} '/dev' '/proc' '/sys' '/tmp' '/etc/host.conf' '/etc/hosts' '/etc/resolv.conf' '/etc/localtime' '/usr/share/zoneinfo'; do
 		net_mounts="${net_mount}:${net_mounts}"
 	done
 	# re-enable logging if it was enabled previously.
