@@ -45,6 +45,7 @@ distrobox_export_path="$(realpath "$(dirname "${0}")"/distrobox-export)"
 [ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(realpath "$(command -v distrobox-init)")"
 [ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(realpath "$(command -v distrobox-export)")"
 non_interactive="${DBX_NON_INTERACTIVE:-0}"
+dryrun=0
 verbose=0
 version="1.2.13"
 
@@ -81,6 +82,7 @@ Options:
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--init-hooks		additional commands to execute during container initialization
 	--help/-h:		show this message
+	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 EOF
@@ -102,6 +104,10 @@ while :; do
 		printf "distrobox: %s\n" "${version}"
 		exit 0
 		;;
+	-d | --dry-run)
+		shift
+		dryrun=1
+		;;
 	-i | --image)
 		if [ -n "$2" ]; then
 			container_image="$2"
@@ -116,7 +122,7 @@ while :; do
 			shift
 		fi
 		;;
-	-d | --clone)
+	-c | --clone)
 		if [ -n "$2" ]; then
 			container_clone="$2"
 			shift
@@ -386,6 +392,17 @@ generate_command() {
 if [ -z "${distrobox_entrypoint_path}" ] || [ -z "${distrobox_export_path}" ]; then
 	printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}"
 	exit 127
+fi
+
+# dry run mode, just generate the command and print it. No creation.
+if [ "${dryrun}" -ne 0 ]; then
+	if [ -n "${container_clone}" ]; then
+		container_image="${container_clone}"
+	fi
+	cmd="$(generate_command)"
+	cmd="$(echo "${cmd}" | tr '[:blank:]\n' ' ' | tr -s ' ')"
+	printf "%s\n" "${cmd}"
+	exit 0
 fi
 
 # Check if the container already exists.

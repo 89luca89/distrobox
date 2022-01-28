@@ -36,6 +36,7 @@ container_command="$(basename "${container_command}") -l"
 container_manager_additional_flags=""
 container_name="${DBX_CONTAINER_NAME:-""}"
 container_name_default="fedora-toolbox-35"
+dryrun=0
 headless=0
 verbose=0
 version="1.2.13"
@@ -64,6 +65,7 @@ Options:
 	--no-tty/-T:		do not instantiate a tty
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
+	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 EOF
@@ -88,6 +90,10 @@ while :; do
 	-V | --version)
 		printf "distrobox: %s\n" "${version}"
 		exit 0
+		;;
+	-d | --dry-run)
+		shift
+		dryrun=1
 		;;
 	-n | --name)
 		if [ -n "$2" ]; then
@@ -227,6 +233,14 @@ generate_command() {
 	# Return generated command.
 	printf "%s" "${result_command}"
 }
+
+# dry run mode, just generate the command and print it. No execution.
+if [ "${dryrun}" -ne 0 ]; then
+	cmd="$(generate_command)"
+	cmd="$(echo "${cmd}" | tr '[:blank:]\n' ' ' | tr -s ' ')"
+	printf "%s\n" "${cmd}"
+	exit 0
+fi
 
 # Inspect the container we're working with.
 container_status="$(${container_manager} inspect --type container \
