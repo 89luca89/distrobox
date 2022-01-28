@@ -13,7 +13,7 @@ Usage:
 	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
 	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
 	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
-
+	distrobox create -i docker.io/almalinux/8-init --init --name test
 
 You can also use environment variables to specify container name and image
 
@@ -37,6 +37,8 @@ Options:
 	--volume		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--init-hooks		additional commands to execute during container initialization
+	--init/-I		use init system (like systemd) inside the container.
+				this will make host's processes not visible from within the container.
 	--help/-h:		show this message
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
@@ -70,3 +72,22 @@ The `--init-hooks` is useful to add commands to the entrypoint (init) of the con
 to create containers with a set of programs already installed, add users, groups.
 
 	distrobox create  --image fedora:35 --name test --init-hooks "dnf groupinstall -y \"C Development Tools and Libraries\""
+
+The `--init` is useful to create a container that will use its own separate init system within. For example using:
+
+	distrobox create -i docker.io/almalinux/8-init --init-hooks "dnf install -y openssh-server" --init --name test
+
+Inside the container we will be able to use normal systemd units:
+
+	~$ distrobox enter test
+	user@test:~$ sudo systemctl enable --now sshd
+	user@test:~$ sudo systemctl status sshd
+		● sshd.service - OpenSSH server daemon
+		   Loaded: loaded (/usr/lib/systemd/system/sshd.service; enabled; vendor preset: enabled)
+		   Active: active (running) since Fri 2022-01-28 22:54:50 CET; 17s ago
+			 Docs: man:sshd(8)
+				   man:sshd_config(5)
+		 Main PID: 291 (sshd)
+
+Note that enabling `--init` **will disable host's process integration**. From within the container you will not be able
+to see and manage host's processes. This is needed because `/sbin/init` must be pid 1.

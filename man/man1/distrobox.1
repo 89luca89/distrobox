@@ -15,6 +15,7 @@ distrobox\-create \-\-image alpine my\-alpine\-container
 distrobox create \-\-image fedora:35 \-\-name test \-\-volume /opt/my\-dir:/usr/local/my\-dir:rw \-\-additional\-flags "\-\-pids\-limit \-1"
 distrobox create \-\-image fedora:35 \-\-name test \-\-additional\-flags "\-\-env MY_VAR\-value"
 distrobox create \-\-image alpine:latest \-\-name test \-\-init\-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
+distrobox create \-i docker\.io/almalinux/8\-init \-\-init \-\-name test
 .fi
 .IP "" 0
 .P
@@ -47,6 +48,8 @@ Options:
 \-\-volume		additional volumes to add to the container
 \-\-additional\-flags/\-a:	additional flags to pass to the container manager command
 \-\-init\-hooks		additional commands to execute during container initialization
+\-\-init/\-I		use init system (like systemd) inside the container\.
+			this will make host\'s processes not visible from within the container\.
 \-\-help/\-h:		show this message
 \-\-dry\-run/\-d:		only print the container manager command generated
 \-\-verbose/\-v:		show more verbosity
@@ -90,7 +93,30 @@ The \fB\-\-init\-hooks\fR is useful to add commands to the entrypoint (init) of 
 distrobox create  \-\-image fedora:35 \-\-name test \-\-init\-hooks "dnf groupinstall \-y \e"C Development Tools and Libraries\e""
 .fi
 .IP "" 0
-
+.P
+The \fB\-\-init\fR is useful to create a container that will use its own separate init system within\. For example using:
+.IP "" 4
+.nf
+distrobox create \-i docker\.io/almalinux/8\-init \-\-init\-hooks "dnf install \-y openssh\-server" \-\-init \-\-name test
+.fi
+.IP "" 0
+.P
+Inside the container we will be able to use normal systemd units:
+.IP "" 4
+.nf
+~$ distrobox enter test
+user@test:~$ sudo systemctl enable \-\-now sshd
+user@test:~$ sudo systemctl status sshd
+	● sshd\.service \- OpenSSH server daemon
+	   Loaded: loaded (/usr/lib/systemd/system/sshd\.service; enabled; vendor preset: enabled)
+	   Active: active (running) since Fri 2022\-01\-28 22:54:50 CET; 17s ago
+		 Docs: man:sshd(8)
+			   man:sshd_config(5)
+	 Main PID: 291 (sshd)
+.fi
+.IP "" 0
+.P
+Note that enabling \fB\-\-init\fR \fBwill disable host\'s process integration\fR\. From within the container you will not be able to see and manage host\'s processes\. This is needed because \fB/sbin/init\fR must be pid 1\.
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
 .TH "DISTROBOX\-ENTER\.1" "" "January 2022" "Distrobox" "Distrobox"
@@ -289,6 +315,7 @@ Options:
 \-\-group/\-g:		gid of the user
 \-\-home/\-d:		path/to/home of the user
 \-\-help/\-h:		show this message
+\-\-init/\-I:		whether to use or not init
 \-\-verbose/\-v:		show more verbosity
 \-\-version/\-V:		show version
 \-\-:			end arguments execute the rest as command to execute during init

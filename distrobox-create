@@ -46,6 +46,7 @@ distrobox_export_path="$(realpath "$(dirname "${0}")"/distrobox-export)"
 [ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(realpath "$(command -v distrobox-export)")"
 non_interactive="${DBX_NON_INTERACTIVE:-0}"
 dryrun=0
+init=0
 verbose=0
 version="1.2.13"
 
@@ -66,6 +67,7 @@ Usage:
 	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
 	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
 	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
+	distrobox create -i docker.io/almalinux/8-init --init --name test
 
 	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
@@ -81,6 +83,8 @@ Options:
 	--volume		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--init-hooks		additional commands to execute during container initialization
+	--init/-I		use init system (like systemd) inside the container.
+				this will make host's processes not visible from within the container.
 	--help/-h:		show this message
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
@@ -107,6 +111,10 @@ while :; do
 	-d | --dry-run)
 		shift
 		dryrun=1
+		;;
+	-I | --init)
+		shift
+		init=1
 		;;
 	-i | --image)
 		if [ -n "$2" ]; then
@@ -284,11 +292,14 @@ generate_command() {
 		--ipc host
 		--name ${container_name}
 		--network host
-		--pid host
 		--privileged
 		--security-opt label=disable
 		--user root:root"
 
+	if [ "${init}" -eq 0 ]; then
+		result_command="${result_command}
+			--pid host"
+	fi
 	# Mount useful stuff inside the container.
 	# We also mount host's root filesystem to /run/host, to be able to syphon
 	# dynamic configurations from the host.
@@ -379,6 +390,7 @@ generate_command() {
 			--user ${container_user_uid}
 			--group ${container_user_gid}
 			--home ${container_user_custom_home:-"${container_user_home}"}
+			--init ${init}
 			-- '${container_init_hook}'
 			"
 	# use container_user_custom_home if defined, else fallback to normal home.
