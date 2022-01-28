@@ -60,7 +60,7 @@ list)
 rm)
 	"${distrobox_path}"/distrobox-rm "$@"
 	;;
-help | --help | -h )
+help | --help | -h)
 	man distrobox
 	;;
 *) # Default case: If no more options then break out of the loop.
