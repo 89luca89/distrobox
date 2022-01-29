@@ -51,7 +51,7 @@ Distrobox has been successfully tested on:
 | OpenSUSE | Leap 15<br>Tumbleweed | |
 | OpenSUSE MicroOS | 20211209 | |
 | Void Linux | glibc | Systemd service export will not work. |
-| NixOS | 21.11 | __NOTE NixOS support is preliminary, and there are many bugs present, any help in improving support is appreciated__ <br> Currently you must have your default shell set to Bash, if it is not, make sure you edit your configuration.nix so that it is. <br> To install distrobox:<br>`mkdir -p ~/.local/bin`<br>Add `PATH=$PATH:$HOME/.local/bin` to your bashrc<br>Execute [THIS](#installation) command without sudo.<br>To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker) <br>To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
+| NixOS | 21.11 | Currently you must have your default shell set to Bash, if it is not, make sure you edit your configuration.nix so that it is. <br>Also make sure to mind your executable paths. Sometimes a container will not have nix paths, and sometimes it will not have its own paths. <br> To install distrobox:<br>`mkdir -p ~/.local/bin`<br>Add `PATH=$PATH:$HOME/.local/bin` to your bashrc<br>Execute [THIS](#installation) command without sudo.<br>To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker) <br>To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
 | Windows WSL2 | | __NOTE WSL2 support is preliminary, and there are many bugs present, any help in improving support is appreciated__ <br> Currently you must work around some incompatibility between WSL2 and Podman, namely [THIS](https://github.com/containers/podman/issues/12236). <br>Install into WSL2 any of the supported distributions in this list. <br> Ensure you have an entry in the `fstab` for the `/tmp` folder:<br> `echo 'tmpfs /tmp tmps defaults 0 0' >> /etc/fstab`.<br>Then reboot the WSL machine `wsl --shutdown` <br>Note that `distrobox export` is not supported on WSL2 and will not work. |
 
 If your container is not able to connect to your host xserver, make sure to install `xhost` on the host machine
@@ -108,6 +108,7 @@ can take a while as it will download and install the missing dependencies.
 A small time tax to pay for the ability to use any type of image.
 This will **not** occur after the first time, **subsequent enters will be much faster.**
 
+NixOS is not a supported container distro, and there are currently no plans to bring support to it. If you are looking for unprivlaged NixOS environments, we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html). 
 #### New Distro support
 
 If your distro of choice is not on the list, open an issue requesting support for it,
@@ -127,3 +128,4 @@ host.
 
 Keep also in mind that mirrors could be down for such old releases, so you will
 need to build a [custom distrobox image to ensure basic dependencies are met](./distrobox_custom.md).
+
