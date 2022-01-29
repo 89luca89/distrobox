@@ -327,6 +327,14 @@ generate_command() {
 		result_command="${result_command}
 			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
 	fi
+    # If you are using NixOS, or have Nix installed, /nix is a volume containing you binaries and many configs. 
+    #/nix needs to be mounted if you want to execute those binaries from within the container. 
+    #Therefore we need to mount /nix as a volume, but only if it exists. 
+    if [ -d "/nix" ]; then
+        result_command="${result_command}
+            --volume /nix:/nix"
+    fi
+    
 
 	# If we have a custom home to use,
 	#	1- override the HOME env variable
