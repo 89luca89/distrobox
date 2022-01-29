@@ -192,6 +192,7 @@ shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Check if dependencies are met for the script to run.
 if ! command -v find || ! command -v mount || ! command -v passwd ||
 	! command -v sudo || ! command -v useradd || ! command -v usermod ||
+	! ls /etc/profile.d/*vte* ||
 	! command -v "${shell_pkg}"; then
 
 	# Detect the available package manager
