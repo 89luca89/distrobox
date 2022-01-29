@@ -155,6 +155,8 @@ fi
 #
 # This is not necessary on docker as it is already handled
 # in this way.
+
+# shellcheck disable=SC2312
 if [ -z "${container_manager#*podman*}" ] &&
 	[ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
 	systemctl --user status podman.socket >/dev/null; then
@@ -202,23 +204,47 @@ generate_command() {
 	# and export them to the container.
 	set +o xtrace
 	# disable logging fot this snippet, or it will be too talkative.
-	for i in $(printenv | grep '=' | grep -Ev ' |"' | grep -Ev '^(HOST|HOSTNAME|HOME|PATH|SHELL|USER|_)'); do
+	for i in $(printenv | grep '=' | grep -Ev ' |"' | grep -Ev '^(HOST|HOSTNAME|HOME|PATH|SHELL|USER|XDG_.*_DIRS|_)'); do
 		# We filter the environment so that we do not have strange variables,
 		# multiline or containing spaces.
 		# We also NEED to ignore the HOME variable, as this is set at create time
 		# and needs to stay that way to use custom home dirs.
 		result_command="${result_command} --env=\"${i}\""
 	done
+
 	# Ensure the standard FHS program paths are in PATH environment
 	standard_paths="/usr/local/sbin /usr/local/bin /usr/sbin /usr/bin /sbin /bin"
 	container_paths="${PATH}"
 	# add to the PATH only after the host's paths, and only if not already present.
 	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:${standard_path}*}" ]; then
+		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
 	result_command="${result_command} --env=\"PATH=${container_paths}\""
+
+	# Ensure the standard FHS program paths are in XDG_DATA_DIRS environment
+	standard_paths="/usr/local/share /usr/share"
+	container_paths="${XDG_DATA_DIRS:=}"
+	# add to the XDG_DATA_DIRS only after the host's paths, and only if not already present.
+	for standard_path in ${standard_paths}; do
+		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
+			container_paths="${container_paths}:${standard_path}"
+		fi
+	done
+	result_command="${result_command} --env=\"XDG_DATA_DIRS=${container_paths}\""
+
+	# Ensure the standard FHS program paths are in XDG_CONFIG_DIRS environment
+	standard_paths="/etc/xdg"
+	container_paths="${XDG_CONFIG_DIRS:=}"
+	# add to the XDG_CONFIG_DIRS only after the host's paths, and only if not already present.
+	for standard_path in ${standard_paths}; do
+		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
+			container_paths="${container_paths}:${standard_path}"
+		fi
+	done
+	result_command="${result_command} --env=\"XDG_CONFIG_DIRS=${container_paths}\""
+
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
 		set -o xtrace
