@@ -296,7 +296,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		zypper install -y \
 			"${shell_pkg}" \
 			findutils \
-			libvte-2 \
+			libvte-2_91-0 \
 			ncurses \
 			procps \
 			shadow \
