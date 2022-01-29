@@ -108,7 +108,7 @@ can take a while as it will download and install the missing dependencies.
 A small time tax to pay for the ability to use any type of image.
 This will **not** occur after the first time, **subsequent enters will be much faster.**
 
-NixOS is not a supported container distro, and there are currently no plans to bing support to it. If you are looking for unprivlaged NixOS environments, we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html). 
+NixOS is not a supported container distro, and there are currently no plans to bring support to it. If you are looking for unprivlaged NixOS environments, we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html). 
 #### New Distro support
 
 If your distro of choice is not on the list, open an issue requesting support for it,
