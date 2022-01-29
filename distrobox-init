@@ -26,6 +26,7 @@
 trap '[ "$?" -ne 0 ] && printf "Error: An error occurred\n"' EXIT
 
 # Defaults
+init=0
 init_hook=""
 verbose=0
 version="1.2.13"
@@ -49,6 +50,7 @@ Options:
 	--group/-g:		gid of the user
 	--home/-d:		path/to/home of the user
 	--help/-h:		show this message
+	--init/-I:		whether to use or not init
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 	--:			end arguments execute the rest as command to execute during init
@@ -74,6 +76,13 @@ while :; do
 	-n | --name)
 		if [ -n "$2" ]; then
 			container_user_name="$2"
+			shift
+			shift
+		fi
+		;;
+	-i | --init)
+		if [ -n "$2" ]; then
+			init="$2"
 			shift
 			shift
 		fi
@@ -183,6 +192,7 @@ shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Check if dependencies are met for the script to run.
 if ! command -v find || ! command -v mount || ! command -v passwd ||
 	! command -v sudo || ! command -v useradd || ! command -v usermod ||
+	! ls /etc/profile.d/*vte* ||
 	! command -v "${shell_pkg}"; then
 
 	# Detect the available package manager
@@ -496,5 +506,21 @@ fi
 eval ${init_hook}
 
 printf "container_setup_done\n"
-# Keepalive loop
-sleep infinity
+
+if [ "${init}" -eq 0 ]; then
+	# Keepalive loop
+	sleep infinity
+else
+	# some of this directories are needed by
+	# the init system. If they're mounts, there might
+	# be problems. Let's unmount them.
+	HOST_MOUNTS_RO_INIT="
+		/run/systemd/journal
+		/var/lib/systemd/coredump
+		/var/log/journal"
+	for host_mount in ${HOST_MOUNTS_RO_INIT}; do
+		umount "${host_mount}"
+	done
+	# Now we can launch init
+	exec /sbin/init
+fi

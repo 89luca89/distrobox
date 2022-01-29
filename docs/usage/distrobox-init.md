@@ -22,6 +22,7 @@ Options:
 	--group/-g:		gid of the user
 	--home/-d:		path/to/home of the user
 	--help/-h:		show this message
+	--init/-I:		whether to use or not init
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 	--:			end arguments execute the rest as command to execute during init

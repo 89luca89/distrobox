@@ -3,8 +3,12 @@
 # Distrobox
 
 ![Lint](https://github.com/89luca89/distrobox/actions/workflows/main.yml/badge.svg)
-[![GitHub](https://img.shields.io/github/license/89luca89/distrobox)](../COPYING.md)
+[![GitHub](https://img.shields.io/github/license/89luca89/distrobox?color=blue)](../COPYING.md)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/89luca89/distrobox)](https://github.com/89luca89/distrobox/releases/latest)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/89luca89/distrobox)
+[![Github issue needs help](https://img.shields.io/github/issues-raw/89luca89/distrobox/help%20wanted?color=blue&label=Help%20Wanted%20Issues)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+[![GitHub issues by-label](https://img.shields.io/github/issues-raw/89luca89/distrobox/bug?color=red&label=Open%20Bug%20Reports)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug%22)
+
 
 Use any Linux distribution inside your terminal.
 Distrobox uses `podman` or `docker` to create containers using the Linux distribution of your choice.

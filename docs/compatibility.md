@@ -78,6 +78,7 @@ Distrobox guests tested successfully with the following container images:
 | AlmaLinux (UBI) | 8     | docker.io/almalinux/8-base<br>docker.io/almalinux/8-init    |
 | Alpine Linux    | 3.14<br>3.15 | docker.io/library/alpine:latest    |
 | AmazonLinux | 2  | docker.io/library/amazonlinux:2.0.20211005.0    |
+| AmazonLinux | 2022  | public.ecr.aws/amazonlinux/amazonlinux:2022 |
 | Archlinux     | | docker.io/library/archlinux:latest    |
 | ClearLinux |      | docker.io/library/clearlinux:latest<br>docker.io/library/clearlinux:base    |
 | CentOS | 7<br>8 | quay.io/centos/centos:7<br>quay.io/centos/centos:8  |

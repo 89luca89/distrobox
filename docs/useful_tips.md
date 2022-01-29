@@ -5,6 +5,7 @@
   * [Check used resources](#check-used-resources)
   * [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
   * [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
+  * [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   * [Using distrobox as main cli](#using-distrobox-as-main-cli)
   * [Build a Gentoo distrobox container](distrobox_gentoo.md)
   * [Build a Dedicated distrobox container](distrobox_custom.md)
@@ -113,6 +114,37 @@ docker.sock into the container.
 
 So in the container just install `docker`, add yourself to the `docker` group, and
 you should be good to go.
+
+## Using init system inside a distrobox
+
+You can use an init system inside the container on supported images. Example of such images are:
+
+- docker.io/almalinux/8-init
+- registry.access.redhat.com/ubi7/ubi-init
+- registry.access.redhat.com/ubi8/ubi-init
+
+You can use such feature using:
+
+`distrobox create -i docker.io/almalinux/8-init --init --name test`
+
+Note however that in this mode, you'll not be able to access host's processes from within the container.
+
+Example use:
+
+```shell
+~$ distrobox create -i docker.io/almalinux/8-init --init --name test
+
+user@test:~$ sudo systemctl enable --now sshd
+
+user@test:~$ sudo systemctl status sshd
+    ● sshd.service - OpenSSH server daemon
+       Loaded: loaded (/usr/lib/systemd/system/sshd.service; enabled; vendor preset: enabled)
+       Active: active (running) since Fri 2022-01-28 22:54:50 CET; 17s ago
+         Docs: man:sshd(8)
+               man:sshd_config(5)
+     Main PID: 291 (sshd)
+
+```
 
 ## Using distrobox as main cli
 
