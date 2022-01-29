@@ -40,10 +40,10 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
-distrobox_entrypoint_path="$(realpath "$(dirname "${0}")"/distrobox-init)"
-distrobox_export_path="$(realpath "$(dirname "${0}")"/distrobox-export)"
-[ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(realpath "$(command -v distrobox-init)")"
-[ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(realpath "$(command -v distrobox-export)")"
+distrobox_entrypoint_path="$(dirname "${0}")"/distrobox-init
+distrobox_export_path="$(dirname "${0}")"/distrobox-export
+[ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(command -v distrobox-init)"
+[ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(command -v distrobox-export)"
 non_interactive="${DBX_NON_INTERACTIVE:-0}"
 dryrun=0
 init=0
@@ -323,6 +323,8 @@ generate_command() {
 	# to /run/shm, instead of the other way around.
 	# Resolve this detecting if /dev/shm is a symlink and mount original
 	# source also in the container.
+
+	# shellcheck disable=SC2312
 	if [ -L "/dev/shm" ]; then
 		result_command="${result_command}
 			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
@@ -372,9 +374,8 @@ generate_command() {
 	for host_link in ${host_links}; do
 		# Check if the file exists first
 		if [ -f "${host_link}" ] && [ -r "${host_link}" ]; then
-			# Use realpath to not have multi symlink mess
 			result_command="${result_command}
-				--volume $(realpath "${host_link}"):${host_link}:ro"
+				--volume ${host_link}:${host_link}:ro"
 		fi
 	done
 
