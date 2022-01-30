@@ -130,22 +130,7 @@ Else you can clone the project using `git clone` or using the latest release [HE
 
 Enter the directory and run `./install`, by default it will attempt to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
 
-On Fedora systems, `distrobox` is available in COPR (thanks [alcir](https://github.com/alcir)!) :
-
-```
-sudo dnf copr enable alciregi/distrobox
-sudo dnf install distrobox
-```
-
-On Arch Linux systems, `distrobox` is available in the AUR (thanks [M0Rf30](https://github.com/M0Rf30)!).
-
-It can be installed using your prefered AUR helper:
-
-```
-yay -S distrobox
-```
-
-`distrobox-git` is also available. This package pulls directly from the main git branch.
+Or check the [Host Distros](compatibility.md#host-distros) compatibility list for distro-specific instructions.
 
 ## Dependencies
 

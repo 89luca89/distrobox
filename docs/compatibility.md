@@ -39,12 +39,13 @@ Distrobox has been successfully tested on:
 |    Distro  |    Version    | Notes |
 | --- | --- | --- |
 | Alpine Linux | 3.14.3 | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
-| Arch Linux | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
+| Arch Linux | | `distrobox` and `distrobox-git` are available in AUR (thanks [M0Rf30](https://github.com/M0Rf30)!).<br>To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | Manjaro | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
-| CentOS | 8<br>8 Stream | Works with corresponding RedHat releases. |
+| CentOS | 8<br>8 Stream<br>9 Stream | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
+| RedHat | 8<br>9beta  | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
 | Debian | 11<br>Testing<br>Unstable | |
-| Fedora | 34<br>35 | |
-| Fedora Silverblue | 34<br>35 | |
+| Fedora | 34<br>35<br>36 | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
+| Fedora Silverblue | 34<br>35<br>36 | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
 | Gentoo | | To setup rootless podman, look [HERE](https://wiki.gentoo.org/wiki/Podman) |
 | Ubuntu | 18.04<br>20.04<br>21.10 | Older versions based on 20.04 or earlier may need external repos to install newer Podman and Docker releases.<br>Please follow their installation guide: [Podman](https://podman.io/getting-started/installation) [Docker](https://docs.docker.com/engine/install/ubuntu/)<br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. |
 | EndlessOS | 4.0.0 | |
@@ -108,7 +109,7 @@ can take a while as it will download and install the missing dependencies.
 A small time tax to pay for the ability to use any type of image.
 This will **not** occur after the first time, **subsequent enters will be much faster.**
 
-NixOS is not a supported container distro, and there are currently no plans to bring support to it. If you are looking for unprivlaged NixOS environments, we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html). 
+NixOS is not a supported container distro, and there are currently no plans to bring support to it. If you are looking for unprivlaged NixOS environments, we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html).
 #### New Distro support
 
 If your distro of choice is not on the list, open an issue requesting support for it,
@@ -128,4 +129,3 @@ host.
 
 Keep also in mind that mirrors could be down for such old releases, so you will
 need to build a [custom distrobox image to ensure basic dependencies are met](./distrobox_custom.md).
-
