@@ -61,7 +61,12 @@ rm)
 	"${distrobox_path}"/distrobox-rm "$@"
 	;;
 help | --help | -h)
-	man distrobox
+	if command -v man >/dev/null; then
+		man distrobox
+		exit 0
+	fi
+	show_help
+	exit 0
 	;;
 *) # Default case: If no more options then break out of the loop.
 	printf >&2 "Error: invalid command\n"

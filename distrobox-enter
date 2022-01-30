@@ -155,7 +155,6 @@ fi
 #
 # This is not necessary on docker as it is already handled
 # in this way.
-
 # shellcheck disable=SC2312
 if [ -z "${container_manager#*podman*}" ] &&
 	[ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
