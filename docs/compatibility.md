@@ -45,7 +45,7 @@ Distrobox has been successfully tested on:
 | RedHat | 8<br>9beta  | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
 | Debian | 11<br>Testing<br>Unstable | |
 | Fedora | 34<br>35<br>36 | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
-| Fedora Silverblue | 34<br>35<br>36 | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
+| Fedora Silverblue/Kinoite | 34<br>35<br>36 | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
 | Gentoo | | To setup rootless podman, look [HERE](https://wiki.gentoo.org/wiki/Podman) |
 | Ubuntu | 18.04<br>20.04<br>21.10 | Older versions based on 20.04 or earlier may need external repos to install newer Podman and Docker releases.<br>Please follow their installation guide: [Podman](https://podman.io/getting-started/installation) [Docker](https://docs.docker.com/engine/install/ubuntu/)<br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. |
 | EndlessOS | 4.0.0 | |
