@@ -33,7 +33,7 @@ For example using an Arch Linux container:
 user@arch-distrobox:~$
 ```
 
-Download the deb file [HERE](https://github.com/VSCodium/vscodium/releases), then install
+Download the deb file [HERE](https://github.com/VSCodium/vscodium/releases), or in Arch case just install
 
 ```shell
 user@arch-distrobox:~$ sudo pacman -S code
