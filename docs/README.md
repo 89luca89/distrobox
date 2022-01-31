@@ -10,7 +10,7 @@
 [![GitHub issues by-label](https://img.shields.io/github/issues-raw/89luca89/distrobox/bug?color=red&label=Open%20Bug%20Reports)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug%22)
 
 
-Use any Linux distribution inside your terminal.
+Use any Linux distribution inside your terminal. Enable both backward and forward compatibility with software and freedom to use whatever distribution you’re more comfortable with.
 Distrobox uses `podman` or `docker` to create containers using the Linux distribution of your choice.
 The created container will be tightly integrated with the host, allowing sharing of
 the HOME directory of the user, external storage, external USB devices and
