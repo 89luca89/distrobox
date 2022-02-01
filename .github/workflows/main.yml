@@ -25,7 +25,15 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: sh-checker
+      - name: check errors
+        run: |
+          set -e
+          for file in distrobox* *stall; do
+            echo "### Checking file $file..."
+            dash -n $file
+          done
+
+      - name: shellcheck
         # You may pin to the exact commit or the version.
         # uses: luizm/action-sh-checker@7f44869033b40ee4ffe7dc76c87a1bc66e3d025a
         uses: luizm/action-sh-checker@v0.3.0
