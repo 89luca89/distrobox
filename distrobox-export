@@ -221,7 +221,8 @@ generate_script() {
 # distrobox_binary
 # name: ${container_name}
 if [ ! -f /run/.containerenv ]; then
-    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} -n ${container_name} -- ${is_sudo} ${exported_bin} ${extra_flags} \$@
+    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} -n ${container_name} -- \
+		${is_sudo} ${exported_bin} ${extra_flags} \$@
 else
     ${exported_bin} \$@
 fi
@@ -250,12 +251,14 @@ export_binary() {
 	# If we're deleting it, just do it and exit
 	if [ "${exported_delete}" -ne 0 ]; then
 		if [ ! -f "${dest_file}" ]; then
-			printf >&2 "Error: cannot find %s in %s.\nWas it exported?.\n" "$(basename "${exported_bin}")" "${dest_path}"
+			printf >&2 "Error: cannot find %s in %s.\nWas it exported?.\n" \
+				"$(basename "${exported_bin}")" "${dest_path}"
 			return 1
 		fi
 		if grep -q "distrobox_binary" "${dest_file}"; then
 			if rm -f "${dest_file}"; then
-				printf "%s from %s removed successfully from %s.\nOK!\n" "${exported_bin}" "${container_name}" "${dest_path}"
+				printf "%s from %s removed successfully from %s.\nOK!\n" \
+					"${exported_bin}" "${container_name}" "${dest_path}"
 				return 0
 			fi
 		else
@@ -274,7 +277,8 @@ export_binary() {
 	# create the script from template and write to file
 	if generate_script >"${dest_file}"; then
 		chmod +x "${dest_file}"
-		printf "%s from %s exported successfully in %s.\nOK!\n" "${exported_bin}" "${container_name}" "${dest_path}"
+		printf "%s from %s exported successfully in %s.\nOK!\n" \
+			"${exported_bin}" "${container_name}" "${dest_path}"
 		return 0
 	fi
 	# Unknown error.
@@ -318,7 +322,10 @@ export_application() {
 
 	# copy icons in home directory
 	for icon_file in ${icon_files}; do
-		icon_home_directory="$(dirname "${icon_file}" | sed "s|/usr/share/|\/run\/host\/${host_home}/.local/share/|g" | sed "s|pixmaps|icons|g")"
+
+		icon_home_directory="$(dirname "${icon_file}" |
+			sed "s|/usr/share/|\/run\/host\/${host_home}/.local/share/|g" |
+			sed "s|pixmaps|icons|g")"
 
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
@@ -385,7 +392,8 @@ export_service() {
 
 	# find the service file in the common
 	service_file=$(find \
-		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ "${host_home}"/.config/systemd/user/ \
+		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ \
+		"${host_home}"/.config/systemd/user/ \
 		-type f -name "${exported_service}*" 2>/dev/null | tail -1)
 	# Check that we found some service files first.
 	if [ -z "${service_file}" ]; then

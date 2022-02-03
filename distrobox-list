@@ -98,7 +98,8 @@ fi
 # List containers using custom format that inclused MOUNTS
 # we do this as we can detect the custom mounts done by distrobox to distringuish
 # between a normal podman or docker container and a distrobox one.
-container_list=$(${container_manager} ps -a --no-trunc --format "{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}")
+container_list=$(${container_manager} ps -a --no-trunc --format \
+	"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}")
 IFS='
 '
 # Header of the output
@@ -114,10 +115,12 @@ for container in ${container_list}; do
 
 		# If the container is Up and Running, print it in green
 		if [ -z "${container_status##*Up*}" ] || [ -z "${container_status##*running*}" ]; then
-			printf "\033[32m %-12s | %-25s | %-30s | %-30s\n\033[0m" "${container_id}" "${container_name}" "${container_status}" "${container_image}"
+			printf "\033[32m %-12s | %-25s | %-30s | %-30s\n\033[0m" \
+				"${container_id}" "${container_name}" "${container_status}" "${container_image}"
 		# Else, print it in yellow
 		else
-			printf "\033[33m %-12s | %-25s | %-30s | %-30s\n\033[0m" "${container_id}" "${container_name}" "${container_status}" "${container_image}"
+			printf "\033[33m %-12s | %-25s | %-30s | %-30s\n\033[0m" \
+				"${container_id}" "${container_name}" "${container_status}" "${container_image}"
 		fi
 	fi
 done

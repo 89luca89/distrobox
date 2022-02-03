@@ -354,7 +354,8 @@ done
 #
 # for example using `podman --remote` to control the host's podman from inside
 # the container or accessing docker and libvirt sockets.
-host_sockets="$(find /run/host/run -name 'user' -prune -o -name 'nscd' -prune -o -type s -print 2>/dev/null || :)"
+host_sockets="$(find /run/host/run -name 'user' -prune -o -name 'nscd' -prune -o -type s -print \
+	2>/dev/null || :)"
 for host_socket in ${host_sockets}; do
 	container_socket="$(printf "%s" "${host_socket}" | sed 's|/run/host||g')"
 	# Check if the socket already exists or the symlink already esists
@@ -389,8 +390,14 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 	# and export them to the container.
 	set +o xtrace
 	net_mounts=""
-	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS} '/dev' '/proc' '/sys' '/tmp' '/etc/host.conf' '/etc/hosts' '/etc/resolv.conf' '/etc/localtime' '/usr/share/zoneinfo'; do
+	for net_mount in \
+		${HOST_MOUNTS_RO} ${HOST_MOUNTS} \
+		'/dev' '/proc' '/sys' '/tmp' \
+		'/etc/host.conf' '/etc/hosts' '/etc/resolv.conf' '/etc/localtime' \
+		'/usr/share/zoneinfo'; do
+
 		net_mounts="${net_mount}:${net_mounts}"
+
 	done
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
@@ -467,9 +474,13 @@ passwd --delete root
 if [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
-		if [ ! -f "${container_user_home}/$(basename "${skel_file}")" ] && [ ! -L "${container_user_home}/$(basename "${skel_file}")" ]; then
+		if [ ! -f "${container_user_home}/$(basename "${skel_file}")" ] &&
+			[ ! -L "${container_user_home}/$(basename "${skel_file}")" ]; then
+
 			cp "${skel_file}" "${container_user_home}"
-			chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/$(basename "${skel_file}")"
+			chown "${container_user_uid}":"${container_user_gid}" \
+				"${container_user_home}/$(basename "${skel_file}")"
+
 		fi
 	done
 fi
