@@ -426,8 +426,8 @@ elif [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# with read only filesystems, like systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
 		cat <<EOF >/etc/apt/apt.conf.d/00_distrobox
-DPkg::Pre-Invoke {"umount /var/log/journal";};
-DPkg::Post-Invoke {"mount --rbind -o ro /run/host/var/log/journal /var/log/journal";};
+DPkg::Pre-Invoke {"if mountpoint /var/log/journal; then umount /var/log/journal; fi";};
+DPkg::Post-Invoke {"if [ -e /run/host/var/log/journal ]; then mount --rbind -o ro /run/host/var/log/journal /var/log/journal; fi";};
 EOF
 	fi
 fi
