@@ -40,8 +40,14 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
+# Use cd + dirname + pwd so that we do not have relative paths in mount points
+# We're not using "realpath" here so that symlinks are not resolved this way
+# "realpath" would break situations like Nix or similar symlink based package
+# management.
 distrobox_entrypoint_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-init"
 distrobox_export_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-export"
+# In case init or export are not in the same path as create, let's search
+# in PATH for them.
 [ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(command -v distrobox-init)"
 [ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(command -v distrobox-export)"
 non_interactive="${DBX_NON_INTERACTIVE:-0}"

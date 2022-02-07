@@ -36,8 +36,11 @@ container_command="$(basename "${container_command}") -l"
 container_manager_additional_flags=""
 container_name="${DBX_CONTAINER_NAME:-""}"
 container_name_default="fedora-toolbox-35"
+# Use cd + dirname + pwd so that we do not have relative paths in mount points
+# We're not using "realpath" here so that symlinks are not resolved this way
+# "realpath" would break situations like Nix or similar symlink based package
+# management.
 distrobox_enter_path="$(cd "$(dirname "$0")" && pwd)/distrobox-enter"
-[ ! -e "${distrobox_enter_path}" ] && distrobox_enter_path="$(command -v distrobox-enter)"
 dryrun=0
 headless=0
 verbose=0
