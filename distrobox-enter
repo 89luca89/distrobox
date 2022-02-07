@@ -36,6 +36,8 @@ container_command="$(basename "${container_command}") -l"
 container_manager_additional_flags=""
 container_name="${DBX_CONTAINER_NAME:-""}"
 container_name_default="fedora-toolbox-35"
+distrobox_enter_path="$(cd "$(dirname "$0")" && pwd)/distrobox-enter"
+[ ! -e "${distrobox_enter_path}" ] && distrobox_enter_path="$(command -v distrobox-enter)"
 dryrun=0
 headless=0
 verbose=0
@@ -199,7 +201,7 @@ generate_command() {
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
 	result_command="${result_command}
 		--workdir=${PWD:-${HOME:-"/"}}
-		--env=DISTROBOX_ENTER_PATH=$(realpath "${0}")"
+		--env=DISTROBOX_ENTER_PATH=${distrobox_enter_path}"
 
 	# Loop through all the environment vars
 	# and export them to the container.
