@@ -20,6 +20,7 @@
 # POSIX
 set -o errexit
 set -o nounset
+version="1.2.13"
 
 # Print usage to stdout.
 # Arguments:
@@ -59,6 +60,10 @@ list)
 	;;
 rm)
 	"${distrobox_path}"/distrobox-rm "$@"
+	;;
+-V | --version)
+	printf "distrobox: %s\n" "${version}"
+	exit 0
 	;;
 help | --help | -h)
 	if command -v man >/dev/null; then
