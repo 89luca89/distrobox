@@ -20,6 +20,10 @@
 # POSIX
 
 dest_path="/usr/local/bin"
+if [ "$(id -u)" -ne 0 ]; then
+	dest_path="$HOME/.local/bin"
+fi
+
 verbose=0
 
 # Print usage to stdout.
