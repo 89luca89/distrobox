@@ -24,6 +24,7 @@ graphical apps (X11/Wayland), and audio.
 
 - [Distrobox](#distrobox)
   * [What it does](#what-it-does)
+    + [See it in action](#see-it-in-action)
   * [Why?](#why-)
     + [Aims](#aims)
 - [Installation](#installation)
@@ -81,6 +82,12 @@ It is divided into 6 commands:
 - `distrobox-export` - it is meant to be used inside the container, useful to export apps and services from the container to the host
 
 It also includes a little wrapper to launch commands with `distrobox COMMAND` instead of calling the single files.
+
+### See it in action
+
+Thanks to [castrojo](https://github.com/castrojo), you can see Distrobox in action in this explanatory video on his setup with Distrobox, Toolbx, Fedora Silverblue on his project [ublue](https://github.com/castrojo/ublue) (check it out!)
+
+[![Video](https://user-images.githubusercontent.com/598882/153680522-f5903607-2854-4cfb-a186-cba7403745bd.png)](https://www.youtube.com/watch?v=Q2PrISAOtbY)
 
 ## Why?
 
