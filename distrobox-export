@@ -1,7 +1,8 @@
 #!/bin/sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
-# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
 #
 # Copyright (C) 2021 distrobox contributors
 #

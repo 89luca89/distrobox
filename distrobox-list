@@ -1,7 +1,8 @@
 #!/bin/sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
-# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
 #
 # Copyright (C) 2021 distrobox contributors
 #
@@ -90,6 +91,7 @@ if ! command -v podman >/dev/null; then
 		exit 127
 	fi
 fi
+
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
@@ -105,8 +107,10 @@ IFS='
 # Header of the output
 printf " %-12s | %-25s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
 for container in ${container_list}; do
+
 	# Check if the current container has a custom mount point for distrobox.
 	if [ -z "${container##*distrobox*}" ]; then
+
 		# Extract the information for the single container to pretty print it
 		container_id="$(printf "%s" "${container}" | cut -d'|' -f1 | cut -c1-12)"
 		container_image="$(printf "%s" "${container}" | cut -d'|' -f2)"

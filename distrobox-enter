@@ -1,7 +1,8 @@
 #!/bin/sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
-# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+# This file is part of the distrobox project: 
+#    https://github.com/89luca89/distrobox
 #
 # Copyright (C) 2021 distrobox contributors
 #
@@ -195,8 +196,8 @@ generate_command() {
 	# work in tty-less situations.
 	if [ "${headless}" -eq 0 ]; then
 		result_command="${result_command}
-			--interactive
-			--tty"
+		--interactive
+		--tty"
 	fi
 
 	# Entering container using our user and workdir.

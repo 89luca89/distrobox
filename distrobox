@@ -1,7 +1,8 @@
 #!/bin/sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
-# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
 #
 # Copyright (C) 2021 distrobox contributors
 #
@@ -20,6 +21,9 @@
 # POSIX
 set -o errexit
 set -o nounset
+
+trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
+
 version="1.2.13"
 
 # Print usage to stdout.
@@ -29,6 +33,8 @@ version="1.2.13"
 #   print usage with examples.
 show_help() {
 	cat <<EOF
+distrobox version: ${version}
+
 Choose one of the available commands:
 	create
 	enter

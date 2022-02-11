@@ -1,7 +1,8 @@
 #!/bin/sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
-# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+# This file is part of the distrobox project: 
+#    https://github.com/89luca89/distrobox
 #
 # Copyright (C) 2021 distrobox contributors
 #
@@ -375,7 +376,8 @@ done
 # This works around this and allows the rootless container to work when selinux
 # policies are installed inside it.
 #
-# Ref. Podman issue 4452: https://github.com/containers/podman/issues/4452
+# Ref. Podman issue 4452: 
+#    https://github.com/containers/podman/issues/4452
 if [ -d "/sys/fs/selinux" ]; then
 	mkdir -p /usr/share/empty
 	if ! mount_bind /usr/share/empty /sys/fs/selinux rw; then
