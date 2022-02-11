@@ -20,7 +20,7 @@
 # POSIX
 
 dest_path="/usr/local/bin"
-if [ "$EUID" -ne 0 ]; then
+if [ "$(id -u)" -ne 0 ]; then
 	dest_path="$HOME/.local/bin"
 fi
 
