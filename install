@@ -20,8 +20,9 @@
 # POSIX
 
 dest_path="/usr/local/bin"
+# in case we're not root, just default to the home directory
 if [ "$(id -u)" -ne 0 ]; then
-	dest_path="$HOME/.local/bin"
+	dest_path="${HOME}/.local/bin"
 fi
 
 verbose=0
@@ -36,7 +37,7 @@ show_help() {
 install -p /usr/local/bin
 
 Options:
-	--path/-p:		path where to deploy the files (default /usr/local)
+	--path/-p:		path where to deploy the files (default /usr/local/bin if root, ~/.local/bin if not)
 	--help/-h:		show this message
 	-v:			show more verbosity
 EOF
