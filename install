@@ -20,6 +20,10 @@
 # POSIX
 
 dest_path="/usr/local/bin"
+if [ "$EUID" -ne 0 ]; then
+	dest_path="$HOME/.local/bin"
+fi
+
 verbose=0
 
 # Print usage to stdout.
@@ -127,3 +131,5 @@ else
 		rm -rf "${tmp_dir}"
 	fi
 fi
+
+printf >&2 "Successfully installed to %s.\n" "${dest_path}"
