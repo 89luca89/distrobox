@@ -45,7 +45,7 @@ distrobox_enter_path="$(cd "$(dirname "$0")" && pwd)/distrobox-enter"
 dryrun=0
 headless=0
 verbose=0
-version="1.2.13"
+version="1.2.14"
 
 # Print usage to stdout.
 # Arguments:

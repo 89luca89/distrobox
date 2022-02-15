@@ -24,7 +24,7 @@ set -o nounset
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
-version="1.2.13"
+version="1.2.14"
 
 # Print usage to stdout.
 # Arguments:
