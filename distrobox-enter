@@ -117,7 +117,7 @@ while :; do
 		;;
 	-e | --exec | --)
 		shift
-		container_command=$*
+		container_command=${*@Q}
 		break
 		;;
 	*) # Default case: If no more options then break out of the loop.
