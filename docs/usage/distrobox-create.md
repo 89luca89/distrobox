@@ -44,6 +44,13 @@ Options:
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
+Compatibility:
+
+	for a list of compatible images and container managers, please consult the man page:
+		man distrobox
+		man distrobox-compatibility
+	or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#containers-distros
+
 The `--additional-flags` or `-a` is useful to modify defaults in the container creations.
 For example:
 

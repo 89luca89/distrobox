@@ -22,7 +22,7 @@ The main concern is having basic Linux utilities (`mount`), basic user managemen
 `distrobox` can run on either `podman` or `docker`
 
 It depends either on `podman` configured in `rootless mode`
-or on `docker` configured without sudo (you're in the `docker` group)
+or on `docker` configured without sudo (follow [THIS instructions](https://docs.docker.com/engine/install/linux-postinstall/))
 
 - Minimum podman version: **2.1.0**
 - Minimum docker version: **18.06.1**
@@ -31,6 +31,7 @@ Follow the official installation guide here:
 
   - https://podman.io/getting-started/installation
   - https://docs.docker.com/engine/install
+  - https://docs.docker.com/engine/install/linux-postinstall/
 
 ### Host Distros
 
@@ -111,6 +112,7 @@ A small time tax to pay for the ability to use any type of image.
 This will **not** occur after the first time, **subsequent enters will be much faster.**
 
 NixOS is not a supported container distro, and there are currently no plans to bring support to it. If you are looking for unprivlaged NixOS environments, we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html).
+
 #### New Distro support
 
 If your distro of choice is not on the list, open an issue requesting support for it,

@@ -14,7 +14,16 @@ fi
 for i in "$(dirname "${0}")"/../docs/usage/distrobox*; do
 	ronn --manual=Distrobox --name="$(basename "${i}" | cut -d'.' -f1).1" --organization=Distrobox "${i}" -o "$(dirname "${0}")"/man1/
 	mv "$(dirname "${0}")/man1/$(basename "${i}" | cut -d'.' -f1)" "$(dirname "${0}")/man1/$(basename "${i}" | sed 's|md|1|g')"
-	rm -f "$(dirname "${0}")"/man1/*.html
 done
 
+compatibility_file="$(mktemp)"
+START="$(grep -n "# Host Distros" "$(dirname "${0}")/../docs/compatibility.md" | cut -d":" -f1)"
+END="$(grep -n -B1 "# Containers Distros" "$(dirname "${0}")/../docs/compatibility.md" | head -1 | tr -d '-')"
+
+sed -e "${START},${END}d" "$(dirname "${0}")/../docs/compatibility.md" > "${compatibility_file}"
+
+ronn --manual=Distrobox --name="distrobox-compatibility.1" --organization=Distrobox "${compatibility_file}" -o "$(dirname "${0}")"/man1/
+mv "$(dirname "${0}")"/man1/tmp "$(dirname "${0}")"/man1/distrobox-compatibility.1
+
+rm -f "$(dirname "${0}")"/man1/*.html
 cat "$(dirname "${0}")/man1/distrobox-"* >"$(dirname "${0}")/man1/distrobox.1"
