@@ -138,7 +138,7 @@ or if you want to select a custom directory to install without sudo:
 
 Else you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
 
-Enter the directory and run `./install`, by default it will attempt to install in `/usr/local/bin`, you can specify another directory if needed with `./install -p ~/.local/bin`
+Enter the directory and run `./install`, by default it will attempt to install in `~/.local/bin` but if you run the script as root, it will default to `/usr/local/bin`. You can specify a custom directory with the `-p` flag such as `./install -p ~/.bin`. 
 
 Or check the [Host Distros](compatibility.md#host-distros) compatibility list for distro-specific instructions.
 
