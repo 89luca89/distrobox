@@ -161,7 +161,7 @@ if [ "${container_status}" = "running" ]; then
 	else
 		printf >&2 "Please stop container %s before deletion\n" "${container_name}"
 		printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
-		printf >&2 "or use the \"--force\" flag" "${container_manager}" "${container_name}"
+		printf >&2 'or use the "--force" flag'
 		exit 1
 	fi
 fi
