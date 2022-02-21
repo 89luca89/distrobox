@@ -74,9 +74,33 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# Ensure the foundamental variables are set and not empty, we will not proceed if
-# they are not all set.
-[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
+# Ensure we can write the dest_path specified
+[ ! -w "$(dirname "${dest_path}")" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
+# Ensure dest_path exists
+if [ ! -d "${dest_path}" ]; then
+	printf >&2 "Path %s not found.\n" "${dest_path}"
+	printf >&2 "Do you want to create it now? [Y/n]: "
+	read -r response
+	response="${response:-"Y"}"
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response}" in
+	y | Y | Yes | yes | YES)
+		if ! mkdir -p "${dest_path}"; then
+			printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}"
+			exit 1
+		fi
+		;;
+	n | N | No | no | NO)
+		printf >&2 "next time, create %s first\n" "${dest_path}"
+		exit 0
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		printf >&2 "Invalid input.\n"
+		printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+		exit 1
+		;;
+	esac
+fi
 
 man_dest_path="${dest_path}/../share/man/man1"
 
