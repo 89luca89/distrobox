@@ -74,34 +74,6 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# Ensure we can write the dest_path specified
-[ ! -w "$(dirname "${dest_path}")" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
-# Ensure dest_path exists
-if [ ! -d "${dest_path}" ]; then
-	printf >&2 "Path %s not found.\n" "${dest_path}"
-	printf >&2 "Do you want to create it now? [Y/n]: "
-	read -r response
-	response="${response:-"Y"}"
-	# Accept only y,Y,Yes,yes,n,N,No,no.
-	case "${response}" in
-	y | Y | Yes | yes | YES)
-		if ! mkdir -p "${dest_path}"; then
-			printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}"
-			exit 1
-		fi
-		;;
-	n | N | No | no | NO)
-		printf >&2 "next time, create %s first\n" "${dest_path}"
-		exit 0
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		printf >&2 "Invalid input.\n"
-		printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
-		exit 1
-		;;
-	esac
-fi
-
 man_dest_path="${dest_path}/../share/man/man1"
 
 # get current dir
@@ -116,7 +88,10 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 		release_ver="git-$(git rev-parse HEAD)"
 	fi
 	for file in distrobox*; do
-		install -D -m 0755 -t "${dest_path}" "${file}"
+		if ! install -D -m 0755 -t "${dest_path}" "${file}"; then
+			printf >&2 "Do you have permission to write to %s?\n" "${dest_path}"
+			exit 1
+		fi
 	done
 	if [ -e "man" ]; then
 		for file in man/man1/*; do
@@ -142,7 +117,10 @@ else
 	tar xvf "${release_name}"
 	# deploy our files
 	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox*; do
-		install -D -m 0755 -t "${dest_path}" "${file}"
+		if ! install -D -m 0755 -t "${dest_path}" "${file}"; then
+			printf >&2 "Do you have permission to write to %s?\n" "${dest_path}"
+			exit 1
+		fi
 	done
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/man/" ]; then
 		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/man/*; do
