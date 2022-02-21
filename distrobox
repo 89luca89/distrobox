@@ -24,6 +24,16 @@ set -o nounset
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
+# Dont' run this command as sudo.
+if [ "$(id -u)" -eq 0 ]; then
+	printf >&2 "Running %s as sudo is not supported.\n" "${0}"
+	printf >&2 "Please check the documentation on:\n"
+	printf >&2 "\tman distrobox-compatibility\t"
+	printf >&2 "or consult the documentation page on:\n"
+	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	exit 1
+fi
+
 version="1.2.14"
 
 # Print usage to stdout.
