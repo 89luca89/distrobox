@@ -217,9 +217,9 @@ generate_command() {
 	# Entering container using our user and workdir.
 	# Start container from working directory. Else default to home. Else do /.
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
-	workdir=$(printf "%s" "${PWD:-${HOME:-/}}" | sed 's/./\\&/g')
+	workdir="$(echo "${PWD:-${HOME:-"/"}}" | sed -e 's/"/\\\"/g')"
 	result_command="${result_command}
-		--workdir=${workdir}
+		--workdir=\"${workdir}\"
 		--env=DISTROBOX_ENTER_PATH=${distrobox_enter_path}"
 
 	# Loop through all the environment vars
