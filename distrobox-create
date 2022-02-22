@@ -317,9 +317,9 @@ generate_command() {
 	result_command="${container_manager} create"
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
-		--hostname ${container_name}.$(uname -n)
+		--hostname \"${container_name}.$(uname -n)\"
 		--ipc host
-		--name ${container_name}
+		--name \"${container_name}\"
 		--network host
 		--privileged
 		--security-opt label=disable
@@ -338,11 +338,11 @@ generate_command() {
 	#
 	# Mount also the distrobox-init utility as the container entrypoint.
 	result_command="${result_command}
-		--env SHELL=${SHELL:-"/bin/bash"}
-		--env HOME=${container_user_home}
-		--volume ${container_user_home}:${container_user_home}:rslave
-		--volume ${distrobox_entrypoint_path}:/usr/bin/entrypoint:ro
-		--volume ${distrobox_export_path}:/usr/bin/distrobox-export:ro
+		--env \"SHELL=${SHELL:-"/bin/bash"}\"
+		--env \"HOME=${container_user_home}\"
+		--volume \"${container_user_home}\":\"${container_user_home}\":rslave
+		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
+		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
 		--volume /sys:/sys:rslave
@@ -373,8 +373,8 @@ generate_command() {
 	# 	3- mount the custom home inside the container.
 	if [ -n "${container_user_custom_home}" ]; then
 		result_command="${result_command}
-		--env HOME=${container_user_custom_home}
-		--env DISTROBOX_HOST_HOME=${container_user_home}
+		--env \"HOME=${container_user_custom_home}\"
+		--env \"DISTROBOX_HOST_HOME=${container_user_home}\"
 		--volume ${container_user_custom_home}:${container_user_custom_home}:rslave"
 	fi
 
@@ -384,7 +384,7 @@ generate_command() {
 		[ -d "/var/home/${container_user_name}" ]; then
 
 		result_command="${result_command}
-		--volume /var/home/${container_user_name}:/var/home/${container_user_name}:rslave"
+		--volume \"/var/home/${container_user_name}\":\"/var/home/${container_user_name}\":rslave"
 	fi
 
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
@@ -405,7 +405,7 @@ generate_command() {
 		# Check if the file exists first
 		if [ -f "${host_link}" ] && [ -r "${host_link}" ]; then
 			result_command="${result_command}
-			--volume ${host_link}:${host_link}:ro"
+			--volume \"${host_link}\":\"${host_link}\":ro"
 		fi
 	done
 
@@ -424,11 +424,11 @@ generate_command() {
 
 	# Now execute the entrypoint, refer to `distrobox-init -h` for instructions
 	result_command="${result_command} ${container_image}
-		/usr/bin/entrypoint -v --name ${container_user_name}
+		/usr/bin/entrypoint -v --name \"${container_user_name}\"
 		--user ${container_user_uid}
 		--group ${container_user_gid}
-		--home ${container_user_custom_home:-"${container_user_home}"}
-		--init ${init}
+		--home \"${container_user_custom_home:-"${container_user_home}"}\"
+		--init \"${init}\"
 		-- '${container_init_hook}'
 		"
 	# use container_user_custom_home if defined, else fallback to normal home.

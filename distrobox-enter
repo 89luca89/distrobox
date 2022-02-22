@@ -201,7 +201,7 @@ fi
 generate_command() {
 	result_command="${container_manager} exec"
 	result_command="${result_command}
-		--user=${USER}"
+		--user=\"${USER}\""
 
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
@@ -220,7 +220,7 @@ generate_command() {
 	workdir="$(echo "${PWD:-${HOME:-"/"}}" | sed -e 's/"/\\\"/g')"
 	result_command="${result_command}
 		--workdir=\"${workdir}\"
-		--env=DISTROBOX_ENTER_PATH=${distrobox_enter_path}"
+		--env=\"DISTROBOX_ENTER_PATH=${distrobox_enter_path}"\"
 
 	# Loop through all the environment vars
 	# and export them to the container.
