@@ -91,7 +91,7 @@ Distrobox guests tested successfully with the following container images:
 | Debian | Testing    | docker.io/library/debian:testing <br> docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
 | Neurodebian | nd100 | docker.io/library/neurodebian:nd100 |
-| Fedora | 34<br>35 | registry.fedoraproject.org/fedora-toolbox:34<br> docker.io/library/fedora:34<br>registry.fedoraproject.org/fedora-toolbox:35<br>docker.io/library/fedora:35    |
+| Fedora | 34<br>35<br>36<br>Rawhide | registry.fedoraproject.org/fedora-toolbox:34<br> docker.io/library/fedora:34<br>registry.fedoraproject.org/fedora-toolbox:35<br>docker.io/library/fedora:35<br>docker.io/library/fedora:36<br>docker.io/library/fedora:rawhide    |
 | Mageia | 8 | docker.io/library/mageia |
 | Opensuse | Leap | registry.opensuse.org/opensuse/leap:latest    |
 | Opensuse | Tumbleweed | registry.opensuse.org/opensuse/tumbleweed:latest <br> registry.opensuse.org/opensuse/toolbox:latest    |

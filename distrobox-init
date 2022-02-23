@@ -462,7 +462,7 @@ if ! grep -q "${container_user_name}" /etc/passwd; then
 	fi
 else
 	# This situation is presented when podman or docker already creates the user for us inside container.
-	# We should modify the user's prepopulated shadowfile entry though as per user's active preferences. 
+	# We should modify the user's prepopulated shadowfile entry though as per user's active preferences.
 	if ! usermod \
 		--home "${container_user_home}" \
 		--shell "${SHELL:-"/bin/bash"}" \
