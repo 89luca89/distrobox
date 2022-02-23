@@ -448,11 +448,23 @@ fi
 if ! grep -q "${container_user_name}" /etc/group; then
 	groupadd --force --gid "${container_user_gid}" "${container_user_name}"
 fi
-# Let's add our user to the container if the user already exists, just go ahead.
+# Let's add our user to the container. if the user already exists, enforce properties.
 if ! grep -q "${container_user_name}" /etc/passwd; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
+		--shell "${SHELL:-"/bin/bash"}" \
+		--uid "${container_user_uid}" \
+		--gid "${container_user_gid}" \
+		"${container_user_name}"; then
+
+		printf "Warning: there was a problem setting up the user\n"
+	fi
+else
+	# This situation is presented when podman or docker already creates the user for us inside container.
+	# We should modify the user's prepopulated shadowfile entry though as per user's active preferences. 
+	if ! usermod \
+		--home "${container_user_home}" \
 		--shell "${SHELL:-"/bin/bash"}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
