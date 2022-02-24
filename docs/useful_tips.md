@@ -1,4 +1,5 @@
 - [Distrobox](README.md)
+  * [Execute complex commands directly from distrobox-enter](#execute-complex-commands-directly-from-distrobox-enter)
   * [Improve distrobox-enter performance](#improve-distrobox-enter-performance)
   * [Slow creation on podman and image size getting bigger with distrobox-create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   * [Container save and restore](#container-save-and-restore)
@@ -13,6 +14,19 @@
 ---
 
 # Useful tips
+
+## Execute complex commands directly from distrobox-enter
+
+Sometimes it is necessary to execure complex commands from a distrobox enter, like multiple concatenated commands using variables
+declared **inside** the container.
+
+For example:
+
+`distrobox enter test -- bash -l -c '"echo \$HOME && whoami"'`
+
+Note the use of **single quotes around double quotes**, this is necessary so that quotes are preserved inside the arguments.
+Also note the **dollar escaping** needed so that $HOME is not evaluated at the time of the command launch, but directly 
+inside the container.
 
 ## Improve distrobox-enter performance
 
