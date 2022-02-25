@@ -68,7 +68,7 @@ while :; do
 	esac
 done
 
-if [[ ${dest_path} && ${prefix} ]]; then
+if [[ "${dest_path}" && "${prefix}" ]]; then
 	printf >&2 "Both -p and -P are set. Cannot continue. Exiting.\n"
 	exit 1
 fi
