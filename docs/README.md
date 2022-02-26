@@ -134,11 +134,13 @@ If you like to live your life dangerously, you can trust me and simply run this 
 
 or if you want to select a custom directory to install without sudo:
 
-`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- -p ~/.local/bin`
+`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local`
 
 Else you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
 
-Enter the directory and run `./install`, by default it will attempt to install in `~/.local/bin` but if you run the script as root, it will default to `/usr/local/bin`. You can specify a custom directory with the `-p` flag such as `./install -p ~/.bin`. 
+Enter the directory and run `./install`, by default it will attempt to install in `~/.local` but if you run the script as root, it will default to `/usr/local`. You can specify a custom directory with the `--prefix` flag such as `./install --prefix ~/.distrobox`. 
+
+Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas the manpages get installed to `${prefix}/share/man`.
 
 Or check the [Host Distros](compatibility.md#host-distros) compatibility list for distro-specific instructions.
 
@@ -157,11 +159,11 @@ If you installed distrobox using the `install` script in the default install dir
 
 or if you specified a custom path:
 
-`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- -p ~/.local/bin`
+`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- --prefix ~/.local`
 
 Else if cloned the project using `git clone` or using the latest archive release from [HERE](https://github.com/89luca89/distrobox/releases/latest),
 
-enter the directory and run `./uninstall`, by default it will assume the install directory was `/usr/local/bin`, you can specify another directory if needed with `./uninstall -p ~/.local/bin`
+enter the directory and run `./uninstall`, by default it will assume the install directory was `/usr/local` if ran as root or `~/.local`, you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
 ---
 

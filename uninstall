@@ -19,12 +19,6 @@
 
 # POSIX
 
-dest_path="/usr/local/bin"
-# in case we're not root, just default to the home directory
-if [ "$(id -u)" -ne 0 ]; then
-	dest_path="${HOME}/.local/bin"
-fi
-
 verbose=0
 
 # Print usage to stdout.
@@ -34,10 +28,11 @@ verbose=0
 #   print usage with examples.
 show_help() {
 	cat <<EOF
-uninstall -p /usr/local/bin
+uninstall --prefix /usr/local
 
 Options:
-	--path/-p:		path where to deploy the files (default /usr/local/bin if root, ~/.local/bin if not)
+	--prefix/-P:		base bath where all files will be deployed (default /usr/local if root, ~/.local if not)
+	--path/-p:		(DEPRECATED) path where to deploy the files (default /usr/local/bin if root, ~/.local/bin if not)
 	--help/-h:		show this message
 	-v:			show more verbosity
 EOF
@@ -62,10 +57,38 @@ while :; do
 			shift
 		fi
 		;;
+	-P | --prefix)
+		if [ -n "$2" ]; then
+			prefix="$2"
+			shift
+			shift
+		fi
+		;;
 	*) # Default case: If no more options then break out of the loop.
 		break ;;
 	esac
 done
+
+if [ -n "${dest_path}" ] && [ -n "${prefix}" ]; then
+	printf >&2 "Both -p and -P are set. Cannot continue. Exiting.\n"
+	exit 1
+fi
+
+if [ -z "${dest_path}" ]; then
+	if [ -z "${prefix}" ]; then
+		prefix="/usr/local"
+		# in case we're not root, just default to the home directory
+		if [ "$(id -u)" -ne 0 ]; then
+			prefix="${HOME}/.local"
+		fi
+	fi
+	dest_path="${prefix}/bin"
+	man_dest_path="${prefix}/share/man/man1"
+else
+	printf >&2 "Warning: -p/--path is deprecated. Please refer to the documentation and switch to -P/--prefix.\n"
+	# dest_path is already set
+	man_dest_path="${dest_path}/../share/man/man1"
+fi
 
 set -o errexit
 set -o nounset
@@ -82,7 +105,7 @@ fi
 for file in "${dest_path}/distrobox"*; do
 	[ -e "${file}" ] && rm -i "${file}"
 done
-for file in "${dest_path}/../share/man/man1/distrobox"*; do
+for file in "${man_dest_path}/distrobox"*; do
 	[ -e "${file}" ] && rm -i "${file}"
 done
 echo "Thank you for using Distrobox. Uninstall complete."

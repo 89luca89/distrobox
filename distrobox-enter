@@ -220,7 +220,7 @@ generate_command() {
 	workdir="$(echo "${PWD:-${HOME:-"/"}}" | sed -e 's/"/\\\"/g')"
 	result_command="${result_command}
 		--workdir=\"${workdir}\"
-		--env=\"DISTROBOX_ENTER_PATH=${distrobox_enter_path}"\"
+		--env=\"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
 
 	# Loop through all the environment vars
 	# and export them to the container.
