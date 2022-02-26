@@ -85,7 +85,7 @@ if [ -z "${dest_path}" ]; then
 	dest_path="${prefix}/bin"
 	man_dest_path="${prefix}/share/man/man1"
 else
-	printf >&2 "Warning: --prefix/-p is deprecated. Please refer to the documentation and switch to --prefix/-P.\n"
+	printf >&2 "Warning: -p/--path is deprecated. Please refer to the documentation and switch to -P/--prefix.\n"
 	# dest_path is already set
 	man_dest_path="${dest_path}/../share/man/man1"
 fi
