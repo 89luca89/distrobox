@@ -28,11 +28,11 @@ verbose=0
 #   print usage with examples.
 show_help() {
 	cat <<EOF
-uninstall -P /usr/local
+uninstall --prefix /usr/local
 
 Options:
 	--prefix/-P:		base bath where all files will be deployed (default /usr/local if root, ~/.local if not)
-	--path/-p:		path where to deploy the files (default /usr/local/bin if root, ~/.local/bin if not)
+	--path/-p:		(DEPRECATED) path where to deploy the files (default /usr/local/bin if root, ~/.local/bin if not)
 	--help/-h:		show this message
 	-v:			show more verbosity
 EOF
@@ -85,6 +85,7 @@ if [ -z "${dest_path}" ]; then
 	dest_path="${prefix}/bin"
 	man_dest_path="${prefix}/share/man/man1"
 else
+	printf >&2 "Warning: --prefix/-p is deprecated. Please refer to the documentation and switch to --prefix/-P.\n"
 	# dest_path is already set
 	man_dest_path="${dest_path}/../share/man/man1"
 fi
