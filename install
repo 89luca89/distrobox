@@ -28,9 +28,10 @@ verbose=0
 #   print usage with examples.
 show_help() {
 	cat <<EOF
-install -p /usr/local/bin
+install -P /usr/local
 
 Options:
+	--prefix/-P:		base bath where all files will be deployed (default /usr/local if root, ~/.local if not)
 	--path/-p:		path where to deploy the files (default /usr/local/bin if root, ~/.local/bin if not)
 	--help/-h:		show this message
 	-v:			show more verbosity
@@ -68,13 +69,13 @@ while :; do
 	esac
 done
 
-if [[ ${dest_path} && ${prefix} ]]; then
+if [ "${dest_path}" ] && [ "${prefix}" ]; then
 	printf >&2 "Both -p and -P are set. Cannot continue. Exiting.\n"
 	exit 1
 fi
 
 if [ -z "${dest_path}" ]; then
-	if [ -z "${prefix}"]; then
+	if [ -z "${prefix}" ]; then
 		prefix="/usr/local"
 		# in case we're not root, just default to the home directory
 		if [ "$(id -u)" -ne 0 ]; then
