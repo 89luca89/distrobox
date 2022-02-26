@@ -134,7 +134,7 @@ If you like to live your life dangerously, you can trust me and simply run this 
 
 or if you want to select a custom directory to install without sudo:
 
-`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- -p ~/.local`
+`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local`
 
 Else you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
 
