@@ -108,6 +108,7 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 	if [ -d "${curr_dir}/.git" ] && command -v git >/dev/null; then
 		release_ver="git-$(git rev-parse HEAD)"
 	fi
+	mkdir -p "${dest_path}"
 	for file in distrobox*; do
 		if ! install -D -m 0755 -t "${dest_path}" "${file}"; then
 			printf >&2 "Do you have permission to write to %s?\n" "${dest_path}"
@@ -115,6 +116,7 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 		fi
 	done
 	if [ -e "man" ]; then
+		mkdir -p "{man_dest_path}"
 		for file in man/man1/*; do
 			install -D -m 0644 -t "${man_dest_path}" "${file}"
 		done
