@@ -219,9 +219,13 @@ generate_command() {
 	# Since we are entering from host, drop at workdir through '/run/host'
 	# which represents host's root inside container. Any directory on host
 	# even if not explicitly mounted is bound to exist under /run/host.
+	# Since user $HOME is very likely present in container, enter there directly
+	# to avoid confusing the user about shifted paths.
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
 	workdir="$(echo "${PWD:-${HOME:-"/"}}" | sed -e 's/"/\\\"/g')"
-	workdir="/run/host/${workdir}"
+	if [ -n "${workdir##*"${HOME}"*}" ]; then
+		workdir="/run/host/${workdir}"
+	fi
 	result_command="${result_command}
 		--workdir=\"${workdir}\"
 		--env=\"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
