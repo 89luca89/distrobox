@@ -202,6 +202,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 	#	sudo, mount, find
 	#	passwd, groupadd and useradd
 	if command -v apk; then
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! apk add "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
 		apk add \
 			"${shell_pkg}" \
 			findutils \
@@ -215,6 +222,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 	elif command -v apt-get; then
 		export DEBIAN_FRONTEND=noninteractive
 		apt-get update
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! apt-get install -y "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
 		apt-get install -y \
 			"${shell_pkg}" \
 			findutils \
@@ -227,6 +241,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			util-linux
 
 	elif command -v dnf; then
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! dnf install -y "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
 		dnf install -y \
 			"${shell_pkg}" \
 			findutils \
@@ -241,6 +262,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 	elif command -v emerge; then
 		# update repos
 		emerge --sync
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! emerge --ask=n --autounmask-continue "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
 		emerge --ask=n --autounmask-continue \
 			"${shell_pkg}" \
 			findutils \
@@ -252,6 +280,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			vte-profile
 
 	elif command -v pacman; then
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! pacman -Sy --noconfirm "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
 		pacman -Sy --noconfirm \
 			"${shell_pkg}" \
 			findutils \
@@ -264,6 +299,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 
 	elif command -v slackpkg; then
 		slackpkg update
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! yes | slackpkg install -default_answer=yes -batch=yes "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
 		yes | slackpkg install -default_answer=yes -batch=yes \
 			"${shell_pkg}" \
 			libvte-2 \
@@ -275,6 +317,8 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			util-linux
 
 	elif command -v swupd; then
+		# Here we do not handle shell_pkg as shells are already all bundled
+		# together in "shells"
 		swupd bundle-add \
 			shells \
 			sudo \
@@ -282,6 +326,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			procps-ng
 
 	elif command -v xbps-install; then
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! xbps-install -Sy "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
 		xbps-install -Sy \
 			"${shell_pkg}" \
 			findutils \
@@ -292,6 +343,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			util-linux
 
 	elif command -v yum; then
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! yum install -y "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
 		yum install -y \
 			"${shell_pkg}" \
 			findutils \
@@ -304,6 +362,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			vte-profile
 
 	elif command -v zypper; then
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! zypper install -y "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
 		zypper install -y \
 			"${shell_pkg}" \
 			findutils \
@@ -461,8 +526,9 @@ if ! grep -q "${container_user_name}" /etc/passwd; then
 		printf "Warning: there was a problem setting up the user\n"
 	fi
 else
-	# This situation is presented when podman or docker already creates the user for us inside container.
-	# We should modify the user's prepopulated shadowfile entry though as per user's active preferences.
+	# This situation is presented when podman or docker already creates the user
+	# for us inside container. We should modify the user's prepopulated shadowfile
+	# entry though as per user's active preferences.
 	if ! usermod \
 		--home "${container_user_home}" \
 		--shell "${SHELL:-"/bin/bash"}" \
