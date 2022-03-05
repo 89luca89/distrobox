@@ -32,8 +32,9 @@ fi
 
 # Defaults
 container_name="${DB_CONTAINER_NAME:-""}"
-verbose=0
 force=0
+non_interactive="${DBX_NON_INTERACTIVE:-0}"
+verbose=0
 version="1.2.14"
 
 # Print usage to stdout.
@@ -86,6 +87,10 @@ while :; do
 			shift
 			shift
 		fi
+		;;
+	-Y | --yes)
+		non_interactive=1
+		shift
 		;;
 	--) # End of all options.
 		shift
@@ -165,5 +170,28 @@ if [ "${container_status}" = "running" ]; then
 		exit 1
 	fi
 fi
+if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
+	# Prompt to download it.
+	printf "Do you really want to delete %s? [Y/n]: " "${container_name}"
+	read -r response
+	response="${response:-"Y"}"
+else
+	response="yes"
+fi
 
-${container_manager} rm "${container_name}"
+# Accept only y,Y,Yes,yes,n,N,No,no.
+case "${response}" in
+y | Y | Yes | yes | YES)
+	# Pull the image
+	${container_manager} rm "${container_name}"
+	;;
+n | N | No | no | NO)
+	printf "Aborted.\n"
+	exit 0
+	;;
+*) # Default case: If no more options then break out of the loop.
+	printf >&2 "Invalid input.\n"
+	printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+	exit 1
+	;;
+esac
