@@ -158,4 +158,3 @@ fi
 
 printf >&2 "Successfully installed to %s.\n" "${dest_path}"
 printf >&2 "Be sure that %s is in your \$PATH environment variable for it to work.\n" "${dest_path}"
-_
