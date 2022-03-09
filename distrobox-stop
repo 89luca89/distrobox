@@ -141,7 +141,7 @@ fi
 container_status="$(${container_manager} inspect --type container \
 	"${container_name}" --format '{{.State.Status}}')"
 container_exists="$?"
-# Does the container exists? check if inspect reported errors
+# Does the container exist? check if inspect reported errors
 if [ "${container_exists}" -gt 0 ]; then
 	# If not, prompt to create it first
 	printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
