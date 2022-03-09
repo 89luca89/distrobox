@@ -151,7 +151,7 @@ else
 
 	# securely delete unneeded files
 	cd
-	if [ -n "${tmpdir}" ] && [ -e "${tmp_dir}" ]; then
+	if [ -n "${tmp_dir}" ] && [ -e "${tmp_dir}" ]; then
 		rm -rf "${tmp_dir}"
 	fi
 fi
