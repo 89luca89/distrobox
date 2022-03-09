@@ -49,6 +49,7 @@ Choose one of the available commands:
 	create
 	enter
 	list
+	stop
 	rm
 EOF
 }

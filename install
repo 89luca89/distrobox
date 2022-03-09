@@ -74,20 +74,21 @@ if [ -n "${dest_path}" ] && [ -n "${prefix}" ]; then
 	exit 1
 fi
 
-if [ -z "${dest_path}" ]; then
-	if [ -z "${prefix}" ]; then
-		prefix="/usr/local"
-		# in case we're not root, just default to the home directory
-		if [ "$(id -u)" -ne 0 ]; then
-			prefix="${HOME}/.local"
-		fi
-	fi
-	dest_path="${prefix}/bin"
-	man_dest_path="${prefix}/share/man/man1"
-else
+# dest_path declared, let's make clear this is DEPRECATED
+if [ -n "${dest_path}" ]; then
 	printf >&2 "Warning: -p/--path is deprecated. Please refer to the documentation and switch to -P/--prefix.\n"
 	# dest_path is already set
 	man_dest_path="${dest_path}/../share/man/man1"
+fi
+
+if [ -z "${dest_path}" ] && [ -z "${prefix}" ]; then
+	prefix="/usr/local"
+	# in case we're not root, just default to the home directory
+	if [ "$(id -u)" -ne 0 ]; then
+		prefix="${HOME}/.local"
+	fi
+	dest_path="${prefix}/bin"
+	man_dest_path="${prefix}/share/man/man1"
 fi
 
 set -o errexit

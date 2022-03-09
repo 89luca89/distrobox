@@ -32,7 +32,6 @@ fi
 
 # Defaults
 container_name="${DB_CONTAINER_NAME:-""}"
-force=0
 non_interactive="${DBX_NON_INTERACTIVE:-0}"
 verbose=0
 version="1.2.14"
@@ -48,13 +47,13 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-rm --name container-name [--force]
-	distrobox-rm container-name [-f]
+	distrobox-stop --name container-name
+	distrobox-stop container-name
 
 Options:
 
 	--name/-n:		name for the distrobox
-	--force/-f:		force deletion
+	--yes/-Y:		non-interactive, stop without asking
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -76,10 +75,6 @@ while :; do
 	-V | --version)
 		printf "distrobox: %s\n" "${version}"
 		exit 0
-		;;
-	-f | --force)
-		force=1
-		shift
 		;;
 	-n | --name)
 		if [ -n "$2" ]; then
@@ -153,26 +148,9 @@ if [ "${container_exists}" -gt 0 ]; then
 	exit 1
 fi
 
-# If the container is not already running, we need to start if first
-if [ "${container_status}" = "running" ]; then
-	if [ "${force}" -ne 0 ]; then
-		printf >&2 "Stopping container %s\n" "${container_name}"
-		if ! ${container_manager} stop "${container_name}"; then
-			printf >&2 "Could not stop container %s\n" "${container_name}"
-			printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-			printf >&2 "Run:\n\t%s stop %s" "${container_manager}" "${container_name}"
-			exit 1
-		fi
-	else
-		printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-		printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
-		printf >&2 'or use the "--force" flag'
-		exit 1
-	fi
-fi
-if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
+if [ "${non_interactive}" -eq 0 ]; then
 	# Prompt to download it.
-	printf "Do you really want to delete %s? [Y/n]: " "${container_name}"
+	printf "Do you really want to stop %s? [Y/n]: " "${container_name}"
 	read -r response
 	response="${response:-"Y"}"
 else
@@ -182,8 +160,8 @@ fi
 # Accept only y,Y,Yes,yes,n,N,No,no.
 case "${response}" in
 y | Y | Yes | yes | YES)
-	# Remove the container
-	${container_manager} rm "${container_name}"
+	# Stop the container
+	${container_manager} stop "${container_name}"
 	;;
 n | N | No | no | NO)
 	printf "Aborted.\n"
