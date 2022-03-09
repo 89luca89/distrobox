@@ -75,6 +75,9 @@ enter)
 list)
 	"${distrobox_path}"/distrobox-list "$@"
 	;;
+stop)
+	"${distrobox_path}"/distrobox-stop "$@"
+	;;
 rm)
 	"${distrobox_path}"/distrobox-rm "$@"
 	;;
