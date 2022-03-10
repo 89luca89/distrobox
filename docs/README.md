@@ -169,6 +169,8 @@ enter the directory and run `./uninstall`, by default it will assume the install
 
 ---
 
-|![distrobox-box](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png) | You can take a look at some usage examples [HERE](usage/usage.md) <br> with a list of useful tips [HERE](useful_tips.md) |
-|--------------|:-----------|
+![distrobox-box](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png) 
+
+You can take a look at some usage examples [HERE](usage/usage.md) <br> with a list of useful tips [HERE](useful_tips.md)
+
 ---
