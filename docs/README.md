@@ -50,6 +50,7 @@ graphical apps (X11/Wayland), and audio.
 - [Featured Articles](featured_articles.md)
     + [Run Distrobox on Fedora Linux - Fedora Magazine](https://fedoramagazine.org/run-distrobox-on-fedora-linux/)
     + [DistroBox – Run Any Linux Distribution Inside Linux Terminal - TecMint](https://www.tecmint.com/distrobox-run-any-linux-distribution/)
+    + [Distrobox - How to quickly deploy a Linux distribution with GUI applications via a container](https://www.techrepublic.com/article/how-to-quickly-deploy-a-linux-distribution-with-gui-applications-via-a-container/)
     + [Using Distrobox To Augment The Package Selection On Clear Linux - Phoronix](https://www.phoronix.com/scan.php?page=news_item&px=Distrobox-Clear-Linux)
     + [Benchmark: benefits of Clear Linux containers (distrobox) - Phoronix](https://www.phoronix.com/forums/forum/phoronix/latest-phoronix-articles/1305326-clear-linux-container-performance-continues-showing-sizable-gains)
     + [Distrobox - A great item in the Linux toolbelt - phmurphy's blog](https://phmurphy.com/posts/distrobox-toolbelt/)
@@ -78,6 +79,7 @@ It is divided into 6 commands:
 - `distrobox-enter`  - to enter the container
 - `distrobox-list` - to list containers created with distrobox
 - `distrobox-rm` - to delete a container created with distrobox
+- `distrobox-stop` - to stop a running container created with distrobox
 - `distrobox-init`   - it's the entrypoint of the container (not meant to be used manually)
 - `distrobox-export` - it is meant to be used inside the container, useful to export apps and services from the container to the host
 

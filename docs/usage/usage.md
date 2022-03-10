@@ -4,6 +4,7 @@
     + [distrobox-enter](distrobox-enter.md)
     + [distrobox-list](distrobox-list.md)
     + [distrobox-rm](distrobox-rm.md)
+    + [distrobox-stop](distrobox-stop.md)
   * [Inside the distrobox](#inside-the-distrobox)
     + [distrobox-export](distrobox-export.md)
     + [distrobox-init](distrobox-init.md)
