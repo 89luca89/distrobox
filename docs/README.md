@@ -1,4 +1,4 @@
-![distrobox-logo](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png)
+![distrobox-logo](https://user-images.githubusercontent.com/20567546/157766347-472ef719-a75e-4b0c-b743-b5a47adad842.png)
 
 # Distrobox
 
@@ -169,7 +169,6 @@ enter the directory and run `./uninstall`, by default it will assume the install
 
 ---
 
-You can take a look at some usage examples [HERE](usage/usage.md) <br>
-with a list of useful tips [HERE](useful_tips.md)
-
+|![distrobox-box](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png) | You can take a look at some usage examples [HERE](usage/usage.md) <br> with a list of useful tips [HERE](useful_tips.md) |
+|--------------|:-----------|
 ---
