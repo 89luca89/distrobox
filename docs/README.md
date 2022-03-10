@@ -1,4 +1,4 @@
-![distrobox-logo](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png)
+![distrobox-logo](https://user-images.githubusercontent.com/20567546/157764592-5026425a-f526-4f04-9d82-b2249b7048da.png)
 
 # Distrobox
 
@@ -173,3 +173,4 @@ You can take a look at some usage examples [HERE](usage/usage.md) <br>
 with a list of useful tips [HERE](useful_tips.md)
 
 ---
+
