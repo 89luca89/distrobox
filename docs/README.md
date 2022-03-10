@@ -1,6 +1,6 @@
 ![distrobox-logo](https://user-images.githubusercontent.com/20567546/157766347-472ef719-a75e-4b0c-b743-b5a47adad842.png)
 
----
+# Distrobox
 
 ![Lint](https://github.com/89luca89/distrobox/actions/workflows/main.yml/badge.svg)
 [![GitHub](https://img.shields.io/github/license/89luca89/distrobox?color=blue)](../COPYING.md)
