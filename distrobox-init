@@ -251,7 +251,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		dnf install -y \
 			"${shell_pkg}" \
 			findutils \
-			ncurses-base \
+			ncurses \
 			passwd \
 			procps-ng \
 			shadow-utils \
@@ -353,7 +353,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		yum install -y \
 			"${shell_pkg}" \
 			findutils \
-			ncurses-base \
+			ncurses \
 			passwd \
 			procps \
 			shadow-utils \
