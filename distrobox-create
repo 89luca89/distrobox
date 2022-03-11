@@ -348,6 +348,17 @@ generate_command() {
 		--volume /sys:/sys:rslave
 		--volume /tmp:/tmp:rslave"
 
+	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
+	# will be mounted inside the rootless container.
+	#
+	# This works around this and allows the rootless container to work when selinux
+	# policies are installed inside it.
+	#
+	# Ref. Podman issue 4452:
+	#    https://github.com/containers/podman/issues/4452
+	result_command="${result_command}
+		--volume /sys/fs/selinux"
+
 	# In some systems, for example using sysvinit, /dev/shm is a symlink
 	# to /run/shm, instead of the other way around.
 	# Resolve this detecting if /dev/shm is a symlink and mount original
