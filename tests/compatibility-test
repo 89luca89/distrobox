@@ -66,7 +66,9 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 image_list=$(grep -E "docker.io|quay.io|ghcr|registry.|ecr." "$(dirname "${0}")"/../docs/compatibility.md | cut -d'|' -f 4 | sed 's/<br>/\n/g' | tr -d ' ' | tail -n +2)
-image_total=$(grep -E "docker.io|quay.io|ghcr|registry.|ecr." "$(dirname "${0}")"/../docs/compatibility.md | cut -d'|' -f 4 | sed 's/<br>/\n/g' | tr -d ' ' | tail -n +2 | wc -l)
+image_total=$(echo "${image_list}" | wc -l)
+
+exit 1
 
 index=0
 for image in ${image_list}; do
