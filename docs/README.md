@@ -1,4 +1,5 @@
-![distrobox-logo](https://user-images.githubusercontent.com/20567546/157766347-472ef719-a75e-4b0c-b743-b5a47adad842.png)
+![distrobox-logo](https://user-images.githubusercontent.com/598882/157771834-7423cf9b-8311-4e90-8a79-cd0eff6bd632.png)
+<sub>logo credits [j4ckr3d](https://github.com/j4ckr3d)<sub>
 
 # Distrobox
 
@@ -39,6 +40,7 @@ graphical apps (X11/Wayland), and audio.
     + [distrobox-enter](usage/distrobox-enter.md)
     + [distrobox-list](usage/distrobox-list.md)
     + [distrobox-rm](usage/distrobox-rm.md)
+    + [distrobox-stop](usage/distrobox-stop.md)
   * [Inside the distrobox](#inside-the-distrobox)
     + [distrobox-export](usage/distrobox-export.md)
     + [distrobox-init](usage/distrobox-init.md)
@@ -174,3 +176,4 @@ enter the directory and run `./uninstall`, by default it will assume the install
 You can take a look at some usage examples [HERE](usage/usage.md) <br> with a list of useful tips [HERE](useful_tips.md)
 
 ---
+
