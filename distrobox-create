@@ -356,8 +356,10 @@ generate_command() {
 	#
 	# Ref. Podman issue 4452:
 	#    https://github.com/containers/podman/issues/4452
-	result_command="${result_command}
-		--volume /sys/fs/selinux"
+	if [ -e "/sys/fs/selinux" ]; then
+		result_command="${result_command}
+			--volume /sys/fs/selinux"
+	fi
 
 	# In some systems, for example using sysvinit, /dev/shm is a symlink
 	# to /run/shm, instead of the other way around.
