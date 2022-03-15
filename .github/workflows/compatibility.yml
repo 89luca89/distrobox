@@ -41,6 +41,7 @@ jobs:
     needs: setup
     strategy:
       fail-fast: false
+      max-parallel: 8
       matrix:
         distribution: ${{fromJSON(needs.setup.outputs.targets)}}
 
