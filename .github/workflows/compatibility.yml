@@ -7,9 +7,9 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
     types: [opened, synchronize, ready_for_review, edited]
 
   # Allows you to run this workflow manually from the Actions tab
