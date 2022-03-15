@@ -84,7 +84,7 @@ Distrobox guests tested successfully with the following container images:
 | AmazonLinux | 2022  | public.ecr.aws/amazonlinux/amazonlinux:2022 |
 | Archlinux     | | docker.io/library/archlinux:latest    |
 | ClearLinux |      | docker.io/library/clearlinux:latest<br>docker.io/library/clearlinux:base    |
-| CentOS | 7<br>8 | quay.io/centos/centos:7<br>quay.io/centos/centos:8  |
+| CentOS | 7 | quay.io/centos/centos:7  |
 | CentOS Stream | 8<br>9 | quay.io/centos/centos:stream8<br>quay.io/centos/centos:stream9  |
 | RedHat (UBI) | 7<br>8 | registry.access.redhat.com/ubi7/ubi<br>registry.access.redhat.com/ubi7/ubi-init<br>registry.access.redhat.com/ubi8/ubi<br>registry.access.redhat.com/ubi8/ubi-init  |
 | Debian | 8<br>9<br>10<br>11 | docker.io/library/debian:8<br>docker.io/library/debian:9<br>docker.io/library/debian:10<br>docker.io/library/debian:stable<br>docker.io/library/debian:stable-backports    |
@@ -99,7 +99,6 @@ Distrobox guests tested successfully with the following container images:
 | Rocky Linux | 8 | docker.io/rockylinux/rockylinux:8    |
 | Scientific Linux | 7 | docker.io/library/sl:7    |
 | Slackware | 14.2 | docker.io/vbatts/slackware:14.2    |
-| Slackware | current | docker.io/vbatts/slackware:current    |
 | Ubuntu | 14.04<br>16.04<br>18.04<br>20.04<br>21.10<br>22.04 | docker.io/library/ubuntu:14.04<br>docker.io/library/ubuntu:16.04<br>docker.io/library/ubuntu:18.04<br>docker.io/library/ubuntu:20.04<br>docker.io/library/ubuntu:21.10<br>docker.io/library/ubuntu:22.04    |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64 <br> ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
