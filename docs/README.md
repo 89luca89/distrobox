@@ -4,6 +4,7 @@
 # Distrobox
 
 ![Lint](https://github.com/89luca89/distrobox/actions/workflows/main.yml/badge.svg)
+[![CI](https://github.com/89luca89/distrobox/actions/workflows/compatibility.yml/badge.svg)](https://github.com/89luca89/distrobox/actions/workflows/compatibility.yml)
 [![GitHub](https://img.shields.io/github/license/89luca89/distrobox?color=blue)](../COPYING.md)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/89luca89/distrobox)](https://github.com/89luca89/distrobox/releases/latest)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/89luca89/distrobox)
