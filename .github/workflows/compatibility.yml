@@ -1,0 +1,138 @@
+---
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Prepare distros matrix
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.set-matrix.outputs.targets }}
+    steps:
+
+      - uses: actions/checkout@v2
+
+      # Fetch from compatibility table all the distros supported
+      - id: set-matrix
+        run: |
+            echo "::set-output name=targets::$(grep -E 'docker.io|quay.io|ghcr|registry.|ecr.' docs/compatibility.md |
+              cut -d'|' -f 4 |
+              sed 's/<br>/\n/g' |
+              tr -d ' ' |
+              tail -n +2 |
+              jq -R -s -c 'split("\n")[:-1]')"
+
+  run:
+
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        distribution: ${{fromJSON(needs.setup.outputs.targets)}}
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Ensure distrobox create works:
+      - name: Distrobox create
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          ./distrobox create --yes -i "${image}" --name "${container_name}"
+
+      # Ensure distrobox enter and init works:
+      - name: Distrobox enter - init
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          ./distrobox enter --name "${container_name}" -- whoami
+
+      # Ensure distrobox enter and init works:
+      - name: Distrobox enter - user
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          # Assert that distrobox exported binary indeed works
+          set -x
+          command_output="$(./distrobox enter --name "${container_name}" -- whoami | tr -d '\r')"
+          expected_output="$(whoami)"
+          if [ "$command_output" != "$expected_output" ]; then
+            exit 1
+          fi
+
+      # Ensure distrobox enter and init works:
+      - name: Distrobox enter - command
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          # Assert that distrobox exported binary indeed works
+          set -x
+          command_output="$(./distrobox enter --name "${container_name}" -- uname -n | tr -d '\r')"
+          expected_output="${container_name}.$(uname -n)"
+          if [ "$command_output" != "$expected_output" ]; then
+            exit 1
+          fi
+
+      # Ensure distrobox export works:
+      - name: Distrobox export
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          ./distrobox enter "${container_name}" -- distrobox-export --bin /bin/uname --export-path /tmp/
+          # Assert that distrobox exported binary indeed works
+          set -x
+          command_output="$(/tmp/uname -n | tr -d '\r')"
+          expected_output="${container_name}.$(uname -n)"
+          if [ "$command_output" != "$expected_output" ]; then
+            exit 1
+          fi
+
+      # Ensure distrobox export works:
+      - name: Distrobox export - sudo
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          ./distrobox enter "${container_name}" -- distrobox-export --sudo --bin /bin/uname --export-path /tmp/
+          # Assert that distrobox exported binary indeed works
+          set -x
+          command_output="$(/tmp/uname -n | tr -d '\r')"
+          expected_output="${container_name}.$(uname -n)"
+          if [ "$command_output" != "$expected_output" ]; then
+            exit 1
+          fi
+
+      # Ensure distrobox list works:
+      - name: Distrobox list
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          ./distrobox list | grep "${container_name}" | grep "${image}" | grep Up
+
+      # Ensure distrobox stop works:
+      - name: Distrobox stop
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          ./distrobox stop --yes "${container_name}"
+
+      # Ensure distrobox rm works:
+      - name: Distrobox rm
+        if: ${{ always() }}
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          ./distrobox rm --force --name "${container_name}"
