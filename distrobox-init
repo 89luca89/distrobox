@@ -191,8 +191,8 @@ mount_bind() (
 # If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Check if dependencies are met for the script to run.
-if ! command -v find || ! command -v mount || ! command -v sudo ||
-	! command -v useradd || ! command -v usermod ||
+if ! command -v find || ! command -v mount || ! command -v passwd ||
+	! command -v sudo || ! command -v useradd || ! command -v usermod ||
 	! ls /etc/profile.d/*vte* ||
 	! command -v "${shell_pkg}"; then
 
@@ -200,7 +200,7 @@ if ! command -v find || ! command -v mount || ! command -v sudo ||
 	# install minimal dependencies needed to bootstrap the container:
 	#	the same shell that's on the host
 	#	sudo, mount, find
-	#	groupadd and useradd
+	#	passwd, groupadd and useradd
 	if command -v apk; then
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
@@ -235,6 +235,7 @@ if ! command -v find || ! command -v mount || ! command -v sudo ||
 			libnss-myhostname \
 			libvte-common \
 			ncurses-base \
+			passwd \
 			procps \
 			sudo \
 			util-linux
@@ -251,6 +252,7 @@ if ! command -v find || ! command -v mount || ! command -v sudo ||
 			"${shell_pkg}" \
 			findutils \
 			ncurses \
+			passwd \
 			procps-ng \
 			shadow-utils \
 			sudo \
@@ -352,6 +354,7 @@ if ! command -v find || ! command -v mount || ! command -v sudo ||
 			"${shell_pkg}" \
 			findutils \
 			ncurses \
+			passwd \
 			procps \
 			shadow-utils \
 			sudo \
@@ -512,6 +515,10 @@ if ! grep -q "^${container_user_name}:" /etc/passwd; then
 		"${container_user_name}"; then
 
 		printf "Warning: there was a problem setting up the user\n"
+		printf "Warning: trying manual addition\n"
+		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >>/etc/group
+		printf "%s:x:%s:%s:%s:%s:%s" "${container_user_name}" "${container_user_uid}" "${container_user_gid}" "${container_user_name}" "${container_user_home}" "${SHELL:-"/bin/bash"}" >>/etc/passwd
+		printf "%s::1::::::" "${container_user_name}" >>/etc/shadow
 	fi
 else
 	# This situation is presented when podman or docker already creates the user
@@ -530,11 +537,11 @@ fi
 
 # We generate a random password to initialize the entry for the user and root.
 temporary_password="$(cat /proc/sys/kernel/random/uuid)"
+printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd root
 printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
-printf "%s:%s" "root" "${temporary_password}" | chpasswd -e
 # Delete password for root and user
-printf "%s:" "${container_user_name}" | chpasswd -e
 printf "%s:" "root" | chpasswd -e
+printf "%s:" "${container_user_name}" | chpasswd -e
 
 # If we do not have profile files in the home, we should copy the
 # skeleton files, if present.
