@@ -418,7 +418,7 @@ generate_command() {
 		# Check if the file exists first
 		if [ -f "${host_link}" ] && [ -r "${host_link}" ]; then
 			result_command="${result_command}
-			--volume \"${host_link}\":\"${host_link}\":ro"
+			--volume \"$(realpath "${host_link}")\":\"${host_link}\":ro"
 		fi
 	done
 
