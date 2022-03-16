@@ -400,13 +400,10 @@ done
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
 HOST_MOUNTS="
-	/media
 	/mnt
 	/run/libvirt
-	/run/media
 	/run/systemd/journal
 	/run/udev
-	/srv
 	/var/lib/libvirt
 	/var/mnt"
 for host_mount in ${HOST_MOUNTS}; do

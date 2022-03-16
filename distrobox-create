@@ -338,15 +338,28 @@ generate_command() {
 	#
 	# Mount also the distrobox-init utility as the container entrypoint.
 	result_command="${result_command}
-		--env \"SHELL=${SHELL:-"/bin/bash"}\"
 		--env \"HOME=${container_user_home}\"
+		--env \"SHELL=${SHELL:-"/bin/bash"}\"
+		--volume /:/run/host:ro
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
-		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
-		--volume /:/run/host:rslave
-		--volume /dev:/dev:rslave
-		--volume /sys:/sys:rslave
-		--volume /tmp:/tmp:rslave"
+		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro"
+
+	rslave_mounts="/media /mnt /run/media /srv /tmp"
+	for rslave_mount in ${rslave_mounts}; do
+		# Check if the file exists first
+		if [ -e "${rslave_mount}" ]; then
+			result_command="${result_command} --volume \"${rslave_mount}\":\"${rslave_mount}\":rslave"
+		fi
+	done
+
+	ro_mounts="/dev /sys"
+	for ro_mount in ${ro_mounts}; do
+		# Check if the file exists first
+		if [ -e "${ro_mount}" ]; then
+			result_command="${result_command} --volume \"${ro_mount}\":\"${ro_mount}\":ro"
+		fi
+	done
 
 	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
 	# will be mounted inside the rootless container.
