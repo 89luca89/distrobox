@@ -494,11 +494,11 @@ fi
 
 # If not existing, ensure we have a group for our user.
 if ! grep -q "^${container_user_name}:" /etc/group; then
-    if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
-            # It may occur that we have users with unsupported user name (eg. on LDAP or AD)
-            # So let's try and force the group creation this way.
-            printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >> /etc/group
-    fi
+	if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
+		# It may occur that we have users with unsupported user name (eg. on LDAP or AD)
+		# So let's try and force the group creation this way.
+		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >>/etc/group
+	fi
 fi
 # Let's add our user to the container. if the user already exists, enforce properties.
 if ! grep -q "^${container_user_name}:" /etc/passwd; then
@@ -533,8 +533,8 @@ temporary_password="$(cat /proc/sys/kernel/random/uuid)"
 printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
 printf "%s:%s" "root" "${temporary_password}" | chpasswd -e
 # Delete password for root and user
-printf "%s:" "${container_user_name}"  | chpasswd -e
-printf "%s:" "root"  | chpasswd -e
+printf "%s:" "${container_user_name}" | chpasswd -e
+printf "%s:" "root" | chpasswd -e
 
 # If we do not have profile files in the home, we should copy the
 # skeleton files, if present.
