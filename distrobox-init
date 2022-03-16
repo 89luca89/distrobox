@@ -191,8 +191,8 @@ mount_bind() (
 # If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Check if dependencies are met for the script to run.
-if ! command -v find || ! command -v mount || ! command -v passwd ||
-	! command -v sudo || ! command -v useradd || ! command -v usermod ||
+if ! command -v find || ! command -v mount || ! command -v sudo ||
+	! command -v useradd || ! command -v usermod ||
 	! ls /etc/profile.d/*vte* ||
 	! command -v "${shell_pkg}"; then
 
@@ -200,7 +200,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 	# install minimal dependencies needed to bootstrap the container:
 	#	the same shell that's on the host
 	#	sudo, mount, find
-	#	passwd, groupadd and useradd
+	#	groupadd and useradd
 	if command -v apk; then
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
@@ -235,7 +235,6 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			libnss-myhostname \
 			libvte-common \
 			ncurses-base \
-			passwd \
 			procps \
 			sudo \
 			util-linux
@@ -252,7 +251,6 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			"${shell_pkg}" \
 			findutils \
 			ncurses \
-			passwd \
 			procps-ng \
 			shadow-utils \
 			sudo \
@@ -354,7 +352,6 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			"${shell_pkg}" \
 			findutils \
 			ncurses \
-			passwd \
 			procps \
 			shadow-utils \
 			sudo \
@@ -497,13 +494,18 @@ fi
 
 # If not existing, ensure we have a group for our user.
 if ! grep -q "^${container_user_name}:" /etc/group; then
-	groupadd --force --gid "${container_user_gid}" "${container_user_name}"
+    if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
+            # It may occur that we have users with unsupported user name (eg. on LDAP or AD)
+            # So let's try and force the group creation this way.
+            printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >> /etc/group
+    fi
 fi
 # Let's add our user to the container. if the user already exists, enforce properties.
 if ! grep -q "^${container_user_name}:" /etc/passwd; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
+		--badname \
 		--shell "${SHELL:-"/bin/bash"}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
@@ -528,11 +530,11 @@ fi
 
 # We generate a random password to initialize the entry for the user and root.
 temporary_password="$(cat /proc/sys/kernel/random/uuid)"
-printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd "${container_user_name}"
-printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd root
+printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
+printf "%s:%s" "root" "${temporary_password}" | chpasswd -e
 # Delete password for root and user
-passwd --delete "${container_user_name}"
-passwd --delete root
+printf "%s:" "${container_user_name}"  | chpasswd -e
+printf "%s:" "root"  | chpasswd -e
 
 # If we do not have profile files in the home, we should copy the
 # skeleton files, if present.
