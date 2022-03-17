@@ -1,5 +1,11 @@
 - [Distrobox](README.md)
   - [Execute complex commands directly from distrobox-enter](#execute-complex-commands-directly-from-distrobox-enter)
+  - [Create a distrobox with a custom HOME directory](#create-a-distrobox-with-a-custom-home-directory)
+  - [Mount additional volumes in a distrobox](#mount-additional-volumes-in-a-distrobox)
+  - [Use a different shell than the host](#use-a-different-shell-than-the-host)
+  - [Duplicate an existing distrobox](#duplicate-an-existing-distrobox)
+  - [Export to the host](#export-to-the-host)
+  - [Execute commands on the host](#execute-commands-on-the-host)
   - [Enable SSH X-Forwarding when SSH-ing in a distrobox](#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
   - [Use distrobox to install different flatpaks from the host](#use-distrobox-to-install-different-flatpaks-from-the-host)
   - [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
@@ -29,6 +35,49 @@ For example:
 Note the use of **single quotes around double quotes**, this is necessary so that quotes are preserved inside the arguments.
 Also note the **dollar escaping** needed so that $HOME is not evaluated at the time of the command launch, but directly 
 inside the container.
+
+## Create a distrobox with a custom HOME directory
+
+`distrobox-create` supports the use of the `--home` flag, as specified in the usage [HERE](./usage/distrobox-create.md)
+
+Simply use:
+
+`distrobox-create --name test --image your-choosen-image:tag --home /your/custom/home`
+
+## Mount additional volumes in a distrobox
+
+`distrobox-create` supports the use of the `--volume` flag, as specified in the usage [HERE](./usage/distrobox-create.md)
+
+Simply use:
+
+`distrobox-create --name test --image your-choosen-image:tag --volume /your/custom/volume/path`
+
+## Use a different shell than the host
+
+By default distrobox will pick up the shell from the host and use it inside the container.
+If you want a different one you can use:
+
+`SHELL=/bin/zsh distrobox create -n test`
+`SHELL=/bin/zsh distrobox enter test`
+
+
+## Duplicate an existing distrobox
+
+It can be useful to just duplicate an already set up environment, to do this, `distrobox-create` supports the use of the
+`--clone` flag, as specified in the usage [HERE](./usage/distrobox-create.md)
+
+Simply use:
+
+`distrobox-create --name test --clone name-of-distrobox-to-clone`
+
+## Export to the host
+
+Distrobox supports exporting to the host either binaries, applications or systemd services.
+[Head over the usage page to have an explanation and examples.](usage/distrobox-export.md)
+
+## Execute commands on the host
+
+You can check this little post about [executing commands on the host.](posts/execute_commands_on_host.md)
 
 ## Enable SSH X-Forwarding when SSH-ing in a distrobox
 
