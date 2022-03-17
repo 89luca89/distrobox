@@ -516,7 +516,6 @@ if ! grep -q "^${container_user_name}:" /etc/passwd; then
 
 		printf "Warning: there was a problem setting up the user\n"
 		printf "Warning: trying manual addition\n"
-		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >>/etc/group
 		printf "%s:x:%s:%s:%s:%s:%s" "${container_user_name}" "${container_user_uid}" "${container_user_gid}" "${container_user_name}" "${container_user_home}" "${SHELL:-"/bin/bash"}" >>/etc/passwd
 		printf "%s::1::::::" "${container_user_name}" >>/etc/shadow
 	fi
