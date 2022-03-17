@@ -129,6 +129,14 @@ Mean:
 
 I would like to keep it always below the [Doherty Treshold](https://lawsofux.com/doherty-threshold/) of 400ms.
 
+#### Security implications
+
+Isolation and sandboxing is **not** the main aim of the project, on the conrary it aims to thightly integrate the container with the host.
+The container will have complete access to your home, pen drives and so on, so do not expect it to be highly sandboxed like a plain
+docker/podman container or a flatpak.
+
+That said, it is in the works to implement some sort of decoupling with the host, as discussed here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/issues/28)
+
 ---
 
 # Installation
