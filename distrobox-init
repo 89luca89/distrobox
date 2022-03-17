@@ -405,6 +405,10 @@ HOST_MOUNTS="
 	/run/libvirt
 	/run/media
 	/run/systemd/journal
+	/run/systemd/seats
+	/run/systemd/sessions
+	/run/systemd/system
+	/run/systemd/users
 	/run/udev
 	/srv
 	/var/lib/libvirt
@@ -601,6 +605,10 @@ else
 	# be problems. Let's unmount them.
 	HOST_MOUNTS_RO_INIT="
 		/run/systemd/journal
+		/run/systemd/seats
+		/run/systemd/sessions
+		/run/systemd/system
+		/run/systemd/users
 		/var/lib/systemd/coredump
 		/var/log/journal"
 	for host_mount in ${HOST_MOUNTS_RO_INIT}; do
