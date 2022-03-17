@@ -28,6 +28,18 @@ Note the use of **single quotes around double quotes**, this is necessary so tha
 Also note the **dollar escaping** needed so that $HOME is not evaluated at the time of the command launch, but directly 
 inside the container.
 
+## Enable SSH X-Forwarding when SSH-ing in a distrobox
+
+SSH X-forwarding by default will not work because the container hostname is different from the host's one.
+You can create a distrobox with will have the same hostname as the host by creating it with the following
+init-hook:
+
+`distrobox-create --name test --image your-choosen-image:tag --init-hooks "$(uname -n)" > /etc/hostname`
+
+This will ensure SSH X-Forwarding will work when SSH-ing inside the distrobox:
+
+`ssh -X myhost distrobox-enter test -- xclock`
+
 ## Improve distrobox-enter performance
 
 If you are experiencing a bit slow performance using `podman` you should enable
