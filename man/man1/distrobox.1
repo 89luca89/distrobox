@@ -46,11 +46,7 @@ Archlinux	\~	docker\.io/library/archlinux:latest
 ClearLinux	\~	docker\.io/library/clearlinux:latest
 .br
 docker\.io/library/clearlinux:base
-CentOS	7
-.br
-8	quay\.io/centos/centos:7
-.br
-quay\.io/centos/centos:8
+CentOS	7	quay\.io/centos/centos:7
 CentOS Stream	8
 .br
 9	quay\.io/centos/centos:stream8
@@ -103,7 +99,7 @@ docker\.io/library/fedora:35
 .br
 docker\.io/library/fedora:36
 .br
-docker\.io/library/fedora:37
+registry\.fedoraproject\.org/fedora:37
 .br
 docker\.io/library/fedora:rawhide
 Mageia	8	docker\.io/library/mageia
@@ -119,7 +115,6 @@ container\-registry\.oracle\.com/os/oraclelinux:8
 Rocky Linux	8	docker\.io/rockylinux/rockylinux:8
 Scientific Linux	7	docker\.io/library/sl:7
 Slackware	14\.2	docker\.io/vbatts/slackware:14\.2
-Slackware	current	docker\.io/vbatts/slackware:current
 Ubuntu	14\.04
 .br
 16\.04
@@ -142,11 +137,7 @@ docker\.io/library/ubuntu:21\.10
 .br
 docker\.io/library/ubuntu:22\.04
 Kali Linux	rolling	docker\.io/kalilinux/kali\-rolling:latest
-Void Linux	\~	ghcr\.io/void\-linux/void\-linux:latest\-thin\-bb\-x86_64
-.br
-ghcr\.io/void\-linux/void\-linux:latest\-thin\-bb\-x86_64\-musl
-.br
-ghcr\.io/void\-linux/void\-linux:latest\-full\-x86_64
+Void Linux	\~	ghcr\.io/void\-linux/void\-linux:latest\-full\-x86_64
 .br
 ghcr\.io/void\-linux/void\-linux:latest\-full\-x86_64\-musl
 Gentoo Linux	rolling	You will have to Build your own \fIdistrobox_gentoo\.md\fR to have a complete Gentoo docker image
@@ -169,7 +160,7 @@ Their \fBlibc\fR version is incompatible with kernel releases after \fB>=4\.11\f
 Keep also in mind that mirrors could be down for such old releases, so you will need to build a custom distrobox image to ensure basic dependencies are met \fI\./distrobox_custom\.md\fR\.
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-CREATE\.1" "" "February 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-CREATE\.1" "" "March 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-create\.1\fR
 .SS "Create the distrobox"
@@ -298,7 +289,7 @@ user@test:~$ sudo systemctl status sshd
 Note that enabling \fB\-\-init\fR \fBwill disable host\'s process integration\fR\. From within the container you will not be able to see and manage host\'s processes\. This is needed because \fB/sbin/init\fR must be pid 1\.
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-ENTER\.1" "" "January 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-ENTER\.1" "" "March 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-enter\.1\fR
 .SS "Enter the distrobox"
@@ -356,7 +347,7 @@ my_var=test
 
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-EXPORT\.1" "" "January 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-EXPORT\.1" "" "March 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-export\.1\fR
 .SS "Application and service exporting"
@@ -469,7 +460,7 @@ NOTE: some electron apps such as vscode and atom need additional flags to work f
 \fBdistrobox\-export \-\-app atom \-\-extra\-flags "\-\-foreground"\fR
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-INIT\.1" "" "January 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-INIT\.1" "" "March 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-init\.1\fR
 .SS "Init the distrobox (not to be launched manually)"
@@ -506,7 +497,7 @@ This is used as entrypoint for the created container, it will take care of creat
 \fBYou should not have to launch this manually\fR, this is used by \fBdistrobox create\fR to set up container\'s entrypoint\.
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-LIST\.1" "" "January 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-LIST\.1" "" "March 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-list\.1\fR
 .SS "List containers"
@@ -531,7 +522,7 @@ Options:
 
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-RM\.1" "" "January 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-RM\.1" "" "March 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-rm\.1\fR
 .SS "Remove containers"

@@ -24,7 +24,6 @@ Here are a couple of solutions.
 
 Well, you could just install VSCode in your Distrobox of choice, and export it!
 
-
 For example using an Arch Linux container:
 
 ```shell
