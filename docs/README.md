@@ -46,6 +46,19 @@ graphical apps (X11/Wayland), and audio.
     + [distrobox-export](usage/distrobox-export.md)
     + [distrobox-init](usage/distrobox-init.md)
 - [Useful tips](useful_tips.md)
+    + [Execute complex commands directly from distrobox-enter](useful_tips.md#execute-complex-commands-directly-from-distrobox-enter)
+    + [Enable SSH X-Forwarding when SSH-ing in a distrobox](useful_tips.md#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
+    + [Use distrobox to install different flatpaks from the host](useful_tips.md#use-distrobox-to-install-different-flatpaks-from-the-host)
+    + [Using podman inside a distrobox](useful_tips.md#using-podman-inside-a-distrobox)
+    + [Using docker inside a distrobox](useful_tips.md#using-docker-inside-a-distrobox)
+    + [Using init system inside a distrobox](useful_tips.md#using-init-system-inside-a-distrobox)
+    + [Using distrobox as main cli](useful_tips.md#using-distrobox-as-main-cli)
+    + [Improve distrobox-enter performance](useful_tips.md#improve-distrobox-enter-performance)
+    + [Slow creation on podman and image size getting bigger with distrobox-create](useful_tips.md#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
+    + [Container save and restore](useful_tips.md#container-save-and-restore)
+    + [Check used resources](useful_tips.md#check-used-resources)
+    + [Build a Gentoo distrobox container](distrobox_gentoo.md)
+    + [Build a Dedicated distrobox container](distrobox_custom.md)
 - [Posts](posts/posts.md)
     + [Run latest GNOME and KDE using distrobox](posts/run_latest_gnome_kde_on_distrobox.md)
     + [Integrate VSCode and Distrobox](posts/integrate_vscode_distrobox.md)
@@ -164,6 +177,36 @@ Please look in the [Compatibility Table](compatibility.md#host-distros) for your
 
 ---
 
+# Basic usage
+
+Create a new distrobox:
+
+`distrobox create -n test`
+
+Enter created distrobox:
+
+`distrobox enter test`
+
+Execute a command in a distrobox:
+
+`distrobox enter test -- command-to-execute`
+
+List running distroboxes:
+
+`distrobox list`
+
+Stop a running distrobox:
+
+`distrobox stop test`
+
+Remove a distrobox
+
+`distrobox rm test`
+
+You can check [HERE for more advanced usage](usage/usage.md) and check a [comprehensive list of useful tips HERE](useful_tips.md)
+
+---
+
 ## Uninstallation
 
 If you installed distrobox using the `install` script in the default install directory use this:
@@ -181,8 +224,6 @@ enter the directory and run `./uninstall`, by default it will assume the install
 ---
 
 ![distrobox-box](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png) 
-
-You can take a look at some usage examples [HERE](usage/usage.md) <br> with a list of useful tips [HERE](useful_tips.md)
 
 ---
 
