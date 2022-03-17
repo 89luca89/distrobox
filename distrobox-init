@@ -497,19 +497,27 @@ fi
 
 # If not existing, ensure we have a group for our user.
 if ! grep -q "^${container_user_name}:" /etc/group; then
-	groupadd --force --gid "${container_user_gid}" "${container_user_name}"
+	if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
+		# It may occur that we have users with unsupported user name (eg. on LDAP or AD)
+		# So let's try and force the group creation this way.
+		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >>/etc/group
+	fi
 fi
 # Let's add our user to the container. if the user already exists, enforce properties.
 if ! grep -q "^${container_user_name}:" /etc/passwd; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
+		--badname \
 		--shell "${SHELL:-"/bin/bash"}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
 		"${container_user_name}"; then
 
 		printf "Warning: there was a problem setting up the user\n"
+		printf "Warning: trying manual addition\n"
+		printf "%s:x:%s:%s:%s:%s:%s" "${container_user_name}" "${container_user_uid}" "${container_user_gid}" "${container_user_name}" "${container_user_home}" "${SHELL:-"/bin/bash"}" >>/etc/passwd
+		printf "%s::1::::::" "${container_user_name}" >>/etc/shadow
 	fi
 else
 	# This situation is presented when podman or docker already creates the user
@@ -528,11 +536,11 @@ fi
 
 # We generate a random password to initialize the entry for the user and root.
 temporary_password="$(cat /proc/sys/kernel/random/uuid)"
-printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd "${container_user_name}"
 printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd root
+printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
 # Delete password for root and user
-passwd --delete "${container_user_name}"
-passwd --delete root
+printf "%s:" "root" | chpasswd -e
+printf "%s:" "${container_user_name}" | chpasswd -e
 
 # If we do not have profile files in the home, we should copy the
 # skeleton files, if present.
