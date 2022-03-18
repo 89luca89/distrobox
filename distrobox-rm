@@ -20,9 +20,9 @@
 
 # POSIX
 # Optional env variables:
+#	DBX_CONTAINER_MANAGER
 #   DBX_CONTAINER_NAME
 #   DBX_NON_INTERACTIVE
-#	DBX_CONTAINER_MANAGER
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
@@ -114,9 +114,6 @@ while :; do
 		;;
 	esac
 done
-# Ensure the foundamental variables are set and not empty, we will not proceed if
-# they are not all set.
-[ -z "${container_name}" ] && printf "Error: Invalid arguments, missing container name\n" && exit 2
 
 set -o errexit
 set -o nounset
