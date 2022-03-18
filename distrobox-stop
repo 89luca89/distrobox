@@ -36,7 +36,8 @@ fi
 
 # Defaults
 container_manager="${DBX_CONTAINER_MANAGER:-"autodetect"}"
-container_name="${DBX_CONTAINER_NAME:-"fedora-toolbox-35"}"
+container_name="${DBX_CONTAINER_NAME:-""}"
+container_name_default="fedora-toolbox-35"
 non_interactive="${DBX_NON_INTERACTIVE:-0}"
 verbose=0
 version="1.2.14"
@@ -158,6 +159,10 @@ fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
+fi
+# Set default container_name if no one is specified.
+if [ -z "${container_name}" ]; then
+	container_name="${container_name_default}"
 fi
 
 # Inspect the container we're working with.

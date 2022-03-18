@@ -47,7 +47,9 @@ container_command="${SHELL:-"bash"}"
 container_command="$(basename "${container_command}") -l"
 container_manager="${DBX_CONTAINER_MANAGER:-"autodetect"}"
 container_manager_additional_flags=""
-container_name="${DBX_CONTAINER_NAME:-"fedora-toolbox-35"}"
+container_name="${DBX_CONTAINER_NAME:-""}"
+container_name_default="fedora-toolbox-35"
+
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
 # "realpath" would break situations like Nix or similar symlink based package
@@ -206,6 +208,10 @@ fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
+fi
+# Set default container_name if no one is specified.
+if [ -z "${container_name}" ]; then
+	container_name="${container_name_default}"
 fi
 
 # Generate Podman or Docker command to execute.
