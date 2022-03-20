@@ -37,7 +37,7 @@ fi
 # Defaults
 container_manager="autodetect"
 container_name="fedora-toolbox-35"
-non_interactive=""
+non_interactive=0
 verbose=0
 version="1.2.14"
 
