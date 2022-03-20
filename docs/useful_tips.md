@@ -181,8 +181,7 @@ this will improve a lot `podman`'s command performances.
 ## Slow creation on podman and image size getting bigger with distrobox-create
 
 For rootless podman 3.4.0 and upward, adding this to your `~/.config/containers/storage.conf` file
-will improve container creation speed and fix issues with images getting bigger when using
-rootless containers.
+will improve container creation speed and fix issues with images getting bigger when using rootless containers.
 
 ```
 [storage]
@@ -191,6 +190,9 @@ driver = "overlay"
 [storage.options.overlay]
 mount_program = "/usr/bin/fuse-overlayfs"
 ```
+
+Note that this is necessary only on Kernel version older than `5.11` . From version `5.11` onwards
+native `overlayfs` is supported and reports noticeable gains in performance as explained [HERE](https://www.redhat.com/sysadmin/podman-rootless-overlay)
 
 ## Container save and restore
 
