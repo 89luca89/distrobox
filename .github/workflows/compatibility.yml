@@ -44,6 +44,9 @@ jobs:
       max-parallel: 8
       matrix:
         distribution: ${{fromJSON(needs.setup.outputs.targets)}}
+        container_manager: ["podman", "docker"]
+    env:
+      DBX_CONTAINER_MANAGER: ${{ matrix.container_manager }}
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -51,6 +54,7 @@ jobs:
 
       # Ensure distrobox create works:
       - name: Distrobox create
+        shell: 'script -q -e -c "bash {0}"'
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
@@ -58,6 +62,7 @@ jobs:
 
       # Ensure distrobox enter and init works:
       - name: Distrobox enter - init
+        shell: 'script -q -e -c "bash {0}"'
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
@@ -65,12 +70,13 @@ jobs:
 
       # Ensure distrobox enter and init works:
       - name: Distrobox enter - user
+        shell: 'script -q -e -c "bash {0}"'
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(./distrobox enter --name "${container_name}" -- whoami | tr -d '\r')"
+          command_output="$(./distrobox enter --name "${container_name}" -- whoami | tr -d '\r' | tr -d '^@')"
           expected_output="$(whoami)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
@@ -78,12 +84,13 @@ jobs:
 
       # Ensure distrobox enter and init works:
       - name: Distrobox enter - command
+        shell: 'script -q -e -c "bash {0}"'
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(./distrobox enter --name "${container_name}" -- uname -n | tr -d '\r')"
+          command_output="$(./distrobox enter --name "${container_name}" -- uname -n | tr -d '\r' | tr -d '^@')"
           expected_output="${container_name}.$(uname -n)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
@@ -91,13 +98,14 @@ jobs:
 
       # Ensure distrobox export works:
       - name: Distrobox export
+        shell: 'script -q -e -c "bash {0}"'
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           ./distrobox enter "${container_name}" -- distrobox-export --bin /bin/uname --export-path /tmp/
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(/tmp/uname -n | tr -d '\r')"
+          command_output="$(/tmp/uname -n | tr -d '\r' | tr -d '^@')"
           expected_output="${container_name}.$(uname -n)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
@@ -105,13 +113,14 @@ jobs:
 
       # Ensure distrobox export works:
       - name: Distrobox export - sudo
+        shell: 'script -q -e -c "bash {0}"'
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           ./distrobox enter "${container_name}" -- distrobox-export --sudo --bin /bin/uname --export-path /tmp/
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(/tmp/uname -n | tr -d '\r')"
+          command_output="$(/tmp/uname -n | tr -d '\r' | tr -d '^@')"
           expected_output="${container_name}.$(uname -n)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
@@ -122,7 +131,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox list | grep "${container_name}" | grep "${image}" | grep Up
+          ./distrobox list | grep "${container_name}" | grep "${image}" | grep -E "Up|running"
 
       # Ensure distrobox stop works:
       - name: Distrobox stop

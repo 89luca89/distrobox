@@ -45,6 +45,7 @@ graphical apps (X11/Wayland), and audio.
   * [Inside the distrobox](#inside-the-distrobox)
     + [distrobox-export](usage/distrobox-export.md)
     + [distrobox-init](usage/distrobox-init.md)
+  * [Configure distrobox](#configure-distrobox) 
 - [Useful tips](useful_tips.md)
     + [Execute complex commands directly from distrobox-enter](useful_tips.md#execute-complex-commands-directly-from-distrobox-enter)
     + [Create a distrobox with a custom HOME directory](useful_tips.md#create-a-distrobox-with-a-custom-home-directory)
@@ -158,31 +159,6 @@ That said, it is in the works to implement some sort of decoupling with the host
 
 ---
 
-# Installation
-
-If you like to live your life dangerously, you can trust me and simply run this in your terminal:
-
-`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh`
-
-or if you want to select a custom directory to install without sudo:
-
-`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local`
-
-Else you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
-
-Enter the directory and run `./install`, by default it will attempt to install in `~/.local` but if you run the script as root, it will default to `/usr/local`. You can specify a custom directory with the `--prefix` flag such as `./install --prefix ~/.distrobox`. 
-
-Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas the manpages get installed to `${prefix}/share/man`.
-
-Or check the [Host Distros](compatibility.md#host-distros) compatibility list for distro-specific instructions.
-
-## Dependencies
-
-Distrobox depends on a container manager to work, you can choose to install either podman or docker.
-Please look in the [Compatibility Table](compatibility.md#host-distros) for your distribution notes.
-
----
-
 # Basic usage
 
 Create a new distrobox:
@@ -210,6 +186,58 @@ Remove a distrobox
 `distrobox rm test`
 
 You can check [HERE for more advanced usage](usage/usage.md) and check a [comprehensive list of useful tips HERE](useful_tips.md)
+
+# Configure Distrobox
+
+Configuration files can be placed in the following paths, from the least important
+to the most important:
+
+- /usr/share/distrobox/distrobox.conf
+- /etc/distrobox/distrobox.conf
+- ${HOME}/.config/distrobox/distrobox.conf
+- ${HOME}/.distroboxrc
+
+Example configuration file:
+
+```conf
+container_user_custom_home="/home/.local/share/container-home-test"
+container_image="registry.opensuse.org/opensuse/toolbox:latest"
+container_manager="docker"
+container_name="test-name-1"
+non_interactive="1"
+```
+
+Alternatively it is possible to specify preferences using ENV variables:
+
+- DBX_CONTAINER_MANAGER
+- DBX_CONTAINER_IMAGE
+- DBX_CONTAINER_NAME
+- DBX_NON_INTERACTIVE
+
+---
+
+# Installation
+
+If you like to live your life dangerously, you can trust me and simply run this in your terminal:
+
+`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh`
+
+or if you want to select a custom directory to install without sudo:
+
+`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local`
+
+Else you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
+
+Enter the directory and run `./install`, by default it will attempt to install in `~/.local` but if you run the script as root, it will default to `/usr/local`. You can specify a custom directory with the `--prefix` flag such as `./install --prefix ~/.distrobox`. 
+
+Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas the manpages get installed to `${prefix}/share/man`.
+
+Or check the [Host Distros](compatibility.md#host-distros) compatibility list for distro-specific instructions.
+
+## Dependencies
+
+Distrobox depends on a container manager to work, you can choose to install either podman or docker.
+Please look in the [Compatibility Table](compatibility.md#host-distros) for your distribution notes.
 
 ---
 
