@@ -44,6 +44,9 @@ jobs:
       max-parallel: 8
       matrix:
         distribution: ${{fromJSON(needs.setup.outputs.targets)}}
+        container_manager: ["podman", "docker"]
+    env:
+      DBX_CONTAINER_MANAGER: ${{ matrix.container_manager }}
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
