@@ -41,7 +41,7 @@ extra_flags=""
 host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
 is_sudo=""
 verbose=0
-version="1.2.14"
+version="1.2.15"
 
 # We depend on some commands, let's be sure we have them
 base_dependencies="basename grep sed find"

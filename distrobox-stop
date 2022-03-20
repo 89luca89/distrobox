@@ -39,7 +39,7 @@ container_manager="autodetect"
 container_name="fedora-toolbox-35"
 non_interactive=0
 verbose=0
-version="1.2.14"
+version="1.2.15"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
