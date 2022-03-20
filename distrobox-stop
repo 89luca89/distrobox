@@ -35,12 +35,28 @@ if [ "$(id -u)" -eq 0 ]; then
 fi
 
 # Defaults
-container_manager="${DBX_CONTAINER_MANAGER:-"autodetect"}"
-container_name="${DBX_CONTAINER_NAME:-""}"
-container_name_default="fedora-toolbox-35"
-non_interactive="${DBX_NON_INTERACTIVE:-0}"
+container_manager="autodetect"
+container_name="fedora-toolbox-35"
+non_interactive=""
 verbose=0
 version="1.2.14"
+
+# Source configuration files, this is done in an hierarchy so local files have
+# priority over system defaults
+# leave priority to environment variables.
+config_files="
+	/usr/share/distrobox/distrobox.conf
+	/etc/distrobox/distrobox.conf
+	${HOME}/.config/distrobox/distrobox.conf
+	${HOME}/.distroboxrc
+"
+for config_file in ${config_files}; do
+	# shellcheck disable=SC1090
+	[ -e "${config_file}" ] && . "${config_file}"
+done
+[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
+[ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
+[ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 
 # Print usage to stdout.
 # Arguments:
@@ -100,7 +116,7 @@ while :; do
 	*) # Default case: If no more options then break out of the loop.
 		# If we have a flagless option and container_name is not specified
 		# then let's accept argument as container_name
-		if [ -z "${container_name}" ] && [ -n "$1" ]; then
+		if [ -n "$1" ]; then
 			container_name="$1"
 			shift
 		else
@@ -156,10 +172,6 @@ fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
-fi
-# Set default container_name if no one is specified.
-if [ -z "${container_name}" ]; then
-	container_name="${container_name_default}"
 fi
 
 # Inspect the container we're working with.
