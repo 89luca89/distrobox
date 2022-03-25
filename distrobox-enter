@@ -233,6 +233,7 @@ fi
 generate_command() {
 	result_command="${container_manager} exec"
 	result_command="${result_command}
+		--interactive
 		--user=\"${USER}\""
 
 	# For some usage, like use in service, or launched by non-terminal
@@ -240,9 +241,9 @@ generate_command() {
 	# the container.
 	# To work around this, --headless let's you skip these 2 flags and make it
 	# work in tty-less situations.
-	if [ "${headless}" -eq 0 ]; then
+	# Disable tty also if we're NOT in a tty (test -t 0).
+	if [ "${headless}" -eq 0 ] || [ -t 0 ]; then
 		result_command="${result_command}
-		--interactive
 		--tty"
 	fi
 

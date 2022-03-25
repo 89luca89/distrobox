@@ -206,7 +206,7 @@ fi
 # We can assume this as we set it the same as container name during creation.
 container_name=$(uname -n | cut -d'.' -f1)
 # Prefix to add to an existing command to work throught the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} -T -n ${container_name} -- \"${is_sudo} "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} -n ${container_name} -- \"${is_sudo} "
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
 fi
