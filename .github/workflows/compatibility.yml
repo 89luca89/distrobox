@@ -77,7 +77,7 @@ jobs:
           case "${container_name}" in
             *init*)
               echo "SYSTEMD DETECTED: performing systemctl check..."
-              ./distrobox enter --name "${container_name}" -- systemctl status
+              ./distrobox enter --name "${container_name}" -- systemctl status --no-pager
               ;;
             *)
               ./distrobox enter --name "${container_name}" -- whoami
@@ -118,10 +118,10 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox enter "${container_name}" -- distrobox-export --bin /bin/uname --export-path /tmp/
+          ./distrobox enter "${container_name}" -- distrobox-export --bin /bin/uname --export-path ${HOME}/
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(/tmp/uname -n | tr -d '\r' | tr -d '^@')"
+          command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
           expected_output="${container_name}.$(uname -n)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
@@ -133,10 +133,10 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox enter "${container_name}" -- distrobox-export --sudo --bin /bin/uname --export-path /tmp/
+          ./distrobox enter "${container_name}" -- distrobox-export --sudo --bin /bin/uname --export-path ${HOME}/
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(/tmp/uname -n | tr -d '\r' | tr -d '^@')"
+          command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
           expected_output="${container_name}.$(uname -n)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
