@@ -157,6 +157,14 @@ jobs:
           ./distrobox stop --yes "${container_name}"
 
       # Ensure distrobox rm works:
+      - name: Distrobox logs on failure
+        if: ${{ failure() }}
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          $DBX_CONTAINER_MANAGER logs "${container_name}"
+
+      # Ensure distrobox rm works:
       - name: Distrobox rm
         if: ${{ always() }}
         run: |
