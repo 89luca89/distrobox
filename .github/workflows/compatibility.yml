@@ -58,7 +58,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          case "$CURRENT_DIR" in
+          case "${container_name}" in
             *init*)
               echo "SYSTEMD DETECTED: creating container with --init..."
               ./distrobox create --yes -i "${image}" --name "${container_name}" --init
@@ -74,7 +74,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          case "$CURRENT_DIR" in
+          case "${container_name}" in
             *init*)
               echo "SYSTEMD DETECTED: performing systemctl check..."
               ./distrobox enter --name "${container_name}" -- systemctl status
@@ -82,6 +82,7 @@ jobs:
             *)
               ./distrobox enter --name "${container_name}" -- whoami
               ;;
+          esac
 
       # Ensure distrobox enter and init works:
       - name: Distrobox enter - user
