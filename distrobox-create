@@ -470,6 +470,10 @@ generate_command() {
 		--ulimit host
 		--annotation run.oci.keep_original_groups=1
 		--mount type=devpts,destination=/dev/pts"
+		if [ "${init}" -eq 1 ]; then
+			result_command="${result_command}
+				--systemd=always"
+		fi
 	fi
 
 	# Add additional flags
