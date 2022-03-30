@@ -21,7 +21,7 @@ fi
 # Outputs:
 #   print usage with examples.
 show_help() {
-	cat <<EOF
+	cat << EOF
 Usage:
 
 	compatibility-test [--index X]
@@ -39,31 +39,31 @@ EOF
 # Parse arguments
 while :; do
 	case $1 in
-	-h | --help)
-		# Call a "show_help" function to display a synopsis, then exit.
-		show_help
-		exit 0
-		;;
-	-v | --verbose)
-		shift
-		verbose=1
-		;;
-	-si | --start-index)
-		if [ -n "$2" ]; then
-			start_index="$2"
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
 			shift
-			shift
-		fi
-		;;
-	-ei | --end-index)
-		if [ -n "$2" ]; then
-			end_index="$2"
-			shift
-			shift
-		fi
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		break ;;
+			verbose=1
+			;;
+		-si | --start-index)
+			if [ -n "$2" ]; then
+				start_index="$2"
+				shift
+				shift
+			fi
+			;;
+		-ei | --end-index)
+			if [ -n "$2" ]; then
+				end_index="$2"
+				shift
+				shift
+			fi
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			break ;;
 	esac
 done
 
@@ -74,7 +74,8 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-image_list=$(grep -E "docker.io|quay.io|ghcr|registry.|ecr." "$(dirname "${0}")"/../docs/compatibility.md | cut -d'|' -f 4 | sed 's/<br>/\n/g' | tr -d ' ' | tail -n +2)
+image_list=$(grep -E "docker.io|quay.io|ghcr|registry.|ecr." "$(dirname "${0}")"/../docs/compatibility.md |
+	cut -d'|' -f 4 | sed 's/<br>/\n/g' | tr -d ' ' | tail -n +2)
 if [ "${end_index}" -eq 0 ]; then
 	end_index=$(echo "${image_list}" | wc -l)
 fi

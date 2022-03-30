@@ -42,7 +42,7 @@ version="1.2.15"
 # Outputs:
 #   print usage with examples.
 show_help() {
-	cat <<EOF
+	cat << EOF
 distrobox version: ${version}
 
 Choose one of the available commands:
@@ -66,36 +66,36 @@ shift
 # Simple wrapper to the distrobox utilities.
 # We just detect the 1st argument and launch the matching distrobox utility.
 case "${distrobox_command}" in
-create)
-	"${distrobox_path}"/distrobox-create "$@"
-	;;
-enter)
-	"${distrobox_path}"/distrobox-enter "$@"
-	;;
-list)
-	"${distrobox_path}"/distrobox-list "$@"
-	;;
-stop)
-	"${distrobox_path}"/distrobox-stop "$@"
-	;;
-rm)
-	"${distrobox_path}"/distrobox-rm "$@"
-	;;
--V | --version)
-	printf "distrobox: %s\n" "${version}"
-	exit 0
-	;;
-help | --help | -h)
-	if command -v man >/dev/null; then
-		man distrobox
+	create)
+		"${distrobox_path}"/distrobox-create "$@"
+		;;
+	enter)
+		"${distrobox_path}"/distrobox-enter "$@"
+		;;
+	list)
+		"${distrobox_path}"/distrobox-list "$@"
+		;;
+	stop)
+		"${distrobox_path}"/distrobox-stop "$@"
+		;;
+	rm)
+		"${distrobox_path}"/distrobox-rm "$@"
+		;;
+	-V | --version)
+		printf "distrobox: %s\n" "${version}"
 		exit 0
-	fi
-	show_help
-	exit 0
-	;;
-*) # Default case: If no more options then break out of the loop.
-	printf >&2 "Error: invalid command\n"
-	show_help
-	exit 1
-	;;
+		;;
+	help | --help | -h)
+		if command -v man > /dev/null; then
+			man distrobox
+			exit 0
+		fi
+		show_help
+		exit 0
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		printf >&2 "Error: invalid command\n"
+		show_help
+		exit 1
+		;;
 esac

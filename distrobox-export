@@ -46,7 +46,7 @@ version="1.2.15"
 # We depend on some commands, let's be sure we have them
 base_dependencies="basename grep sed find"
 for dep in ${base_dependencies}; do
-	if ! command -v "${dep}" >/dev/null; then
+	if ! command -v "${dep}" > /dev/null; then
 		printf >&2 "Missing dependency: %s\n" "${dep}"
 		exit 127
 	fi
@@ -58,7 +58,7 @@ done
 # Outputs:
 #   print usage with examples.
 show_help() {
-	cat <<EOF
+	cat << EOF
 distrobox version: ${version}
 
 Usage:
@@ -88,74 +88,74 @@ EOF
 # Parse arguments
 while :; do
 	case $1 in
-	-h | --help)
-		# Call a "show_help" function to display a synopsis, then exit.
-		show_help
-		exit 0
-		;;
-	-v | --verbose)
-		shift
-		verbose=1
-		;;
-	-V | --version)
-		printf "distrobox: %s\n" "${version}"
-		exit 0
-		;;
-	-a | --app)
-		if [ -n "$2" ]; then
-			export_action="app"
-			exported_app="$2"
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
 			shift
+			verbose=1
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		-a | --app)
+			if [ -n "$2" ]; then
+				export_action="app"
+				exported_app="$2"
+				shift
+				shift
+			fi
+			;;
+		-b | --bin)
+			if [ -n "$2" ]; then
+				export_action="bin"
+				exported_bin="$2"
+				shift
+				shift
+			fi
+			;;
+		-s | --service)
+			if [ -n "$2" ]; then
+				export_action="service"
+				exported_service="$2"
+				shift
+				shift
+			fi
+			;;
+		-S | --sudo)
+			is_sudo="sudo"
 			shift
-		fi
-		;;
-	-b | --bin)
-		if [ -n "$2" ]; then
-			export_action="bin"
-			exported_bin="$2"
+			;;
+		-el | --export-label)
+			if [ -n "$2" ]; then
+				exported_app_label="$2"
+				shift
+				shift
+			fi
+			;;
+		-ep | --export-path)
+			if [ -n "$2" ]; then
+				dest_path="$2"
+				shift
+				shift
+			fi
+			;;
+		-ef | --extra-flags)
+			if [ -n "$2" ]; then
+				extra_flags="$2"
+				shift
+				shift
+			fi
+			;;
+		-d | --delete)
+			exported_delete=1
 			shift
-			shift
-		fi
-		;;
-	-s | --service)
-		if [ -n "$2" ]; then
-			export_action="service"
-			exported_service="$2"
-			shift
-			shift
-		fi
-		;;
-	-S | --sudo)
-		is_sudo="sudo"
-		shift
-		;;
-	-el | --export-label)
-		if [ -n "$2" ]; then
-			exported_app_label="$2"
-			shift
-			shift
-		fi
-		;;
-	-ep | --export-path)
-		if [ -n "$2" ]; then
-			dest_path="$2"
-			shift
-			shift
-		fi
-		;;
-	-ef | --extra-flags)
-		if [ -n "$2" ]; then
-			extra_flags="$2"
-			shift
-			shift
-		fi
-		;;
-	-d | --delete)
-		exported_delete=1
-		shift
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		break ;;
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			break ;;
 	esac
 done
 
@@ -217,7 +217,7 @@ fi
 # Outputs:
 #   print generated script.
 generate_script() {
-	cat <<EOF
+	cat << EOF
 #!/bin/sh
 # distrobox_binary
 # name: ${container_name}
@@ -276,7 +276,7 @@ export_binary() {
 	fi
 
 	# create the script from template and write to file
-	if generate_script >"${dest_file}"; then
+	if generate_script > "${dest_file}"; then
 		chmod +x "${dest_file}"
 		printf "%s from %s exported successfully in %s.\nOK!\n" \
 			"${exported_bin}" "${container_name}" "${dest_path}"
@@ -301,14 +301,14 @@ export_binary() {
 #	or error code.
 export_application() {
 	# Ensure the app we're exporting is installed
-	if ! command -v "${exported_app}" >/dev/null; then
+	if ! command -v "${exported_app}" > /dev/null; then
 		printf >&2 "Error: trying to export a non-installed application.\n"
 		return 127
 	fi
 
 	# Find desktop file for the application to export
 	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/* /var/lib/flatpak/exports/share/applications/* || :)
-	icon_files=$(find /usr/share/icons /usr/share/pixmaps /var/lib/flatpak/exports/share/icons -iname "*${exported_app}*" 2>/dev/null || :)
+	icon_files=$(find /usr/share/icons /usr/share/pixmaps /var/lib/flatpak/exports/share/icons -iname "*${exported_app}*" 2> /dev/null || :)
 	# Check that we found some desktop files first.
 	if [ -z "${desktop_files}" ]; then
 		printf >&2 "Error: cannot find any desktop files.\n"
@@ -363,9 +363,9 @@ export_application() {
 				sed 's|^Exec=.*|&"|g' |
 				sed "s|^TryExec=.*|TryExec=true|g" |
 				sed "s|Name.*|& ${exported_app_label}|g" \
-					>"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+					> "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 			if ! grep -q "StartupWMClass" "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"; then
-				printf "StartupWMClass=%s\n" "${exported_app}" >>"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+				printf "StartupWMClass=%s\n" "${exported_app}" >> "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 			fi
 			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
@@ -396,7 +396,7 @@ export_service() {
 	service_file=$(find \
 		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ \
 		"${host_home}"/.config/systemd/user/ \
-		-type f -name "${exported_service}*" 2>/dev/null | tail -1)
+		-type f -name "${exported_service}*" 2> /dev/null | tail -1)
 	# Check that we found some service files first.
 	if [ -z "${service_file}" ]; then
 		printf >&2 "Error: cannot find any service file for %s.\n" "${exported_service}"
@@ -435,10 +435,10 @@ export_service() {
 	if [ ! -d "/run/host/${host_home}/.config/systemd/user/" ]; then
 		mkdir -p "/run/host/${host_home}/.config/systemd/user/"
 	fi
-	cat "${service_file}" >"${exported_service_fullpath}" 2>/dev/null
+	cat "${service_file}" > "${exported_service_fullpath}" 2> /dev/null
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
 		# Save to temp file
-		cat "${exported_service_fullpath}" >"${temp_file}" 2>/dev/null
+		cat "${exported_service_fullpath}" > "${temp_file}" 2> /dev/null
 		# Add prefix only if not present
 		if ! grep "${exec_cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
 			# Add commmand_prefix
@@ -446,7 +446,7 @@ export_service() {
 			# Add closing quote
 			sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" "${temp_file}" |
 				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" |
-				sed "s|^${exec_cmd}=.*|&\"|g" >"${exported_service_fullpath}"
+				sed "s|^${exec_cmd}=.*|&\"|g" > "${exported_service_fullpath}"
 			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
 	done
@@ -464,18 +464,18 @@ export_service() {
 
 # Main routine
 case "${export_action}" in
-app)
-	export_application
-	;;
-bin)
-	export_binary
-	;;
-service)
-	export_service
-	;;
-*)
-	printf >&2 "Invalid arguments, choose an action below.\n"
-	show_help
-	exit 2
-	;;
+	app)
+		export_application
+		;;
+	bin)
+		export_binary
+		;;
+	service)
+		export_service
+		;;
+	*)
+		printf >&2 "Invalid arguments, choose an action below.\n"
+		show_help
+		exit 2
+		;;
 esac

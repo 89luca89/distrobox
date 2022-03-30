@@ -81,7 +81,7 @@ done
 # Outputs:
 #   print usage with examples.
 show_help() {
-	cat <<EOF
+	cat << EOF
 distrobox version: ${version}
 
 Usage:
@@ -108,56 +108,56 @@ EOF
 # Parse arguments
 while :; do
 	case $1 in
-	-h | --help)
-		# Call a "show_help" function to display a synopsis, then exit.
-		show_help
-		exit 0
-		;;
-	-v | --verbose)
-		shift
-		verbose=1
-		;;
-	-T | -H | --no-tty)
-		shift
-		headless=1
-		;;
-	-V | --version)
-		printf "distrobox: %s\n" "${version}"
-		exit 0
-		;;
-	-d | --dry-run)
-		shift
-		dryrun=1
-		;;
-	-n | --name)
-		if [ -n "$2" ]; then
-			container_name="$2"
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
 			shift
+			verbose=1
+			;;
+		-T | -H | --no-tty)
 			shift
-		fi
-		;;
-	-a | --additional-flags)
-		if [ -n "$2" ]; then
-			container_manager_additional_flags="${container_manager_additional_flags} ${2}"
+			headless=1
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		-d | --dry-run)
 			shift
+			dryrun=1
+			;;
+		-n | --name)
+			if [ -n "$2" ]; then
+				container_name="$2"
+				shift
+				shift
+			fi
+			;;
+		-a | --additional-flags)
+			if [ -n "$2" ]; then
+				container_manager_additional_flags="${container_manager_additional_flags} ${2}"
+				shift
+				shift
+			fi
+			;;
+		-e | --exec | --)
 			shift
-		fi
-		;;
-	-e | --exec | --)
-		shift
-		container_command=$*
-		break
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		# If we have a flagless option and container_name is not specified
-		# then let's accept argument as container_name
-		if [ -n "$1" ]; then
-			container_name="$1"
-			shift
-		else
+			container_command=$*
 			break
-		fi
-		;;
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			# If we have a flagless option and container_name is not specified
+			# then let's accept argument as container_name
+			if [ -n "$1" ]; then
+				container_name="$1"
+				shift
+			else
+				break
+			fi
+			;;
 	esac
 done
 
@@ -171,30 +171,30 @@ fi
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
 case "${container_manager}" in
-autodetect)
-	if command -v podman >/dev/null; then
+	autodetect)
+		if command -v podman > /dev/null; then
+			container_manager="podman"
+		elif command -v docker > /dev/null; then
+			container_manager="docker"
+		else
+			container_manager="not_found"
+		fi
+		;;
+	podman)
 		container_manager="podman"
-	elif command -v docker >/dev/null; then
+		;;
+	docker)
 		container_manager="docker"
-	else
+		;;
+	*)
+		printf >&2 "Invalid input %s.\n" "${container_manager}"
+		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
 		container_manager="not_found"
-	fi
-	;;
-podman)
-	container_manager="podman"
-	;;
-docker)
-	container_manager="docker"
-	;;
-*)
-	printf >&2 "Invalid input %s.\n" "${container_manager}"
-	printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-	container_manager="not_found"
-	;;
+		;;
 esac
 
 # Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" >/dev/null; then
+if ! command -v "${container_manager}" > /dev/null; then
 	# Error: we need at least one between docker or podman.
 	printf >&2 "Missing dependency: we need a container manager.\n"
 	printf >&2 "Please install one of podman or docker.\n"
@@ -213,10 +213,9 @@ fi
 #
 # This is not necessary on docker as it is already handled
 # in this way.
-# shellcheck disable=SC2312
 if [ -z "${container_manager#*podman*}" ] &&
 	[ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
-	systemctl --user status podman.socket >/dev/null; then
+	systemctl --user status podman.socket > /dev/null; then
 
 	container_manager="${container_manager} --remote"
 fi
@@ -364,7 +363,7 @@ if [ "${container_status}" != "running" ]; then
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
 	log_timestamp="$(date +%FT%T.%N%:z)"
-	${container_manager} start "${container_name}" >/dev/null
+	${container_manager} start "${container_name}" > /dev/null
 
 	printf >&2 "Starting container %s\n" "${container_name}"
 	printf >&2 "run this command to follow along:\n"
@@ -378,26 +377,26 @@ if [ "${container_status}" != "running" ]; then
 	while :; do
 		container_manager_log="$(${container_manager} logs -t \
 			--since "${log_timestamp}" \
-			"${container_name}" 2>/dev/null)"
+			"${container_name}" 2> /dev/null)"
 		case "${container_manager_log}" in
-		*"Error"*)
-			printf >&2 "%s\n" "${container_manager_log}"
-			exit 1
-			;;
-		*"container_setup_done"*)
-			break
-			;;
-		*)
-			printf >&2 "."
-			sleep 1
-			;;
+			*"Error"*)
+				printf >&2 "%s\n" "${container_manager_log}"
+				exit 1
+				;;
+			*"container_setup_done"*)
+				break
+				;;
+			*)
+				printf >&2 "."
+				sleep 1
+				;;
 		esac
 	done
 	printf >&2 "\ndone!\n"
 	# Print eventual warnings in the log.
 	${container_manager} logs -t \
 		--since "${log_timestamp}" \
-		"${container_name}" 2>/dev/null | grep "Warning" >&2 || :
+		"${container_name}" 2> /dev/null | grep "Warning" >&2 || :
 fi
 
 # Generate the exec command and run it

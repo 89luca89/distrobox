@@ -37,7 +37,7 @@ version="1.2.15"
 # Outputs:
 #   print usage with examples.
 show_help() {
-	cat <<EOF
+	cat << EOF
 distrobox version: ${version}
 
 Usage:
@@ -61,61 +61,61 @@ EOF
 # Parse arguments
 while :; do
 	case $1 in
-	-h | --help)
-		# Call a "show_help" function to display a synopsis, then exit.
-		show_help
-		exit 0
-		;;
-	-v | --verbose)
-		shift
-		verbose=1
-		;;
-	-V | --version)
-		printf "distrobox: %s\n" "${version}"
-		exit 0
-		;;
-	-n | --name)
-		if [ -n "$2" ]; then
-			container_user_name="$2"
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
 			shift
+			verbose=1
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		-n | --name)
+			if [ -n "$2" ]; then
+				container_user_name="$2"
+				shift
+				shift
+			fi
+			;;
+		-i | --init)
+			if [ -n "$2" ]; then
+				init="$2"
+				shift
+				shift
+			fi
+			;;
+		-d | --home)
+			if [ -n "$2" ]; then
+				container_user_home="$2"
+				shift
+				shift
+			fi
+			;;
+		-u | --user)
+			if [ -n "$2" ]; then
+				container_user_uid="$2"
+				shift
+				shift
+			fi
+			;;
+		-g | --group)
+			if [ -n "$2" ]; then
+				container_user_gid="$2"
+				shift
+				shift
+			fi
+			;;
+		--)
 			shift
-		fi
-		;;
-	-i | --init)
-		if [ -n "$2" ]; then
-			init="$2"
-			shift
-			shift
-		fi
-		;;
-	-d | --home)
-		if [ -n "$2" ]; then
-			container_user_home="$2"
-			shift
-			shift
-		fi
-		;;
-	-u | --user)
-		if [ -n "$2" ]; then
-			container_user_uid="$2"
-			shift
-			shift
-		fi
-		;;
-	-g | --group)
-		if [ -n "$2" ]; then
-			container_user_gid="$2"
-			shift
-			shift
-		fi
-		;;
-	--)
-		shift
-		init_hook=$*
-		break
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		break ;;
+			init_hook=$*
+			break
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			break ;;
 	esac
 done
 
@@ -426,7 +426,7 @@ done
 # for example using `podman --remote` to control the host's podman from inside
 # the container or accessing docker and libvirt sockets.
 host_sockets="$(find /run/host/run -name 'user' -prune -o -name 'nscd' -prune -o -type s -print \
-	2>/dev/null || :)"
+	2> /dev/null || :)"
 for host_socket in ${host_sockets}; do
 	container_socket="$(printf "%s" "${host_socket}" | sed 's|/run/host||g')"
 	# Check if the socket already exists or the symlink already esists
@@ -461,7 +461,7 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 		set -o xtrace
 	fi
 	net_mounts=${net_mounts%?}
-	cat <<EOF >/usr/lib/rpm/macros.d/macros.distrobox
+	cat << EOF > /usr/lib/rpm/macros.d/macros.distrobox
 %_netsharedpath ${net_mounts}
 EOF
 
@@ -471,9 +471,9 @@ elif [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
-	printf "" >/etc/dpkg/dpkg.cfg.d/00_distrobox
+	printf "" > /etc/dpkg/dpkg.cfg.d/00_distrobox
 	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
-		printf "path-exclude %s/*\n" "${net_mount}" >>/etc/dpkg/dpkg.cfg.d/00_distrobox
+		printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
 	done
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
@@ -483,7 +483,7 @@ elif [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# Also we put a hook to clear some critical paths that do not play well
 	# with read only filesystems, like systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
-		cat <<EOF >/etc/apt/apt.conf.d/00_distrobox
+		cat << EOF > /etc/apt/apt.conf.d/00_distrobox
 DPkg::Pre-Invoke {"if mountpoint /var/log/journal; then umount /var/log/journal; fi";};
 DPkg::Post-Invoke {"if [ -e /run/host/var/log/journal ]; then mount --rbind -o ro /run/host/var/log/journal /var/log/journal; fi";};
 EOF
@@ -493,11 +493,11 @@ fi
 mkdir -p /etc/sudoers.d
 # Do not check fqdn when doing sudo, it will not work anyways
 if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
-	printf "Defaults !fqdn\n" >>/etc/sudoers.d/sudoers
+	printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
 fi
 # Ensure passwordless sudo is set up for user
 if ! grep -q "${container_user_name} ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
-	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >>/etc/sudoers.d/sudoers
+	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
 fi
 
 # If not existing, ensure we have a group for our user.
@@ -505,7 +505,7 @@ if ! grep -q "^${container_user_name}:" /etc/group; then
 	if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
 		# It may occur that we have users with unsupported user name (eg. on LDAP or AD)
 		# So let's try and force the group creation this way.
-		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >>/etc/group
+		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >> /etc/group
 	fi
 fi
 # Let's add our user to the container. if the user already exists, enforce properties.
@@ -520,8 +520,8 @@ if ! grep -q "^${container_user_name}:" /etc/passwd; then
 
 		printf "Warning: there was a problem setting up the user\n"
 		printf "Warning: trying manual addition\n"
-		printf "%s:x:%s:%s:%s:%s:%s" "${container_user_name}" "${container_user_uid}" "${container_user_gid}" "${container_user_name}" "${container_user_home}" "${SHELL:-"/bin/bash"}" >>/etc/passwd
-		printf "%s::1::::::" "${container_user_name}" >>/etc/shadow
+		printf "%s:x:%s:%s:%s:%s:%s" "${container_user_name}" "${container_user_uid}" "${container_user_gid}" "${container_user_name}" "${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
+		printf "%s::1::::::" "${container_user_name}" >> /etc/shadow
 	fi
 else
 	# This situation is presented when podman or docker already creates the user

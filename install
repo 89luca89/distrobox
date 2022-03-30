@@ -27,7 +27,7 @@ verbose=0
 # Outputs:
 #   print usage with examples.
 show_help() {
-	cat <<EOF
+	cat << EOF
 install --prefix /usr/local
 
 Options:
@@ -41,31 +41,31 @@ EOF
 # Parse arguments
 while :; do
 	case $1 in
-	-h | --help)
-		# Call a "show_help" function to display a synopsis, then exit.
-		show_help
-		exit
-		;;
-	-v | --verbose)
-		shift
-		verbose=1
-		;;
-	-p | --path)
-		if [ -n "$2" ]; then
-			dest_path="$2"
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit
+			;;
+		-v | --verbose)
 			shift
-			shift
-		fi
-		;;
-	-P | --prefix)
-		if [ -n "$2" ]; then
-			prefix="$2"
-			shift
-			shift
-		fi
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		break ;;
+			verbose=1
+			;;
+		-p | --path)
+			if [ -n "$2" ]; then
+				dest_path="$2"
+				shift
+				shift
+			fi
+			;;
+		-P | --prefix)
+			if [ -n "$2" ]; then
+				prefix="$2"
+				shift
+				shift
+			fi
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			break ;;
 	esac
 done
 
@@ -105,7 +105,7 @@ cd "${curr_dir}" || exit 1
 # else download targz and uncompress it
 if [ -e "${curr_dir}/distrobox-enter" ]; then
 	release_ver="github-zip-$(date +%F)"
-	if [ -d "${curr_dir}/.git" ] && command -v git >/dev/null; then
+	if [ -d "${curr_dir}/.git" ] && command -v git > /dev/null; then
 		release_ver="git-$(git rev-parse HEAD)"
 	fi
 	for file in distrobox*; do
