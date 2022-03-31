@@ -7,7 +7,7 @@
 [![CI](https://github.com/89luca89/distrobox/actions/workflows/compatibility.yml/badge.svg)](https://github.com/89luca89/distrobox/actions/workflows/compatibility.yml)
 [![GitHub](https://img.shields.io/github/license/89luca89/distrobox?color=blue)](../COPYING.md)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/89luca89/distrobox)](https://github.com/89luca89/distrobox/releases/latest)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/89luca89/distrobox)
+[![Packaging status](https://repology.org/badge/tiny-repos/distrobox.svg)](https://repology.org/project/distrobox/versions)
 [![Github issue needs help](https://img.shields.io/github/issues-raw/89luca89/distrobox/help%20wanted?color=blue&label=Help%20Wanted%20Issues)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![GitHub issues by-label](https://img.shields.io/github/issues-raw/89luca89/distrobox/bug?color=red&label=Open%20Bug%20Reports)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug%22)
 
@@ -155,6 +155,9 @@ Isolation and sandboxing is **not** the main aim of the project, on the conrary 
 The container will have complete access to your home, pen drives and so on, so do not expect it to be highly sandboxed like a plain
 docker/podman container or a flatpak.
 
+⚠️ **BE CAREFUL**: if you use docker, the daemon runs as root by default, so **root inside the docker container can modify system stuff outside the container**, if you have security concern for this, **use podman that runs in rootless mode**.  
+Rootless docker is still not working as intended and will be included in the future when it will be complete.
+
 That said, it is in the works to implement some sort of decoupling with the host, as discussed here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/issues/28)
 
 ---
@@ -218,21 +221,33 @@ Alternatively it is possible to specify preferences using ENV variables:
 
 # Installation
 
-If you like to live your life dangerously, you can trust me and simply run this in your terminal:
+Distrobox is packaged in the following distributions, if your distribution is on this list, you can refer to your repos for installation:
 
-`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh`
+[![Packaging status](https://repology.org/badge/vertical-allrepos/distrobox.svg)](https://repology.org/project/distrobox/versions)
+
+Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30), [alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli), [AtilaSaraiva](https://github.com/AtilaSaraiva)
+
+Else, if you like to live your life dangerously, or you want the latest release, you can trust me and simply run this in your terminal:
+
+```
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
+```
 
 or if you want to select a custom directory to install without sudo:
 
-`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local`
+```
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
+```
 
-Else you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
+Alternatively you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest). 
 
 Enter the directory and run `./install`, by default it will attempt to install in `~/.local` but if you run the script as root, it will default to `/usr/local`. You can specify a custom directory with the `--prefix` flag such as `./install --prefix ~/.distrobox`. 
 
 Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas the manpages get installed to `${prefix}/share/man`.
 
-Or check the [Host Distros](compatibility.md#host-distros) compatibility list for distro-specific instructions.
+Check the [Host Distros](compatibility.md#host-distros) compatibility list for distro-specific instructions.
+
+
 
 ## Dependencies
 
@@ -245,11 +260,15 @@ Please look in the [Compatibility Table](compatibility.md#host-distros) for your
 
 If you installed distrobox using the `install` script in the default install directory use this:
 
-`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sudo sh`
+```
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sudo sh
+```
 
 or if you specified a custom path:
 
-`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- --prefix ~/.local`
+```
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- --prefix ~/.local
+```
 
 Else if cloned the project using `git clone` or using the latest archive release from [HERE](https://github.com/89luca89/distrobox/releases/latest),
 
