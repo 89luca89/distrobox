@@ -464,9 +464,11 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 %_netsharedpath ${net_mounts}
 EOF
 
+fi
+
 # In case of an DEB distro, we can specify that our bind_mount directories
 # have to be ignored. This prevents conflicts during package installations.
-elif [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
+if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
@@ -487,7 +489,9 @@ DPkg::Pre-Invoke {"if mountpoint /var/log/journal; then umount /var/log/journal;
 DPkg::Post-Invoke {"if [ -e /run/host/var/log/journal ]; then mount --rbind -o ro /run/host/var/log/journal /var/log/journal; fi";};
 EOF
 	fi
-elif [ -d "/usr/share/libalpm/scripts" ]; then
+fi
+
+if [ -d "/usr/share/libalpm/scripts" ]; then
 	set +o xtrace
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
