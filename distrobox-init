@@ -652,7 +652,7 @@ else
 		/var/lib/systemd/coredump
 		/var/log/journal"
 	for host_mount in ${HOST_MOUNTS_RO_INIT}; do
-		umount "${host_mount}"
+		if mountpoint "${host_mount}"; then umount "${host_mount}"; fi
 	done
 	# Now we can launch init
 	exec /sbin/init
