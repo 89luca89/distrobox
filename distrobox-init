@@ -487,6 +487,47 @@ DPkg::Pre-Invoke {"if mountpoint /var/log/journal; then umount /var/log/journal;
 DPkg::Post-Invoke {"if [ -e /run/host/var/log/journal ]; then mount --rbind -o ro /run/host/var/log/journal /var/log/journal; fi";};
 EOF
 	fi
+elif [ -d "/usr/share/libalpm/scripts" ]; then
+	set +o xtrace
+	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
+	for net_mount in ${HOST_MOUNTS_RO}; do
+		printf "if mountpoint %s; then umount %s; fi\n" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+		printf "if [ -e /run/host/%s ]; then mount --rbind -o ro /run/host/%s %s; fi\n" "${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
+	done
+	# re-enable logging if it was enabled previously.
+	if [ "${verbose}" -ne 0 ]; then
+		set -o xtrace
+	fi
+	chmod +x /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+	chmod +x /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
+
+	cat << EOF > /usr/share/libalpm/hooks/00-distrobox-pre.hook
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Distrobox pre-hooks...
+When = PreTransaction
+Exec = /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+EOF
+
+	cat << EOF > /usr/share/libalpm/hooks/99-distrobox-post.hook
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Distrobox post-hooks...
+When = PostTransaction
+Exec = /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
+EOF
+
 fi
 
 mkdir -p /etc/sudoers.d
