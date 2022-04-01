@@ -40,11 +40,9 @@ accessible from within the host:
 
 ```shell
 ~$ distrobox enter fedora-rawhide
-user@fedora-rawhide:~$ rm -rf /run/systemd/{seats,sessions,system,users}
-user@fedora-rawhide:~$ ln -s /run/host/run/systemd/{seats,sessions,system,users} /run/systemd
+user@fedora-rawhide:~$ rm -rf /run/systemd/system
+user@fedora-rawhide:~$ ln -s /run/host/run/systemd/system /run/systemd
 ```
-
-NOTE: from version `1.2.14` this step is not necessary anymore!
 
 Then we can proceed to install GNOME in the container:
 
@@ -104,10 +102,9 @@ We can do the same with KDE also, let's first set up the host's systemd session 
 
 ```shell
 ~$ distrobox enter fedora-rawhide
-user@fedora-rawhide:~$ rm -rf /run/systemd/{seats,sessions,system,users}
-user@fedora-rawhide:~$ ln -s /run/host/run/systemd/{seats,sessions,system,users} /run/systemd
+user@fedora-rawhide:~$ rm -rf /run/systemd/system
+user@fedora-rawhide:~$ ln -s /run/host/run/systemd/system /run/systemd
 ```
-NOTE: from version `1.2.14` this step is not necessary anymore!
 
 Then we can proceed to install KDE in the container:
 

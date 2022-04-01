@@ -408,7 +408,6 @@ HOST_MOUNTS="
 	/run/systemd/journal
 	/run/systemd/seats
 	/run/systemd/sessions
-	/run/systemd/system
 	/run/systemd/users
 	/run/udev
 	/srv
