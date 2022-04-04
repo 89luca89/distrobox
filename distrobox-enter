@@ -241,7 +241,7 @@ generate_command() {
 	# To work around this, --headless let's you skip these 2 flags and make it
 	# work in tty-less situations.
 	# Disable tty also if we're NOT in a tty (test -t 0).
-	if [ "${headless}" -eq 0 ] || [ -t 0 ]; then
+	if [ "${headless}" -eq 0 ] && [ -t 0 ]; then
 		result_command="${result_command}
 		--tty"
 	fi
