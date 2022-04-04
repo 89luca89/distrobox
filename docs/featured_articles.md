@@ -16,6 +16,7 @@
 - [Day-to-day differences between Fedora Silverblue and Ubuntu - castrojo's blog](https://www.ypsidanger.com/day-to-day-advantages-of-fedora-silverblue/)
 
 ## Podcasts
+
 - [Linux After Dark – Episode 07](https://linuxafterdark.net/linux-after-dark-episode-07/)
 - [Linux Lads - Season 7 - Episode 1](https://linuxlads.com/episodes/season-7-episode-1)
 - [Late Night Linux - Episode 39](https://latenightlinux.com/linux-downtime-episode-39/)

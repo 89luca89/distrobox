@@ -1,10 +1,10 @@
 - [Distrobox](README.md)
-    + [Supported container managers](#supported-container-managers)
-    + [Host Distros](#host-distros)
-      - [New Host Distro support](#new-host-distro-support)
-    + [Containers Distros](#containers-distros)
-      - [New Distro support](#new-distro-support)
-      - [Older Distributions](#older-distributions)
+  - [Supported container managers](#supported-container-managers)
+  - [Host Distros](#host-distros)
+    - [New Host Distro support](#new-host-distro-support)
+  - [Containers Distros](#containers-distros)
+    - [New Distro support](#new-distro-support)
+    - [Older Distributions](#older-distributions)
 
 ---
 
@@ -29,9 +29,9 @@ or on `docker` configured without sudo (follow [THIS instructions](https://docs.
 
 Follow the official installation guide here:
 
-  - https://podman.io/getting-started/installation
-  - https://docs.docker.com/engine/install
-  - https://docs.docker.com/engine/install/linux-postinstall/
+- <https://podman.io/getting-started/installation>
+- <https://docs.docker.com/engine/install>
+- <https://docs.docker.com/engine/install/linux-postinstall/>
 
 ### Host Distros
 
@@ -108,7 +108,7 @@ Distrobox guests tested successfully with the following container images:
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64 <br> ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
 | Gentoo Linux | rolling | You will have to [Build your own](distrobox_gentoo.md) to have a complete Gentoo docker image |
 
-Note however that if you use a non-toolbox preconfigured image (e.g. images pre-baked to work with https://github.com/containers/toolbox), the **first** `distrobox-enter` you'll perform
+Note however that if you use a non-toolbox preconfigured image (e.g. images pre-baked to work with <https://github.com/containers/toolbox),> the **first** `distrobox-enter` you'll perform
 can take a while as it will download and install the missing dependencies.
 
 A small time tax to pay for the ability to use any type of image.

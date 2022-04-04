@@ -11,7 +11,6 @@
 [![Github issue needs help](https://img.shields.io/github/issues-raw/89luca89/distrobox/help%20wanted?color=blue&label=Help%20Wanted%20Issues)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![GitHub issues by-label](https://img.shields.io/github/issues-raw/89luca89/distrobox/bug?color=red&label=Open%20Bug%20Reports)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug%22)
 
-
 Use any Linux distribution inside your terminal. Enable both backward and forward compatibility with software and freedom to use whatever distribution you’re more comfortable with.
 Distrobox uses `podman` or `docker` to create containers using the Linux distribution of your choice.
 The created container will be tightly integrated with the host, allowing sharing of
@@ -26,60 +25,60 @@ graphical apps (X11/Wayland), and audio.
 
 - [Distrobox](#distrobox)
   * [What it does](#what-it-does)
-    + [See it in action](#see-it-in-action)
+    - [See it in action](#see-it-in-action)
   * [Why?](#why-)
-    + [Aims](#aims)
+    - [Aims](#aims)
 - [Installation](#installation)
-    + [Uninstallation](#uninstallation)
+  - [Uninstallation](#uninstallation)
 - [Compatibility](compatibility.md)
-    + [Supported container managers](compatibility.md#supported-container-managers)
-    + [Host Distros](compatibility.md#host-distros)
-    + [Containers Distros](compatibility.md#containers-distros)
+  - [Supported container managers](compatibility.md#supported-container-managers)
+  - [Host Distros](compatibility.md#host-distros)
+  - [Containers Distros](compatibility.md#containers-distros)
 - [Usage](usage/usage.md)
   * [Outside the distrobox](#outside-the-distrobox)
-    + [distrobox-create](usage/distrobox-create.md)
-    + [distrobox-enter](usage/distrobox-enter.md)
-    + [distrobox-list](usage/distrobox-list.md)
-    + [distrobox-rm](usage/distrobox-rm.md)
-    + [distrobox-stop](usage/distrobox-stop.md)
+    - [distrobox-create](usage/distrobox-create.md)
+    - [distrobox-enter](usage/distrobox-enter.md)
+    - [distrobox-list](usage/distrobox-list.md)
+    - [distrobox-rm](usage/distrobox-rm.md)
+    - [distrobox-stop](usage/distrobox-stop.md)
   * [Inside the distrobox](#inside-the-distrobox)
-    + [distrobox-export](usage/distrobox-export.md)
-    + [distrobox-init](usage/distrobox-init.md)
-  * [Configure distrobox](#configure-distrobox) 
+    - [distrobox-export](usage/distrobox-export.md)
+    - [distrobox-init](usage/distrobox-init.md)
+  * [Configure distrobox](#configure-distrobox)
 - [Useful tips](useful_tips.md)
-    + [Execute complex commands directly from distrobox-enter](useful_tips.md#execute-complex-commands-directly-from-distrobox-enter)
-    + [Create a distrobox with a custom HOME directory](useful_tips.md#create-a-distrobox-with-a-custom-home-directory)
-    + [Mount additional volumes in a distrobox](useful_tips.md#mount-additional-volumes-in-a-distrobox)
-    + [Use a different shell than the host](useful_tips.md#use-a-different-shell-than-the-host)
-    + [Duplicate an existing distrobox](useful_tips.md#duplicate-an-existing-distrobox)
-    + [Export to the host](useful_tips.md#export-to-the-host)
-    + [Execute commands on the host](useful_tips.md#execute-commands-on-the-host)
-    + [Enable SSH X-Forwarding when SSH-ing in a distrobox](useful_tips.md#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
-    + [Use distrobox to install different flatpaks from the host](useful_tips.md#use-distrobox-to-install-different-flatpaks-from-the-host)
-    + [Using podman inside a distrobox](useful_tips.md#using-podman-inside-a-distrobox)
-    + [Using docker inside a distrobox](useful_tips.md#using-docker-inside-a-distrobox)
-    + [Using init system inside a distrobox](useful_tips.md#using-init-system-inside-a-distrobox)
-    + [Using distrobox as main cli](useful_tips.md#using-distrobox-as-main-cli)
-    + [Improve distrobox-enter performance](useful_tips.md#improve-distrobox-enter-performance)
-    + [Slow creation on podman and image size getting bigger with distrobox-create](useful_tips.md#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
-    + [Container save and restore](useful_tips.md#container-save-and-restore)
-    + [Check used resources](useful_tips.md#check-used-resources)
-    + [Build a Gentoo distrobox container](distrobox_gentoo.md)
-    + [Build a Dedicated distrobox container](distrobox_custom.md)
+  - [Execute complex commands directly from distrobox-enter](useful_tips.md#execute-complex-commands-directly-from-distrobox-enter)
+  - [Create a distrobox with a custom HOME directory](useful_tips.md#create-a-distrobox-with-a-custom-home-directory)
+  - [Mount additional volumes in a distrobox](useful_tips.md#mount-additional-volumes-in-a-distrobox)
+  - [Use a different shell than the host](useful_tips.md#use-a-different-shell-than-the-host)
+  - [Duplicate an existing distrobox](useful_tips.md#duplicate-an-existing-distrobox)
+  - [Export to the host](useful_tips.md#export-to-the-host)
+  - [Execute commands on the host](useful_tips.md#execute-commands-on-the-host)
+  - [Enable SSH X-Forwarding when SSH-ing in a distrobox](useful_tips.md#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
+  - [Use distrobox to install different flatpaks from the host](useful_tips.md#use-distrobox-to-install-different-flatpaks-from-the-host)
+  - [Using podman inside a distrobox](useful_tips.md#using-podman-inside-a-distrobox)
+  - [Using docker inside a distrobox](useful_tips.md#using-docker-inside-a-distrobox)
+  - [Using init system inside a distrobox](useful_tips.md#using-init-system-inside-a-distrobox)
+  - [Using distrobox as main cli](useful_tips.md#using-distrobox-as-main-cli)
+  - [Improve distrobox-enter performance](useful_tips.md#improve-distrobox-enter-performance)
+  - [Slow creation on podman and image size getting bigger with distrobox-create](useful_tips.md#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
+  - [Container save and restore](useful_tips.md#container-save-and-restore)
+  - [Check used resources](useful_tips.md#check-used-resources)
+  - [Build a Gentoo distrobox container](distrobox_gentoo.md)
+  - [Build a Dedicated distrobox container](distrobox_custom.md)
 - [Posts](posts/posts.md)
-    + [Run latest GNOME and KDE using distrobox](posts/run_latest_gnome_kde_on_distrobox.md)
-    + [Integrate VSCode and Distrobox](posts/integrate_vscode_distrobox.md)
-    + [Execute a command on the Host](posts/execute_commands_on_host.md)
+  - [Run latest GNOME and KDE using distrobox](posts/run_latest_gnome_kde_on_distrobox.md)
+  - [Integrate VSCode and Distrobox](posts/integrate_vscode_distrobox.md)
+  - [Execute a command on the Host](posts/execute_commands_on_host.md)
 - [Featured Articles](featured_articles.md)
-    + [Run Distrobox on Fedora Linux - Fedora Magazine](https://fedoramagazine.org/run-distrobox-on-fedora-linux/)
-    + [DistroBox – Run Any Linux Distribution Inside Linux Terminal - TecMint](https://www.tecmint.com/distrobox-run-any-linux-distribution/)
-    + [Distrobox - How to quickly deploy a Linux distribution with GUI applications via a container](https://www.techrepublic.com/article/how-to-quickly-deploy-a-linux-distribution-with-gui-applications-via-a-container/)
-    + [Using Distrobox To Augment The Package Selection On Clear Linux - Phoronix](https://www.phoronix.com/scan.php?page=news_item&px=Distrobox-Clear-Linux)
-    + [Benchmark: benefits of Clear Linux containers (distrobox) - Phoronix](https://www.phoronix.com/forums/forum/phoronix/latest-phoronix-articles/1305326-clear-linux-container-performance-continues-showing-sizable-gains)
-    + [Distrobox - A great item in the Linux toolbelt - phmurphy's blog](https://phmurphy.com/posts/distrobox-toolbelt/)
-    + [Running Other Linux Distros with Distrobox on Fedora Linux - bandithijo's blog](featured_articles.md)
-    + [Day-to-day differences between Fedora Silverblue and Ubuntu - castrojo's blog](https://www.ypsidanger.com/day-to-day-advantages-of-fedora-silverblue/)
-    + [Podcasts](featured_articles.md#podcasts)
+  - [Run Distrobox on Fedora Linux - Fedora Magazine](https://fedoramagazine.org/run-distrobox-on-fedora-linux/)
+  - [DistroBox – Run Any Linux Distribution Inside Linux Terminal - TecMint](https://www.tecmint.com/distrobox-run-any-linux-distribution/)
+  - [Distrobox - How to quickly deploy a Linux distribution with GUI applications via a container](https://www.techrepublic.com/article/how-to-quickly-deploy-a-linux-distribution-with-gui-applications-via-a-container/)
+  - [Using Distrobox To Augment The Package Selection On Clear Linux - Phoronix](https://www.phoronix.com/scan.php?page=news_item&px=Distrobox-Clear-Linux)
+  - [Benchmark: benefits of Clear Linux containers (distrobox) - Phoronix](https://www.phoronix.com/forums/forum/phoronix/latest-phoronix-articles/1305326-clear-linux-container-performance-continues-showing-sizable-gains)
+  - [Distrobox - A great item in the Linux toolbelt - phmurphy's blog](https://phmurphy.com/posts/distrobox-toolbelt/)
+  - [Running Other Linux Distros with Distrobox on Fedora Linux - bandithijo's blog](featured_articles.md)
+  - [Day-to-day differences between Fedora Silverblue and Ubuntu - castrojo's blog](https://www.ypsidanger.com/day-to-day-advantages-of-fedora-silverblue/)
+  - [Podcasts](featured_articles.md#podcasts)
 
 ---
 
@@ -92,7 +91,7 @@ This image is used to create a container that seamlessly integrates with the res
 the Wayland and X11 sockets, networking, removable devices (like USB sticks), systemd journal, SSH agent, D-Bus,
 ulimits, /dev and the udev database, etc...
 
-It implements the same concepts introduced by https://github.com/containers/toolbox but in a simplified way using POSIX sh and aiming at broader compatibility.
+It implements the same concepts introduced by <https://github.com/containers/toolbox> but in a simplified way using POSIX sh and aiming at broader compatibility.
 
 All the props go to them as they had the great idea to implement this stuff.
 
@@ -114,7 +113,7 @@ Thanks to [castrojo](https://github.com/castrojo), you can see Distrobox in acti
 
 [![Video](https://user-images.githubusercontent.com/598882/153680522-f5903607-2854-4cfb-a186-cba7403745bd.png)](https://www.youtube.com/watch?v=Q2PrISAOtbY)
 
-## Why?
+## Why
 
 - Provide a mutable environment on an immutable OS, like Endless OS, Fedora Silverblue, OpenSUSE MicroOS or SteamOS3
 - Provide a locally privileged environment for sudoless setups (eg. company-provided laptops, security reasons, etc...)
@@ -138,9 +137,9 @@ These are some sample results of `distrobox-enter` on the same container on my w
 Total time for 100 container enters:
 
   ~$ time (for i in {1..100}; do distrobox-enter --name fedora-toolbox-35 -- whoami; done)
-  real	0m36.209s
-  user	0m6.520s
-  sys	0m4.803s
+  real 0m36.209s
+  user 0m6.520s
+  sys 0m4.803s
 
 Mean:
 
@@ -239,15 +238,13 @@ or if you want to select a custom directory to install without sudo:
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
 ```
 
-Alternatively you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest). 
+Alternatively you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
 
-Enter the directory and run `./install`, by default it will attempt to install in `~/.local` but if you run the script as root, it will default to `/usr/local`. You can specify a custom directory with the `--prefix` flag such as `./install --prefix ~/.distrobox`. 
+Enter the directory and run `./install`, by default it will attempt to install in `~/.local` but if you run the script as root, it will default to `/usr/local`. You can specify a custom directory with the `--prefix` flag such as `./install --prefix ~/.distrobox`.
 
 Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas the manpages get installed to `${prefix}/share/man`.
 
 Check the [Host Distros](compatibility.md#host-distros) compatibility list for distro-specific instructions.
-
-
 
 ## Dependencies
 
@@ -276,7 +273,6 @@ enter the directory and run `./uninstall`, by default it will assume the install
 
 ---
 
-![distrobox-box](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png) 
+![distrobox-box](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png)
 
 ---
-

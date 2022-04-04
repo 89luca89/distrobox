@@ -45,7 +45,7 @@ Create an executable file with this content:
 
 result_command="sudo -E chroot --userspec=$(id -u):$(id -g) /run/host/ /usr/bin/env "
 for i in $(printenv | grep "=" | grep -Ev ' |"' | grep -Ev "^(_)"); do
-	result_command="$result_command $i"
+ result_command="$result_command $i"
 done
 
 exec ${result_command} sh -c " cd ${PWD} && $@"
@@ -69,25 +69,25 @@ Place this in your `~/.profile`:
 
 ```shell
 command_not_found_handle() {
-	# don't run if not in a container
-	if [ ! -e /run/.containerenv ] &&
-		[ ! -e /.dockerenv ]; then
-		exit 127
-	fi
+ # don't run if not in a container
+ if [ ! -e /run/.containerenv ] &&
+  [ ! -e /.dockerenv ]; then
+  exit 127
+ fi
 
-	if command -v flatpak-spawn >/dev/null 2>&1; then
-		flatpak-spawn --host "${@}"
-	elif command -v host-exec >/dev/null 2>&1; then
-		host-exec "$@"
-	else
-		exit 127
-	fi
+ if command -v flatpak-spawn >/dev/null 2>&1; then
+  flatpak-spawn --host "${@}"
+ elif command -v host-exec >/dev/null 2>&1; then
+  host-exec "$@"
+ else
+  exit 127
+ fi
 }
 
 if [ -n "${ZSH_VERSION-}" ]; then
-	command_not_found_handler() {
-		command_not_found_handle "$@"
-	}
+ command_not_found_handler() {
+  command_not_found_handle "$@"
+ }
 fi
 ```
 

@@ -2,10 +2,10 @@
   * [Integrate VSCode and Distrobox](integrate_vscode_distrobox.md)
     * [The easy one](#the-easy-one)
     * [The not so easy one](#the-not-so-easy-one)
-      + [First step, install it](#first-step--install-it)
-      + [Second step, extensions](#second-step--extensions)
-      + [Third step, podman wrapper](#third-step--podman-wrapper)
-      + [Fourth step, configure the container](#fourth-step--configure-the-container)
+      - [First step, install it](#first-step--install-it)
+      - [Second step, extensions](#second-step--extensions)
+      - [Third step, podman wrapper](#third-step--podman-wrapper)
+      - [Fourth step, configure the container](#fourth-step--configure-the-container)
     * [Final Result](#final-result)
 
 ---
@@ -80,19 +80,19 @@ Place this in your `~/.local/bin/podman-host`
 #!/bin/bash
 set -x
 if [ "$1" == "exec" ]; then
-	# Remove 'exec' from $@
-	shift
-	script='
-	    result_command="podman exec"
+ # Remove 'exec' from $@
+ shift
+ script='
+     result_command="podman exec"
         for i in $(printenv | grep "=" | grep -Ev " |\"" | grep -Ev "^(HOST|HOSTNAME|HOME|PATH|SHELL|USER|_)"); do
             result_command=$result_command --env="$i"
-	    done
+     done
 
         exec ${result_command} "$@"
     '
-	exec flatpak-spawn --host sh -c "$script" - "$@"
+ exec flatpak-spawn --host sh -c "$script" - "$@"
 else
-	exec flatpak-spawn --host podman "$@"
+ exec flatpak-spawn --host podman "$@"
 fi
 ```
 

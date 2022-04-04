@@ -33,7 +33,7 @@ For example:
 `distrobox enter test -- bash -l -c '"echo \$HOME && whoami"'`
 
 Note the use of **single quotes around double quotes**, this is necessary so that quotes are preserved inside the arguments.
-Also note the **dollar escaping** needed so that $HOME is not evaluated at the time of the command launch, but directly 
+Also note the **dollar escaping** needed so that $HOME is not evaluated at the time of the command launch, but directly
 inside the container.
 
 ## Create a distrobox with a custom HOME directory
@@ -59,7 +59,6 @@ If you want a different one you can use:
 
 `SHELL=/bin/zsh distrobox create -n test`
 `SHELL=/bin/zsh distrobox enter test`
-
 
 ## Duplicate an existing distrobox
 
@@ -249,4 +248,3 @@ in simple (and scriptable) steps.
 - You can always check how much space a `distrobox` is taking by using `podman` command:
 
 `podman system df -v` or `docker system df -v`
-

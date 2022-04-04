@@ -3,10 +3,10 @@
     - [Using a stable-release distribution](#using-a-stable-release-distribution)
       * [Initializing the distrobox](#initializing-the-distrobox)
       * [Running Latest GNOME](#running-latest-gnome)
-        + [Generate session file](#generate-session-file)
+        - [Generate session file](#generate-session-file)
       * [Running Latest KDE](#running-latest-kde)
-        + [Generate session file](#generate-session-file-1)
-        + [Add a couple of fixes](#add-a-couple-of-fixes)
+        - [Generate session file](#generate-session-file-1)
+        - [Add a couple of fixes](#add-a-couple-of-fixes)
     - [Using apps from host](#using-apps-from-host)
 
 ---

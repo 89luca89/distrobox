@@ -29,10 +29,10 @@ To test if all packages requirements are met just run this in the container:
 
 ```shell
 if ! command -v mount || ! command -v mount || ! command -v passwd ||
-	! command -v sudo || ! command -v useradd || ! command -v usermod ||
-	! command -v "${SHELL}"; then
+ ! command -v sudo || ! command -v useradd || ! command -v usermod ||
+ ! command -v "${SHELL}"; then
 
-	echo "Missing dependencies"
+ echo "Missing dependencies"
 
 fi
 ```
