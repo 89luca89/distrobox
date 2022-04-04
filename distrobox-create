@@ -290,13 +290,13 @@ esac
 # Be sure we have a container manager to work with.
 if ! command -v "${container_manager}" > /dev/null; then
 	# Error: we need at least one between docker or podman.
-	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
-	printf >&2 "You can follow the documentation on:\n"
-	printf >&2 "\tman distrobox-compatibility\n"
-	printf >&2 "or:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
 	if [ "${dryrun}" -eq 0 ]; then
+		printf >&2 "Missing dependency: we need a container manager.\n"
+		printf >&2 "Please install one of podman or docker.\n"
+		printf >&2 "You can follow the documentation on:\n"
+		printf >&2 "\tman distrobox-compatibility\n"
+		printf >&2 "or:\n"
+		printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
 		exit 127
 	fi
 fi
