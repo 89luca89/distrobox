@@ -30,7 +30,8 @@ Options:
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-This is used to enter the distrobox itself. Personally, I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
+This is used to enter the distrobox itself. Personally, I just create multiple profiles in
+my `gnome-terminal` to have multiple distros accessible.
 
 The `--additional-flags` or `-a` is useful to modify default command when executing in the container.
 For example:

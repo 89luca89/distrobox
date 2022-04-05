@@ -78,15 +78,18 @@ Service export example:
 	distrobox-export --service syncthing --extra-flags "--allow-newer-config"
 	distrobox-export --service nginx --sudo
 
-For services, it will similarly export the systemd unit inside the container to a `systemctl --user` service,
-prefixing the various `ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost` with the `distrobox-enter` command prefix.
+For services, it will similarly export the systemd unit inside the container to a
+`systemctl --user` service, prefixing the various
+`ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost` with the
+`distrobox-enter` command prefix.
 
 Binary export example:
 
 	distrobox-export --bin /usr/bin/code --extra-flags "--foreground" --export-path $HOME/.local/bin
 
-In the case of exporting binaries, you will have to specify **where** to export it (`--export-path`) and the tool will create
-a little wrapper script that will `distrobox-enter -e` from the host, the desired binary.
+In the case of exporting binaries, you will have to specify **where** to export it
+(`--export-path`) and the tool will create a little wrapper script that will
+`distrobox-enter -e` from the host, the desired binary.
 This can be handy with the use of `direnv` to have different versions of the same binary based on
 your `env` or project.
 

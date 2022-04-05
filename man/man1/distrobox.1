@@ -1,6 +1,6 @@
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-COMPATIBILITY\.1" "" "March 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-COMPATIBILITY\.1" "" "April 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-compatibility\.1\fR \- Compatibility
 .P
@@ -9,7 +9,7 @@ This project \fBdoes not need a dedicated image\fR\. It can use any OCI images f
 Granted, they may not be as featureful as expected (some of them do not even have \fBwhich\fR, \fBmount\fR, \fBless\fR or \fBvi\fR) but that\'s all doable in the container itself after bootstrapping it\.
 .P
 The main concern is having basic Linux utilities (\fBmount\fR), basic user management utilities (\fBusermod, passwd\fR), and \fBsudo\fR correctly set\.
-.SS "Supported container managers"
+.SH "Supported container managers"
 \fBdistrobox\fR can run on either \fBpodman\fR or \fBdocker\fR
 .P
 It depends either on \fBpodman\fR configured in \fBrootless mode\fR or on \fBdocker\fR configured without sudo (follow THIS instructions \fIhttps://docs\.docker\.com/engine/install/linux\-postinstall/\fR)
@@ -21,13 +21,13 @@ Minimum docker version: \fB18\.06\.1\fR
 .P
 Follow the official installation guide here:
 .IP "\[ci]" 4
-https://podman\.io/getting\-started/installation
+\fIhttps://podman\.io/getting\-started/installation\fR
 .IP "\[ci]" 4
-https://docs\.docker\.com/engine/install
+\fIhttps://docs\.docker\.com/engine/install\fR
 .IP "\[ci]" 4
-https://docs\.docker\.com/engine/install/linux\-postinstall/
+\fIhttps://docs\.docker\.com/engine/install/linux\-postinstall/\fR
 .IP "" 0
-.SS "Containers Distros"
+.SH "Containers Distros"
 Distrobox guests tested successfully with the following container images:
 .TS
 allbox;
@@ -61,13 +61,17 @@ registry\.access\.redhat\.com/ubi7/ubi\-init
 registry\.access\.redhat\.com/ubi8/ubi
 .br
 registry\.access\.redhat\.com/ubi8/ubi\-init
-Debian	8
+Debian	7
+.br
+8
 .br
 9
 .br
 10
 .br
-11	docker\.io/library/debian:8
+11	docker\.io/debian/eol:wheezy
+.br
+docker\.io/library/debian:8
 .br
 docker\.io/library/debian:9
 .br
@@ -143,27 +147,29 @@ ghcr\.io/void\-linux/void\-linux:latest\-full\-x86_64\-musl
 Gentoo Linux	rolling	You will have to Build your own \fIdistrobox_gentoo\.md\fR to have a complete Gentoo docker image
 .TE
 .P
-Note however that if you use a non\-toolbox preconfigured image (e\.g\. images pre\-baked to work with https://github\.com/containers/toolbox), the \fBfirst\fR \fBdistrobox\-enter\fR you\'ll perform can take a while as it will download and install the missing dependencies\.
+Note however that if you use a non\-toolbox preconfigured image (e\.g\. images pre\-baked to work with \fIhttps://github\.com/containers/toolbox),\fR the \fBfirst\fR \fBdistrobox\-enter\fR you\'ll perform can take a while as it will download and install the missing dependencies\.
 .P
 A small time tax to pay for the ability to use any type of image\. This will \fBnot\fR occur after the first time, \fBsubsequent enters will be much faster\.\fR
 .P
 NixOS is not a supported container distro, and there are currently no plans to bring support to it\. If you are looking for unprivlaged NixOS environments, we suggest you look into nix\-shell \fIhttps://nixos\.org/manual/nix/unstable/command\-ref/nix\-shell\.html\fR\.
-.P
+.SS "New Distro support"
 If your distro of choice is not on the list, open an issue requesting support for it, we can work together to check if it is possible to add support for it\.
 .P
 Or just try using it anyway, if it works, open an issue and it will be added to the list!
-.P
-For older distributions like CentOS 6, Debian 7, Ubuntu 12\.04, compatibility is not assured\.
+.SS "Older distributions"
+For older distributions like CentOS 5, CentOS 6, Debian 6, Ubuntu 12\.04, compatibility is not assured\.
 .P
 Their \fBlibc\fR version is incompatible with kernel releases after \fB>=4\.11\fR\. A work around this is to use the \fBvsyscall=emulate\fR flag in the bootloader of the host\.
 .P
 Keep also in mind that mirrors could be down for such old releases, so you will need to build a custom distrobox image to ensure basic dependencies are met \fI\./distrobox_custom\.md\fR\.
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-CREATE\.1" "" "March 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-CREATE\.1" "" "April 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-create\.1\fR
-.SS "Create the distrobox"
+.P
+# Create the distrobox
+.P
 distrobox\-create takes care of creating the container with input name and image\. The created container will be tightly integrated with the host, allowing sharing of the HOME directory of the user, external storage, external usb devices and graphical apps (X11/Wayland), and audio\.
 .P
 Usage:
@@ -289,10 +295,12 @@ user@test:~$ sudo systemctl status sshd
 Note that enabling \fB\-\-init\fR \fBwill disable host\'s process integration\fR\. From within the container you will not be able to see and manage host\'s processes\. This is needed because \fB/sbin/init\fR must be pid 1\.
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-ENTER\.1" "" "March 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-ENTER\.1" "" "April 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-enter\.1\fR
-.SS "Enter the distrobox"
+.P
+# Enter the distrobox
+.P
 distrobox\-enter takes care of entering the container with the name specified\. Default command executed is your SHELL, but you can specify different shells or entire commands to execute\. If using it inside a script, an application, or a service, you can specify the \-\-headless mode to disable tty and interactivity\.
 .P
 Usage:
@@ -347,10 +355,12 @@ my_var=test
 
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-EXPORT\.1" "" "March 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-EXPORT\.1" "" "April 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-export\.1\fR
-.SS "Application and service exporting"
+.P
+# Application and service exporting
+.P
 distrobox\-export takes care of exporting an app a binary or a service from the container to the host\.
 .P
 The exported app will be easily available in your normal launcher and it will automatically be launched from the container it is exported from\.
@@ -460,10 +470,12 @@ NOTE: some electron apps such as vscode and atom need additional flags to work f
 \fBdistrobox\-export \-\-app atom \-\-extra\-flags "\-\-foreground"\fR
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-INIT\.1" "" "March 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-INIT\.1" "" "April 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-init\.1\fR
-.SS "Init the distrobox (not to be launched manually)"
+.P
+# Init the distrobox (not to be launched manually)
+.P
 distrobox\-init is the entrypoint of a created distrobox\. Note that this HAS to run from inside a distrobox, will not work if you run it from your host\.
 .P
 This is not intended to be used manually, but instead used by distrobox\-enter to set up the container\'s entrypoint\.
@@ -497,10 +509,12 @@ This is used as entrypoint for the created container, it will take care of creat
 \fBYou should not have to launch this manually\fR, this is used by \fBdistrobox create\fR to set up container\'s entrypoint\.
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-LIST\.1" "" "March 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-LIST\.1" "" "April 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-list\.1\fR
-.SS "List containers"
+.P
+# List containers
+.P
 distrobox\-list lists available distroboxes\. It detects them and lists them separately from the rest of normal podman or docker containers\.
 .P
 Usage:
@@ -522,10 +536,12 @@ Options:
 
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-RM\.1" "" "March 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-RM\.1" "" "April 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-rm\.1\fR
-.SS "Remove containers"
+.P
+# Remove containers
+.P
 distrobox\-rm delete one of the available distroboxes\.
 .P
 Usage:
@@ -549,10 +565,12 @@ Options:
 
 .\" generated with Ronn-NG/v0.9.1
 .\" http://github.com/apjanke/ronn-ng/tree/0.9.1
-.TH "DISTROBOX\-STOP\.1" "" "March 2022" "Distrobox" "Distrobox"
+.TH "DISTROBOX\-STOP\.1" "" "April 2022" "Distrobox" "Distrobox"
 .SH "NAME"
 \fBdistrobox\-stop\.1\fR
-.SS "Stop containers"
+.P
+# Stop containers
+.P
 distrobox\-rm delete one of the available distroboxes\.
 .P
 Usage:

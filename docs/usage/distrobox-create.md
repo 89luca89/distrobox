@@ -66,22 +66,23 @@ For example:
 	podman container inspect dev-arch | jq '.[0].HostConfig,.PidsLimit'
 	0
 
-Additional volumes can be specified using the `--volume` flag. This flag follows the same standard as `docker` and `podman`
-to specify the mount point so `--volume SOURCE_PATH:DEST_PATH:MODE`.
+Additional volumes can be specified using the `--volume` flag. This flag follows the
+same standard as `docker` and `podman` to specify the mount point so `--volume SOURCE_PATH:DEST_PATH:MODE`.
 
 	distrobox create --image docker.io/library/archlinux --name dev-arch --volume /usr/share/:/var/test:ro
 
-During container creation, it is possible to specify (using the additional-flags) some environment variables that will
-persist in the container and be independent from your environment:
+During container creation, it is possible to specify (using the additional-flags) some
+environment variables that will persist in the container and be independent from your environment:
 
 	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
 
-The `--init-hooks` is useful to add commands to the entrypoint (init) of the container. This could be useful
-to create containers with a set of programs already installed, add users, groups.
+The `--init-hooks` is useful to add commands to the entrypoint (init) of the container.
+This could be useful to create containers with a set of programs already installed, add users, groups.
 
 	distrobox create  --image fedora:35 --name test --init-hooks "dnf groupinstall -y \"C Development Tools and Libraries\""
 
-The `--init` is useful to create a container that will use its own separate init system within. For example using:
+The `--init` is useful to create a container that will use its own separate init system within.
+For example using:
 
 	distrobox create -i docker.io/almalinux/8-init --init-hooks "dnf install -y openssh-server" --init --name test
 
@@ -97,5 +98,6 @@ Inside the container we will be able to use normal systemd units:
 				   man:sshd_config(5)
 		 Main PID: 291 (sshd)
 
-Note that enabling `--init` **will disable host's process integration**. From within the container you will not be able
-to see and manage host's processes. This is needed because `/sbin/init` must be pid 1.
+Note that enabling `--init` **will disable host's process integration**.
+From within the container you will not be able to see and manage host's processes.
+This is needed because `/sbin/init` must be pid 1.

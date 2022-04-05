@@ -40,8 +40,6 @@ Follow the official installation guide here:
 
 Distrobox has been successfully tested on:
 
-<!-- markdownlint-capture -->
-<!-- markdownlint-disable -->
 |    Distro  |    Version    | Notes |
 | --- | --- | --- |
 | Alpine Linux | 3.14.3 | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
@@ -60,8 +58,7 @@ Distrobox has been successfully tested on:
 | SUSE Linux Enterprise Server | 15&nbsp;Service&nbsp;Pack&nbsp;4<br>15&nbsp;Service&nbsp;Pack&nbsp;3<br>15&nbsp;Service&nbsp;Pack&nbsp;2 | Same procedure as the one for openSUSE (Leap, respective versions, of course). Use the following repository links in the `zypper addrepo` command: [SLE-15-SP4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.4/home:dfaggioli:microos-desktop.repo), [SLE-15-SP3](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.3/home:dfaggioli:microos-desktop.repo), [SLE-15-SP4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/SLE_15_SP2/home:dfaggioli:microos-desktop.repo). |
 | Void Linux | glibc | Systemd service export will not work. |
 | NixOS | 21.11 | Currently you must have your default shell set to Bash, if it is not, make sure you edit your configuration.nix so that it is. <br>Also make sure to mind your executable paths. Sometimes a container will not have nix paths, and sometimes it will not have its own paths. <br> Distrobox is available in Nixpkg collection (thanks [AtilaSaraiva](https://github.com/AtilaSaraiva)!)<<br>To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker) <br>To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
-| Windows WSL2 | | __NOTE WSL2 support is preliminary, and there are many bugs present, any help in improving support is appreciated__ <br> Currently you must work around some incompatibility between WSL2 and Podman, namely [THIS](https://github.com/containers/podman/issues/12236). <br>Install into WSL2 any of the supported distributions in this list. <br> Ensure you have an entry in the `fstab` for the `/tmp` folder:<br> `echo 'tmpfs /tmp tmps defaults 0 0' >> /etc/fstab`.<br>Then reboot the WSL machine `wsl --shutdown` <br>Note that `distrobox export` is not supported on WSL2 and will not work. |
-<!-- markdownlint-restore -->
+| Windows WSL2 | | **NOTE WSL2 support is preliminary, and there are many bugs present, any help in improving support is appreciated** <br> Currently you must work around some incompatibility between WSL2 and Podman, namely [THIS](https://github.com/containers/podman/issues/12236). <br>Install into WSL2 any of the supported distributions in this list. <br> Ensure you have an entry in the `fstab` for the `/tmp` folder:<br> `echo 'tmpfs /tmp tmps defaults 0 0' >> /etc/fstab`.<br>Then reboot the WSL machine `wsl --shutdown` <br>Note that `distrobox export` is not supported on WSL2 and will not work. |
 
 If your container is not able to connect to your host xserver, make sure to
 install `xhost` on the host machine and run `xhost +si:localuser:$USER`.
@@ -86,8 +83,6 @@ and it will be added to the list!
 
 Distrobox guests tested successfully with the following container images:
 
-<!-- markdownlint-capture -->
-<!-- markdownlint-disable -->
 |    Distro  |    Version | Images    |
 | --- | --- | --- |
 | AlmaLinux | 8     | docker.io/library/almalinux:8    |
@@ -116,7 +111,6 @@ Distrobox guests tested successfully with the following container images:
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64 <br> ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
 | Gentoo Linux | rolling | You will have to [Build your own](distrobox_gentoo.md) to have a complete Gentoo docker image |
-<!-- markdownlint-restore -->
 
 Note however that if you use a non-toolbox preconfigured image (e.g.
 images pre-baked to work with <https://github.com/containers/toolbox),>
