@@ -1,12 +1,12 @@
 - [Distrobox](../README.md)
-  * [Integrate VSCode and Distrobox](integrate_vscode_distrobox.md)
-    * [The easy one](#the-easy-one)
-    * [The not so easy one](#the-not-so-easy-one)
+  - [Integrate VSCode and Distrobox](integrate_vscode_distrobox.md)
+    - [The easy one](#the-easy-one)
+    - [The not so easy one](#the-not-so-easy-one)
       - [First step, install it](#first-step--install-it)
       - [Second step, extensions](#second-step--extensions)
       - [Third step, podman wrapper](#third-step--podman-wrapper)
       - [Fourth step, configure the container](#fourth-step--configure-the-container)
-    * [Final Result](#final-result)
+    - [Final Result](#final-result)
 
 ---
 
@@ -32,7 +32,8 @@ For example using an Arch Linux container:
 user@arch-distrobox:~$
 ```
 
-Download the deb file [HERE](https://github.com/VSCodium/vscodium/releases), or in Arch case just install
+Download the deb file
+[HERE](https://github.com/VSCodium/vscodium/releases), or in Arch case just install
 
 ```shell
 user@arch-distrobox:~$ sudo pacman -S code
@@ -73,8 +74,8 @@ Now we want to install VSCode [Remote Container extension](https://marketplace.v
 
 ### Third step, podman wrapper
 
-Being in a Flatpak, we will need access to host's `podman` (or `docker`) to be able to use the containers.
-Place this in your `~/.local/bin/podman-host`
+Being in a Flatpak, we will need access to host's `podman` (or `docker`) to be
+able to use the containers. Place this in your `~/.local/bin/podman-host`
 
 ```shell
 #!/bin/bash
@@ -84,7 +85,9 @@ if [ "$1" == "exec" ]; then
  shift
  script='
      result_command="podman exec"
-        for i in $(printenv | grep "=" | grep -Ev " |\"" | grep -Ev "^(HOST|HOSTNAME|HOME|PATH|SHELL|USER|_)"); do
+        for i in $(printenv | grep "=" | grep -Ev " |\"" |
+            grep -Ev "^(HOST|HOSTNAME|HOME|PATH|SHELL|USER|_)"); do
+
             result_command=$result_command --env="$i"
      done
 
@@ -101,7 +104,8 @@ set it to the path of `podman-exec`, like in the example
 
 ![image](https://user-images.githubusercontent.com/598882/149208525-5ad630c9-fcbc-4ee6-9d77-e50d2c782a56.png)
 
-This will give a way to execute host's container manager from within the flatpak app.
+This will give a way to execute host's container manager from within the
+flatpak app.
 
 ### Fourth step, configure the container
 

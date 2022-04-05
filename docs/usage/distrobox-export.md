@@ -1,4 +1,5 @@
-### Application and service exporting
+<!-- markdownlint-disable MD010 -->
+# Application and service exporting
 
 distrobox-export takes care of exporting an app a binary or a service from the container
 to the host.
@@ -46,7 +47,6 @@ Usage:
 	distrobox-export --service syncthing [--extra-flags "flags"] [--delete] [--sudo]
 	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
 
-
 Options:
 
 	--app/-a:		name of the application to export
@@ -70,7 +70,7 @@ App export example:
 	distrobox-export --app abiword
 
 This tool will simply copy the original `.desktop` files along with needed icons,
-add the prefix `/usr/local/bin/distrobox-enter -n distrobox_name -e ... ` to the commands to run, and
+add the prefix `/usr/local/bin/distrobox-enter -n distrobox_name -e ...` to the commands to run, and
 save them in your home to be used directly from the host as a normal app.
 
 Service export example:
@@ -83,7 +83,6 @@ prefixing the various `ExecStart ExecStartPre ExecStartPost ExecReload ExecStop 
 
 Binary export example:
 
-
 	distrobox-export --bin /usr/bin/code --extra-flags "--foreground" --export-path $HOME/.local/bin
 
 In the case of exporting binaries, you will have to specify **where** to export it (`--export-path`) and the tool will create
@@ -94,7 +93,6 @@ your `env` or project.
 ![app-export](https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)
 
 ![service-export](https://user-images.githubusercontent.com/598882/144294314-29a8921f-4511-453d-bf8e-d0d1e336db91.png)
-
 
 NOTE: some electron apps such as vscode and atom need additional flags to work from inside the
 container, use the `--extra-flags` option to provide a series of flags, for example:

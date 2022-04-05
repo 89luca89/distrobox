@@ -10,14 +10,17 @@
 
 # Compatibility
 
-This project **does not need a dedicated image**. It can use any OCI images from docker-hub, quay.io, or any registry of your choice.
+This project **does not need a dedicated image**. It can use any OCI images from
+docker-hub, quay.io, or any registry of your choice.
 
-Granted, they may not be as featureful as expected (some of them do not even have `which`, `mount`, `less` or `vi`)
-but that's all doable in the container itself after bootstrapping it.
+Granted, they may not be as featureful as expected (some of them do not even have
+`which`, `mount`, `less` or `vi`) but that's all doable in the container itself
+after bootstrapping it.
 
-The main concern is having basic Linux utilities (`mount`), basic user management utilities (`usermod, passwd`), and `sudo` correctly set.
+The main concern is having basic Linux utilities (`mount`), basic user management
+utilities (`usermod, passwd`), and `sudo` correctly set.
 
-### Supported container managers
+## Supported container managers
 
 `distrobox` can run on either `podman` or `docker`
 
@@ -33,10 +36,12 @@ Follow the official installation guide here:
 - <https://docs.docker.com/engine/install>
 - <https://docs.docker.com/engine/install/linux-postinstall/>
 
-### Host Distros
+## Host Distros
 
 Distrobox has been successfully tested on:
 
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable -->
 |    Distro  |    Version    | Notes |
 | --- | --- | --- |
 | Alpine Linux | 3.14.3 | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
@@ -56,29 +61,33 @@ Distrobox has been successfully tested on:
 | Void Linux | glibc | Systemd service export will not work. |
 | NixOS | 21.11 | Currently you must have your default shell set to Bash, if it is not, make sure you edit your configuration.nix so that it is. <br>Also make sure to mind your executable paths. Sometimes a container will not have nix paths, and sometimes it will not have its own paths. <br> Distrobox is available in Nixpkg collection (thanks [AtilaSaraiva](https://github.com/AtilaSaraiva)!)<<br>To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker) <br>To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
 | Windows WSL2 | | __NOTE WSL2 support is preliminary, and there are many bugs present, any help in improving support is appreciated__ <br> Currently you must work around some incompatibility between WSL2 and Podman, namely [THIS](https://github.com/containers/podman/issues/12236). <br>Install into WSL2 any of the supported distributions in this list. <br> Ensure you have an entry in the `fstab` for the `/tmp` folder:<br> `echo 'tmpfs /tmp tmps defaults 0 0' >> /etc/fstab`.<br>Then reboot the WSL machine `wsl --shutdown` <br>Note that `distrobox export` is not supported on WSL2 and will not work. |
+<!-- markdownlint-restore -->
 
-If your container is not able to connect to your host xserver, make sure to install `xhost` on the host machine
-and run `xhost +si:localuser:$USER`. If you wish to enable this functionality on future reboots add it to your `~/.xinitrc`
+If your container is not able to connect to your host xserver, make sure to
+install `xhost` on the host machine and run `xhost +si:localuser:$USER`.
+If you wish to enable this functionality on future reboots add it to your `~/.xinitrc`
 or somewhere else tailored to your use case where it would be ran on every startup.
 
 List of distributions including distrobox in their repositories:
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/distrobox.svg)](https://repology.org/project/distrobox/versions)
 
-#### New Host Distro support
+### New Host Distro support
 
-If your distro of choice is not on the list, open an issue requesting support for it,
-we can work together to check if it is possible to add support for it.
+If your distro of choice is not on the list, open an issue requesting support
+for it, we can work together to check if it is possible to add support for it.
 
 Or just try using it anyway, if it works, open an issue
 and it will be added to the list!
 
 ---
 
-### Containers Distros
+## Containers Distros
 
 Distrobox guests tested successfully with the following container images:
 
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable -->
 |    Distro  |    Version | Images    |
 | --- | --- | --- |
 | AlmaLinux | 8     | docker.io/library/almalinux:8    |
@@ -91,7 +100,7 @@ Distrobox guests tested successfully with the following container images:
 | CentOS | 7 | quay.io/centos/centos:7  |
 | CentOS Stream | 8<br>9 | quay.io/centos/centos:stream8<br>quay.io/centos/centos:stream9  |
 | RedHat (UBI) | 7<br>8 | registry.access.redhat.com/ubi7/ubi<br>registry.access.redhat.com/ubi7/ubi-init<br>registry.access.redhat.com/ubi8/ubi<br>registry.access.redhat.com/ubi8/ubi-init  |
-| Debian | 8<br>9<br>10<br>11 | docker.io/library/debian:8<br>docker.io/library/debian:9<br>docker.io/library/debian:10<br>docker.io/library/debian:stable<br>docker.io/library/debian:stable-backports    |
+| Debian | 7<br>8<br>9<br>10<br>11 | docker.io/debian/eol:wheezy<br>docker.io/library/debian:8<br>docker.io/library/debian:9<br>docker.io/library/debian:10<br>docker.io/library/debian:stable<br>docker.io/library/debian:stable-backports    |
 | Debian | Testing    | docker.io/library/debian:testing <br> docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
 | Neurodebian | nd100 | docker.io/library/neurodebian:nd100 |
@@ -107,27 +116,32 @@ Distrobox guests tested successfully with the following container images:
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64 <br> ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
 | Gentoo Linux | rolling | You will have to [Build your own](distrobox_gentoo.md) to have a complete Gentoo docker image |
+<!-- markdownlint-restore -->
 
-Note however that if you use a non-toolbox preconfigured image (e.g. images pre-baked to work with <https://github.com/containers/toolbox),> the **first** `distrobox-enter` you'll perform
+Note however that if you use a non-toolbox preconfigured image (e.g.
+images pre-baked to work with <https://github.com/containers/toolbox),>
+the **first** `distrobox-enter` you'll perform
 can take a while as it will download and install the missing dependencies.
 
 A small time tax to pay for the ability to use any type of image.
 This will **not** occur after the first time, **subsequent enters will be much faster.**
 
-NixOS is not a supported container distro, and there are currently no plans to bring support to it. If you are looking for unprivlaged NixOS environments, we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html).
+NixOS is not a supported container distro, and there are currently no plans to
+bring support to it. If you are looking for unprivlaged NixOS environments,
+we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html).
 
-#### New Distro support
+### New Distro support
 
-If your distro of choice is not on the list, open an issue requesting support for it,
-we can work together to check if it is possible to add support for it.
+If your distro of choice is not on the list, open an issue requesting support
+for it, we can work together to check if it is possible to add support for it.
 
 Or just try using it anyway, if it works, open an issue
 and it will be added to the list!
 
-#### Older distributions
+### Older distributions
 
-For older distributions like CentOS 6, Debian 7, Ubuntu 12.04, compatibility is not
-assured.
+For older distributions like CentOS 5, CentOS 6, Debian 6, Ubuntu 12.04,
+compatibility is not assured.
 
 Their `libc` version is incompatible with kernel releases after `>=4.11`.
 A work around this is to use the `vsyscall=emulate` flag in the bootloader of the

@@ -1,8 +1,8 @@
 - [Distrobox](../README.md)
-  * [Execute a command on the Host](execute_commands_on_host.md)
-    * [The easy one](#the-easy-one)
-    * [The not so easy one](#the-not-so-easy-one)
-  * [Integrate host with container seamlessly](#integrate-host-with-container-seamlessly)
+  - [Execute a command on the Host](execute_commands_on_host.md)
+    - [The easy one](#the-easy-one)
+    - [The not so easy one](#the-not-so-easy-one)
+  - [Integrate host with container seamlessly](#integrate-host-with-container-seamlessly)
 
 ---
 

@@ -1,4 +1,5 @@
-### Create the distrobox
+<!-- markdownlint-disable MD010 -->
+# Create the distrobox
 
 distrobox-create takes care of creating the container with input name and image.
 The created container will be tightly integrated with the host, allowing sharing of

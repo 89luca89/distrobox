@@ -67,7 +67,6 @@ Usage:
 	distrobox-export --service syncthing.service [--extra-flags "flags"] [--delete] [--sudo]
 	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
 
-
 Options:
 
 	--app/-a:		name of the application to export

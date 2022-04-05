@@ -1,4 +1,5 @@
-### Remove containers
+<!-- markdownlint-disable MD010 -->
+# Remove containers
 
 distrobox-rm delete one of the available distroboxes.
 

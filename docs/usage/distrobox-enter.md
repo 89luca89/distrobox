@@ -1,4 +1,5 @@
-### Enter the distrobox
+<!-- markdownlint-disable MD010 -->
+# Enter the distrobox
 
 distrobox-enter takes care of entering the container with the name specified.
 Default command executed is your SHELL, but you can specify different shells or
@@ -30,7 +31,6 @@ Options:
 	--version/-V:		show version
 
 This is used to enter the distrobox itself. Personally, I just create multiple profiles in my `gnome-terminal` to have multiple distros accessible.
-
 
 The `--additional-flags` or `-a` is useful to modify default command when executing in the container.
 For example:

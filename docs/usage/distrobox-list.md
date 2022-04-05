@@ -1,4 +1,5 @@
-### List containers
+<!-- markdownlint-disable MD010 -->
+# List containers
 
 distrobox-list lists available distroboxes. It detects them and lists them separately
 from the rest of normal podman or docker containers.

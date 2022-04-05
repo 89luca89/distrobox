@@ -1,11 +1,11 @@
 - [Distrobox](../README.md)
-  * [Run latest GNOME and KDE using distrobox](run_latest_gnome_kde_on_distrobox.md)
+  - [Run latest GNOME and KDE using distrobox](run_latest_gnome_kde_on_distrobox.md)
     - [Using a stable-release distribution](#using-a-stable-release-distribution)
-      * [Initializing the distrobox](#initializing-the-distrobox)
-      * [Running Latest GNOME](#running-latest-gnome)
-        - [Generate session file](#generate-session-file)
-      * [Running Latest KDE](#running-latest-kde)
-        - [Generate session file](#generate-session-file-1)
+      - [Initializing the distrobox](#initializing-the-distrobox)
+      - [Running Latest GNOME](#running-latest-gnome)
+        - [Generate session file - GNOME](#generate-session-file-gnome)
+      - [Running Latest KDE](#running-latest-kde)
+        - [Generate session file - KDE](#generate-session-file-kde)
         - [Add a couple of fixes](#add-a-couple-of-fixes)
     - [Using apps from host](#using-apps-from-host)
 
@@ -13,15 +13,17 @@
 
 # Using a stable-release distribution
 
-Lots of people prefer to run a distribution following a stable-LTS release cycle like Debian, UbuntuLTS or
-CentOS family (Almalinux, Rocky Linux). This ensures great stability on one hand, but package staling on the other.
+Lots of people prefer to run a distribution following a stable-LTS release cycle
+like Debian, UbuntuLTS or CentOS family (Almalinux, Rocky Linux).
+This ensures great stability on one hand, but package staling on the other.
 
-One way to counter this effect is to use a pet-container managed by Distrobox to run packages from much newer distributions
-without giving up on core base os stability.
+One way to counter this effect is to use a pet-container managed by Distrobox
+to run packages from much newer distributions without giving up on core base os stability.
 
 ## Initializing the distrobox
 
-For this experiment we'll use Fedora Rawhide as our distrobox, and Centos 8 Stream as our host, so:
+For this experiment we'll use Fedora Rawhide as our distrobox, and Centos 8 Stream
+as our host, so:
 
 ```shell
 distrobox create --name fedora-rawhide --image registry.fedoraproject.org/fedora:rawhide
@@ -35,8 +37,8 @@ distrobox enter fedora-rawhide
 
 ## Running Latest GNOME
 
-First we need to change a couple of bits in the distrobox container to make host's systemd session
-accessible from within the host:
+First we need to change a couple of bits in the distrobox container to make host's
+systemd session accessible from within the host:
 
 ```shell
 ~$ distrobox enter fedora-rawhide
@@ -52,14 +54,15 @@ user@fedora-rawhide:~$ sudo dnf groupinstall GNOME
 
 And let's grab a coffee while it finishes :-)
 
-After the `dnf` process finishes, we have GNOME installed in our container, now how do we
-use it?
+After the `dnf` process finishes, we have GNOME installed in our container,
+now how do we use it?
 
-### Generate session file
+### Generate session file - GNOME
 
-First in the host we need a reliable way to fix the permissions problem of the `/tmp/.X11-unix` directory.
-This directory should either belong to `root` or `$USER`. But in a rootless container, host's `root` is not
-mapped inside the container so we need to change the ownership from `root` to `$USER` each time.
+First in the host we need a reliable way to fix the permissions problem of the
+`/tmp/.X11-unix` directory. This directory should either belong to `root` or
+`$USER`. But in a rootless container, host's `root` is not mapped inside the
+container so we need to change the ownership from `root` to `$USER` each time.
 
 Let's add:
 
@@ -69,11 +72,11 @@ chown -R $USER:$USER /tmp/.X11-unix
 
 to `/etc/profile.d/fix_tmp.sh` file.
 
-This is needed for the XWayland session to work properly which right now is necessary to run gnome-shell
-even on wayland.
+This is needed for the XWayland session to work properly which right now is
+necessary to run gnome-shell even on wayland.
 
-Then we need to add a desktop file for the session on the host's file system, so that it appears
-on your login manager (Be it SSDM or GDM)
+Then we need to add a desktop file for the session on the host's file system,
+so that it appears on your login manager (Be it SSDM or GDM)
 
 ```shell
 [Desktop Entry]
@@ -98,7 +101,8 @@ Centos.
 
 ## Running Latest KDE
 
-We can do the same with KDE also, let's first set up the host's systemd session sharing with the container:
+We can do the same with KDE also, let's first set up the host's systemd session
+sharing with the container:
 
 ```shell
 ~$ distrobox enter fedora-rawhide
@@ -112,10 +116,10 @@ Then we can proceed to install KDE in the container:
 user@fedora-rawhide:~$ sudo dnf groupinstall KDE
 ```
 
-### Generate session file
+### Generate session file - KDE
 
-We need to add a desktop file for the session on the host's file system, so that it appears
-on your login manager (Be it SSDM or GDM)
+We need to add a desktop file for the session on the host's file system,
+so that it appears on your login manager (Be it SSDM or GDM)
 
 ```shell
 [Desktop Entry]
@@ -131,9 +135,10 @@ This file should be placed under `/usr/share/wayland-sessions/distrobox-plasma.d
 
 To make KDE work we need a couple more fixes to run both on the host and in the container.
 
-First in the host we need a reliable way to fix the permissions problem of the `/tmp/.X11-unix` directory.
-This directory should either belong to `root` or `$USER`. But in a rootless container, host's `root` is not
-mapped inside the container so we need to change the ownership from `root` to `$USER` each time.
+First in the host we need a reliable way to fix the permissions problem of the
+`/tmp/.X11-unix` directory. This directory should either belong to `root` or
+`$USER`. But in a rootless container, host's `root` is not mapped inside the
+container so we need to change the ownership from `root` to `$USER` each time.
 
 Let's add:
 
@@ -143,8 +148,9 @@ chown -R $USER:$USER /tmp/.X11-unix
 
 to `/etc/profile.d/fix_tmp.sh` file.
 
-We also need to add a process in autostart on which Plasma shell relies on a process called `kactivitymanagerd`.
-Not having host's systemd at disposal we can start it simply adding it to the ~/.profile file, add:
+We also need to add a process in autostart on which Plasma shell relies on a
+process called `kactivitymanagerd`. Not having host's systemd at disposal we
+can start it simply adding it to the ~/.profile file, add:
 
 ```shell
 if [ -f /usr/libexec/kactivitymanagerd ]; then
@@ -164,6 +170,6 @@ Centos.
 
 # Using apps from host
 
-Now that we're in a container session, we may want to still use some of the host's apps.
-Refer to [THIS](execute_commands_on_host.md) to create handlers and wrappers to use
-the complete selection of host's apps and binaries inside the container.
+Now that we're in a container session, we may want to still use some of the host's
+apps. Refer to [THIS](execute_commands_on_host.md) to create handlers and wrappers
+to use the complete selection of host's apps and binaries inside the container.

@@ -11,10 +11,13 @@
 [![Github issue needs help](https://img.shields.io/github/issues-raw/89luca89/distrobox/help%20wanted?color=blue&label=Help%20Wanted%20Issues)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 [![GitHub issues by-label](https://img.shields.io/github/issues-raw/89luca89/distrobox/bug?color=red&label=Open%20Bug%20Reports)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug%22)
 
-Use any Linux distribution inside your terminal. Enable both backward and forward compatibility with software and freedom to use whatever distribution you’re more comfortable with.
-Distrobox uses `podman` or `docker` to create containers using the Linux distribution of your choice.
-The created container will be tightly integrated with the host, allowing sharing of
-the HOME directory of the user, external storage, external USB devices and
+Use any Linux distribution inside your terminal. Enable both backward and forward
+compatibility with software and freedom to use whatever distribution you’re more
+comfortable with.
+Distrobox uses `podman` or `docker` to create containers using the Linux distribution
+of your choice.
+The created container will be tightly integrated with the host, allowing sharing
+of the HOME directory of the user, external storage, external USB devices and
 graphical apps (X11/Wayland), and audio.
 
 ---
@@ -24,9 +27,9 @@ graphical apps (X11/Wayland), and audio.
 ---
 
 - [Distrobox](#distrobox)
-  * [What it does](#what-it-does)
+  - [What it does](#what-it-does)
     - [See it in action](#see-it-in-action)
-  * [Why?](#why-)
+  - [Why?](#why-)
     - [Aims](#aims)
 - [Installation](#installation)
   - [Uninstallation](#uninstallation)
@@ -35,16 +38,16 @@ graphical apps (X11/Wayland), and audio.
   - [Host Distros](compatibility.md#host-distros)
   - [Containers Distros](compatibility.md#containers-distros)
 - [Usage](usage/usage.md)
-  * [Outside the distrobox](#outside-the-distrobox)
+  - [Outside the distrobox](#outside-the-distrobox)
     - [distrobox-create](usage/distrobox-create.md)
     - [distrobox-enter](usage/distrobox-enter.md)
     - [distrobox-list](usage/distrobox-list.md)
     - [distrobox-rm](usage/distrobox-rm.md)
     - [distrobox-stop](usage/distrobox-stop.md)
-  * [Inside the distrobox](#inside-the-distrobox)
+  - [Inside the distrobox](#inside-the-distrobox)
     - [distrobox-export](usage/distrobox-export.md)
     - [distrobox-init](usage/distrobox-init.md)
-  * [Configure distrobox](#configure-distrobox)
+  - [Configure distrobox](#configure-distrobox)
 - [Useful tips](useful_tips.md)
   - [Execute complex commands directly from distrobox-enter](useful_tips.md#execute-complex-commands-directly-from-distrobox-enter)
   - [Create a distrobox with a custom HOME directory](useful_tips.md#create-a-distrobox-with-a-custom-home-directory)
@@ -84,14 +87,18 @@ graphical apps (X11/Wayland), and audio.
 
 ## What it does
 
-Simply put it's a fancy wrapper around `podman` or `docker` to create and start containers highly integrated with the hosts.
+Simply put it's a fancy wrapper around `podman` or `docker` to create and start
+containers highly integrated with the hosts.
 
 The distrobox environment is based on an OCI image.
-This image is used to create a container that seamlessly integrates with the rest of the operating system by providing access to the user's home directory,
-the Wayland and X11 sockets, networking, removable devices (like USB sticks), systemd journal, SSH agent, D-Bus,
+This image is used to create a container that seamlessly integrates with the
+rest of the operating system by providing access to the user's home directory,
+the Wayland and X11 sockets, networking, removable devices (like USB sticks),
+systemd journal, SSH agent, D-Bus,
 ulimits, /dev and the udev database, etc...
 
-It implements the same concepts introduced by <https://github.com/containers/toolbox> but in a simplified way using POSIX sh and aiming at broader compatibility.
+It implements the same concepts introduced by <https://github.com/containers/toolbox>
+but in a simplified way using POSIX sh and aiming at broader compatibility.
 
 All the props go to them as they had the great idea to implement this stuff.
 
@@ -102,38 +109,54 @@ It is divided into 6 commands:
 - `distrobox-list` - to list containers created with distrobox
 - `distrobox-rm` - to delete a container created with distrobox
 - `distrobox-stop` - to stop a running container created with distrobox
-- `distrobox-init`   - it's the entrypoint of the container (not meant to be used manually)
-- `distrobox-export` - it is meant to be used inside the container, useful to export apps and services from the container to the host
+- `distrobox-init`   - the entrypoint of the container (not meant to be used manually)
+- `distrobox-export` - it is meant to be used inside the container,
+  useful to export apps and services from the container to the host
 
-It also includes a little wrapper to launch commands with `distrobox COMMAND` instead of calling the single files.
+It also includes a little wrapper to launch commands with `distrobox COMMAND`
+instead of calling the single files.
 
 ### See it in action
 
-Thanks to [castrojo](https://github.com/castrojo), you can see Distrobox in action in this explanatory video on his setup with Distrobox, Toolbx, Fedora Silverblue on his project [ublue](https://github.com/castrojo/ublue) (check it out!)
+Thanks to [castrojo](https://github.com/castrojo), you can see Distrobox in
+action in this explanatory video on his setup with Distrobox, Toolbx,
+Fedora Silverblue on his project [ublue](https://github.com/castrojo/ublue)
+(check it out!)
 
 [![Video](https://user-images.githubusercontent.com/598882/153680522-f5903607-2854-4cfb-a186-cba7403745bd.png)](https://www.youtube.com/watch?v=Q2PrISAOtbY)
 
 ## Why
 
-- Provide a mutable environment on an immutable OS, like Endless OS, Fedora Silverblue, OpenSUSE MicroOS or SteamOS3
-- Provide a locally privileged environment for sudoless setups (eg. company-provided laptops, security reasons, etc...)
-- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat) with a bleeding-edge environment for development or gaming (eg. Arch, OpenSUSE Tumbleweed or Fedora with latest Mesa)
-- Leverage high abundance of curated distro images for docker/podman to manage multiple environments
+- Provide a mutable environment on an immutable OS, like Endless OS,
+  Fedora Silverblue, OpenSUSE MicroOS or SteamOS3
+- Provide a locally privileged environment for sudoless setups
+  (eg. company-provided laptops, security reasons, etc...)
+- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat)
+  with a bleeding-edge environment for development or gaming
+  (eg. Arch, OpenSUSE Tumbleweed or Fedora with latest Mesa)
+- Leverage high abundance of curated distro images for docker/podman to
+  manage multiple environments
 
-Refer to the compatiblity list for an overview of supported host's distro [HERE](compatibility.md#host-distros) and container's distro [HERE](compatibility.md#containers-distros).
+Refer to the compatiblity list for an overview of supported host's distro
+[HERE](compatibility.md#host-distros) and container's distro [HERE](compatibility.md#containers-distros).
 
 ### Aims
 
-This project aims to bring **any distro userland to any other distro** supporting podman or docker.
-It has been written in POSIX sh to be as portable as possible and not have problems with dependencies and glibc version's compatibility.
+This project aims to bring **any distro userland to any other distro**
+supporting podman or docker.
+It has been written in POSIX sh to be as portable as possible and not have
+problems with dependencies and glibc version's compatibility.
 
-Refer [HERE](compatibility.md#supported-container-managers) for a list of supported container managers and minimum supported versions.
+Refer [HERE](compatibility.md#supported-container-managers) for a list of
+supported container managers and minimum supported versions.
 
-It also aims to enter the container **as fast as possible**, every millisecond adds up if you use the container as your default environment for your terminal:
+It also aims to enter the container **as fast as possible**, every millisecond
+adds up if you use the container as your default environment for your terminal:
 
-These are some sample results of `distrobox-enter` on the same container on my weak laptop from 2015 with 2 core cpu:
+These are some sample results of `distrobox-enter` on the same container on my
+weak laptop from 2015 with 2 core cpu:
 
-```
+```sh
 Total time for 100 container enters:
 
   ~$ time (for i in {1..100}; do distrobox-enter --name fedora-toolbox-35 -- whoami; done)
@@ -146,18 +169,25 @@ Mean:
 36.209s/100 = ~0.362ms mean time to enter the container
 ```
 
-I would like to keep it always below the [Doherty Treshold](https://lawsofux.com/doherty-threshold/) of 400ms.
+I would like to keep it always below the
+[Doherty Treshold](https://lawsofux.com/doherty-threshold/) of 400ms.
 
 #### Security implications
 
-Isolation and sandboxing is **not** the main aim of the project, on the conrary it aims to thightly integrate the container with the host.
-The container will have complete access to your home, pen drives and so on, so do not expect it to be highly sandboxed like a plain
+Isolation and sandboxing is **not** the main aim of the project, on the conrary
+it aims to thightly integrate the container with the host.
+The container will have complete access to your home, pen drives and so on,
+so do not expect it to be highly sandboxed like a plain
 docker/podman container or a flatpak.
 
-⚠️ **BE CAREFUL**: if you use docker, the daemon runs as root by default, so **root inside the docker container can modify system stuff outside the container**, if you have security concern for this, **use podman that runs in rootless mode**.  
-Rootless docker is still not working as intended and will be included in the future when it will be complete.
+⚠️ **BE CAREFUL**: if you use docker, the daemon runs as root by default, so
+**root inside the docker container can modify system stuff outside the container**,
+if you have security concern for this, **use podman that runs in rootless mode**.
+Rootless docker is still not working as intended and will be included in the future
+when it will be complete.
 
-That said, it is in the works to implement some sort of decoupling with the host, as discussed here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/issues/28)
+That said, it is in the works to implement some sort of decoupling with the host,
+as discussed here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/issues/28)
 
 ---
 
@@ -187,7 +217,8 @@ Remove a distrobox
 
 `distrobox rm test`
 
-You can check [HERE for more advanced usage](usage/usage.md) and check a [comprehensive list of useful tips HERE](useful_tips.md)
+You can check [HERE for more advanced usage](usage/usage.md)
+and check a [comprehensive list of useful tips HERE](useful_tips.md)
 
 # Configure Distrobox
 
@@ -220,56 +251,72 @@ Alternatively it is possible to specify preferences using ENV variables:
 
 # Installation
 
-Distrobox is packaged in the following distributions, if your distribution is on this list, you can refer to your repos for installation:
+Distrobox is packaged in the following distributions, if your distribution is
+on this list, you can refer to your repos for installation:
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/distrobox.svg)](https://repology.org/project/distrobox/versions)
 
-Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30), [alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli), [AtilaSaraiva](https://github.com/AtilaSaraiva)
+Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30),
+[alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli),
+[AtilaSaraiva](https://github.com/AtilaSaraiva)
 
-Else, if you like to live your life dangerously, or you want the latest release, you can trust me and simply run this in your terminal:
+Else, if you like to live your life dangerously, or you want the latest release,
+you can trust me and simply run this in your terminal:
 
-```
+```sh
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
 ```
 
 or if you want to select a custom directory to install without sudo:
 
-```
+```sh
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
 ```
 
-Alternatively you can clone the project using `git clone` or using the latest release [HERE](https://github.com/89luca89/distrobox/releases/latest).
+Alternatively you can clone the project using `git clone` or using the latest
+release [HERE](https://github.com/89luca89/distrobox/releases/latest).
 
-Enter the directory and run `./install`, by default it will attempt to install in `~/.local` but if you run the script as root, it will default to `/usr/local`. You can specify a custom directory with the `--prefix` flag such as `./install --prefix ~/.distrobox`.
+Enter the directory and run `./install`, by default it will attempt to install
+in `~/.local` but if you run the script as root, it will default to `/usr/local`.
+You can specify a custom directory with the `--prefix` flag
+such as `./install --prefix ~/.distrobox`.
 
-Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas the manpages get installed to `${prefix}/share/man`.
+Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas
+the manpages get installed to `${prefix}/share/man`.
 
-Check the [Host Distros](compatibility.md#host-distros) compatibility list for distro-specific instructions.
+Check the [Host Distros](compatibility.md#host-distros) compatibility list for
+distro-specific instructions.
 
 ## Dependencies
 
-Distrobox depends on a container manager to work, you can choose to install either podman or docker.
-Please look in the [Compatibility Table](compatibility.md#host-distros) for your distribution notes.
+Distrobox depends on a container manager to work, you can choose to install
+either podman or docker.
+Please look in the [Compatibility Table](compatibility.md#host-distros) for your
+distribution notes.
 
 ---
 
 ## Uninstallation
 
-If you installed distrobox using the `install` script in the default install directory use this:
+If you installed distrobox using the `install` script in the default install
+directory use this:
 
-```
+```sh
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sudo sh
 ```
 
 or if you specified a custom path:
 
-```
+```sh
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- --prefix ~/.local
 ```
 
-Else if cloned the project using `git clone` or using the latest archive release from [HERE](https://github.com/89luca89/distrobox/releases/latest),
+Else if cloned the project using `git clone` or using the latest archive release
+from [HERE](https://github.com/89luca89/distrobox/releases/latest),
 
-enter the directory and run `./uninstall`, by default it will assume the install directory was `/usr/local` if ran as root or `~/.local`, you can specify another directory if needed with `./uninstall --prefix ~/.local`
+enter the directory and run `./uninstall`, by default it will assume the install
+directory was `/usr/local` if ran as root or `~/.local`,
+you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
 ---
 

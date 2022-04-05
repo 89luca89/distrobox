@@ -1,4 +1,5 @@
-### Init the distrobox (not to be launched manually)
+<!-- markdownlint-disable MD010 -->
+# Init the distrobox (not to be launched manually)
 
 distrobox-init is the entrypoint of a created distrobox.
 Note that this HAS to run from inside a distrobox, will not work if you run it
