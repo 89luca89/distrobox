@@ -251,11 +251,23 @@ generate_command() {
 	# Since we are entering from host, drop at workdir through '/run/host'
 	# which represents host's root inside container. Any directory on host
 	# even if not explicitly mounted is bound to exist under /run/host.
-	# Since user $HOME is very likely present in container, enter there directly
-	# to avoid confusing the user about shifted paths.
+	# $HOME variable is very likely present in container.  It is either equal
+	# to the user's normal $HOME on host, or a custom dir specified when the
+	# container was created.
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
-	workdir="$(echo "${PWD:-${HOME:-"/"}}" | sed -e 's/"/\\\"/g')"
-	if [ -n "${workdir##*"${HOME}"*}" ]; then
+
+	# Find $HOME as it is defined in the container (could be a custom home)
+	local home=$(${container_manager} inspect --type container --format='{{.Config.Env}}' "${container_name}" \
+		| sed 's/ /\n/g' | awk '/^HOME=/' | cut -d= -f 2)
+
+	# Custom home specified?  Let's then start there.
+	if [ "$home" != "$HOME" ] ; then
+		workdir="$(echo "$home" | sed -e 's/"/\\\"/g')"
+	else
+		workdir="$(echo "${PWD:-${home:-"/"}}" | sed -e 's/"/\\\"/g')"
+	fi
+
+	if [ -n "${workdir##*"${home}"*}" ]; then
 		workdir="/run/host/${workdir}"
 	fi
 	result_command="${result_command}
