@@ -174,8 +174,8 @@ I would like to keep it always below the
 
 #### Security implications
 
-Isolation and sandboxing is **not** the main aim of the project, on the conrary
-it aims to thightly integrate the container with the host.
+Isolation and sandboxing is **not** the main aim of the project, on the contrary
+it aims to tightly integrate the container with the host.
 The container will have complete access to your home, pen drives and so on,
 so do not expect it to be highly sandboxed like a plain
 docker/podman container or a flatpak.
