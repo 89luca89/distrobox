@@ -1,11 +1,11 @@
 - [Distrobox](../README.md)
-  - [Run latest GNOME and KDE using distrobox](run_latest_gnome_kde_on_distrobox.md)
+  - [Run latest GNOME and KDE Plasma using distrobox](run_latest_gnome_kde_on_distrobox.md)
     - [Using a stable-release distribution](#using-a-stable-release-distribution)
       - [Initializing the distrobox](#initializing-the-distrobox)
       - [Running Latest GNOME](#running-latest-gnome)
         - [Generate session file - GNOME](#generate-session-file-gnome)
-      - [Running Latest KDE](#running-latest-kde)
-        - [Generate session file - KDE](#generate-session-file-kde)
+      - [Running Latest KDE Plasma](#running-latest-kde)
+        - [Generate session file - KDE Plasma](#generate-session-file-kde)
         - [Add a couple of fixes](#add-a-couple-of-fixes)
     - [Using apps from host](#using-apps-from-host)
 
@@ -99,9 +99,9 @@ Let's log out and voilá!
 We now are in a GNOME 42 session inside Fedora Rawhide while our main OS remains
 Centos.
 
-## Running Latest KDE
+## Running Latest KDE Plasma
 
-We can do the same with KDE also, let's first set up the host's systemd session
+We can do the same with Plasma also, let's first set up the host's systemd session
 sharing with the container:
 
 ```shell
@@ -110,13 +110,13 @@ user@fedora-rawhide:~$ rm -rf /run/systemd/system
 user@fedora-rawhide:~$ ln -s /run/host/run/systemd/system /run/systemd
 ```
 
-Then we can proceed to install KDE in the container:
+Then we can proceed to install Plasma in the container:
 
 ```shell
 user@fedora-rawhide:~$ sudo dnf groupinstall KDE
 ```
 
-### Generate session file - KDE
+### Generate session file - KDE Plasma
 
 We need to add a desktop file for the session on the host's file system,
 so that it appears on your login manager (Be it SSDM or GDM)
@@ -133,7 +133,7 @@ This file should be placed under `/usr/share/wayland-sessions/distrobox-plasma.d
 
 ### Add a couple of fixes
 
-To make KDE work we need a couple more fixes to run both on the host and in the container.
+To make Plasma work we need a couple more fixes to run both on the host and in the container.
 
 First in the host we need a reliable way to fix the permissions problem of the
 `/tmp/.X11-unix` directory. This directory should either belong to `root` or
@@ -165,7 +165,7 @@ Let's log out and voilá!
 ![image](https://user-images.githubusercontent.com/598882/148704789-3d799a85-51cc-4de7-9ee3-f54add4949bc.png)
 ![image](https://user-images.githubusercontent.com/598882/148705044-7271af0c-0675-42f8-9f45-ad20ec53deca.png)
 
-We now are in latest KDE session inside Fedora Rawhide while our main OS remains
+We now are in latest KDE Plasma session inside Fedora Rawhide while our main OS remains
 Centos.
 
 # Using apps from host
