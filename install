@@ -154,6 +154,8 @@ else
 	if [ -n "${tmp_dir}" ] && [ -e "${tmp_dir}" ]; then
 		rm -rf "${tmp_dir}"
 	fi
+	# Fix for "Error response from daemon: path /dev is mounted on /dev but it is not a shared or slave mount"
+	mount --make-rshared /
 fi
 
 printf >&2 "Successfully installed to %s.\n" "${dest_path}"
