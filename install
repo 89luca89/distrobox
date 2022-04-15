@@ -97,6 +97,9 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
+# Fix for "Error response from daemon: path /dev is mounted on /dev but it is not a shared or slave mount"
+mount --make-rshared /
+
 # get current dir
 curr_dir=$(dirname "$0")
 cd "${curr_dir}" || exit 1
