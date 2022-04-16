@@ -88,7 +88,7 @@ DesktopNames=GNOME
 X-GDM-SessionRegisters=true
 ```
 
-This file should be placed under `/usr/share/wayland-sessions/distrobox-gnome-wayland.desktop`
+This file should be placed under `/usr/local/share/wayland-sessions/distrobox-gnome.desktop`
 
 Let's log out and voilá!
 
@@ -129,7 +129,7 @@ Name=Plasma on Wayland (fedora-rawhide distrobox)
 X-KDE-PluginInfo-Version=5.23.3
 ```
 
-This file should be placed under `/usr/share/wayland-sessions/distrobox-plasma.desktop`
+This file should be placed under `/usr/local/share/wayland-sessions/distrobox-plasma.desktop`
 
 ### Add a couple of fixes
 
