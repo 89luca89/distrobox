@@ -3,9 +3,9 @@
     - [Using a stable-release distribution](#using-a-stable-release-distribution)
       - [Initializing the distrobox](#initializing-the-distrobox)
       - [Running Latest GNOME](#running-latest-gnome)
-        - [Generate session file - GNOME](#generate-session-file-gnome)
-      - [Running Latest KDE Plasma](#running-latest-kde)
-        - [Generate session file - KDE Plasma](#generate-session-file-kde)
+        - [Generate session file - GNOME](#generate-session-file---gnome)
+      - [Running Latest Plasma](#running-latest-plasma)
+        - [Generate session file - Plasma](#generate-session-file---plasma)
         - [Add a couple of fixes](#add-a-couple-of-fixes)
     - [Using apps from host](#using-apps-from-host)
 
@@ -99,7 +99,7 @@ Let's log out and voilá!
 We now are in a GNOME 42 session inside Fedora Rawhide while our main OS remains
 Centos.
 
-## Running Latest KDE Plasma
+## Running Latest Plasma
 
 We can do the same with Plasma also, let's first set up the host's systemd session
 sharing with the container:
@@ -116,7 +116,7 @@ Then we can proceed to install Plasma in the container:
 user@fedora-rawhide:~$ sudo dnf groupinstall KDE
 ```
 
-### Generate session file - KDE Plasma
+### Generate session file - Plasma
 
 We need to add a desktop file for the session on the host's file system,
 so that it appears on your login manager (Be it SSDM or GDM)
