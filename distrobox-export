@@ -306,7 +306,7 @@ export_application() {
 	fi
 
 	# Find desktop file for the application to export
-	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/* /var/lib/flatpak/exports/share/applications/* || :)
+	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/* /var/lib/flatpak/exports/share/applications/* 2> /dev/null || :)
 	icon_files=$(find /usr/share/icons /usr/share/pixmaps /var/lib/flatpak/exports/share/icons -iname "*${exported_app}*" 2> /dev/null || :)
 	# Check that we found some desktop files first.
 	if [ -z "${desktop_files}" ]; then
