@@ -42,7 +42,7 @@ Distrobox has been successfully tested on:
 
 |    Distro  |    Version    | Notes |
 | --- | --- | --- |
-| Alpine Linux | 3.14.3 | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
+| Alpine Linux | 3.14<br>3.15 | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
 | Arch Linux | | `distrobox` and `distrobox-git` are available in AUR (thanks [M0Rf30](https://github.com/M0Rf30)!).<br>To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | Manjaro | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | CentOS | 8<br>8 Stream<br>9 Stream | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
@@ -60,12 +60,33 @@ Distrobox has been successfully tested on:
 | NixOS | 21.11 | Currently you must have your default shell set to Bash, if it is not, make sure you edit your configuration.nix so that it is. <br>Also make sure to mind your executable paths. Sometimes a container will not have nix paths, and sometimes it will not have its own paths. <br> Distrobox is available in Nixpkg collection (thanks [AtilaSaraiva](https://github.com/AtilaSaraiva)!)<<br>To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker) <br>To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
 | Windows WSL2 | | **NOTE WSL2 support is preliminary, and there are many bugs present, any help in improving support is appreciated** <br> Currently you must work around some incompatibility between WSL2 and Podman, namely [THIS](https://github.com/containers/podman/issues/12236). <br>Install into WSL2 any of the supported distributions in this list. <br> Ensure you have an entry in the `fstab` for the `/tmp` folder:<br> `echo 'tmpfs /tmp tmps defaults 0 0' >> /etc/fstab`.<br>Then reboot the WSL machine `wsl --shutdown` <br>Note that `distrobox export` is not supported on WSL2 and will not work. |
 
+### Compatibility notes
+
 If your container is not able to connect to your host xserver, make sure to
 install `xhost` on the host machine and run `xhost +si:localuser:$USER`.
 If you wish to enable this functionality on future reboots add it to your `~/.xinitrc`
 or somewhere else tailored to your use case where it would be ran on every startup.
 
-List of distributions including distrobox in their repositories:
+#### Non shared mounts
+
+Note also that in some distributions, root filesystem is **not** mounted as a shared mount,
+this will give an error like:
+
+```sh
+$ distrobox-enter 
+Error response from daemon: path /sys is mounted on /sys but it is not a shared or slave mount
+Error: failed to start containers: ...
+```
+
+To resolve this, use this command:
+
+```sh
+ mount --make-rshared /
+```
+
+To make it permanent, you can place it in `/etc/rc.local`.
+
+### List of distributions including distrobox in their repositories
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/distrobox.svg)](https://repology.org/project/distrobox/versions)
 
