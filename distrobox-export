@@ -306,8 +306,13 @@ export_application() {
 	fi
 
 	# Find desktop file for the application to export
-	desktop_files=$(grep -ril "${exported_app}" /usr/share/applications/* /var/lib/flatpak/exports/share/applications/* 2> /dev/null || :)
-	icon_files=$(find /usr/share/icons /usr/share/pixmaps /var/lib/flatpak/exports/share/icons -iname "*${exported_app}*" 2> /dev/null || :)
+	desktop_files=$(grep -ril "${exported_app}" \
+		/usr/share/applications/* \
+		/var/lib/flatpak/exports/share/applications/* 2> /dev/null || :)
+	icon_files=$(find \
+		/usr/share/icons \
+		/usr/share/pixmaps \
+		/var/lib/flatpak/exports/share/icons -iname "*${exported_app}*" 2> /dev/null || :)
 	# Check that we found some desktop files first.
 	if [ -z "${desktop_files}" ]; then
 		printf >&2 "Error: cannot find any desktop files.\n"
@@ -364,7 +369,8 @@ export_application() {
 				sed "s|Name.*|& ${exported_app_label}|g" \
 					> "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 			if ! grep -q "StartupWMClass" "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"; then
-				printf "StartupWMClass=%s\n" "${exported_app}" >> "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+				printf "StartupWMClass=%s\n" "${exported_app}" >> \
+					"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
 			fi
 			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi

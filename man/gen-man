@@ -12,8 +12,10 @@ https://github.com/rtomayko/ronn
 fi
 
 for i in "$(dirname "${0}")"/../docs/usage/distrobox*; do
-	ronn --manual=Distrobox --name="$(basename "${i}" | cut -d'.' -f1).1" --organization=Distrobox "${i}" -o "$(dirname "${0}")"/man1/
-	mv "$(dirname "${0}")/man1/$(basename "${i}" | cut -d'.' -f1)" "$(dirname "${0}")/man1/$(basename "${i}" | sed 's|md|1|g')"
+	ronn --manual=Distrobox --name="$(basename "${i}" |
+		cut -d'.' -f1).1" --organization=Distrobox "${i}" -o "$(dirname "${0}")"/man1/
+	mv "$(dirname "${0}")/man1/$(basename "${i}" |
+		cut -d'.' -f1)" "$(dirname "${0}")/man1/$(basename "${i}" | sed 's|md|1|g')"
 done
 
 compatibility_file="$(mktemp)"
@@ -22,7 +24,8 @@ END="$(grep -n -B1 "# Containers Distros" "$(dirname "${0}")/../docs/compatibili
 
 sed -e "${START},${END}d" "$(dirname "${0}")/../docs/compatibility.md" > "${compatibility_file}"
 
-ronn --manual=Distrobox --name="distrobox-compatibility.1" --organization=Distrobox "${compatibility_file}" -o "$(dirname "${0}")"/man1/
+ronn --manual=Distrobox --name="distrobox-compatibility.1" \
+	--organization=Distrobox "${compatibility_file}" -o "$(dirname "${0}")"/man1/
 mv "$(dirname "${0}")"/man1/tmp "$(dirname "${0}")"/man1/distrobox-compatibility.1
 
 rm -f "$(dirname "${0}")"/man1/*.html

@@ -126,7 +126,8 @@ else
 		exit 1
 	fi
 
-	release_ver=$(curl -L https://github.com/89luca89/distrobox/releases/latest | grep 'refs/tags' | tail -1 | cut -d'"' -f2)
+	release_ver=$(curl -L https://github.com/89luca89/distrobox/releases/latest |
+		grep 'refs/tags' | tail -1 | cut -d'"' -f2)
 	release_name=$(echo "${release_ver}" | rev | cut -d'/' -f1 | rev)
 
 	# go in tmp

@@ -496,8 +496,10 @@ if [ -d "/usr/share/libalpm/scripts" ]; then
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
 	for net_mount in ${HOST_MOUNTS_RO}; do
-		printf "if mountpoint %s; then umount %s; fi\n" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
-		printf "if [ -e /run/host/%s ]; then mount --rbind -o ro /run/host/%s %s; fi\n" "${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
+		printf "if mountpoint %s; then umount %s; fi\n" "${net_mount}" "${net_mount}" >> \
+			/usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+		printf "if [ -e /run/host/%s ]; then mount --rbind -o ro /run/host/%s %s; fi\n" \
+			"${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
 	done
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
@@ -564,7 +566,10 @@ if ! grep -q "^${container_user_name}:" /etc/passwd; then
 
 		printf "Warning: there was a problem setting up the user\n"
 		printf "Warning: trying manual addition\n"
-		printf "%s:x:%s:%s:%s:%s:%s" "${container_user_name}" "${container_user_uid}" "${container_user_gid}" "${container_user_name}" "${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
+		printf "%s:x:%s:%s:%s:%s:%s" \
+			"${container_user_name}" "${container_user_uid}" \
+			"${container_user_gid}" "${container_user_name}" \
+			"${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
 		printf "%s::1::::::" "${container_user_name}" >> /etc/shadow
 	fi
 else
