@@ -401,6 +401,22 @@ generate_command() {
 			--volume /sys/fs/selinux"
 	fi
 
+	# This fix is needed as systemd (or journald) will try to set ACLs on this
+	# path. For now overlayfs and fuse.overlayfs are not compatible with ACLs
+	#
+	# This works around this using an unnamed volume so that this path will be
+	# mounted with a normal non-overlay FS, allowing ACLs and preventing errors.
+	#
+	# This work around works in conjunction with:
+	#	- distrobox-init:488-489
+	#	- distrobox-init:463-464
+	#	- distrobox-init:498-503
+	# So that we can use pre/post hooks for package managers to present to the
+	# systemd install script a blank path to work with, and mount the host's
+	# journal path afterwards.
+	result_command="${result_command}
+			--volume /var/log/journal"
+
 	# In some systems, for example using sysvinit, /dev/shm is a symlink
 	# to /run/shm, instead of the other way around.
 	# Resolve this detecting if /dev/shm is a symlink and mount original
