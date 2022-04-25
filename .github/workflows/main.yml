@@ -15,14 +15,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  dash:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Run dash -n
-        if: ${{ always() }}
         run: |
           result=0
           for file in $(find . -type f -not -path "*.git*"); do
@@ -34,8 +33,13 @@ jobs:
           done
           exit $result
 
+  shfmt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
       - name: Run shfmt
-        if: ${{ always() }}
         run: |
           result=0
           podman pull docker.io/peterdavehello/shfmt:latest
@@ -48,8 +52,18 @@ jobs:
           done
           exit $result
 
+
+  shellcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Exclude from bashate the following rules:
+      #   - SC2310 we don't want to exit if errors happen inside a check, that's why we have a check...
+      #   - SC2311 don't care if we inherit errexit inside substitutions, we do checks for that.
+      #   - SC2312 we already check errors and adding "|| true" everywhere hinders readability.
       - name: Run shellcheck
-        if: ${{ always() }}
         run: |
           result=0
           podman pull docker.io/koalaman/shellcheck:stable
@@ -62,8 +76,36 @@ jobs:
           done
           exit $result
 
+  bashate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # Exclude from bashate the following rules:
+      #   - E002 we use tab indentation as suggested by shfmt.
+      #   - E003 we use tab indentation as suggested by shfmt.
+      #   - E010 for readability allow if/then and for/do to be on different lines.
+      #   - E011 for readability allow if/then and for/do to be on different lines.
+      - name: Run bashate
+        run: |
+          sudo pip3 install -U bashate
+          for file in $(find . -type f -not -path "*.git*"); do
+            if file "$file" | grep -qi shell; then
+              echo "### Checking file $file..."
+               bashate -i E002,E003,E010,E011 --max-line-length 120 $file
+              result=$(( result + $? ))
+            fi
+          done
+          exit $result
+
+  markdownlint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
       - name: Run markdownlint
-        if: ${{ always() }}
         run: |
           sudo npm install -g markdownlint-cli
           markdownlint $(find . -name '*.md' | grep -vF './.git')
