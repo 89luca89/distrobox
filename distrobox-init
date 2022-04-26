@@ -494,19 +494,28 @@ fi
 if [ -d "/usr/share/libalpm/scripts" ]; then
 	set +o xtrace
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
-	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
+	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 	for net_mount in ${HOST_MOUNTS_RO}; do
 		printf "if mountpoint %s; then umount %s; fi\n" "${net_mount}" "${net_mount}" >> \
 			/usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 		printf "if [ -e /run/host/%s ]; then mount --rbind -o ro /run/host/%s %s; fi\n" \
-			"${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
+			"${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 	done
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
 		set -o xtrace
 	fi
+	# in case we're not using an init image, neutralize systemd post installation hooks
+	# so that we do not encounter problems along the way.
+	cat << EOF > /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
+#!/bin/sh
+if [ ! -e /run/systemd/system ]; then 
+	echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
+fi
+EOF
 	chmod +x /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
-	chmod +x /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
+	chmod +x /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
+	chmod +x /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 
 	cat << EOF > /usr/share/libalpm/hooks/00-distrobox-pre.hook
 [Trigger]
@@ -521,6 +530,19 @@ When = PreTransaction
 Exec = /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 EOF
 
+	cat << EOF > /usr/share/libalpm/hooks/00-distrobox-post.hook
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Distrobox post-hooks 1...
+When = PostTransaction
+Exec = /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
+EOF
+
 	cat << EOF > /usr/share/libalpm/hooks/99-distrobox-post.hook
 [Trigger]
 Operation = Install
@@ -529,9 +551,9 @@ Type = Package
 Target = *
 
 [Action]
-Description = Distrobox post-hooks...
+Description = Distrobox post-hooks 2...
 When = PostTransaction
-Exec = /usr/share/libalpm/scripts/00_distrobox_post_hook.sh
+Exec = /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 EOF
 
 fi
