@@ -333,6 +333,7 @@ generate_command() {
 	printf "%s" "${result_command}"
 }
 
+container_path="${PATH}"
 # dry run mode, just generate the command and print it. No execution.
 if [ "${dryrun}" -ne 0 ]; then
 	cmd="$(generate_command)"
@@ -343,7 +344,6 @@ fi
 
 # Inspect the container we're working with.
 container_status="unknown"
-container_path="${PATH}"
 eval "$(${container_manager} inspect --type container "${container_name}" --format \
 	'container_status={{.State.Status}};
 	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
