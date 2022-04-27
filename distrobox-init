@@ -424,7 +424,10 @@ done
 #
 # for example using `podman --remote` to control the host's podman from inside
 # the container or accessing docker and libvirt sockets.
-host_sockets="$(find /run/host/run -name 'user' -prune -o -name 'nscd' -prune -o -type s -print \
+host_sockets="$(find /run/host/run -name 'user' \
+	-prune -o -name 'nscd' \
+	-prune -o -name 'system_bus_socket' \
+	-prune -o -type s -print \
 	2> /dev/null || :)"
 for host_socket in ${host_sockets}; do
 	container_socket="$(printf "%s" "${host_socket}" | sed 's|/run/host||g')"
@@ -509,7 +512,7 @@ if [ -d "/usr/share/libalpm/scripts" ]; then
 	# so that we do not encounter problems along the way.
 	cat << EOF > /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
 #!/bin/sh
-if [ ! -e /run/systemd/system ]; then 
+if [ ! -e /run/systemd/system ]; then
 	echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
 fi
 EOF
