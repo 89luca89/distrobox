@@ -75,15 +75,20 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          case "${container_name}" in
-            *init*)
-              echo "SYSTEMD DETECTED: performing systemctl check..."
-              ./distrobox enter --name "${container_name}" -- systemctl status --no-pager
-              ;;
-            *)
-              ./distrobox enter --name "${container_name}" -- whoami
-              ;;
-          esac
+          ./distrobox enter --name "${container_name}" -- whoami
+          # Temporary disable systemd init on github runners, it seems to be incompatible
+          # with runner services:
+          #   Failed to create /system.slice/runner-provisioner.service/init.scope control group: Permission denied
+          # works fine otherwise.
+          # case "${container_name}" in
+          #   *init*)
+          #     echo "SYSTEMD DETECTED: performing systemctl check..."
+          #     ./distrobox enter --name "${container_name}" -- systemctl status --no-pager
+          #     ;;
+          #   *)
+          #     ./distrobox enter --name "${container_name}" -- whoami
+          #     ;;
+          # esac
 
       # Ensure distrobox enter and init works:
       - name: Distrobox enter - user
