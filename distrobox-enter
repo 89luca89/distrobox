@@ -40,13 +40,14 @@ if [ "$(id -u)" -eq 0 ]; then
 fi
 
 # Defaults
-container_command="${SHELL:-"bash"}"
-container_manager="autodetect"
-container_name="fedora-toolbox-35"
+container_command=""
+container_shell="${SHELL:-"bash"}"
 # Work around for shells that are not in the container's file system, nor PATH.
 # For example in hosts that do not follow FHS, like NixOS or for shells in custom
 # exotic paths.
-container_command="$(basename "${container_command}") -l"
+container_shell="$(basename "${container_shell}")l"
+container_manager="autodetect"
+container_name="fedora-toolbox-35"
 container_manager_additional_flags=""
 
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
@@ -327,7 +328,7 @@ generate_command() {
 	result_command="${result_command} ${container_manager_additional_flags}"
 
 	# Run selected container with specified command.
-	result_command="${result_command} ${container_name} ${container_command}"
+	result_command="${result_command} ${container_name} ${container_command:-${container_shell}}"
 
 	# Return generated command.
 	printf "%s" "${result_command}"
@@ -346,8 +347,11 @@ fi
 container_status="unknown"
 eval "$(${container_manager} inspect --type container "${container_name}" --format \
 	'container_status={{.State.Status}};
+	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}}{{end}}{{end}};
 	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
 container_exists="$?"
+# Set SHELL as a login shell
+container_shell="${container_shell} -l"
 # Does the container exists? check if inspect reported errors
 if [ "${container_exists}" -gt 0 ]; then
 	# If not, prompt to create it first
