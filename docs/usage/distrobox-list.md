@@ -11,6 +11,7 @@ Usage:
 Options:
 
 	--help/-h:		show this message
+	--size/-s:		show also container size
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
