@@ -40,7 +40,7 @@ container_name="fedora-toolbox-35"
 force=0
 non_interactive=0
 verbose=0
-version="1.2.15"
+version="1.2.16"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults

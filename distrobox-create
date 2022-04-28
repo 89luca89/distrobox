@@ -68,7 +68,7 @@ distrobox_export_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-export"
 dryrun=0
 init=0
 verbose=0
-version="1.2.15"
+version="1.2.16"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults

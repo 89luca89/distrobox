@@ -30,7 +30,7 @@ trap '[ "$?" -ne 0 ] && printf "Error: An error occurred\n"' EXIT
 init=0
 init_hook=""
 verbose=0
-version="1.2.15"
+version="1.2.16"
 # Print usage to stdout.
 # Arguments:
 #   None

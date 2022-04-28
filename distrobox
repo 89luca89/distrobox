@@ -34,7 +34,7 @@ if [ "$(id -u)" -eq 0 ]; then
 	exit 1
 fi
 
-version="1.2.15"
+version="1.2.16"
 
 # Print usage to stdout.
 # Arguments:
