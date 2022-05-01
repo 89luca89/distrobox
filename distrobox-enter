@@ -31,11 +31,9 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
-	printf >&2 "Running %s as sudo is not supported.\n" "${0}"
-	printf >&2 "Please check the documentation on:\n"
-	printf >&2 "\tman distrobox-compatibility\t"
-	printf >&2 "or consult the documentation page on:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
+	printf >&2 " try instead running:\n"
+	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
 fi
 
@@ -57,6 +55,7 @@ container_manager_additional_flags=""
 distrobox_enter_path="$(cd "$(dirname "$0")" && pwd)/distrobox-enter"
 dryrun=0
 headless=0
+rootful=0
 verbose=0
 version="1.2.16"
 
@@ -100,6 +99,8 @@ Options:
 	--no-tty/-T:		do not instantiate a tty
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
+	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+				way over "sudo distrobox"
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -121,6 +122,10 @@ while :; do
 		-T | -H | --no-tty)
 			shift
 			headless=1
+			;;
+		-r | --root)
+			shift
+			rootful=1
 			;;
 		-V | --version)
 			printf "distrobox: %s\n" "${version}"
@@ -215,6 +220,7 @@ fi
 # This is not necessary on docker as it is already handled
 # in this way.
 if [ -z "${container_manager#*podman*}" ] &&
+	[ "${rootful}" -eq 0 ] &&
 	[ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
 	systemctl --user status podman.socket > /dev/null; then
 
@@ -223,6 +229,11 @@ fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
+fi
+
+# prepend sudo if we want podman or docker to be rootful
+if [ "${rootful}" -ne 0 ]; then
+	container_manager="sudo ${container_manager}"
 fi
 
 # Generate Podman or Docker command to execute.

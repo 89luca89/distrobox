@@ -11,6 +11,8 @@ Usage:
 Options:
 
 	--help/-h:		show this message
+	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+				way over "sudo distrobox"
 	--size/-s:		show also container size
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version

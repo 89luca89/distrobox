@@ -180,8 +180,9 @@ The container will have complete access to your home, pen drives and so on,
 so do not expect it to be highly sandboxed like a plain
 docker/podman container or a flatpak.
 
-⚠️ **BE CAREFUL**: if you use docker, the daemon runs as root by default, so
-**root inside the docker container can modify system stuff outside the container**,
+⚠️ **BE CAREFUL**: if you use docker, or you use podman with the `--root/-r` flag,
+the containers will run as root, so **root inside the rootful container can modify
+system stuff outside the container**,
 if you have security concern for this, **use podman that runs in rootless mode**.
 Rootless docker is still not working as intended and will be included in the future
 when it will be complete.

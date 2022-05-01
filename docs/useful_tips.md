@@ -1,5 +1,5 @@
 - [Distrobox](README.md)
-  - [Execute complex commands directly from distrobox-enter](#execute-complex-commands-directly-from-distrobox-enter)
+  - [Execute complex commands directly from distrobox enter](#execute-complex-commands-directly-from-distrobox-enter)
   - [Create a distrobox with a custom HOME directory](#create-a-distrobox-with-a-custom-home-directory)
   - [Mount additional volumes in a distrobox](#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](#use-a-different-shell-than-the-host)
@@ -12,8 +12,8 @@
   - [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
-  - [Improve distrobox-enter performance](#improve-distrobox-enter-performance)
-  - [Slow creation on podman and image size getting bigger with distrobox-create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
+  - [Improve distrobox enter performance](#improve-distrobox-enter-performance)
+  - [Slow creation on podman and image size getting bigger with distrobox create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](#container-save-and-restore)
   - [Check used resources](#check-used-resources)
   - [Build a Gentoo distrobox container](distrobox_gentoo.md)
@@ -23,7 +23,7 @@
 
 # Useful tips
 
-## Execute complex commands directly from distrobox-enter
+## Execute complex commands directly from distrobox enter
 
 Sometimes it is necessary to execure complex commands from a distrobox enter,
 like multiple concatenated commands using variables declared **inside** the container.
@@ -39,21 +39,21 @@ inside the container.
 
 ## Create a distrobox with a custom HOME directory
 
-`distrobox-create` supports the use of the `--home` flag, as specified in the
+`distrobox create` supports the use of the `--home` flag, as specified in the
 usage [HERE](./usage/distrobox-create.md)
 
 Simply use:
 
-`distrobox-create --name test --image your-choosen-image:tag --home /your/custom/home`
+`distrobox create --name test --image your-choosen-image:tag --home /your/custom/home`
 
 ## Mount additional volumes in a distrobox
 
-`distrobox-create` supports the use of the `--volume` flag, as specified in the
+`distrobox create` supports the use of the `--volume` flag, as specified in the
 usage [HERE](./usage/distrobox-create.md)
 
 Simply use:
 
-`distrobox-create --name test --image your-choosen-image:tag --volume /your/custom/volume/path`
+`distrobox create --name test --image your-choosen-image:tag --volume /your/custom/volume/path`
 
 ## Use a different shell than the host
 
@@ -63,15 +63,29 @@ If you want a different one you can use:
 `SHELL=/bin/zsh distrobox create -n test`
 `SHELL=/bin/zsh distrobox enter test`
 
+## Run the container with real root
+
+When using podman, distrobox will prefer to use rootless containers. In this mode the `root`
+user inside the container is **not** the real `root` user of the host. But it still has
+the same privileges as your normal `$USER`.
+
+But what if you really really need those `root` privileges even inside the container?
+
+Instead of running `sudo distrobox` to do stuff, it is better to simply use normal
+command with the `--root` or `-r` flag, so that distrobox can still integrate better
+with your `$USER`.
+
+`distrobox create --name test --image your-choosen-image:tag --root`
+
 ## Duplicate an existing distrobox
 
 It can be useful to just duplicate an already set up environment, to do this,
-`distrobox-create` supports the use of the
+`distrobox create` supports the use of the
 `--clone` flag, as specified in the usage [HERE](./usage/distrobox-create.md)
 
 Simply use:
 
-`distrobox-create --name test --clone name-of-distrobox-to-clone`
+`distrobox create --name test --clone name-of-distrobox-to-clone`
 
 ## Export to the host
 
@@ -90,13 +104,13 @@ You can create a distrobox with will have the same hostname as the host by
 creating it with the following init-hook:
 
 ```sh
-distrobox-create --name test --image your-choosen-image:tag \
+distrobox create --name test --image your-choosen-image:tag \
                   --init-hooks '"$(uname -n)" > /etc/hostname'`
 ```
 
 This will ensure SSH X-Forwarding will work when SSH-ing inside the distrobox:
 
-`ssh -X myhost distrobox-enter test -- xclock`
+`ssh -X myhost distrobox enter test -- xclock`
 
 ## Use distrobox to install different flatpaks from the host
 
@@ -107,7 +121,7 @@ If you want to have a separate system remote between host and container,
 you can create your distrobox with the followint init-hook:
 
 ```sh
-distrobox-create --name test --image your-choosen-image:tag \
+distrobox create --name test --image your-choosen-image:tag \
                         --init-hooks 'umount /var/lib/flatpak'`
 ```
 
@@ -181,7 +195,7 @@ to the Host profile.
 For other terminals, there are similar features (profiles) or  you can set up a
 dedicated shortcut to launch a terminal directly in the distrobox
 
-## Improve distrobox-enter performance
+## Improve distrobox enter performance
 
 If you are experiencing a bit slow performance using `podman` you should enable
 the podman socket using
@@ -190,7 +204,7 @@ the podman socket using
 
 this will improve a lot `podman`'s command performances.
 
-## Slow creation on podman and image size getting bigger with distrobox-create
+## Slow creation on podman and image size getting bigger with distrobox create
 
 For rootless podman 3.4.0 and upward, adding this to your `~/.config/containers/storage.conf`
 file will improve container creation speed and fix issues with images getting
@@ -252,8 +266,8 @@ docker load < image_name_you_choose.tar.gz
 And create a new container based on that image:
 
 ```sh
-distrobox-create --image image_name_you_choose:latest --name distrobox_name
-distrobox-enter --name distrobox_name
+distrobox create --image image_name_you_choose:latest --name distrobox_name
+distrobox enter --name distrobox_name
 ```
 
 And you're good to go, now you can reproduce your personal environment everywhere

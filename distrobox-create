@@ -33,11 +33,9 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
-	printf >&2 "Running %s as sudo is not supported.\n" "${0}"
-	printf >&2 "Please check the documentation on:\n"
-	printf >&2 "\tman distrobox-compatibility\t"
-	printf >&2 "or consult the documentation page on:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
+	printf >&2 " try instead running:\n"
+	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
 fi
 
@@ -67,6 +65,7 @@ distrobox_export_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-export"
 [ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(command -v distrobox-export)"
 dryrun=0
 init=0
+rootful=0
 verbose=0
 version="1.2.16"
 
@@ -114,7 +113,9 @@ Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 	--name/-n:		name for the distrobox		default: fedora-toolbox-35
-	--yes/-Y:	non-interactive, pull images without asking
+	--yes/-Y:		non-interactive, pull images without asking
+	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+				way over "sudo distrobox"
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
@@ -156,6 +157,10 @@ while :; do
 		-d | --dry-run)
 			shift
 			dryrun=1
+			;;
+		-r | --root)
+			shift
+			rootful=1
 			;;
 		-I | --init)
 			shift
@@ -303,6 +308,11 @@ fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
+fi
+
+# prepend sudo if we want podman or docker to be rootful
+if [ "${rootful}" -ne 0 ]; then
+	container_manager="sudo ${container_manager}"
 fi
 
 # Clone a container as a snapshot.

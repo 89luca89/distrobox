@@ -26,6 +26,8 @@ Options:
 	--no-tty/-T:		do not instantiate a tty
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
+	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+				way over "sudo distrobox"
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
