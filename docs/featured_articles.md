@@ -1,10 +1,11 @@
 - [Distrobox](README.md)
-  - [Featured articles](#featured-articles)
+  - [Featured articles](#articles)
+  - [Talks](#talks)
   - [Podcasts](#podcasts)
 
 ---
 
-## Featured articles
+## Articles
 
 - [Run Distrobox on Fedora Linux - Fedora Magazine](https://fedoramagazine.org/run-distrobox-on-fedora-linux/)
 - [DistroBox – Run Any Linux Distribution Inside Linux Terminal - TecMint](https://www.tecmint.com/distrobox-run-any-linux-distribution/)
@@ -16,6 +17,10 @@
   [ORIGINAL](https://bandithijo.github.io/blog/menjalankan-distro-linux-lain-dengan-distrobox-di-fedora-linux)
   or [TRANSLATED](https://bandithijo-github-io.translate.goog/blog/menjalankan-distro-linux-lain-dengan-distrobox-di-fedora-linux?_x_tr_sl=id&_x_tr_tl=en&_x_tr_hl=it&_x_tr_pto=wapp)
 - [Day-to-day differences between Fedora Silverblue and Ubuntu - castrojo's blog](https://www.ypsidanger.com/day-to-day-advantages-of-fedora-silverblue/)
+
+## Talks
+
+- [Linux App Summit 2022 - Distrobox: Run Any App On Any Distro - BoF](https://github.com/89luca89/distrobox/files/8598433/distrobox-las-talk.pdf)
 
 ## Podcasts
 
