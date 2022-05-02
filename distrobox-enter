@@ -381,8 +381,8 @@ if [ "${container_status}" != "running" ]; then
 	${container_manager} start "${container_name}" > /dev/null
 
 	printf >&2 "Starting container %s\n" "${container_name}"
-	printf >&2 "run this command to follow along:\n"
-	printf >&2 "\t%s logs -f %s\n" "${container_manager}" "${container_name}"
+	printf >&2 "run this command to follow along:\n\n"
+	printf >&2 "%s logs -f %s\n" "${container_manager}" "${container_name}"
 
 	# Wait for container to start successfully.
 	# We will probe the container logs every 1s to check if we have either:

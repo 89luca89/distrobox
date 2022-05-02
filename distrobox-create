@@ -541,8 +541,11 @@ fi
 # If it does, notify the user and exit.
 if ${container_manager} inspect --type container "${container_name}" > /dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
-	printf "To enter, run:\n"
-	printf "\tdistrobox-enter --name %s\n" "${container_name}"
+	printf "To enter, run:\n\n"
+	if [ "${rootful}" -ne 0 ]; then
+		printf "sudo "
+	fi
+	printf "distrobox-enter --name %s\n\n" "${container_name}"
 	exit 0
 fi
 
@@ -589,6 +592,9 @@ cmd="$(generate_command)"
 # shellcheck disable=SC2086
 if eval ${cmd}; then
 	printf "Distrobox '%s' successfully created.\n" "${container_name}"
-	printf "To enter, run:\n"
-	printf "\tdistrobox-enter %s\n" "${container_name}"
+	printf "To enter, run:\n\n"
+	if [ "${rootful}" -ne 0 ]; then
+		printf "sudo "
+	fi
+	printf "distrobox-enter %s\n\n" "${container_name}"
 fi
