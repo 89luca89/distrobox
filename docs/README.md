@@ -22,6 +22,12 @@ graphical apps (X11/Wayland), and audio.
 
 ---
 
+[Documentation](https://distrobox.privatedns.org/#distrobox) -
+[Matrix Room](https://matrix.to/#/%23distrobox:matrix.org) -
+[Telegram Group](https://t.me/distrobox)
+
+---
+
 ![overview](https://user-images.githubusercontent.com/598882/144294862-f6684334-ccf4-4e5e-85f8-1d66210a0fff.png)
 
 ---
@@ -118,6 +124,8 @@ It is divided into 6 commands:
 
 It also includes a little wrapper to launch commands with `distrobox COMMAND`
 instead of calling the single files.
+
+Please check [the usage docs here](usage/usage.md) and [see some handy tips on how to use it](useful_tips.md)
 
 ### See it in action
 
