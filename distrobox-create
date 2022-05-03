@@ -543,9 +543,10 @@ if ${container_manager} inspect --type container "${container_name}" > /dev/null
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
-		printf "sudo "
+		printf "distrobox-enter --root %s\n\n" "${container_name}"
+	else
+		printf "distrobox-enter %s\n\n" "${container_name}"
 	fi
-	printf "distrobox-enter --name %s\n\n" "${container_name}"
 	exit 0
 fi
 
@@ -594,7 +595,8 @@ if eval ${cmd}; then
 	printf "Distrobox '%s' successfully created.\n" "${container_name}"
 	printf "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
-		printf "sudo "
+		printf "distrobox-enter --root %s\n\n" "${container_name}"
+	else
+		printf "distrobox-enter %s\n\n" "${container_name}"
 	fi
-	printf "distrobox-enter %s\n\n" "${container_name}"
 fi
