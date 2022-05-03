@@ -114,6 +114,11 @@ while :; do
 			init_hook=$*
 			break
 			;;
+		-*) # Invalid options.
+			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+			show_help
+			exit 1
+			;;
 		*) # Default case: If no more options then break out of the loop.
 			break ;;
 	esac
