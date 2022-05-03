@@ -279,6 +279,25 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			util-linux \
 			vte-profile
 
+	elif command -v microdnf; then
+		# Check if shell_pkg is available in distro's repo. If not we
+		# fall back to bash, and we set the SHELL variable to bash so
+		# that it is set up correctly for the user.
+		if ! microdnf install -y "${shell_pkg}"; then
+			SHELL="/bin/bash"
+			shell_pkg="bash"
+		fi
+		microdnf install -y \
+			"${shell_pkg}" \
+			findutils \
+			ncurses \
+			passwd \
+			procps \
+			shadow-utils \
+			sudo \
+			util-linux
+		# vte-profile
+
 	elif command -v pacman; then
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
