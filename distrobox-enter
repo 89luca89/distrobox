@@ -362,7 +362,7 @@ eval "$(${container_manager} inspect --type container "${container_name}" --form
 	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
 container_exists="$?"
 # Set SHELL as a login shell
-container_shell="${container_shell} -l"
+container_shell="$(basename "${container_shell}") -l"
 # Does the container exists? check if inspect reported errors
 if [ "${container_exists}" -gt 0 ]; then
 	# If not, prompt to create it first
