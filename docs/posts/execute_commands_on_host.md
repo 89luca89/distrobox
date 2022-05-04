@@ -65,6 +65,8 @@ user@fedora-distrobox:~$ host-exec bash -l
 Another cool trick we can pull, is to use the handy `command_not_found_handle` function
 to try and execute missing commands in the container on the host.
 
+### bash / zsh
+
 Place this in your `~/.profile`:
 
 ```shell
@@ -89,6 +91,28 @@ if [ -n "${ZSH_VERSION-}" ]; then
   command_not_found_handle "$@"
  }
 fi
+```
+
+### fish
+
+Place this in a new fish config (such as `~/.config/fish/conf.d/cnf_handle.fish`:
+
+```fish
+function fish_command_not_found
+ # don't run if not in a container
+ if test ! -e /run/.containerenv -a ! -e /.dockerenv
+  __fish_default_command_not_found_handler "$argv"
+ # Run if in a container
+ else
+  if command -v flatpak-spawn >/dev/null 2>&1
+   flatpak-spawn --host $argv
+  else if command -v host-exec >/dev/null 2>&1
+   host-exec "$argv"
+  else
+   exit 127
+  end
+ end
+end
 ```
 
 And restart your terminal. Now when a command does not exist on your container,
