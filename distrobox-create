@@ -223,6 +223,11 @@ while :; do
 			shift
 			break
 			;;
+		-*) # Invalid options.
+			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+			show_help
+			exit 1
+			;;
 		*) # Default case: If no more options then break out of the loop.
 			# If we have a flagless option and container_name is not specified
 			# then let's accept argument as container_name
