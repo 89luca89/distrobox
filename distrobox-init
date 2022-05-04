@@ -163,6 +163,10 @@ mount_bind() (
 	# if source dir doesn't exist, just exit normally
 	! [ -d "${source_dir}" ] && ! [ -f "${source_dir}" ] && return 0
 
+	# if target_dir exists, check if it is a mountpoint and umount it.
+	if [ -e "${target_dir}" ] && mountpoint "${target_dir}"; then
+		umount "${target_dir}"
+	fi
 	# if the source_dir exists, then create the target_dir
 	if [ -d "${source_dir}" ]; then
 		# exit if not successful
@@ -424,6 +428,8 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 fi
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="
+	/etc/host.conf
+	/etc/localtime
 	/etc/machine-id
 	/var/lib/flatpak
 	/var/lib/systemd/coredump
@@ -443,6 +449,8 @@ HOST_MOUNTS="
 	/run/systemd/seats
 	/run/systemd/sessions
 	/run/systemd/users
+	/run/systemd/resolve/
+	/run/netconfig/
 	/run/udev
 	/srv
 	/var/lib/libvirt
@@ -716,6 +724,7 @@ else
 		/run/systemd/seats
 		/run/systemd/sessions
 		/run/systemd/system
+		/run/systemd/resolve
 		/run/systemd/users
 		/var/lib/systemd/coredump
 		/var/log/journal"

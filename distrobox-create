@@ -481,16 +481,12 @@ generate_command() {
 	#
 	# We're doing this now instead of inside the init because some distros will
 	# have symlinks places for these files that use absolute paths instead of
-	# relative paths. Those symlinks will result broken inside the container so
-	# we need to resolve them now on the host.
-	host_links="/etc/host.conf /etc/hosts /etc/resolv.conf /etc/localtime"
-	for host_link in ${host_links}; do
-		# Check if the file exists first
-		if [ -f "${host_link}" ] && [ -r "${host_link}" ]; then
-			result_command="${result_command}
-			--volume \"$(realpath "${host_link}")\":\"${host_link}\":ro"
-		fi
-	done
+	# relative paths.
+	# This is the bare minimum to ensure connectivity inside the container.
+	# The rest of the files is handled in the init phase.
+	result_command="${result_command}
+		--volume /etc/hosts:/etc/hosts:ro
+		--volume /etc/resolv.conf:/etc/resolv.conf:ro"
 
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
