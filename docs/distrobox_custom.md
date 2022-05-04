@@ -20,11 +20,13 @@ The only required programs that must be available in the container so that
 - the $SHELL you use (bash, zsh, fish etc etc)
 - findutils
 - ncurses
-- procps
-- shadow
+- passwd
+- pinentry
+- procps-ng
+- shadow-utils
 - sudo
-- libvte
 - util-linux (that provides the mount command)
+- vte-profile
 
 If all those dependencies are met, then the `distrobox-init`
 will simply skip the installation process and work as expected.
