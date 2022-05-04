@@ -213,6 +213,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			"${shell_pkg}" \
 			findutils \
 			ncurses \
+			pinentry \
 			procps \
 			shadow \
 			sudo \
@@ -236,6 +237,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			libvte-common \
 			ncurses-base \
 			passwd \
+			pinentry-curses \
 			procps \
 			sudo \
 			util-linux
@@ -253,6 +255,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			findutils \
 			ncurses \
 			passwd \
+			pinentry \
 			procps-ng \
 			shadow-utils \
 			sudo \
@@ -273,6 +276,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			"${shell_pkg}" \
 			findutils \
 			ncurses \
+			pinentry \
 			procps \
 			shadow \
 			sudo \
@@ -292,6 +296,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			findutils \
 			ncurses \
 			passwd \
+			pinentry \
 			procps \
 			shadow-utils \
 			sudo \
@@ -311,6 +316,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			"${shell_pkg}" \
 			findutils \
 			ncurses \
+			pinentry \
 			procps-ng \
 			shadow \
 			sudo \
@@ -331,6 +337,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			libvte-2 \
 			findutils \
 			ncurses \
+			pinentry \
 			procps \
 			shadow \
 			sudo \
@@ -342,6 +349,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		swupd bundle-add \
 			shells \
 			sudo \
+			cryptography \
 			findutils \
 			procps-ng
 
@@ -375,6 +383,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			findutils \
 			ncurses \
 			passwd \
+			pinentry \
 			procps \
 			shadow-utils \
 			sudo \
@@ -394,6 +403,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			findutils \
 			libvte-2* \
 			ncurses \
+			pinentry \
 			procps \
 			shadow \
 			sudo \
