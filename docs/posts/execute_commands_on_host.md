@@ -65,7 +65,7 @@ user@fedora-distrobox:~$ host-exec bash -l
 Another cool trick we can pull, is to use the handy `command_not_found_handle` function
 to try and execute missing commands in the container on the host.
 
-### bash / zsh
+## bash / zsh
 
 Place this in your `~/.profile`:
 
@@ -93,7 +93,7 @@ if [ -n "${ZSH_VERSION-}" ]; then
 fi
 ```
 
-### fish
+## fish
 
 Place this snippet in a new fish function file (`~/.config/fish/functions/fish_command_not_found.fish`):
 
