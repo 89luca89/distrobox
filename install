@@ -104,10 +104,6 @@ cd "${curr_dir}" || exit 1
 # if files are available, install files in dest directory
 # else download targz and uncompress it
 if [ -e "${curr_dir}/distrobox-enter" ]; then
-	release_ver="github-zip-$(date +%F)"
-	if [ -d "${curr_dir}/.git" ] && command -v git > /dev/null; then
-		release_ver="git-$(git rev-parse HEAD)"
-	fi
 	for file in distrobox*; do
 		if ! install -D -m 0755 -t "${dest_path}" "${file}"; then
 			printf >&2 "Do you have permission to write to %s?\n" "${dest_path}"
