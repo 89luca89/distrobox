@@ -43,7 +43,7 @@ container_shell="${SHELL:-"bash"}"
 # Work around for shells that are not in the container's file system, nor PATH.
 # For example in hosts that do not follow FHS, like NixOS or for shells in custom
 # exotic paths.
-container_shell="$(basename "${container_shell}")l"
+container_shell="$(basename "${container_shell}") -l"
 container_manager="autodetect"
 container_name="fedora-toolbox-35"
 container_manager_additional_flags=""
