@@ -95,23 +95,22 @@ fi
 
 ### fish
 
-Place this in a new fish config (such as `~/.config/fish/conf.d/cnf_handle.fish`:
+Place this snippet in a new fish function file (`~/.config/fish/functions/fish_command_not_found.fish`):
 
 ```fish
 function fish_command_not_found
- # don't run if not in a container
- if test ! -e /run/.containerenv -a ! -e /.dockerenv
-  __fish_default_command_not_found_handler "$argv"
- # Run if in a container
- else
-  if command -v flatpak-spawn >/dev/null 2>&1
-   flatpak-spawn --host $argv
-  else if command -v host-exec >/dev/null 2>&1
-   host-exec "$argv"
-  else
-   exit 127
-  end
- end
+    # "In a container" check
+    if test -e /run/.containerenv -o -e /.dockerenv
+        if command -q flatpak-spawn
+            flatpak-spawn --host $argv
+        else if command -q host-exec
+            host-exec "$argv"
+        else
+            __fish_default_command_not_found_handler $argv
+        end
+    else
+        __fish_default_command_not_found_handler $argv
+    end
 end
 ```
 
