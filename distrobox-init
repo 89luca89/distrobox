@@ -427,6 +427,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			procps \
 			shadow \
 			sudo \
+			systemd \
 			util-linux
 
 	else
