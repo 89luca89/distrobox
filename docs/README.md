@@ -270,7 +270,7 @@ on this list, you can refer to your repos for installation:
 
 Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30),
 [alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli),
-[AtilaSaraiva](https://github.com/AtilaSaraiva)
+[AtilaSaraiva](https://github.com/AtilaSaraiva), [michel-slm](https://github.com/michel-slm)
 
 Else, if you like to live your life dangerously, or you want the latest release,
 you can trust me and simply run this in your terminal:
