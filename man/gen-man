@@ -12,6 +12,10 @@ fi
 for i in "$(dirname "${0}")"/../docs/usage/distrobox*; do
 	pandoc --standalone \
 		--metadata title="$(basename "${i}" | cut -d'.' -f1 | tr '[:lower:]' '[:upper:]')" \
+		--metadata section=1 \
+		--metadata header="User Manual" \
+		--metadata footer="Distrobox" \
+		--metadata date="$(date +"%b %Y")" \
 		--to man "${i}" \
 		-o "$(dirname "${0}")"/man1/out
 
@@ -28,10 +32,12 @@ sed -e "1,${HEAD}d" -i "${compatibility_file}"
 
 pandoc --standalone \
 	--metadata title="DISTROBOX" \
+	--metadata section=1 \
+	--metadata header="User Manual" \
+	--metadata footer="Distrobox" \
+	--metadata date="$(date +"%b %Y")" \
 	--to man "${compatibility_file}" \
 	-o "$(dirname "${0}")"/man1/out
-
 mv "$(dirname "${0}")"/man1/out "$(dirname "${0}")"/man1/distrobox-compatibility.1
 
-rm -f "$(dirname "${0}")"/man1/*.html
 cat "$(dirname "${0}")/man1/distrobox-"* > "$(dirname "${0}")/man1/distrobox.1"
