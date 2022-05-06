@@ -1,32 +1,37 @@
 #!/bin/sh
 
-if ! command -v ronn; then
+if ! command -v pandoc; then
 	echo '
-Please install "ronn". This tool is needed to convert markdown to man pages.
+Please install "pandoc". This tool is needed to convert markdown to man pages.
 This tool is needed to convert files under docs/usage into man pages for the
 installation.
-
-https://github.com/rtomayko/ronn
 '
 	exit 1
 fi
 
 for i in "$(dirname "${0}")"/../docs/usage/distrobox*; do
-	ronn --manual=Distrobox --name="$(basename "${i}" |
-		cut -d'.' -f1).1" --organization=Distrobox "${i}" -o "$(dirname "${0}")"/man1/
-	mv "$(dirname "${0}")/man1/$(basename "${i}" |
-		cut -d'.' -f1)" "$(dirname "${0}")/man1/$(basename "${i}" | sed 's|md|1|g')"
+	pandoc --standalone \
+		--metadata title="$(basename "${i}" | cut -d'.' -f1 | tr '[:lower:]' '[:upper:]')" \
+		--to man "${i}" \
+		-o "$(dirname "${0}")"/man1/out
+
+	mv "$(dirname "${0}")/man1/out" "$(dirname "${0}")/man1/$(basename "${i}" | sed 's|md|1|g')"
 done
 
-compatibility_file="$(mktemp)"
+compatibility_file="$(mktemp --suffix='.md')"
+HEAD="$(grep -n -B1 "^# Compatibility" "$(dirname "${0}")/../docs/compatibility.md" | head -1 | tr -d '-')"
 START="$(grep -n "# Host Distros" "$(dirname "${0}")/../docs/compatibility.md" | cut -d":" -f1)"
 END="$(grep -n -B1 "# Containers Distros" "$(dirname "${0}")/../docs/compatibility.md" | head -1 | tr -d '-')"
 
 sed -e "${START},${END}d" "$(dirname "${0}")/../docs/compatibility.md" > "${compatibility_file}"
+sed -e "1,${HEAD}d" -i "${compatibility_file}"
 
-ronn --manual=Distrobox --name="distrobox-compatibility.1" \
-	--organization=Distrobox "${compatibility_file}" -o "$(dirname "${0}")"/man1/
-mv "$(dirname "${0}")"/man1/tmp "$(dirname "${0}")"/man1/distrobox-compatibility.1
+pandoc --standalone \
+	--metadata title="DISTROBOX" \
+	--to man "${compatibility_file}" \
+	-o "$(dirname "${0}")"/man1/out
+
+mv "$(dirname "${0}")"/man1/out "$(dirname "${0}")"/man1/distrobox-compatibility.1
 
 rm -f "$(dirname "${0}")"/man1/*.html
 cat "$(dirname "${0}")/man1/distrobox-"* > "$(dirname "${0}")/man1/distrobox.1"
