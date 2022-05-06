@@ -1,5 +1,19 @@
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-INIT" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Init the distrobox (not to be launched manually)
@@ -43,4 +57,4 @@ This is used as entrypoint for the created container, it will take care
 of creating the users, setting up sudo, mountpoints, and exports.
 .PP
 \f[B]You should not have to launch this manually\f[R], this is used by
-\f[C]distrobox create\f[R] to set up container\[cq]s entrypoint.
+\f[V]distrobox create\f[R] to set up container\[cq]s entrypoint.

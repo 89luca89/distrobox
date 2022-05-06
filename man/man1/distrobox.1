@@ -1,6 +1,20 @@
 '\" t
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Compatibility
@@ -10,20 +24,20 @@ It can use any OCI images from docker-hub, quay.io, or any registry of
 your choice.
 .PP
 Granted, they may not be as featureful as expected (some of them do not
-even have \f[C]which\f[R], \f[C]mount\f[R], \f[C]less\f[R] or
-\f[C]vi\f[R]) but that\[cq]s all doable in the container itself after
+even have \f[V]which\f[R], \f[V]mount\f[R], \f[V]less\f[R] or
+\f[V]vi\f[R]) but that\[cq]s all doable in the container itself after
 bootstrapping it.
 .PP
-The main concern is having basic Linux utilities (\f[C]mount\f[R]),
-basic user management utilities (\f[C]usermod, passwd\f[R]), and
-\f[C]sudo\f[R] correctly set.
+The main concern is having basic Linux utilities (\f[V]mount\f[R]),
+basic user management utilities (\f[V]usermod, passwd\f[R]), and
+\f[V]sudo\f[R] correctly set.
 .SS Supported container managers
 .PP
-\f[C]distrobox\f[R] can run on either \f[C]podman\f[R] or
-\f[C]docker\f[R]
+\f[V]distrobox\f[R] can run on either \f[V]podman\f[R] or
+\f[V]docker\f[R]
 .PP
-It depends either on \f[C]podman\f[R] configured in
-\f[C]rootless mode\f[R] or on \f[C]docker\f[R] configured without sudo
+It depends either on \f[V]podman\f[R] configured in
+\f[V]rootless mode\f[R] or on \f[V]docker\f[R] configured without sudo
 (follow THIS
 instructions (https://docs.docker.com/engine/install/linux-postinstall/))
 .IP \[bu] 2
@@ -254,7 +268,7 @@ T}
 .PP
 Note however that if you use a non-toolbox preconfigured image (e.g.
 images pre-baked to work with <https://github.com/containers/toolbox),>
-the \f[B]first\f[R] \f[C]distrobox-enter\f[R] you\[cq]ll perform can
+the \f[B]first\f[R] \f[V]distrobox-enter\f[R] you\[cq]ll perform can
 take a while as it will download and install the missing dependencies.
 .PP
 A small time tax to pay for the ability to use any type of image.
@@ -279,9 +293,9 @@ added to the list!
 For older distributions like CentOS 5, CentOS 6, Debian 6, Ubuntu 12.04,
 compatibility is not assured.
 .PP
-Their \f[C]libc\f[R] version is incompatible with kernel releases after
-\f[C]>=4.11\f[R].
-A work around this is to use the \f[C]vsyscall=emulate\f[R] flag in the
+Their \f[V]libc\f[R] version is incompatible with kernel releases after
+\f[V]>=4.11\f[R].
+A work around this is to use the \f[V]vsyscall=emulate\f[R] flag in the
 bootloader of the host.
 .PP
 Keep also in mind that mirrors could be down for such old releases, so
@@ -289,6 +303,20 @@ you will need to build a custom distrobox image to ensure basic
 dependencies are met.
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-CREATE" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Create the distrobox
@@ -368,7 +396,7 @@ or consult the documentation page on: https://github.com/89luca89/distrobox/blob
 \f[R]
 .fi
 .PP
-The \f[C]--additional-flags\f[R] or \f[C]-a\f[R] is useful to modify
+The \f[V]--additional-flags\f[R] or \f[V]-a\f[R] is useful to modify
 defaults in the container creations.
 For example:
 .IP
@@ -387,10 +415,10 @@ podman container inspect dev-arch | jq \[aq].[0].HostConfig,.PidsLimit\[aq]
 \f[R]
 .fi
 .PP
-Additional volumes can be specified using the \f[C]--volume\f[R] flag.
-This flag follows the same standard as \f[C]docker\f[R] and
-\f[C]podman\f[R] to specify the mount point so
-\f[C]--volume SOURCE_PATH:DEST_PATH:MODE\f[R].
+Additional volumes can be specified using the \f[V]--volume\f[R] flag.
+This flag follows the same standard as \f[V]docker\f[R] and
+\f[V]podman\f[R] to specify the mount point so
+\f[V]--volume SOURCE_PATH:DEST_PATH:MODE\f[R].
 .IP
 .nf
 \f[C]
@@ -408,7 +436,7 @@ distrobox create --image fedora:35 --name test --additional-flags \[dq]--env MY_
 \f[R]
 .fi
 .PP
-The \f[C]--init-hooks\f[R] is useful to add commands to the entrypoint
+The \f[V]--init-hooks\f[R] is useful to add commands to the entrypoint
 (init) of the container.
 This could be useful to create containers with a set of programs already
 installed, add users, groups.
@@ -419,7 +447,7 @@ distrobox create  --image fedora:35 --name test --init-hooks \[dq]dnf groupinsta
 \f[R]
 .fi
 .PP
-The \f[C]--init\f[R] is useful to create a container that will use its
+The \f[V]--init\f[R] is useful to create a container that will use its
 own separate init system within.
 For example using:
 .IP
@@ -445,13 +473,27 @@ user\[at]test:\[ti]$ sudo systemctl status sshd
 \f[R]
 .fi
 .PP
-Note that enabling \f[C]--init\f[R] \f[B]will disable host\[cq]s process
+Note that enabling \f[V]--init\f[R] \f[B]will disable host\[cq]s process
 integration\f[R].
 From within the container you will not be able to see and manage
 host\[cq]s processes.
-This is needed because \f[C]/sbin/init\f[R] must be pid 1.
+This is needed because \f[V]/sbin/init\f[R] must be pid 1.
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-ENTER" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Enter the distrobox
@@ -502,9 +544,9 @@ Options:
 .PP
 This is used to enter the distrobox itself.
 Personally, I just create multiple profiles in my
-\f[C]gnome-terminal\f[R] to have multiple distros accessible.
+\f[V]gnome-terminal\f[R] to have multiple distros accessible.
 .PP
-The \f[C]--additional-flags\f[R] or \f[C]-a\f[R] is useful to modify
+The \f[V]--additional-flags\f[R] or \f[V]-a\f[R] is useful to modify
 default command when executing in the container.
 For example:
 .IP
@@ -525,6 +567,20 @@ my_var=test
 .fi
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-EXPORT" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Application and service exporting
@@ -623,7 +679,7 @@ Options:
 .PP
 You may want to install graphical applications or user services in your
 distrobox.
-Using \f[C]distrobox-export\f[R] from \f[B]inside\f[R] the container
+Using \f[V]distrobox-export\f[R] from \f[B]inside\f[R] the container
 will let you use them from the host itself.
 .PP
 App export example:
@@ -634,9 +690,9 @@ distrobox-export --app abiword
 \f[R]
 .fi
 .PP
-This tool will simply copy the original \f[C].desktop\f[R] files along
+This tool will simply copy the original \f[V].desktop\f[R] files along
 with needed icons, add the prefix
-\f[C]/usr/local/bin/distrobox-enter -n distrobox_name -e ...\f[R] to the
+\f[V]/usr/local/bin/distrobox-enter -n distrobox_name -e ...\f[R] to the
 commands to run, and save them in your home to be used directly from the
 host as a normal app.
 .PP
@@ -650,9 +706,9 @@ distrobox-export --service nginx --sudo
 .fi
 .PP
 For services, it will similarly export the systemd unit inside the
-container to a \f[C]systemctl --user\f[R] service, prefixing the various
-\f[C]ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost\f[R]
-with the \f[C]distrobox-enter\f[R] command prefix.
+container to a \f[V]systemctl --user\f[R] service, prefixing the various
+\f[V]ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost\f[R]
+with the \f[V]distrobox-enter\f[R] command prefix.
 .PP
 Binary export example:
 .IP
@@ -663,23 +719,37 @@ distrobox-export --bin /usr/bin/code --extra-flags \[dq]--foreground\[dq] --expo
 .fi
 .PP
 In the case of exporting binaries, you will have to specify
-\f[B]where\f[R] to export it (\f[C]--export-path\f[R]) and the tool will
-create a little wrapper script that will \f[C]distrobox-enter -e\f[R]
+\f[B]where\f[R] to export it (\f[V]--export-path\f[R]) and the tool will
+create a little wrapper script that will \f[V]distrobox-enter -e\f[R]
 from the host, the desired binary.
-This can be handy with the use of \f[C]direnv\f[R] to have different
-versions of the same binary based on your \f[C]env\f[R] or project.
+This can be handy with the use of \f[V]direnv\f[R] to have different
+versions of the same binary based on your \f[V]env\f[R] or project.
 .PP
 [IMAGE: app-export (https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)]
 .PP
 [IMAGE: service-export (https://user-images.githubusercontent.com/598882/144294314-29a8921f-4511-453d-bf8e-d0d1e336db91.png)]
 .PP
 NOTE: some electron apps such as vscode and atom need additional flags
-to work from inside the container, use the \f[C]--extra-flags\f[R]
+to work from inside the container, use the \f[V]--extra-flags\f[R]
 option to provide a series of flags, for example:
 .PP
-\f[C]distrobox-export --app atom --extra-flags \[dq]--foreground\[dq]\f[R]
+\f[V]distrobox-export --app atom --extra-flags \[dq]--foreground\[dq]\f[R]
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-INIT" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Init the distrobox (not to be launched manually)
@@ -723,9 +793,23 @@ This is used as entrypoint for the created container, it will take care
 of creating the users, setting up sudo, mountpoints, and exports.
 .PP
 \f[B]You should not have to launch this manually\f[R], this is used by
-\f[C]distrobox create\f[R] to set up container\[cq]s entrypoint.
+\f[V]distrobox create\f[R] to set up container\[cq]s entrypoint.
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-LIST" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH List containers
@@ -758,6 +842,20 @@ Options:
 [IMAGE: image (https://user-images.githubusercontent.com/598882/147831082-24b5bc2e-b47e-49ac-9b1a-a209478c9705.png)]
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-RM" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Remove containers
@@ -788,6 +886,20 @@ Options:
 .fi
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-STOP" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Stop containers

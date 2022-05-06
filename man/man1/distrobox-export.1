@@ -1,5 +1,19 @@
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-EXPORT" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Application and service exporting
@@ -98,7 +112,7 @@ Options:
 .PP
 You may want to install graphical applications or user services in your
 distrobox.
-Using \f[C]distrobox-export\f[R] from \f[B]inside\f[R] the container
+Using \f[V]distrobox-export\f[R] from \f[B]inside\f[R] the container
 will let you use them from the host itself.
 .PP
 App export example:
@@ -109,9 +123,9 @@ distrobox-export --app abiword
 \f[R]
 .fi
 .PP
-This tool will simply copy the original \f[C].desktop\f[R] files along
+This tool will simply copy the original \f[V].desktop\f[R] files along
 with needed icons, add the prefix
-\f[C]/usr/local/bin/distrobox-enter -n distrobox_name -e ...\f[R] to the
+\f[V]/usr/local/bin/distrobox-enter -n distrobox_name -e ...\f[R] to the
 commands to run, and save them in your home to be used directly from the
 host as a normal app.
 .PP
@@ -125,9 +139,9 @@ distrobox-export --service nginx --sudo
 .fi
 .PP
 For services, it will similarly export the systemd unit inside the
-container to a \f[C]systemctl --user\f[R] service, prefixing the various
-\f[C]ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost\f[R]
-with the \f[C]distrobox-enter\f[R] command prefix.
+container to a \f[V]systemctl --user\f[R] service, prefixing the various
+\f[V]ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost\f[R]
+with the \f[V]distrobox-enter\f[R] command prefix.
 .PP
 Binary export example:
 .IP
@@ -138,18 +152,18 @@ distrobox-export --bin /usr/bin/code --extra-flags \[dq]--foreground\[dq] --expo
 .fi
 .PP
 In the case of exporting binaries, you will have to specify
-\f[B]where\f[R] to export it (\f[C]--export-path\f[R]) and the tool will
-create a little wrapper script that will \f[C]distrobox-enter -e\f[R]
+\f[B]where\f[R] to export it (\f[V]--export-path\f[R]) and the tool will
+create a little wrapper script that will \f[V]distrobox-enter -e\f[R]
 from the host, the desired binary.
-This can be handy with the use of \f[C]direnv\f[R] to have different
-versions of the same binary based on your \f[C]env\f[R] or project.
+This can be handy with the use of \f[V]direnv\f[R] to have different
+versions of the same binary based on your \f[V]env\f[R] or project.
 .PP
 [IMAGE: app-export (https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)]
 .PP
 [IMAGE: service-export (https://user-images.githubusercontent.com/598882/144294314-29a8921f-4511-453d-bf8e-d0d1e336db91.png)]
 .PP
 NOTE: some electron apps such as vscode and atom need additional flags
-to work from inside the container, use the \f[C]--extra-flags\f[R]
+to work from inside the container, use the \f[V]--extra-flags\f[R]
 option to provide a series of flags, for example:
 .PP
-\f[C]distrobox-export --app atom --extra-flags \[dq]--foreground\[dq]\f[R]
+\f[V]distrobox-export --app atom --extra-flags \[dq]--foreground\[dq]\f[R]

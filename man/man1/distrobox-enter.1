@@ -1,5 +1,19 @@
 .\
 .\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-ENTER" "1" "May 2022" "Distrobox" "User Manual"
 .hy
 .SH Enter the distrobox
@@ -50,9 +64,9 @@ Options:
 .PP
 This is used to enter the distrobox itself.
 Personally, I just create multiple profiles in my
-\f[C]gnome-terminal\f[R] to have multiple distros accessible.
+\f[V]gnome-terminal\f[R] to have multiple distros accessible.
 .PP
-The \f[C]--additional-flags\f[R] or \f[C]-a\f[R] is useful to modify
+The \f[V]--additional-flags\f[R] or \f[V]-a\f[R] is useful to modify
 default command when executing in the container.
 For example:
 .IP
