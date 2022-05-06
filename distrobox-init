@@ -410,6 +410,17 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			vte-profile
 
 	elif command -v zypper; then
+		# In openSUSE official images, zypper is configured to ignore recommended
+		# packages (i.e., weak dependencies). This however, results in a rather
+		# poor out-of-the-box experience (e.g., when trying to run GUI apps).
+		# So, let's enable them. For the same reason, we make dure we install
+		# docs.
+		sed -i 's/.*solver.onlyRequires.*/solver.onlyRequires = false/g' /etc/zypp/zypp.conf
+		sed -i 's/.*rpm.install.excludedocs.*/rpm.install.excludedocs = no/g' /etc/zypp/zypp.conf
+		# With recommended packages, something might try to pull in
+		# parallel-printer-support which can't be installed in rootless podman.
+		# Since we very much likely never need it, just lock it
+		zypper al parallel-printer-support
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
