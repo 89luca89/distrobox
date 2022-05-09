@@ -665,6 +665,10 @@ printf "%s:" "${container_user_name}" | chpasswd -e
 # If we do not have profile files in the home, we should copy the
 # skeleton files, if present.
 # Ensure we copy only if the dotfile is not already present.
+mkdir -p /etc/profile.d
+printf "test -z \"\$USER\" && USER=\"\$(id -un 2> /dev/null)\"\n" > /etc/profile.d/distrobox_profile.sh
+printf "test -z \"\$UID\"  && readonly  UID=\"\$(id -ur 2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
+printf "test -z \"\$EUID\" && readonly EUID=\"\$(id -u  2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
 if [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
