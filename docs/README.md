@@ -111,7 +111,7 @@ but in a simplified way using POSIX sh and aiming at broader compatibility.
 
 All the props go to them as they had the great idea to implement this stuff.
 
-It is divided into 6 commands:
+It is divided into 7 commands:
 
 - `distrobox-create` - creates the container
 - `distrobox-enter`  - to enter the container
