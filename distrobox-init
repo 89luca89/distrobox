@@ -428,9 +428,6 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 fi
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="
-	/etc/host.conf
-	/etc/localtime
-	/etc/machine-id
 	/var/lib/flatpak
 	/var/lib/systemd/coredump
 	/var/log/journal"
@@ -441,6 +438,9 @@ done
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
 HOST_MOUNTS="
+	/etc/host.conf
+	/etc/localtime
+	/etc/machine-id
 	/media
 	/mnt
 	/run/libvirt
