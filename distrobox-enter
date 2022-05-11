@@ -386,8 +386,9 @@ if [ "${container_status}" != "running" ]; then
 	printf >&2 "Container %s is not runnung.\n" "${container_name}"
 	printf >&2 "Starting container %s\n" "${container_name}"
 	printf >&2 "run this command to follow along:\n\n"
-	printf >&2 "%s logs -f %s\n\n" "${container_manager}" "${container_name}"
+	printf >&2 " %s logs -f %s\n\n" "${container_manager}" "${container_name}"
 
+	log_timestamp="$(date +%FT%T.%N%:z)"
 	${container_manager} start "${container_name}" > /dev/null
 	# Check if the container is going in error status earlier than the
 	# entrypoint
@@ -396,14 +397,17 @@ if [ "${container_status}" != "running" ]; then
 		--format "{{.State.Status}}")" != "running" ]; then
 
 		printf >&2 "\033[31m Error: could not start entrypoint.\n\033[0m"
-		container_manager_log="$(${container_manager} logs "${container_name}")"
+		container_manager_log="$(${container_manager} logs \
+			--since "${log_timestamp}" "${container_name}")"
 		printf >&2 "%s\n" "${container_manager_log}"
 		exit 1
 	fi
 
 	# Wait for container to finish setup successfully.
 	rm -f "/tmp/.${container_name}.fifo" && mkfifo "/tmp/.${container_name}.fifo"
-	${container_manager} logs -f "${container_name}" 2> /dev/null > "/tmp/.${container_name}.fifo" &
+	${container_manager} logs \
+		--since "${log_timestamp}" \
+		-f "${container_name}" 2> /dev/null > "/tmp/.${container_name}.fifo" &
 	container_log_pid="$!"
 
 	printf >&2 "%-40s\t" " Starting container..."
@@ -432,7 +436,7 @@ if [ "${container_status}" != "running" ]; then
 	kill -INT "${container_log_pid}"
 	rm -f "/tmp/.${container_name}.fifo"
 
-	printf >&2 "Container Setup Complete!\n"
+	printf >&2 "\nContainer Setup Complete!\n"
 fi
 
 # Generate the exec command and run it
