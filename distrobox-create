@@ -483,9 +483,10 @@ generate_command() {
 	# have symlinks places for these files that use absolute paths instead of
 	# relative paths.
 	# This is the bare minimum to ensure connectivity inside the container.
-	# The rest of the files is handled in the init phase.
+	# These files, will then be kept updated by the main loop every 15 seconds.
 	result_command="${result_command}
 		--volume /etc/hosts:/etc/hosts:ro
+		--volume /etc/localtime:/etc/localtime:ro
 		--volume /etc/resolv.conf:/etc/resolv.conf:ro"
 
 	# These flags are not supported by docker, so we use them only if our

@@ -201,7 +201,7 @@ mount_bind() (
 shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Check if dependencies are met for the script to run.
 if ! command -v find || ! command -v mount || ! command -v passwd ||
-	! command -v sudo || ! command -v useradd || ! command -v usermod ||
+	! command -v sudo || ! command -v useradd || ! command -v diff ||
 	! ls /etc/profile.d/*vte* ||
 	! command -v "${shell_pkg}"; then
 
@@ -220,6 +220,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		apk add \
 			"${shell_pkg}" \
+			diffutils \
 			findutils \
 			ncurses \
 			pinentry \
@@ -241,6 +242,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		apt-get install -y \
 			"${shell_pkg}" \
+			diffutils \
 			findutils \
 			libnss-myhostname \
 			libvte-common \
@@ -261,6 +263,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		dnf install -y \
 			"${shell_pkg}" \
+			diffutils \
 			findutils \
 			ncurses \
 			passwd \
@@ -283,6 +286,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		emerge --ask=n --autounmask-continue \
 			"${shell_pkg}" \
+			diffutils \
 			findutils \
 			ncurses \
 			pinentry \
@@ -302,6 +306,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		microdnf install -y \
 			"${shell_pkg}" \
+			diffutils \
 			findutils \
 			ncurses \
 			passwd \
@@ -323,6 +328,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		pacman -Sy --noconfirm \
 			"${shell_pkg}" \
+			diffutils \
 			findutils \
 			ncurses \
 			pinentry \
@@ -344,6 +350,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		yes | slackpkg install -default_answer=yes -batch=yes \
 			"${shell_pkg}" \
 			libvte-2 \
+			diffutils \
 			findutils \
 			ncurses \
 			pinentry \
@@ -358,6 +365,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		swupd bundle-add \
 			shells \
 			sudo \
+			diffutils \
 			cryptography \
 			findutils \
 			procps-ng
@@ -372,6 +380,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		xbps-install -Sy \
 			"${shell_pkg}" \
+			diffutils \
 			findutils \
 			ncurses-base \
 			procps-ng \
@@ -389,6 +398,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		yum install -y \
 			"${shell_pkg}" \
+			diffutils \
 			findutils \
 			ncurses \
 			passwd \
@@ -409,6 +419,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		zypper install -y \
 			"${shell_pkg}" \
+			diffutils \
 			findutils \
 			libvte-2* \
 			ncurses \
@@ -439,7 +450,6 @@ done
 # the host to the container
 HOST_MOUNTS="
 	/etc/host.conf
-	/etc/localtime
 	/etc/machine-id
 	/media
 	/mnt
@@ -718,6 +728,30 @@ printf "container_setup_done\n"
 
 if [ "${init}" -eq 0 ]; then
 	# Keepalive loop
+	HOST_WATCH="
+		/etc/hosts
+		/etc/localtime
+		/etc/resolv.conf
+	"
+	while true; do
+		# Let's check for changes every 15 seconds.
+		# This way we can dynamically keep hosts, dns and timezone setups
+		# in sync with host, without having permissions problems:
+		#	- symlink will fail with "Device or Resource busy"
+		#	- bindmount will need a container restart on changes
+		for file_watch in ${HOST_WATCH}; do
+			# do stuff, only if we need to.
+			if ! diff "${file_watch}" "/run/host${file_watch}" > /dev/null; then
+				# We only do this, if the file is a bind mount in the first place.
+				# This could be useful for init-hooks that involve umounting those
+				# files so that can be separated from the host.
+				mountpoint "${file_watch}" &&
+					umount "${file_watch}" &&
+					mount_bind "/run/host${file_watch}" "${file_watch}" rw
+			fi
+		done
+		sleep 15
+	done
 	sleep infinity
 else
 	# some of this directories are needed by
@@ -728,7 +762,6 @@ else
 		/run/systemd/seats
 		/run/systemd/sessions
 		/run/systemd/system
-		/run/systemd/resolve
 		/run/systemd/users
 		/var/lib/systemd/coredump
 		/var/log/journal"
