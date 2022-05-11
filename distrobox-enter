@@ -27,7 +27,7 @@
 #	DBX_CONTAINER_NAME
 #	DBX_CONTAINER_MANAGER
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
+trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f "/tmp/.*.fifo"' EXIT
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
@@ -382,52 +382,57 @@ if [ "${container_status}" != "running" ]; then
 	# If container is not running, start it first
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
-	log_timestamp="$(date +%FT%T.%N%:z)"
-	${container_manager} start "${container_name}" > /dev/null
 
+	printf >&2 "Container %s is not runnung.\n" "${container_name}"
 	printf >&2 "Starting container %s\n" "${container_name}"
 	printf >&2 "run this command to follow along:\n\n"
-	printf >&2 "%s logs -f %s\n" "${container_manager}" "${container_name}"
+	printf >&2 "%s logs -f %s\n\n" "${container_manager}" "${container_name}"
 
-	# Wait for container to start successfully.
-	# We will probe the container logs every 1s to check if we have either:
-	# Error or container_setup_done
-	#
-	# In the end, print eventual Warnings that occurred.
-	while :; do
+	${container_manager} start "${container_name}" > /dev/null
+	# Check if the container is going in error status earlier than the
+	# entrypoint
+	if [ "$(${container_manager} inspect \
+		--type container "${container_name}" \
+		--format "{{.State.Status}}")" != "running" ]; then
 
+		printf >&2 "\033[31m Error: could not start entrypoint.\n\033[0m"
+		container_manager_log="$(${container_manager} logs "${container_name}")"
+		printf >&2 "%s\n" "${container_manager_log}"
+		exit 1
+	fi
+
+	# Wait for container to finish setup successfully.
+	rm -f "/tmp/.${container_name}.fifo" && mkfifo "/tmp/.${container_name}.fifo"
+	${container_manager} logs -f "${container_name}" 2> /dev/null > "/tmp/.${container_name}.fifo" &
+	container_log_pid="$!"
+
+	printf >&2 "%-40s\t" " Starting container..."
+	while IFS= read -r line; do
 		# Check if the container is going in error status at any time during the first init
-		if [ "$(${container_manager} inspect \
-			--type container "${container_name}" \
-			--format "{{.State.Status}}")" != "running" ]; then
-
-			container_manager_log="$(${container_manager} logs "${container_name}")"
-			printf >&2 "%s\n" "${container_manager_log}"
-			exit 1
-		fi
-
-		container_manager_log="$(${container_manager} logs -t \
-			--since "${log_timestamp}" \
-			"${container_name}" 2> /dev/null)"
-		case "${container_manager_log}" in
+		case "${line}" in
 			*"Error"*)
-				printf >&2 "%s\n" "${container_manager_log}"
+				printf >&2 "\033[31m %s\n\033[0m" "${line}"
 				exit 1
 				;;
+			*"Warning"*)
+				printf >&2 "\n\033[33m %s\033[0m" "${line}"
+				;;
+			*"distrobox:"*)
+				printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "$(echo "${line}" | cut -d':' -f2-)"
+				;;
 			*"container_setup_done"*)
+				printf >&2 "\033[32m [ OK ]\n\033[0m"
 				break
 				;;
-			*)
-				printf >&2 "."
-				sleep 1
-				;;
+			*) ;;
 		esac
-	done
-	printf >&2 "\ndone!\n"
-	# Print eventual warnings in the log.
-	${container_manager} logs -t \
-		--since "${log_timestamp}" \
-		"${container_name}" 2> /dev/null | grep "Warning" >&2 || :
+	done < "/tmp/.${container_name}.fifo"
+
+	# Kill log process, cleanup fifo
+	kill -INT "${container_log_pid}"
+	rm -f "/tmp/.${container_name}.fifo"
+
+	printf >&2 "Container Setup Complete!\n"
 fi
 
 # Generate the exec command and run it

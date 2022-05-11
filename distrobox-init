@@ -115,7 +115,7 @@ while :; do
 			break
 			;;
 		-*) # Invalid options.
-			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+			printf >&2 "Error: Invalid flag '%s'\n\n" "$1"
 			show_help
 			exit 1
 			;;
@@ -195,7 +195,7 @@ mount_bind() (
 
 	return 0
 )
-
+printf "distrobox: Installing basic packages...\n"
 # Extract shell name from the $SHELL environment variable
 # If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL:-"bash"}")"
@@ -437,6 +437,8 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 	fi
 
 fi
+
+printf "distrobox: Setting up read-only mounts...\n"
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="
 	/var/lib/flatpak
@@ -446,6 +448,7 @@ for host_mount_ro in ${HOST_MOUNTS_RO}; do
 	mount_bind /run/host"${host_mount_ro}" "${host_mount_ro}" ro
 done
 
+printf "distrobox: Setting up read-write mounts...\n"
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
 HOST_MOUNTS="
@@ -471,6 +474,7 @@ for host_mount in ${HOST_MOUNTS}; do
 	fi
 done
 
+printf "distrobox: Setting up host's sockets integration...\n"
 # Find all the user's socket and mount them inside the container
 # this will allow for continuity of functionality between host and container
 #
@@ -494,6 +498,7 @@ for host_socket in ${host_sockets}; do
 	fi
 done
 
+printf "distrobox: Setting up package manager exceptions...\n"
 # In case of an RPM distro, we can specify that our bind_mount directories
 # are in fact net shares. This prevents conflicts during package installations.
 if [ -d "/usr/lib/rpm/macros.d/" ]; then
@@ -613,6 +618,7 @@ EOF
 
 fi
 
+printf "distrobox: Setting up sudo...\n"
 mkdir -p /etc/sudoers.d
 # Do not check fqdn when doing sudo, it will not work anyways
 if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
@@ -623,6 +629,7 @@ if ! grep -q "${container_user_name} ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/s
 	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
 fi
 
+printf "distrobox: Setting up groups...\n"
 # If not existing, ensure we have a group for our user.
 if ! grep -q "^${container_user_name}:" /etc/group; then
 	if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
@@ -631,6 +638,8 @@ if ! grep -q "^${container_user_name}:" /etc/group; then
 		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >> /etc/group
 	fi
 fi
+
+printf "distrobox: Setting up users...\n"
 # Let's add our user to the container. if the user already exists, enforce properties.
 if ! grep -q "^${container_user_name}:" /etc/passwd; then
 	if ! useradd \
@@ -693,6 +702,7 @@ if [ -d "/etc/skel" ]; then
 	done
 fi
 
+printf "distrobox: Integrating host's themes, icons, fonts...\n"
 # Themes and icons integration works using a bind mount inside the container
 # of the host's themes and icons directory. This ensures that the host's home will
 # not be littered with files and directories and broken symlinks.
@@ -720,6 +730,7 @@ if ! mount_bind "/run/host/usr/share/fonts" "${container_user_home}/.local/share
 	printf "Warning: Fonts integration with the host is disabled.\n"
 fi
 
+printf "distrobox: Executing init hooks...\n"
 # execute eventual init hooks if specified
 # shellcheck disable=SC2086
 eval ${init_hook}
@@ -757,6 +768,7 @@ else
 	# some of this directories are needed by
 	# the init system. If they're mounts, there might
 	# be problems. Let's unmount them.
+	printf "distrobox: Setting up init system...\n"
 	HOST_MOUNTS_RO_INIT="
 		/run/systemd/journal
 		/run/systemd/seats
@@ -769,5 +781,6 @@ else
 		if mountpoint "${host_mount}"; then umount "${host_mount}"; fi
 	done
 	# Now we can launch init
+	printf "distrobox: Firing up init system...\n"
 	exec /sbin/init
 fi
