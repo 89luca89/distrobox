@@ -18,7 +18,11 @@ The only required programs that must be available in the container so that
 `distrobox-init` won't start the installation are:
 
 - the $SHELL you use (bash, zsh, fish etc etc)
+- bc
+- curl
+- diffutils
 - findutils
+- less
 - ncurses
 - passwd
 - pinentry
@@ -27,6 +31,7 @@ The only required programs that must be available in the container so that
 - sudo
 - util-linux (that provides the mount command)
 - vte-profile
+- wget
 
 If all those dependencies are met, then the `distrobox-init`
 will simply skip the installation process and work as expected.
@@ -34,9 +39,11 @@ will simply skip the installation process and work as expected.
 To test if all packages requirements are met just run this in the container:
 
 ```shell
-if ! command -v mount || ! command -v mount || ! command -v passwd ||
- ! command -v sudo || ! command -v useradd || ! command -v usermod ||
- ! command -v "${SHELL}"; then
+if ! command -v find || ! command -v mount || ! command -v passwd ||
+    ! command -v sudo || ! command -v useradd || ! command -v diff ||
+    ! command -v pinentry || ! command -v wget || ! command -v curl ||
+    ! command -v less || ! command -v bc ||
+    ! command -v "${SHELL}"; then
 
  echo "Missing dependencies"
 

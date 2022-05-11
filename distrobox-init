@@ -202,7 +202,8 @@ shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Check if dependencies are met for the script to run.
 if ! command -v find || ! command -v mount || ! command -v passwd ||
 	! command -v sudo || ! command -v useradd || ! command -v diff ||
-	! ls /etc/profile.d/*vte* ||
+	! command -v pinentry || ! command -v wget || ! command -v curl ||
+	! command -v less || ! command -v bc ||
 	! command -v "${shell_pkg}"; then
 
 	# Detect the available package manager
@@ -220,17 +221,26 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		apk add \
 			"${shell_pkg}" \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
 			ncurses \
 			pinentry \
 			procps \
 			shadow \
 			sudo \
 			util-linux \
+			wget \
 			vte3
 
 	elif command -v apt-get; then
+		# In Ubuntu official images, dpkg is configured to ignore locale and docs
+		# This however, results in a rather poor out-of-the-box experience
+		# So, let's enable them.
+		rm -f /etc/dpkg/dpkg.cfg.d/excludes
+
 		export DEBIAN_FRONTEND=noninteractive
 		apt-get update
 		# Check if shell_pkg is available in distro's repo. If not we
@@ -242,8 +252,11 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		apt-get install -y \
 			"${shell_pkg}" \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
 			libnss-myhostname \
 			libvte-common \
 			ncurses-base \
@@ -251,9 +264,15 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			pinentry-curses \
 			procps \
 			sudo \
+			wget \
 			util-linux
 
 	elif command -v dnf; then
+		# In dnf family official images, dnf is configured to ignore locale and docs
+		# This however, results in a rather poor out-of-the-box experience
+		# So, let's enable them.
+		sed -i '/tsflags=nodocs/d' /etc/dnf/dnf.conf
+
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
@@ -261,10 +280,13 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
-		dnf install -y \
+		dnf install -y --allowerasing \
 			"${shell_pkg}" \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
 			ncurses \
 			passwd \
 			pinentry \
@@ -272,6 +294,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			shadow-utils \
 			sudo \
 			util-linux \
+			wget \
 			vte-profile
 
 	elif command -v emerge; then
@@ -286,14 +309,18 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		emerge --ask=n --autounmask-continue \
 			"${shell_pkg}" \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
 			ncurses \
 			pinentry \
 			procps \
 			shadow \
 			sudo \
 			util-linux \
+			wget \
 			vte-profile
 
 	elif command -v microdnf; then
@@ -306,18 +333,27 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		microdnf install -y \
 			"${shell_pkg}" \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
 			ncurses \
 			passwd \
 			pinentry \
 			procps \
 			shadow-utils \
 			sudo \
+			wget \
 			util-linux
 		# vte-profile
 
 	elif command -v pacman; then
+		# In archlinux  official images, pacman is configured to ignore locale and docs
+		# This however, results in a rather poor out-of-the-box experience
+		# So, let's enable them.
+		sed -i "s|NoExtract.*||g" /etc/pacman.conf
+
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
@@ -328,14 +364,18 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		pacman -Sy --noconfirm \
 			"${shell_pkg}" \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
 			ncurses \
 			pinentry \
 			procps-ng \
 			shadow \
 			sudo \
 			util-linux \
+			wget \
 			vte-common
 
 	elif command -v slackpkg; then
@@ -349,26 +389,31 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		yes | slackpkg install -default_answer=yes -batch=yes \
 			"${shell_pkg}" \
-			libvte-2 \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
+			libvte-2 \
 			ncurses \
 			pinentry \
 			procps \
 			shadow \
 			sudo \
+			wget \
 			util-linux
 
 	elif command -v swupd; then
 		# Here we do not handle shell_pkg as shells are already all bundled
 		# together in "shells"
 		swupd bundle-add \
-			shells \
-			sudo \
-			diffutils \
+			bc \
 			cryptography \
-			findutils \
-			procps-ng
+			curl \
+			procps-ng \
+			shells \
+			sysadmin-basic \
+			wget
 
 	elif command -v xbps-install; then
 		# Check if shell_pkg is available in distro's repo. If not we
@@ -380,15 +425,24 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		xbps-install -Sy \
 			"${shell_pkg}" \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
 			ncurses-base \
 			procps-ng \
 			shadow \
 			sudo \
+			wget \
 			util-linux
 
 	elif command -v yum; then
+		# In yum family official images, yum is configured to ignore locale and docs
+		# This however, results in a rather poor out-of-the-box experience
+		# So, let's enable them.
+		sed -i '/tsflags=nodocs/d' /etc/yum.conf
+
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
@@ -398,8 +452,11 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		yum install -y \
 			"${shell_pkg}" \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
 			ncurses \
 			passwd \
 			pinentry \
@@ -407,13 +464,14 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			shadow-utils \
 			sudo \
 			util-linux \
+			wget \
 			vte-profile
 
 	elif command -v zypper; then
 		# In openSUSE official images, zypper is configured to ignore recommended
 		# packages (i.e., weak dependencies). This however, results in a rather
 		# poor out-of-the-box experience (e.g., when trying to run GUI apps).
-		# So, let's enable them. For the same reason, we make dure we install
+		# So, let's enable them. For the same reason, we make sure we install
 		# docs.
 		sed -i 's/.*solver.onlyRequires.*/solver.onlyRequires = false/g' /etc/zypp/zypp.conf
 		sed -i 's/.*rpm.install.excludedocs.*/rpm.install.excludedocs = no/g' /etc/zypp/zypp.conf
@@ -430,8 +488,11 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		zypper install -y \
 			"${shell_pkg}" \
+			bc \
+			curl \
 			diffutils \
 			findutils \
+			less \
 			libvte-2* \
 			ncurses \
 			pinentry \
@@ -439,6 +500,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			shadow \
 			sudo \
 			systemd \
+			wget \
 			util-linux
 
 	else
