@@ -498,6 +498,23 @@ for host_socket in ${host_sockets}; do
 	fi
 done
 
+printf "distrobox: Integrating host's themes, icons, fonts...\n"
+# Themes and icons integration works using a bind mount inside the container
+# of the host's themes and icons directory. This ensures that the host's home will
+# not be littered with files and directories and broken symlinks.
+if ! mount_bind "/run/host/usr/share/themes" "/usr/local/share/themes" rw; then
+	printf "Warning: Cannot bind mount /run/host/usr/share/themes to /usr/local/share/themes\n"
+	printf "Warning: Themes integration with the host is disabled.\n"
+fi
+if ! mount_bind "/run/host/usr/share/icons" "/usr/local/share/icons" rw; then
+	printf "Warning: Cannot bind mount /run/host/usr/share/icons to /usr/local/share/icons\n"
+	printf "Warning: Icons integration with the host is disabled.\n"
+fi
+if ! mount_bind "/run/host/usr/share/fonts" "/usr/local/share/fonts" rw; then
+	printf "Warning: Cannot bind mount /run/host/usr/share/fonts to /usr/local/share/fonts\n"
+	printf "Warning: Fonts integration with the host is disabled.\n"
+fi
+
 printf "distrobox: Setting up package manager exceptions...\n"
 # In case of an RPM distro, we can specify that our bind_mount directories
 # are in fact net shares. This prevents conflicts during package installations.
@@ -700,34 +717,6 @@ if [ -d "/etc/skel" ]; then
 
 		fi
 	done
-fi
-
-printf "distrobox: Integrating host's themes, icons, fonts...\n"
-# Themes and icons integration works using a bind mount inside the container
-# of the host's themes and icons directory. This ensures that the host's home will
-# not be littered with files and directories and broken symlinks.
-#
-# bind mount distrobox directory for themes and icons
-mkdir -p "${container_user_home}/.local/share/themes"
-mkdir -p "${container_user_home}/.local/share/icons"
-mkdir -p "${container_user_home}/.local/share/fonts"
-# Fix permissions for home directories
-chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local"
-chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share"
-chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/themes"
-chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/icons"
-chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/.local/share/fonts"
-if ! mount_bind "/run/host/usr/share/themes" "${container_user_home}/.local/share/themes" rw; then
-	printf "Warning: Cannot bind mount /run/host/usr/share/themes to %s/.local/share/themes\n" "${container_user_home}"
-	printf "Warning: Themes integration with the host is disabled.\n"
-fi
-if ! mount_bind "/run/host/usr/share/icons" "${container_user_home}/.local/share/icons" rw; then
-	printf "Warning: Cannot bind mount /run/host/usr/share/icons to %s/.local/share/icons\n" "${container_user_home}"
-	printf "Warning: Icons integration with the host is disabled.\n"
-fi
-if ! mount_bind "/run/host/usr/share/fonts" "${container_user_home}/.local/share/fonts" rw; then
-	printf "Warning: Cannot bind mount /run/host/usr/share/fonts to %s/.local/share/fonts\n" "${container_user_home}"
-	printf "Warning: Fonts integration with the host is disabled.\n"
 fi
 
 printf "distrobox: Executing init hooks...\n"
