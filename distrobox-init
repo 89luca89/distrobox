@@ -199,6 +199,12 @@ printf "distrobox: Installing basic packages...\n"
 # Extract shell name from the $SHELL environment variable
 # If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL:-"bash"}")"
+# Ash shell is an exception, it is not a standalone package, but part of busybox.
+# for this reason, use this quirk to adjust the package name.
+if [ "${shell_pkg}" = "ash" ]; then
+	shell_pkg="busybox"
+fi
+
 # Check if dependencies are met for the script to run.
 if ! command -v find || ! command -v mount || ! command -v passwd ||
 	! command -v sudo || ! command -v useradd || ! command -v diff ||
