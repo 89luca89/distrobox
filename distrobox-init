@@ -807,6 +807,8 @@ if [ "${init}" -eq 0 ]; then
 		/etc/localtime
 		/etc/resolv.conf
 	"
+	# disable verbose logging for this phase.
+	set +x
 	while true; do
 		# Let's check for changes every 15 seconds.
 		# This way we can dynamically keep hosts, dns and timezone setups
@@ -826,7 +828,6 @@ if [ "${init}" -eq 0 ]; then
 		done
 		sleep 15
 	done
-	sleep infinity
 else
 	# some of this directories are needed by
 	# the init system. If they're mounts, there might
