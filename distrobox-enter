@@ -363,7 +363,7 @@ fi
 container_status="unknown"
 eval "$(${container_manager} inspect --type container "${container_name}" --format \
 	'container_status={{.State.Status}};
-	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}}{{end}}{{end}};
+	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}};{{end}}{{end}}
 	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
 container_exists="$?"
 # Set SHELL as a login shell
