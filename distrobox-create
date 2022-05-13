@@ -492,11 +492,15 @@ generate_command() {
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
 	if [ -z "${container_manager#*podman*}" ]; then
+		# Use keep-id only if going rootless.
+		if [ "${rootful}" -eq 0 ]; then
+			result_command="${result_command}
+				--userns keep-id"
+		fi
 		result_command="${result_command}
-		--userns keep-id
-		--ulimit host
-		--annotation run.oci.keep_original_groups=1
-		--mount type=devpts,destination=/dev/pts"
+			--ulimit host
+			--annotation run.oci.keep_original_groups=1
+			--mount type=devpts,destination=/dev/pts"
 		if [ "${init}" -eq 1 ]; then
 			result_command="${result_command}
 				--systemd=always"
