@@ -206,11 +206,10 @@ mount_bind() (
 )
 
 if [ -n "${pre_init_hook}" ]; then
-printf "distrobox: Executing pre-init hooks...\n"
-# execute pre-init hooks if specified
-# shellcheck disable=SC2086
-eval ${pre_init_hook}
-
+	printf "distrobox: Executing pre-init hooks...\n"
+	# execute pre-init hooks if specified
+	# shellcheck disable=SC2086
+	eval ${pre_init_hook}
 fi
 
 printf "distrobox: Installing basic packages...\n"

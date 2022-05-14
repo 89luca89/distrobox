@@ -14,7 +14,7 @@ Usage:
 	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
 	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
 	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
-	distrobox create -i docker.io/almalinux/8-init --init --name test
+	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release" 
 
 You can also use environment variables to specify container name and image
 
@@ -40,6 +40,7 @@ Options:
 	--volume		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--init-hooks		additional commands to execute during container initialization
+	--pre-init-hooks	additional commands to execute prior to container initialization
 	--init/-I		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
 	--help/-h:		show this message

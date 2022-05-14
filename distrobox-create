@@ -223,7 +223,7 @@ while :; do
 			;;
 		--pre-init-hooks)
 			if [ -n "$2" ]; then
-				container_pre_init_hook="--pre-init-hooks ${2}"
+				container_pre_init_hook="--pre-init-hooks \"${2}\""
 				shift
 				shift
 			fi

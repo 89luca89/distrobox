@@ -293,6 +293,10 @@ the shell you use on the host is not available in the default repos (e.g.
 
 Use the pre-initialization hooks for this:
 
+```bash
+distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
 ```
+
+```bash
 distrobox create -i quay.io/centos/centos:stream8 c8s --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-next-release"
 ```
