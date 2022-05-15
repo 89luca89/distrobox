@@ -337,7 +337,7 @@ distrobox-create --image alpine my-alpine-container
 distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags \[dq]--pids-limit -1\[dq]
 distrobox create --image fedora:35 --name test --additional-flags \[dq]--env MY_VAR-value\[dq]
 distrobox create --image alpine:latest --name test --init-hooks \[dq]touch /var/tmp/test1 && touch /var/tmp/test2\[dq]
-distrobox create -i docker.io/almalinux/8-init --init --name test
+distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks \[dq]dnf config-manager --enable powertools && dnf -y install epel-release\[dq] 
 \f[R]
 .fi
 .PP
@@ -376,6 +376,7 @@ Options:
 --volume        additional volumes to add to the container
 --additional-flags/-a:  additional flags to pass to the container manager command
 --init-hooks        additional commands to execute during container initialization
+--pre-init-hooks    additional commands to execute prior to container initialization
 --init/-I       use init system (like systemd) inside the container.
             this will make host\[aq]s processes not visible from within the container.
 --help/-h:      show this message
@@ -783,6 +784,7 @@ Options:
 --home/-d:      path/to/home of the user
 --help/-h:      show this message
 --init/-I:      whether to use or not init
+--pre-init-hooks:   commands to execute prior to init
 --verbose/-v:       show more verbosity
 --version/-V:       show version
 --:         end arguments execute the rest as command to execute during init
