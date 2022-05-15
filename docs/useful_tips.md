@@ -16,6 +16,7 @@
   - [Slow creation on podman and image size getting bigger with distrobox create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](#container-save-and-restore)
   - [Check used resources](#check-used-resources)
+  - [Pre-installing additional package repositories](#pre-installing-additional-package-repositories)
   - [Build a Gentoo distrobox container](distrobox_gentoo.md)
   - [Build a Dedicated distrobox container](distrobox_custom.md)
 
@@ -278,3 +279,24 @@ in simple (and scriptable) steps.
 - You can always check how much space a `distrobox` is taking by using `podman` command:
 
 `podman system df -v` or `docker system df -v`
+
+## Pre-installing additional package repositories
+
+On Red Hat Enterprise Linux and its derivatives, the amount of packages in the
+base repositories is limited, and additional packages need to be brought in by
+enabling additional repositories such as [EPEL](https://docs.fedoraproject.org/en-US/epel/).
+
+You can use `--init-hooks` to automate this, but this does not solve the
+issue for package installations done during initialization itself, e.g. if
+the shell you use on the host is not available in the default repos (e.g.
+`fish`).
+
+Use the pre-initialization hooks for this:
+
+```bash
+distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
+```
+
+```bash
+distrobox create -i quay.io/centos/centos:stream8 c8s --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-next-release"
+```

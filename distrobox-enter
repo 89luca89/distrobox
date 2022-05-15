@@ -383,7 +383,7 @@ if [ "${container_status}" != "running" ]; then
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
 
-	printf >&2 "Container %s is not runnung.\n" "${container_name}"
+	printf >&2 "Container %s is not running.\n" "${container_name}"
 	printf >&2 "Starting container %s\n" "${container_name}"
 	printf >&2 "run this command to follow along:\n\n"
 	printf >&2 " %s logs -f %s\n\n" "${container_manager}" "${container_name}"

@@ -29,6 +29,7 @@ trap '[ "$?" -ne 0 ] && printf "Error: An error occurred\n"' EXIT
 # Defaults
 init=0
 init_hook=""
+pre_init_hook=""
 verbose=0
 version="1.2.16"
 # Print usage to stdout.
@@ -52,6 +53,7 @@ Options:
 	--home/-d:		path/to/home of the user
 	--help/-h:		show this message
 	--init/-I:		whether to use or not init
+	--pre-init-hooks:	commands to execute prior to init
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 	--:			end arguments execute the rest as command to execute during init
@@ -105,6 +107,13 @@ while :; do
 		-g | --group)
 			if [ -n "$2" ]; then
 				container_user_gid="$2"
+				shift
+				shift
+			fi
+			;;
+		--pre-init-hooks)
+			if [ -n "$2" ]; then
+				pre_init_hook="$2"
 				shift
 				shift
 			fi
@@ -195,6 +204,14 @@ mount_bind() (
 
 	return 0
 )
+
+if [ -n "${pre_init_hook}" ]; then
+	printf "distrobox: Executing pre-init hooks...\n"
+	# execute pre-init hooks if specified
+	# shellcheck disable=SC2086
+	eval ${pre_init_hook}
+fi
+
 printf "distrobox: Installing basic packages...\n"
 # Extract shell name from the $SHELL environment variable
 # If not present as package in the container, we want to install it.
