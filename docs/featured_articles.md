@@ -17,6 +17,7 @@
   [ORIGINAL](https://bandithijo.github.io/blog/menjalankan-distro-linux-lain-dengan-distrobox-di-fedora-linux)
   or [TRANSLATED](https://bandithijo-github-io.translate.goog/blog/menjalankan-distro-linux-lain-dengan-distrobox-di-fedora-linux?_x_tr_sl=id&_x_tr_tl=en&_x_tr_hl=it&_x_tr_pto=wapp)
 - [Day-to-day differences between Fedora Silverblue and Ubuntu - castrojo's blog](https://www.ypsidanger.com/day-to-day-advantages-of-fedora-silverblue/)
+- [Distrobox is Awesome - Running Window Manager and Desktop environments using Distrobox](https://cloudyday.tech.blog/2022/05/14/distrobox-is-awesome/)
 
 ## Talks
 

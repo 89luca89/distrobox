@@ -88,6 +88,7 @@ graphical apps (X11/Wayland), and audio.
     - [Distrobox - A great item in the Linux toolbelt - phmurphy's blog](https://phmurphy.com/posts/distrobox-toolbelt/)
     - [Running Other Linux Distros with Distrobox on Fedora Linux - bandithijo's blog](featured_articles.md)
     - [Day-to-day differences between Fedora Silverblue and Ubuntu - castrojo's blog](https://www.ypsidanger.com/day-to-day-advantages-of-fedora-silverblue/)
+    - [Distrobox is Awesome - Running Window Manager and Desktop environments using Distrobox](https://cloudyday.tech.blog/2022/05/14/distrobox-is-awesome/)
   - [Talks](featured_articles.md#talks)
     - [Linux App Summit 2022 - Distrobox: Run Any App On Any Distro - BoF](https://github.com/89luca89/distrobox/files/8598433/distrobox-las-talk.pdf)
   - [Podcasts](featured_articles.md#podcasts)

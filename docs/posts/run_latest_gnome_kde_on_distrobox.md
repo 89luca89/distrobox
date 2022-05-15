@@ -7,6 +7,7 @@
       - [Running Latest Plasma](#running-latest-plasma)
         - [Generate session file - Plasma](#generate-session-file---plasma)
         - [Add a couple of fixes](#add-a-couple-of-fixes)
+    - [Using other GUIs](#using-other-guis)
     - [Using apps from host](#using-apps-from-host)
 
 ---
@@ -167,6 +168,15 @@ Let's log out and voilá!
 
 We now are in latest KDE Plasma session inside Fedora Rawhide while our main OS remains
 Centos.
+
+# Using other GUIs
+
+Thanks to [J.S. Evans](https://twitter.com/usenetnerd) he experimented and wrote a befautiful blog post
+on how to use Distrobox for much more than simply running apps.
+
+You'll read on how to set up a working Ubuntu container with IceWM running on Xorg using Distrobox:
+
+[Read the Article HERE](https://cloudyday.tech.blog/2022/05/14/distrobox-is-awesome/)
 
 # Using apps from host
 
