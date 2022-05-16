@@ -1,12 +1,15 @@
 <!-- markdownlint-disable MD010 -->
 # Stop containers
 
-distrobox-rm delete one of the available distroboxes.
+distrobox-stop stop a running distrobox.
+
+Distroboxes are left running, even after exiting out of them, so that
+subsequent enters are really quick. This is how they can be stopped.
 
 Usage:
 
-	distrobox-rm --name container-name
-	distrobox-rm container-name
+	distrobox-stop --name container-name
+	distrobox-stop container-name
 
 Options:
 
