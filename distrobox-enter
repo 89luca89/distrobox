@@ -255,7 +255,7 @@ generate_command() {
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
 	# the container.
-	# To work around this, --headless let's you skip these 2 flags and make it
+	# To work around this, --headless let's you skip the --tty flag and make it
 	# work in tty-less situations.
 	# Disable tty also if we're NOT in a tty (test -t 0).
 	if [ "${headless}" -eq 0 ] && [ -t 0 ]; then
