@@ -18,14 +18,18 @@
 .hy
 .SH Stop containers
 .PP
-distrobox-rm delete one of the available distroboxes.
+distrobox-stop stop a running distrobox.
+.PP
+Distroboxes are left running, even after exiting out of them, so that
+subsequent enters are really quick.
+This is how they can be stopped.
 .PP
 Usage:
 .IP
 .nf
 \f[C]
-distrobox-rm --name container-name
-distrobox-rm container-name
+distrobox-stop --name container-name
+distrobox-stop container-name
 \f[R]
 .fi
 .PP
