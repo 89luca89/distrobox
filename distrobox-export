@@ -28,6 +28,7 @@
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
+dest_path=""
 export_action=""
 exported_app=""
 exported_app_label=""
