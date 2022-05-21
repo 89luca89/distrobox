@@ -321,8 +321,6 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			vte-profile
 
 	elif command -v emerge; then
-		# update repos
-		emerge --sync
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
@@ -330,10 +328,10 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
-		emerge --ask=n --autounmask-continue \
+		emerge --ask=n --autounmask-continue --quiet-build \
 			"${shell_pkg}" \
 			bc \
-			curl \
+			net-misc/curl \
 			diffutils \
 			findutils \
 			less \
@@ -344,7 +342,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 			sudo \
 			util-linux \
 			wget \
-			vte-profile
+			vte
 
 	elif command -v microdnf; then
 		# Check if shell_pkg is available in distro's repo. If not we
