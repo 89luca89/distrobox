@@ -38,7 +38,7 @@ version="1.2.16"
 # Outputs:
 #   print usage with examples.
 show_help() {
-	cat <<EOF
+	cat << EOF
 distrobox version: ${version}
 
 Usage:
@@ -63,73 +63,73 @@ EOF
 # Parse arguments
 while :; do
 	case $1 in
-	-h | --help)
-		# Call a "show_help" function to display a synopsis, then exit.
-		show_help
-		exit 0
-		;;
-	-v | --verbose)
-		shift
-		verbose=1
-		;;
-	-V | --version)
-		printf "distrobox: %s\n" "${version}"
-		exit 0
-		;;
-	-n | --name)
-		if [ -n "$2" ]; then
-			container_user_name="$2"
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
 			shift
+			verbose=1
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		-n | --name)
+			if [ -n "$2" ]; then
+				container_user_name="$2"
+				shift
+				shift
+			fi
+			;;
+		-i | --init)
+			if [ -n "$2" ]; then
+				init="$2"
+				shift
+				shift
+			fi
+			;;
+		-d | --home)
+			if [ -n "$2" ]; then
+				container_user_home="$2"
+				shift
+				shift
+			fi
+			;;
+		-u | --user)
+			if [ -n "$2" ]; then
+				container_user_uid="$2"
+				shift
+				shift
+			fi
+			;;
+		-g | --group)
+			if [ -n "$2" ]; then
+				container_user_gid="$2"
+				shift
+				shift
+			fi
+			;;
+		--pre-init-hooks)
+			if [ -n "$2" ]; then
+				pre_init_hook="$2"
+				shift
+				shift
+			fi
+			;;
+		--)
 			shift
-		fi
-		;;
-	-i | --init)
-		if [ -n "$2" ]; then
-			init="$2"
-			shift
-			shift
-		fi
-		;;
-	-d | --home)
-		if [ -n "$2" ]; then
-			container_user_home="$2"
-			shift
-			shift
-		fi
-		;;
-	-u | --user)
-		if [ -n "$2" ]; then
-			container_user_uid="$2"
-			shift
-			shift
-		fi
-		;;
-	-g | --group)
-		if [ -n "$2" ]; then
-			container_user_gid="$2"
-			shift
-			shift
-		fi
-		;;
-	--pre-init-hooks)
-		if [ -n "$2" ]; then
-			pre_init_hook="$2"
-			shift
-			shift
-		fi
-		;;
-	--)
-		shift
-		init_hook=$*
-		break
-		;;
-	-*) # Invalid options.
-		printf >&2 "Error: Invalid flag '%s'\n\n" "$1"
-		show_help
-		exit 1
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		break ;;
+			init_hook=$*
+			break
+			;;
+		-*) # Invalid options.
+			printf >&2 "Error: Invalid flag '%s'\n\n" "$1"
+			show_help
+			exit 1
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			break ;;
 	esac
 done
 
@@ -579,7 +579,7 @@ host_sockets="$(find /run/host/run -name 'user' \
 	-prune -o -name 'nscd' \
 	-prune -o -name 'system_bus_socket' \
 	-prune -o -type s -print \
-	2>/dev/null || :)"
+	2> /dev/null || :)"
 for host_socket in ${host_sockets}; do
 	container_socket="$(printf "%s" "${host_socket}" | sed 's|/run/host||g')"
 	# Check if the socket already exists or the symlink already esists
@@ -632,7 +632,7 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 		set -o xtrace
 	fi
 	net_mounts=${net_mounts%?}
-	cat <<EOF >/usr/lib/rpm/macros.d/macros.distrobox
+	cat << EOF > /usr/lib/rpm/macros.d/macros.distrobox
 %_netsharedpath ${net_mounts}
 EOF
 
@@ -644,9 +644,9 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
-	printf "" >/etc/dpkg/dpkg.cfg.d/00_distrobox
+	printf "" > /etc/dpkg/dpkg.cfg.d/00_distrobox
 	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
-		printf "path-exclude %s/*\n" "${net_mount}" >>/etc/dpkg/dpkg.cfg.d/00_distrobox
+		printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
 	done
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
@@ -656,7 +656,7 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# Also we put a hook to clear some critical paths that do not play well
 	# with read only filesystems, like systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
-		cat <<EOF >/etc/apt/apt.conf.d/00_distrobox
+		cat << EOF > /etc/apt/apt.conf.d/00_distrobox
 DPkg::Pre-Invoke {"if mountpoint /var/log/journal; then umount /var/log/journal; fi";};
 DPkg::Post-Invoke {"if [ -e /run/host/var/log/journal ]; then mount --rbind -o ro /run/host/var/log/journal /var/log/journal; fi";};
 EOF
@@ -665,13 +665,13 @@ fi
 
 if [ -d "/usr/share/libalpm/scripts" ]; then
 	set +o xtrace
-	printf "#!/bin/sh\n" >/usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
-	printf "#!/bin/sh\n" >/usr/share/libalpm/scripts/02_distrobox_post_hook.sh
+	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 	for net_mount in ${HOST_MOUNTS_RO}; do
 		printf "if mountpoint %s; then umount %s; fi\n" "${net_mount}" "${net_mount}" >> \
 			/usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 		printf "if [ -e /run/host/%s ]; then mount --rbind -o ro /run/host/%s %s; fi\n" \
-			"${net_mount}" "${net_mount}" "${net_mount}" >>/usr/share/libalpm/scripts/02_distrobox_post_hook.sh
+			"${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 	done
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
@@ -679,7 +679,7 @@ if [ -d "/usr/share/libalpm/scripts" ]; then
 	fi
 	# in case we're not using an init image, neutralize systemd post installation hooks
 	# so that we do not encounter problems along the way.
-	cat <<EOF >/usr/share/libalpm/scripts/01_distrobox_post_hook.sh
+	cat << EOF > /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
 #!/bin/sh
 if [ ! -e /run/systemd/system ]; then
 	echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
@@ -689,7 +689,7 @@ EOF
 	chmod +x /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
 	chmod +x /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 
-	cat <<EOF >/usr/share/libalpm/hooks/00-distrobox-pre.hook
+	cat << EOF > /usr/share/libalpm/hooks/00-distrobox-pre.hook
 [Trigger]
 Operation = Install
 Operation = Upgrade
@@ -702,7 +702,7 @@ When = PreTransaction
 Exec = /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 EOF
 
-	cat <<EOF >/usr/share/libalpm/hooks/00-distrobox-post.hook
+	cat << EOF > /usr/share/libalpm/hooks/00-distrobox-post.hook
 [Trigger]
 Operation = Install
 Operation = Upgrade
@@ -715,7 +715,7 @@ When = PostTransaction
 Exec = /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
 EOF
 
-	cat <<EOF >/usr/share/libalpm/hooks/99-distrobox-post.hook
+	cat << EOF > /usr/share/libalpm/hooks/99-distrobox-post.hook
 [Trigger]
 Operation = Install
 Operation = Upgrade
@@ -734,11 +734,11 @@ printf "distrobox: Setting up sudo...\n"
 mkdir -p /etc/sudoers.d
 # Do not check fqdn when doing sudo, it will not work anyways
 if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
-	printf "Defaults !fqdn\n" >>/etc/sudoers.d/sudoers
+	printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
 fi
 # Ensure passwordless sudo is set up for user
 if ! grep -q "${container_user_name} ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
-	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >>/etc/sudoers.d/sudoers
+	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
 fi
 
 printf "distrobox: Setting up groups...\n"
@@ -747,7 +747,7 @@ if ! grep -q "^${container_user_name}:" /etc/group; then
 	if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
 		# It may occur that we have users with unsupported user name (eg. on LDAP or AD)
 		# So let's try and force the group creation this way.
-		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >>/etc/group
+		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >> /etc/group
 	fi
 fi
 
@@ -767,8 +767,8 @@ if ! grep -q "^${container_user_name}:" /etc/passwd; then
 		printf "%s:x:%s:%s:%s:%s:%s" \
 			"${container_user_name}" "${container_user_uid}" \
 			"${container_user_gid}" "${container_user_name}" \
-			"${container_user_home}" "${SHELL:-"/bin/bash"}" >>/etc/passwd
-		printf "%s::1::::::" "${container_user_name}" >>/etc/shadow
+			"${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
+		printf "%s::1::::::" "${container_user_name}" >> /etc/shadow
 	fi
 else
 	# This situation is presented when podman or docker already creates the user
@@ -797,9 +797,9 @@ printf "%s:" "${container_user_name}" | chpasswd -e
 # skeleton files, if present.
 # Ensure we copy only if the dotfile is not already present.
 mkdir -p /etc/profile.d
-printf "test -z \"\$USER\" && USER=\"\$(id -un 2> /dev/null)\"\n" >/etc/profile.d/distrobox_profile.sh
-printf "test -z \"\$UID\"  && readonly  UID=\"\$(id -ur 2> /dev/null)\"\n" >>/etc/profile.d/distrobox_profile.sh
-printf "test -z \"\$EUID\" && readonly EUID=\"\$(id -u  2> /dev/null)\"\n" >>/etc/profile.d/distrobox_profile.sh
+printf "test -z \"\$USER\" && USER=\"\$(id -un 2> /dev/null)\"\n" > /etc/profile.d/distrobox_profile.sh
+printf "test -z \"\$UID\"  && readonly  UID=\"\$(id -ur 2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
+printf "test -z \"\$EUID\" && readonly EUID=\"\$(id -u  2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
 if [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
@@ -838,7 +838,7 @@ if [ "${init}" -eq 0 ]; then
 		#	- bindmount will need a container restart on changes
 		for file_watch in ${HOST_WATCH}; do
 			# do stuff, only if we need to.
-			if ! diff "${file_watch}" "/run/host${file_watch}" >/dev/null; then
+			if ! diff "${file_watch}" "/run/host${file_watch}" > /dev/null; then
 				# We only do this, if the file is a bind mount in the first place.
 				# This could be useful for init-hooks that involve umounting those
 				# files so that can be separated from the host.
