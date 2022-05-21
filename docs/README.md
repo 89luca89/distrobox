@@ -52,6 +52,7 @@ graphical apps (X11/Wayland), and audio.
     - [distrobox-stop](usage/distrobox-stop.md)
   - [Inside the distrobox](usage/usage.md#inside-the-distrobox)
     - [distrobox-export](usage/distrobox-export.md)
+    - [distrobox-host-exec](usage/distrobox-host-exec.md)
     - [distrobox-init](usage/distrobox-init.md)
   - [Configure distrobox](#configure-distrobox)
 - [Useful tips](useful_tips.md)
@@ -122,6 +123,8 @@ It is divided into 7 commands:
 - `distrobox-init`   - the entrypoint of the container (not meant to be used manually)
 - `distrobox-export` - it is meant to be used inside the container,
   useful to export apps and services from the container to the host
+- `distrobox-host-exec` - to run commands/programs from the host, while inside
+ of the container
 
 It also includes a little wrapper to launch commands with `distrobox COMMAND`
 instead of calling the single files.

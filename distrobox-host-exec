@@ -1,0 +1,142 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2022 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
+
+# Defaults
+distrobox_host_exec_default_command="/bin/sh"
+
+verbose=0
+version="1.2.16"
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	cat << EOF
+distrobox version: ${version}
+
+Usage:
+
+	distrobox-host-exec [command [arguments]]
+	distrobox-host-exec ls
+	distrobox-host-exec bash -l
+	distrobox-host-exec flatpak run org.mozilla.firefox
+	distrobox-host-exec podman ps -a
+
+
+Options:
+
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+EOF
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
+			verbose=1
+			shift
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		--) # End of all options.
+			shift
+			;;
+		-*) # Invalid options.
+			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+			show_help
+			exit 1
+			;;
+		*)
+			command=${distrobox_host_exec_default_command}
+			if [ -n "$1" ]; then
+				command=$1
+				shift
+			fi
+			break
+			;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# Check we're running inside a container and not on the host
+if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
+	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
+	exit 126
+fi
+
+mode=flatpak
+result_command="flatpak-spawn --host --forward-fd=1 --forward-fd=2 "
+
+if ! command -v flatpak-spawn > /dev/null; then
+	printf "WARNING: flatpak-spawn not found!\n"
+	printf "We recommend installing it and then trying distrobox-host-exec again.\n\n"
+	printf "Alternatively, we can try an different (chroot-based) approach, but please\n"
+	printf "be aware that it has severe limitations and some commands will not work!\n\n"
+	printf "Do you really want to continue without installing flatpak-spawn? [N/y] "
+	read -r response
+	response=${response:-"N"}
+
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response}" in
+		y | Y | Yes | yes | YES)
+			mode=chroot
+			result_command="sudo -E chroot --userspec=$(id -u):$(id -g) /run/host/ /usr/bin/env "
+			;;
+		n | N | No | no | NO)
+			printf "Good choice! Go get flatpak-spawn.\n"
+			exit 0
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			exit 1
+			;;
+	esac
+fi
+
+# Let's also pass back the environment
+for i in $(printenv | grep "=" | grep -Ev ' |"' | grep -Ev "^(_)"); do
+	if [ "${mode}" = "chroot" ]; then
+		result_command="${result_command} ${i}"
+	else
+		result_command="${result_command} --env=${i} "
+	fi
+done
+
+exec ${result_command} sh -c " cd ${PWD} && ${command} $* "

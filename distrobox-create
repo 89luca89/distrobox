@@ -60,10 +60,12 @@ non_interactive=0
 # management.
 distrobox_entrypoint_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-init"
 distrobox_export_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-export"
+distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 # In case init or export are not in the same path as create, let's search
 # in PATH for them.
 [ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(command -v distrobox-init)"
 [ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(command -v distrobox-export)"
+[ ! -e "${distrobox_hostexec_path}" ] && distrobox_hostexec_path="$(command -v distrobox-hostexec)"
 dryrun=0
 init=0
 rootful=0
@@ -407,6 +409,7 @@ generate_command() {
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
+		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
 		--volume /sys:/sys:rslave

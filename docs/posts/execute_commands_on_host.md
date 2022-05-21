@@ -1,7 +1,9 @@
 - [Distrobox](../README.md)
   - [Execute a command on the Host](execute_commands_on_host.md)
-    - [The easy one](#the-easy-one)
-    - [The not so easy one](#the-not-so-easy-one)
+    - [With distrobox-host-exec](#distrobox-host-exec)
+    - [Manually](#manually)
+      - [The easy one](#the-easy-one)
+      - [The not so easy one](#the-not-so-easy-one)
   - [Integrate host with container seamlessly](#integrate-host-with-container-seamlessly)
 
 ---
@@ -13,7 +15,15 @@ archive manager, a container manager and so on.
 
 Here are a couple of solutions.
 
-## The easy one
+## With distrobox-host-exec
+
+distrobox offers the `distrobox-host-exec` helper, that can be used exactly for this.
+
+See [distrobox-host-exec](../usage/distrobox-host-exec.md).
+
+## Manually
+
+### The easy one
 
 Install `flatpak-spawn` inside the container, this example is running on a
 Fedora Distrobox:
@@ -31,7 +41,7 @@ user@fedora-distrobox:~$ flatpak-spawn --host bash -l
 ~$  # We're back on host!
 ```
 
-## The not so easy one
+### The not so easy one
 
 Alternatively you may don't have `flatpak-spawn` in the repository of your container,
 or simply want an alternative.
