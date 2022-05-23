@@ -65,13 +65,31 @@ Report a bug by
 
 ## Use a Consistent Coding Style
 
+- check if files have some problems with POSIX using the following:
+
+```shell
+for file in $(find . -type f -not -path "*.git*"); do
+    if file "$file" | grep -qi shell; then
+      echo "### Checking file $file..."
+      dash -n $file
+      result=$(( result + $? ))
+    fi
+done
+```
+
 - use `shellcheck` to check for posix compliance and bashisms using:
-  - `shellcheck -s sh -o all -Cnever -Sstyle -a -f gcc -x`
   - install from: [HERE](https://github.com/koalaman/shellcheck)
     following [this](https://github.com/koalaman/shellcheck#installing)
+  - `shellcheck -s sh -a -o all -Sstyle -Calways -x -e SC2310,SC2311,SC2312`
 - use `shfmt` to style the code using:
-  - `shfmt -s`
   - install from [HERE](https://github.com/mvdan/sh) using `go install mvdan.cc/sh/v3/cmd/shfmt@latest`
+  - `shfmt -d -s -ci -sr -kp`
+- use `bashate` to check the code:
+  - install using `pip3 install bashate`
+  - `bashate -i E002,E003,E010,E011 --max-line-length 12`
+- use `markdownlint`
+  - install using `npm -i -g markdownlint-cli`
+  - run `markdownlint $(find . -name '*.md' | grep -vF './.git')`
 - Legibility of the code is more important than code golfing, try to be
   expressive in the code
 - Error checking is important! Ensure to LBYL (Look Before You Leap), check for
