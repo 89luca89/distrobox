@@ -15,9 +15,14 @@ Usage:
 	distrobox-enter --additional-flags "--env MY_VAR=value" --name test -- bash -l
 	MY_VAR=value distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
 
+You can also use environment variables to specify container manager and container name:
+
+	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-enter
+
 Supported environment variables:
 
 	DBX_CONTAINER_NAME
+	DBX_CONTAINER_MANAGER
 
 Options:
 

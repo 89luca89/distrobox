@@ -8,6 +8,14 @@ Usage:
 
 	distrobox-list
 
+You can also use environment variables to specify container manager
+
+	DBX_CONTAINER_MANAGER="docker" distrobox-list
+
+Supported environment variables:
+
+	DBX_CONTAINER_MANAGER
+
 Options:
 
 	--help/-h:		show this message

@@ -11,6 +11,16 @@ Usage:
 	distrobox-stop --name container-name
 	distrobox-stop container-name
 
+You can also use environment variables to specify container manager and name:
+
+	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-stop
+
+Supported environment variables:
+
+	DBX_CONTAINER_MANAGER
+	DBX_CONTAINER_NAME
+	DBX_NON_INTERACTIVE
+
 Options:
 
 	--name/-n:		name for the distrobox

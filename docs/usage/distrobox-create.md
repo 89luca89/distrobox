@@ -16,15 +16,17 @@ Usage:
 	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
 	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release" 
 
-You can also use environment variables to specify container name and image
+You can also use environment variables to specify container name, image and container manager:
 
-	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
+	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
 Supported environment variables:
 
-	DBX_NON_INTERACTIVE
-	DBX_CONTAINER_NAME
+	DBX_CONTAINER_CUSTOM_HOME
 	DBX_CONTAINER_IMAGE
+	DBX_CONTAINER_MANAGER
+	DBX_CONTAINER_NAME
+	DBX_NON_INTERACTIVE
 
 Options:
 
