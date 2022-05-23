@@ -38,12 +38,12 @@ distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hoo
 \f[R]
 .fi
 .PP
-You can also use environment variables to specify container name and
-image
+You can also use environment variables to specify container name, image
+and container manager:
 .IP
 .nf
 \f[C]
-DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 \f[R]
 .fi
 .PP
@@ -51,9 +51,11 @@ Supported environment variables:
 .IP
 .nf
 \f[C]
-DBX_NON_INTERACTIVE
-DBX_CONTAINER_NAME
+DBX_CONTAINER_CUSTOM_HOME
 DBX_CONTAINER_IMAGE
+DBX_CONTAINER_MANAGER
+DBX_CONTAINER_NAME
+DBX_NON_INTERACTIVE
 \f[R]
 .fi
 .PP

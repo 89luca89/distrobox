@@ -37,11 +37,21 @@ MY_VAR=value distrobox-enter --additional-flags \[dq]--preserve-fds\[dq] --name 
 \f[R]
 .fi
 .PP
+You can also use environment variables to specify container manager and
+container name:
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test-alpine distrobox-enter
+\f[R]
+.fi
+.PP
 Supported environment variables:
 .IP
 .nf
 \f[C]
 DBX_CONTAINER_NAME
+DBX_CONTAINER_MANAGER
 \f[R]
 .fi
 .PP

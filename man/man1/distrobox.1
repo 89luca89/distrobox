@@ -341,12 +341,12 @@ distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hoo
 \f[R]
 .fi
 .PP
-You can also use environment variables to specify container name and
-image
+You can also use environment variables to specify container name, image
+and container manager:
 .IP
 .nf
 \f[C]
-DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 \f[R]
 .fi
 .PP
@@ -354,9 +354,11 @@ Supported environment variables:
 .IP
 .nf
 \f[C]
-DBX_NON_INTERACTIVE
-DBX_CONTAINER_NAME
+DBX_CONTAINER_CUSTOM_HOME
 DBX_CONTAINER_IMAGE
+DBX_CONTAINER_MANAGER
+DBX_CONTAINER_NAME
+DBX_NON_INTERACTIVE
 \f[R]
 .fi
 .PP
@@ -518,11 +520,21 @@ MY_VAR=value distrobox-enter --additional-flags \[dq]--preserve-fds\[dq] --name 
 \f[R]
 .fi
 .PP
+You can also use environment variables to specify container manager and
+container name:
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test-alpine distrobox-enter
+\f[R]
+.fi
+.PP
 Supported environment variables:
 .IP
 .nf
 \f[C]
 DBX_CONTAINER_NAME
+DBX_CONTAINER_MANAGER
 \f[R]
 .fi
 .PP
@@ -828,6 +840,22 @@ distrobox-list
 \f[R]
 .fi
 .PP
+You can also use environment variables to specify container manager
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] distrobox-list
+\f[R]
+.fi
+.PP
+Supported environment variables:
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER
+\f[R]
+.fi
+.PP
 Options:
 .IP
 .nf
@@ -870,6 +898,25 @@ Usage:
 \f[C]
 distrobox-rm --name container-name [--force]
 distrobox-rm container-name [-f]
+\f[R]
+.fi
+.PP
+You can also use environment variables to specify container manager and
+name:
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test-alpine distrobox-rm
+\f[R]
+.fi
+.PP
+Supported environment variables:
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER
+DBX_CONTAINER_NAME
+DBX_NON_INTERACTIVE
 \f[R]
 .fi
 .PP
@@ -918,6 +965,25 @@ Usage:
 \f[C]
 distrobox-stop --name container-name
 distrobox-stop container-name
+\f[R]
+.fi
+.PP
+You can also use environment variables to specify container manager and
+name:
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test-alpine distrobox-stop
+\f[R]
+.fi
+.PP
+Supported environment variables:
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER
+DBX_CONTAINER_NAME
+DBX_NON_INTERACTIVE
 \f[R]
 .fi
 .PP

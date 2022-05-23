@@ -33,6 +33,25 @@ distrobox-stop container-name
 \f[R]
 .fi
 .PP
+You can also use environment variables to specify container manager and
+name:
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test-alpine distrobox-stop
+\f[R]
+.fi
+.PP
+Supported environment variables:
+.IP
+.nf
+\f[C]
+DBX_CONTAINER_MANAGER
+DBX_CONTAINER_NAME
+DBX_NON_INTERACTIVE
+\f[R]
+.fi
+.PP
 Options:
 .IP
 .nf
