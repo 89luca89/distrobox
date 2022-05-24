@@ -23,6 +23,7 @@
 #	HOME
 #	USER
 # Optional env variables:
+#	DBX_CONTAINER_ALWAYS_PULL
 #	DBX_CONTAINER_CUSTOM_HOME
 #	DBX_CONTAINER_IMAGE
 #	DBX_CONTAINER_MANAGER
@@ -40,6 +41,7 @@ if [ "$(id -u)" -eq 0 ]; then
 fi
 
 # Defaults
+container_always_pull=0
 container_clone=""
 container_image=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
@@ -83,6 +85,7 @@ for config_file in ${config_files}; do
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
+[ -n "${DBX_CONTAINER_ALWAYS_PULL}" ] && container_always_pull="${DBX_CONTAINER_ALWAYS_PULL}"
 [ -n "${DBX_CONTAINER_CUSTOM_HOME}" ] && container_user_custom_home="${DBX_CONTAINER_CUSTOM_HOME}"
 [ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
@@ -114,6 +117,7 @@ Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
 	--name/-n:		name for the distrobox		default: fedora-toolbox-35
+	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox"
@@ -195,6 +199,10 @@ while :; do
 				shift
 				shift
 			fi
+			;;
+		-p | --pull)
+			container_always_pull=1
+			shift
 			;;
 		-Y | --yes)
 			non_interactive=1
@@ -573,15 +581,15 @@ if [ -n "${container_clone}" ]; then
 fi
 # First, check if the image exists in the host.
 # If not prompt to download it.
-if ! ${container_manager} inspect --type image "${container_image}" > /dev/null 2>&1; then
-	if [ "${non_interactive}" -eq 0 ]; then
+if [ "${container_always_pull}" -eq 1 ] || ! ${container_manager} inspect --type image "${container_image}" > /dev/null 2>&1; then
+	if [ "${non_interactive}" -eq 1 ] || [ "${container_always_pull}" -eq 1 ]; then
+		response="yes"
+	else
 		# Prompt to download it.
 		printf >&2 "Image %s not found.\n" "${container_image}"
 		printf >&2 "Do you want to pull the image now? [Y/n]: "
 		read -r response
 		response="${response:-"Y"}"
-	else
-		response="yes"
 	fi
 
 	# Accept only y,Y,Yes,yes,n,N,No,no.

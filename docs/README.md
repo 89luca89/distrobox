@@ -246,6 +246,7 @@ to the most important:
 Example configuration file:
 
 ```conf
+container_always_pull="1"
 container_user_custom_home="/home/.local/share/container-home-test"
 container_image="registry.opensuse.org/opensuse/toolbox:latest"
 container_manager="docker"
@@ -255,6 +256,7 @@ non_interactive="1"
 
 Alternatively it is possible to specify preferences using ENV variables:
 
+- DBX_CONTAINER_ALWAYS_PULL
 - DBX_CONTAINER_MANAGER
 - DBX_CONTAINER_IMAGE
 - DBX_CONTAINER_NAME
