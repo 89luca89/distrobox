@@ -226,7 +226,7 @@ generate_script() {
 #!/bin/sh
 # distrobox_binary
 # name: ${container_name}
-if [ ! -f /run/.containerenv ]; then
+if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
     ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} -n ${container_name} -- \
 		${is_sudo} ${exported_bin} ${extra_flags} \$@
 else
