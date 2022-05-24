@@ -405,6 +405,9 @@ if [ "${container_status}" != "running" ]; then
 
 	printf >&2 "%-40s\t" " Starting container..."
 	while true; do
+		# save starting loop timestamp in temp variable, we'll use it
+		# after to let logs command minimize possible holes
+		log_timestamp_new="$(date +%FT%T.%N%:z)"
 		${container_manager} logs --since "${log_timestamp}" "${container_name}" 2> /dev/null > "/tmp/.${container_name}.fifo"
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
@@ -417,7 +420,7 @@ if [ "${container_status}" != "running" ]; then
 					printf >&2 "\n\033[33m %s\033[0m" "${line}"
 					;;
 				*"distrobox:"*)
-					printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "$(echo "${line}" | grep "distrobox" | cut -d':' -f2-)"
+					printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "$(echo "${line}" | cut -d':' -f2-)"
 					;;
 				*"container_setup_done"*)
 					printf >&2 "\033[32m [ OK ]\n\033[0m"
@@ -426,9 +429,9 @@ if [ "${container_status}" != "running" ]; then
 				*) ;;
 			esac
 		done < "/tmp/.${container_name}.fifo"
-		# Register new timestamp where to start logs from.
-		log_timestamp="$(date +%FT%T.%N%:z)"
 
+		# Register new timestamp where to start logs from.
+		log_timestamp="${log_timestamp_new}"
 		sleep 1
 	done
 	# cleanup fifo
