@@ -307,13 +307,9 @@ export_binary() {
 export_application() {
 
 	# Find desktop file for the application to export
-	desktop_files=$(grep -ril "${exported_app}" \
+	desktop_files=$(grep -ril "Exec=.*${exported_app}" \
 		/usr/share/applications/* \
 		/var/lib/flatpak/exports/share/applications/* 2> /dev/null || :)
-	icon_files=$(find \
-		/usr/share/icons \
-		/usr/share/pixmaps \
-		/var/lib/flatpak/exports/share/icons -iname "*${exported_app}*" 2> /dev/null || :)
 
 	# Ensure the app we're exporting is installed
 	# Check that we found some desktop files first.
@@ -323,18 +319,40 @@ export_application() {
 		return 127
 	fi
 
+	# Find icons by usinc the Icon= specification. If it's only a name, we'll
+	# search for the file, if it's already a path, just grab it.
+	icon_files=""
+	for desktop_file in ${desktop_files}; do
+		icon_name="$(grep Icon= "${desktop_file}" | cut -d'=' -f2-)"
+		if [ -e "${icon_name}" ]; then
+			icon_files="${icon_files} ${icon_name}"
+		else
+			icon_files="${icon_files} $(find \
+				/usr/share/icons \
+				/usr/share/pixmaps \
+				/var/lib/flatpak/exports/share/icons -iname "*${icon_name}*" 2> /dev/null || :)"
+		fi
+	done
+
 	# create applications dir if not existing
 	if [ ! -d "/run/host/${host_home}/.local/share/applications" ]; then
 		mkdir -p "/run/host/${host_home}/.local/share/applications"
 	fi
 
 	# copy icons in home directory
+	icon_file_absolute_path=""
 	for icon_file in ${icon_files}; do
 
 		icon_home_directory="$(dirname "${icon_file}" |
 			sed "s|/usr/share/|\/run\/host\/${host_home}/.local/share/|g" |
 			sed "s|/var/lib/flatpak/exports/share|\/run\/host\/${host_home}/.local/share/|g" |
 			sed "s|pixmaps|icons|g")"
+
+		# check if we're exporting an icon which is not in a canonical path
+		if [ "${icon_home_directory}" = "$(dirname "${icon_file}")" ]; then
+			icon_home_directory="/run/host/${host_home}/.local/share/icons/"
+			icon_file_absolute_path="${icon_home_directory}$(basename "${icon_file}")"
+		fi
 
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
@@ -371,6 +389,12 @@ export_application() {
 				sed "s|^TryExec=.*|TryExec=true|g" |
 				sed "s|Name.*|& ${exported_app_label}|g" \
 					> "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+			# In case of an icon in a non canonical path, we need to replace the path
+			# in the desktop file.
+			if [ -n "${icon_file_absolute_path}" ]; then
+				sed -i "s|Icon=.*|Icon=${icon_file_absolute_path}|g" \
+					"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+			fi
 			if ! grep -q "StartupWMClass" "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"; then
 				printf "StartupWMClass=%s\n" "${exported_app}" >> \
 					"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
