@@ -139,4 +139,6 @@ for i in $(printenv | grep "=" | grep -Ev ' |"' | grep -Ev "^(_)"); do
 	fi
 done
 
-exec ${result_command} sh -c " cd ${PWD} && ${command} $* "
+# Eval the generated command.
+# shellcheck disable=SC2086
+eval ${result_command} sh -c " cd ${PWD} && ${command} $* "

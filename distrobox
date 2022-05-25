@@ -41,6 +41,7 @@ Choose one of the available commands:
 	list
 	stop
 	rm
+	version
 EOF
 }
 
@@ -71,7 +72,7 @@ case "${distrobox_command}" in
 	rm)
 		"${distrobox_path}"/distrobox-rm "$@"
 		;;
-	-V | --version)
+	-V | --version | version)
 		printf "distrobox: %s\n" "${version}"
 		exit 0
 		;;
