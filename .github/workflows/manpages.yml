@@ -13,6 +13,11 @@ on:
   workflow_dispatch:
 
 
+# Only run one CI pipeline at a time
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Prepare distros matrix
 jobs:
 
