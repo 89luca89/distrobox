@@ -12,7 +12,7 @@ Usage:
 	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
 	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
 	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
-	distrobox create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
+	distrobox create --clone fedora-35 --name fedora-35-copy
 	distrobox create --image alpine my-alpine-container
 	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
@@ -33,7 +33,7 @@ Supported environment variables:
 Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
-	--name/-n:		name for the distrobox		default: fedora-toolbox-35
+	--name/-n:		name for the distrobox		default: my-distrobox
 	--pull/-p:		pull latest image unconditionally without asking
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred

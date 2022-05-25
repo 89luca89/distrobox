@@ -26,7 +26,7 @@ Supported environment variables:
 
 Options:
 
-	--name/-n:		name for the distrobox						default: fedora-toolbox-35
+	--name/-n:		name for the distrobox						default: my-distrobox
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
 	--no-tty/-T:		do not instantiate a tty
 	--additional-flags/-a:	additional flags to pass to the container manager command

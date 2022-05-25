@@ -45,7 +45,7 @@ container_shell="${SHELL:-"bash"}"
 # exotic paths.
 container_shell="$(basename "${container_shell}") -l"
 container_manager="autodetect"
-container_name="fedora-toolbox-35"
+container_name="my-distrobox"
 container_manager_additional_flags=""
 
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
@@ -86,7 +86,7 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-enter --name fedora-toolbox-35 -- bash -l
+	distrobox-enter --name fedora-35 -- bash -l
 	distrobox-enter my-alpine-container -- sh -l
 	distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
 	distrobox-enter --additional-flags "--env MY_VAR=value" --name test -- bash -l
@@ -94,7 +94,7 @@ Usage:
 
 Options:
 
-	--name/-n:		name for the distrobox						default: fedora-toolbox-35
+	--name/-n:		name for the distrobox						default: my-distrobox
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
 	--no-tty/-T:		do not instantiate a tty
 	--additional-flags/-a:	additional flags to pass to the container manager command

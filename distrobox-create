@@ -109,7 +109,7 @@ Usage:
 	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
 	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
 	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
-	distrobox create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
+	distrobox create --clone fedora-35 --name fedora-35-copy
 	distrobox create --image alpine my-alpine-container
 	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
@@ -119,7 +119,7 @@ Usage:
 Options:
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
-	--name/-n:		name for the distrobox		default: fedora-toolbox-35
+	--name/-n:		name for the distrobox		default: my-distrobox
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -278,6 +278,14 @@ fi
 # Fedora toolbox is a sensitive default
 if [ -z "${container_clone}" ] && [ -z "${container_image}" ]; then
 	container_image="${container_image_default}"
+fi
+
+# If no name is specified and we're using the default container_image, then let's
+# set a default name for the container, that is distinguishable from the default
+# toolbx one. This will avoid problems when using both toolbx and distrobox on
+# the same system.
+if [ -z "${container_name}" ] && [ "${container_image}" = "${container_image_default}" ]; then
+	container_name="my-distrobox"
 fi
 
 # If no container_name is declared, we build our container name starting from the

@@ -34,7 +34,7 @@ fi
 
 # Defaults
 container_manager="autodetect"
-container_name="fedora-toolbox-35"
+container_name="my-distrobox"
 force=0
 non_interactive=0
 rootful=0
