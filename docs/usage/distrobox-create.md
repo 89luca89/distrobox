@@ -32,7 +32,7 @@ Supported environment variables:
 
 Options:
 
-	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
+	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:36
 	--name/-n:		name for the distrobox		default: my-distrobox
 	--pull/-p:		pull latest image unconditionally without asking
 	--yes/-Y:		non-interactive, pull images without asking

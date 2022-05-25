@@ -44,7 +44,7 @@ fi
 container_always_pull=0
 container_clone=""
 container_image=""
-container_image_default="registry.fedoraproject.org/fedora-toolbox:35"
+container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
 container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
@@ -118,7 +118,7 @@ Usage:
 
 Options:
 
-	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:35
+	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:36
 	--name/-n:		name for the distrobox		default: my-distrobox
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
