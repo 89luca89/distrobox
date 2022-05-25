@@ -1,0 +1,60 @@
+.\
+.\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
+.TH "DISTROBOX-HOST-EXEC" "1" "May 2022" "Distrobox" "User Manual"
+.hy
+.SH Host Command Execution
+.PP
+distrobox-host-exec lets one execute command on the host, while inside
+of a container.
+.PP
+If \[lq]flatpak-spawn\[rq] is installed in the container, this is what
+is used, and it is the most powerful and recommended method.
+If, instead, \[lq]flatpak-spawn\[rq] can\[cq]t be found, it still try to
+get the job done with \[lq]chroot\[rq] (but beware that not all
+commands/programs will work well in this mode).
+.PP
+Just pass to \[lq]distrobox-host-exec\[rq] any command and all its
+arguments, if any.
+.IP
+.nf
+\f[C]
+distrobox-host-exec [command [arguments]]
+\f[R]
+.fi
+.PP
+If no command is provided, it will execute \[lq]/bin/sh\[rq].
+.PP
+Example usage:
+.IP
+.nf
+\f[C]
+distrobox-host-exec ls
+distrobox-host-exec bash -l
+distrobox-host-exec flatpak run org.mozilla.firefox
+distrobox-host-exec podman ps -a
+\f[R]
+.fi
+.PP
+Options:
+.IP
+.nf
+\f[C]
+--help/-h:      show this message
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
