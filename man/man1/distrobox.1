@@ -335,7 +335,7 @@ distrobox create --image alpine:latest --name test --init-hooks \[dq]touch /var/
 distrobox create --image fedora:35 --name test --additional-flags \[dq]--env MY_VAR-value\[dq]
 distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags \[dq]--pids-limit -1\[dq]
 distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks \[dq]dnf config-manager --enable powertools && dnf -y install epel-release\[dq]
-distrobox create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
+distrobox create --clone fedora-35 --name fedora-35-copy
 distrobox create --image alpine my-alpine-container
 distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 distrobox create --pull --image centos:stream9 --home \[ti]/distrobox/centos9
@@ -368,8 +368,8 @@ Options:
 .IP
 .nf
 \f[C]
---image/-i:     image to use for the container  default: registry.fedoraproject.org/fedora-toolbox:35
---name/-n:      name for the distrobox      default: fedora-toolbox-35
+--image/-i:     image to use for the container  default: registry.fedoraproject.org/fedora-toolbox:36
+--name/-n:      name for the distrobox      default: my-distrobox
 --pull/-p:      pull latest image unconditionally without asking
 --yes/-Y:       non-interactive, pull images without asking
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -545,7 +545,7 @@ Options:
 .IP
 .nf
 \f[C]
---name/-n:      name for the distrobox                      default: fedora-toolbox-35
+--name/-n:      name for the distrobox                      default: my-distrobox
 --/-e:          end arguments execute the rest as command to execute at login   default: bash -l
 --no-tty/-T:        do not instantiate a tty
 --additional-flags/-a:  additional flags to pass to the container manager command
