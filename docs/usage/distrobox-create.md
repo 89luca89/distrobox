@@ -8,14 +8,14 @@ graphical apps (X11/Wayland), and audio.
 
 Usage:
 
-	distrobox-create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
-	distrobox-create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
-	distrobox-create --image alpine my-alpine-container
-	distrobox-create --pull --image centos:stream9 --home ~/distrobox/centos9
-	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
-	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
 	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
+	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
+	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
 	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
+	distrobox create --clone fedora-toolbox-35 --name fedora-toolbox-35-copy
+	distrobox create --image alpine my-alpine-container
+	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
+	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
 
 You can also use environment variables to specify container name, image and container manager:
 
