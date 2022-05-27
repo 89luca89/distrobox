@@ -304,7 +304,7 @@ export_binary() {
 export_application() {
 
 	# Find desktop file for the application to export
-	desktop_files=$(grep -ril "Exec=.*${exported_app}" \
+	desktop_files=$(grep -rilP "Exec=(?!.*distrobox).*${exported_app}" \
 		/usr/share/applications/* \
 		/var/lib/flatpak/exports/share/applications/* \
 		"${HOME}"/.local/share/applications/*  2> /dev/null || :)
