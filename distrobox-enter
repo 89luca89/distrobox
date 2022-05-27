@@ -24,8 +24,9 @@
 #	USER
 #	SHELL
 # Optional env variables:
-#	DBX_CONTAINER_NAME
 #	DBX_CONTAINER_MANAGER
+#	DBX_CONTAINER_NAME
+#	DBX_SKIP_WORKDIR
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f "/tmp/.*.fifo"' EXIT
 
@@ -56,6 +57,7 @@ distrobox_enter_path="$(cd "$(dirname "$0")" && pwd)/distrobox-enter"
 dryrun=0
 headless=0
 rootful=0
+skip_workdir=0
 verbose=0
 version="1.2.16"
 
@@ -74,6 +76,7 @@ for config_file in ${config_files}; do
 done
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
+[ -n "${DBX_SKIP_WORKDIR}" ] && skip_workdir="${DBX_SKIP_WORKDIR}"
 
 # Print usage to stdout.
 # Arguments:
@@ -97,6 +100,7 @@ Options:
 	--name/-n:		name for the distrobox						default: my-distrobox
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
 	--no-tty/-T:		do not instantiate a tty
+	--no-workdir/-nw:		always start the container from container's home directory
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -134,6 +138,10 @@ while :; do
 		-d | --dry-run)
 			shift
 			dryrun=1
+			;;
+		-nw | --no-workdir)
+			shift
+			skip_workdir=1
 			;;
 		-n | --name)
 			if [ -n "$2" ]; then
@@ -271,14 +279,18 @@ generate_command() {
 	# Since user $HOME is very likely present in container, enter there directly
 	# to avoid confusing the user about shifted paths.
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
-	workdir="$(echo "${PWD:-${HOME:-"/"}}" | sed -e 's/"/\\\"/g')"
-	if [ -n "${workdir##*"${HOME}"*}" ]; then
-		workdir="/run/host/${workdir}"
+	if [ "${skip_workdir}" -eq 0 ]; then
+		workdir="$(echo "${PWD:-${container_home:-"/"}}" | sed -e 's/"/\\\"/g')"
+		if [ -n "${workdir##*"${container_home}"*}" ]; then
+			workdir="/run/host/${workdir}"
+		fi
+	else
+		# Skipping workdir we just enter $HOME of the container.
+		workdir="${container_home}"
 	fi
 	result_command="${result_command}
 		--workdir=\"${workdir}\"
 		--env=\"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
-
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
@@ -350,6 +362,7 @@ generate_command() {
 	printf "%s" "${result_command}"
 }
 
+container_home="${HOME}"
 container_path="${PATH}"
 # dry run mode, just generate the command and print it. No execution.
 if [ "${dryrun}" -ne 0 ]; then
@@ -363,6 +376,7 @@ fi
 container_status="unknown"
 eval "$(${container_manager} inspect --type container "${container_name}" --format \
 	'container_status={{.State.Status}};
+	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
 	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}};{{end}}{{end}}
 	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
 container_exists="$?"

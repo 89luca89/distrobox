@@ -23,12 +23,14 @@ Supported environment variables:
 
 	DBX_CONTAINER_NAME
 	DBX_CONTAINER_MANAGER
+	DBX_SKIP_WORKDIR
 
 Options:
 
 	--name/-n:		name for the distrobox						default: my-distrobox
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
 	--no-tty/-T:		do not instantiate a tty
+	--no-workdir/-nw:		always start the container from container's home directory
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred

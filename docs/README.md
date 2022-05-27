@@ -255,15 +255,18 @@ container_image="registry.opensuse.org/opensuse/toolbox:latest"
 container_manager="docker"
 container_name="test-name-1"
 non_interactive="1"
+skip_workdir="0"
 ```
 
 Alternatively it is possible to specify preferences using ENV variables:
 
 - DBX_CONTAINER_ALWAYS_PULL
-- DBX_CONTAINER_MANAGER
+- DBX_CONTAINER_CUSTOM_HOME
 - DBX_CONTAINER_IMAGE
+- DBX_CONTAINER_MANAGER
 - DBX_CONTAINER_NAME
 - DBX_NON_INTERACTIVE
+- DBX_SKIP_WORKDIR
 
 ---
 
