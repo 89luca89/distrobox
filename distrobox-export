@@ -335,8 +335,8 @@ export_application() {
 	done
 
 	# create applications dir if not existing
-	if [ ! -d "/run/host/${host_home}/.local/share/applications" ]; then
-		mkdir -p "/run/host/${host_home}/.local/share/applications"
+	if [ ! -d "/run/host${host_home}/.local/share/applications" ]; then
+		mkdir -p "/run/host${host_home}/.local/share/applications"
 	fi
 
 	# copy icons in home directory
@@ -350,7 +350,7 @@ export_application() {
 
 		# check if we're exporting an icon which is not in a canonical path
 		if [ "${icon_home_directory}" = "$(dirname "${icon_file}")" ]; then
-			icon_home_directory="/run/host/${host_home}/.local/share/icons/"
+			icon_home_directory="/run/host${host_home}/.local/share/icons/"
 			icon_file_absolute_path="${icon_home_directory}$(basename "${icon_file}")"
 		fi
 
@@ -371,12 +371,12 @@ export_application() {
 		desktop_home_file="${container_name}-$(basename "${desktop_file}")"
 		# check if we're exporting or deleting
 		if [ "${exported_delete}" -ne 0 ]; then
-			if [ ! -f "/run/host/${host_home}/.local/share/applications/${desktop_home_file}" ]; then
+			if [ ! -f "/run/host${host_home}/.local/share/applications/${desktop_home_file}" ]; then
 				printf >&2 "Error: trying to remove a non-exported application.\n"
 				return 1
 			fi
-			rm -f "/run/host/${host_home}/.local/share/applications/${desktop_original_file}"
-			rm -f "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+			rm -f "/run/host${host_home}/.local/share/applications/${desktop_original_file}"
+			rm -f "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 		else
 			# Add commmand_prefix
 			# Add extra flags
@@ -388,16 +388,23 @@ export_application() {
 				sed "s|^Exec=.*|&'|g" |
 				sed "s|^TryExec=.*|TryExec=true|g" |
 				sed "s|Name.*|& ${exported_app_label}|g" \
-					> "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+					> "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 			# In case of an icon in a non canonical path, we need to replace the path
 			# in the desktop file.
 			if [ -n "${icon_file_absolute_path}" ]; then
 				sed -i "s|Icon=.*|Icon=${icon_file_absolute_path}|g" \
-					"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+					"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+			else
+				# In case of an icon in a canonical path, but specified as an absolute
+				# we need to replace the path in the desktop file.
+				sed -i "s|/usr/share/|\/run\/host${host_home}/.local/share/|g" \
+					"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+				sed -i "s|pixmaps|icons|g" \
+					"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 			fi
-			if ! grep -q "StartupWMClass" "/run/host/${host_home}/.local/share/applications/${desktop_home_file}"; then
+			if ! grep -q "StartupWMClass" "/run/host${host_home}/.local/share/applications/${desktop_home_file}"; then
 				printf "StartupWMClass=%s\n" "${exported_app}" >> \
-					"/run/host/${host_home}/.local/share/applications/${desktop_home_file}"
+					"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 			fi
 			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
@@ -438,7 +445,7 @@ export_service() {
 
 	# this is the output file we will produce.
 	exported_service_file="${container_name}-$(basename "${service_file}")"
-	exported_service_fullpath="/run/host/${host_home}/.config/systemd/user/${exported_service_file}"
+	exported_service_fullpath="/run/host${host_home}/.config/systemd/user/${exported_service_file}"
 
 	# If we're deleting it, just do it and exit
 	if [ "${exported_delete}" -ne 0 ]; then
@@ -464,8 +471,8 @@ export_service() {
 	# Create temp file with random name
 	temp_file="$(mktemp -u)"
 	# Replace all Exec occurrencies
-	if [ ! -d "/run/host/${host_home}/.config/systemd/user/" ]; then
-		mkdir -p "/run/host/${host_home}/.config/systemd/user/"
+	if [ ! -d "/run/host${host_home}/.config/systemd/user/" ]; then
+		mkdir -p "/run/host${host_home}/.config/systemd/user/"
 	fi
 	cat "${service_file}" > "${exported_service_fullpath}" 2> /dev/null
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
