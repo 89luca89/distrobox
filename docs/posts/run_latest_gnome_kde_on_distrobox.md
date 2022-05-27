@@ -43,8 +43,10 @@ systemd session accessible from within the host:
 
 ```shell
 ~$ distrobox enter fedora-rawhide
-user@fedora-rawhide:~$ rm -rf /run/systemd/system
-user@fedora-rawhide:~$ ln -s /run/host/run/systemd/system /run/systemd
+user@fedora-rawhide:~$ sudo umount /run/systemd/system
+user@fedora-rawhide:~$ sudo rmdir /run/systemd/system
+user@fedora-rawhide:~$ sudo ln -s /run/host/run/systemd/system /run/systemd
+user@fedora-rawhide:~$ sudo ln -s /run/host/run/dbus/system_bus_socket /run/dbus/
 ```
 
 Then we can proceed to install GNOME in the container:
@@ -107,8 +109,10 @@ sharing with the container:
 
 ```shell
 ~$ distrobox enter fedora-rawhide
-user@fedora-rawhide:~$ rm -rf /run/systemd/system
-user@fedora-rawhide:~$ ln -s /run/host/run/systemd/system /run/systemd
+user@fedora-rawhide:~$ sudo umount /run/systemd/system
+user@fedora-rawhide:~$ sudo rmdir /run/systemd/system
+user@fedora-rawhide:~$ sudo ln -s /run/host/run/systemd/system /run/systemd
+user@fedora-rawhide:~$ sudo ln -s /run/host/run/dbus/system_bus_socket /run/dbus/
 ```
 
 Then we can proceed to install Plasma in the container:
