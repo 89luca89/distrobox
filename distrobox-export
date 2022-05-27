@@ -306,7 +306,8 @@ export_application() {
 	# Find desktop file for the application to export
 	desktop_files=$(grep -ril "Exec=.*${exported_app}" \
 		/usr/share/applications/* \
-		/var/lib/flatpak/exports/share/applications/* 2> /dev/null || :)
+		/var/lib/flatpak/exports/share/applications/* \
+		"${HOME}"/.local/share/applications/*  2> /dev/null || :)
 
 	# Ensure the app we're exporting is installed
 	# Check that we found some desktop files first.
