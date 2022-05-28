@@ -12,6 +12,7 @@
   - [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
+  - [Using a different architecture](#using-a-different-architecture)
   - [Improve distrobox enter performance](#improve-distrobox-enter-performance)
   - [Slow creation on podman and image size getting bigger with distrobox create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](#container-save-and-restore)
@@ -195,6 +196,31 @@ to the Host profile.
 
 For other terminals, there are similar features (profiles) or  you can set up a
 dedicated shortcut to launch a terminal directly in the distrobox
+
+## Using a different architecture
+
+In case you want to run a container with a different architecture from your host,
+you can leverage the use of `qemu` and support from podman/docker.
+
+Install on your host the following dependencies:
+
+- qemu
+- qemu-user-static
+- binfmt-support
+
+Then you can easily run the image you like:
+
+```console
+~$ uname -m
+x86_64
+~$ distrobox create -i aarch64/fedora -n fedora-arm64
+~$ distrobox enter fedora-arm64
+...
+user@fedora-arm64:~$ uname -m
+aarch64
+```
+
+![image](https://user-images.githubusercontent.com/598882/170837120-9170a9fa-6153-4684-a435-d60a0136b563.png)
 
 ## Improve distrobox enter performance
 
