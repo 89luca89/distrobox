@@ -38,7 +38,7 @@ container_name="my-distrobox"
 non_interactive=0
 rootful=0
 verbose=0
-version="1.2.16"
+version="1.3.0"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults

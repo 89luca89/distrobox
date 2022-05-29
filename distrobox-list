@@ -34,7 +34,7 @@ fi
 rootful=0
 size=0
 verbose=0
-version="1.2.16"
+version="1.3.0"
 container_manager="autodetect"
 
 # Source configuration files, this is done in an hierarchy so local files have
