@@ -151,8 +151,6 @@ case "${container_manager}" in
 			container_manager="podman"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
-		else
-			container_manager="not_found"
 		fi
 		;;
 	podman)
@@ -164,7 +162,6 @@ case "${container_manager}" in
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
 		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-		container_manager="not_found"
 		;;
 esac
 

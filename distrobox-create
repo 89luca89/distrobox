@@ -308,8 +308,6 @@ case "${container_manager}" in
 			container_manager="podman"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
-		else
-			container_manager="not_found"
 		fi
 		;;
 	podman)
@@ -321,22 +319,19 @@ case "${container_manager}" in
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
 		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-		container_manager="not_found"
 		;;
 esac
 
 # Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" > /dev/null; then
+if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
 	# Error: we need at least one between docker or podman.
-	if [ "${dryrun}" -eq 0 ]; then
-		printf >&2 "Missing dependency: we need a container manager.\n"
-		printf >&2 "Please install one of podman or docker.\n"
-		printf >&2 "You can follow the documentation on:\n"
-		printf >&2 "\tman distrobox-compatibility\n"
-		printf >&2 "or:\n"
-		printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
-		exit 127
-	fi
+	printf >&2 "Missing dependency: we need a container manager.\n"
+	printf >&2 "Please install one of podman or docker.\n"
+	printf >&2 "You can follow the documentation on:\n"
+	printf >&2 "\tman distrobox-compatibility\n"
+	printf >&2 "or:\n"
+	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	exit 127
 fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
@@ -420,6 +415,8 @@ generate_command() {
 	# This grants access to external devices like usb webcams, disks and so on.
 	#
 	# Mount also the distrobox-init utility as the container entrypoint.
+	# Also mount in the container the distrobox-export and distrobox-host-exec
+	# utilities.
 	result_command="${result_command}
 		--env \"SHELL=${SHELL:-"/bin/bash"}\"
 		--env \"HOME=${container_user_home}\"
@@ -451,10 +448,8 @@ generate_command() {
 	# This works around this using an unnamed volume so that this path will be
 	# mounted with a normal non-overlay FS, allowing ACLs and preventing errors.
 	#
-	# This work around works in conjunction with:
-	#	- distrobox-init:488-489
-	#	- distrobox-init:463-464
-	#	- distrobox-init:498-503
+	# This work around works in conjunction with distrobox-init's package manager
+	# setups.
 	# So that we can use pre/post hooks for package managers to present to the
 	# systemd install script a blank path to work with, and mount the host's
 	# journal path afterwards.
@@ -521,11 +516,6 @@ generate_command() {
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
 	if [ -z "${container_manager#*podman*}" ]; then
-		# Use keep-id only if going rootless.
-		if [ "${rootful}" -eq 0 ]; then
-			result_command="${result_command}
-				--userns keep-id"
-		fi
 		result_command="${result_command}
 			--ulimit host
 			--annotation run.oci.keep_original_groups=1
@@ -533,6 +523,11 @@ generate_command() {
 		if [ "${init}" -eq 1 ]; then
 			result_command="${result_command}
 				--systemd=always"
+		fi
+		# Use keep-id only if going rootless.
+		if [ "${rootful}" -eq 0 ]; then
+			result_command="${result_command}
+				--userns keep-id"
 		fi
 	fi
 

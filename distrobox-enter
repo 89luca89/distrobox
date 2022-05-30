@@ -195,8 +195,6 @@ case "${container_manager}" in
 			container_manager="podman"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
-		else
-			container_manager="not_found"
 		fi
 		;;
 	podman)
@@ -208,22 +206,19 @@ case "${container_manager}" in
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
 		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-		container_manager="not_found"
 		;;
 esac
 
 # Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" > /dev/null; then
+if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
 	# Error: we need at least one between docker or podman.
-	if [ "${dryrun}" -eq 0 ]; then
-		printf >&2 "Missing dependency: we need a container manager.\n"
-		printf >&2 "Please install one of podman or docker.\n"
-		printf >&2 "You can follow the documentation on:\n"
-		printf >&2 "\tman distrobox-compatibility\n"
-		printf >&2 "or:\n"
-		printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
-		exit 127
-	fi
+	printf >&2 "Missing dependency: we need a container manager.\n"
+	printf >&2 "Please install one of podman or docker.\n"
+	printf >&2 "You can follow the documentation on:\n"
+	printf >&2 "\tman distrobox-compatibility\n"
+	printf >&2 "or:\n"
+	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	exit 127
 fi
 # Small performance optimization, using podman socket shaves
 # about half the time to access informations.
@@ -315,10 +310,7 @@ generate_command() {
 		fi
 	done
 	# Ensure the $PATH entries from the host are appended as well
-	for standard_path in $(
-		IFS=:
-		for p in ${PATH}; do echo "${p}"; done
-	); do
+	for standard_path in $(echo "${PATH}" | tr ':' ' '); do
 		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
 			container_paths="${container_paths}:${standard_path}"
 		fi

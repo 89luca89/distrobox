@@ -128,8 +128,6 @@ case "${container_manager}" in
 			container_manager="podman"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
-		else
-			container_manager="not_found"
 		fi
 		;;
 	podman)
@@ -141,7 +139,6 @@ case "${container_manager}" in
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
 		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-		container_manager="not_found"
 		;;
 esac
 
@@ -182,7 +179,6 @@ IFS='
 '
 # Header of the output
 for container in ${container_list}; do
-
 	# Check if the current container has a custom mount point for distrobox.
 	if [ -z "${container##*distrobox*}" ]; then
 
@@ -193,14 +189,15 @@ for container in ${container_list}; do
 		container_status="$(printf "%s" "${container}" | cut -d'|' -f4)"
 		container_size="$(printf "%s" "${container}" | cut -d'|' -f6)"
 
-		# If the container is Up and Running, print it in green
+		# If the container is Up and Running, print it in green and go next.
 		if [ -z "${container_status##*Up*}" ] || [ -z "${container_status##*running*}" ]; then
 			printf "\033[32m %-12s | %-25s | %-30s | %-40s | %-30s\n\033[0m" \
 				"${container_id}" "${container_name}" "${container_status}" "${container_image}" "${container_size}"
-		# Else, print it in yellow
-		else
-			printf "\033[33m %-12s | %-25s | %-30s | %-40s | %-30s\n\033[0m" \
-				"${container_id}" "${container_name}" "${container_status}" "${container_image}" "${container_size}"
+			continue
 		fi
+		# print it in yellow if not Running
+		printf "\033[33m %-12s | %-25s | %-30s | %-40s | %-30s\n\033[0m" \
+			"${container_id}" "${container_name}" "${container_status}" "${container_image}" "${container_size}"
+
 	fi
 done
