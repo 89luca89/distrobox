@@ -589,6 +589,9 @@ host_sockets="$(find /run/host/run -name 'user' \
 	-prune -o -name 'system_bus_socket' \
 	-prune -o -type s -print \
 	2> /dev/null || :)"
+# we're excluding system dbus socket and nscd socket here. Including them will
+# create many problems with package managers thinking they have access to
+# system dbus or user auth cache misused.
 for host_socket in ${host_sockets}; do
 	container_socket="$(printf "%s" "${host_socket}" | sed 's|/run/host||g')"
 	# Check if the socket already exists or the symlink already esists
@@ -830,6 +833,8 @@ eval ${init_hook}
 
 printf "container_setup_done\n"
 
+# If init support is disabled, let's do our routine to keep the container
+# up, running and in sync with host.
 if [ "${init}" -eq 0 ]; then
 	# Keepalive loop
 	HOST_WATCH="
@@ -858,12 +863,14 @@ if [ "${init}" -eq 0 ]; then
 		done
 		sleep 15
 	done
-else
-	# some of this directories are needed by
-	# the init system. If they're mounts, there might
-	# be problems. Let's unmount them.
-	printf "distrobox: Setting up init system...\n"
-	HOST_MOUNTS_RO_INIT="
+fi
+
+# If we're here, the init support has been enabled.
+printf  "distrobox: Setting up init system...\n"
+# some of this directories are needed by
+# the init system. If they're mounts, there might
+# be problems. Let's unmount them.
+HOST_MOUNTS_RO_INIT="
 		/run/systemd/journal
 		/run/systemd/seats
 		/run/systemd/sessions
@@ -871,10 +878,9 @@ else
 		/run/systemd/users
 		/var/lib/systemd/coredump
 		/var/log/journal"
-	for host_mount in ${HOST_MOUNTS_RO_INIT}; do
-		if mountpoint "${host_mount}"; then umount "${host_mount}"; fi
-	done
-	# Now we can launch init
-	printf "distrobox: Firing up init system...\n"
-	exec /sbin/init
-fi
+for host_mount in  ${HOST_MOUNTS_RO_INIT}; do
+	if mountpoint "${host_mount}"; then umount "${host_mount}"; fi
+done
+# Now we can launch init
+printf  "distrobox: Firing up init system...\n"
+exec  /sbin/init
