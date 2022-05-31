@@ -10,7 +10,7 @@ as easy and transparent as possible, whether it's:
 
 ## Creating a Pull Requests
 
-Pull requests are the best way to propose changes to the codebase
+Pull requests are the best way to propose changes to the codebase.  
 We actively welcome your pull requests:
 
 1. Fork the repo and create your branch from `main`.
@@ -31,16 +31,16 @@ Feel free to contact the maintainers if that's a concern.
 
 Suggestions are welcome, be sure:
 
-- it is not already being discussed in the [issue tracker](https://github.com/89luca89/distrobox/issues)
+- It is not already being discussed in the [issue tracker](https://github.com/89luca89/distrobox/issues)
   - If it has and is marked as OPEN, go ahead and share your own
     thoughts about the topic!
   - If it has and is marked as CLOSED, please read the ticket and depending on
-    whether the suggestion was accepted or not consider if it is worth opening
+    whether the suggestion was accepted consider if it is worth opening
     a new issue or not.
 - Consider if the suggestion is not too out of scope of the project.
-- Mark them with a [Suggestion] in the title
+- Mark them with a [Suggestion] in the title.
 
-## Report bugs using Github's [issues](https://github.com/89luca89/distrobox/issues)
+## Report bugs using GitHub's [issues](https://github.com/89luca89/distrobox/issues)
 
 We use GitHub issues to track public bugs.
 Report a bug by
@@ -76,6 +76,11 @@ for file in $(find . -type f -not -path "*.git*"); do
     fi
 done
 ```
+
+  Here we're using `dash` to verify if there are any non-POSIX code inside the
+  scripts. Distrobox aims to be POSIX compliant so it's important to use a
+  strict POSIX compliant shell to verify. `dash` is available in all major distributions'
+  repositories.
 
 - use `shellcheck` to check for posix compliance and bashisms using:
   - install from: [HERE](https://github.com/koalaman/shellcheck)
@@ -122,4 +127,4 @@ its GPLv3 License.
 ## References
 
 This document was adapted from the open-source contribution guidelines
-for [Facebook's Draft](https://github.com/facebook/draft-js/blob/a9316a723f9e918afde44dea68b5f9f39b7d9b00/CONTRIBUTING.md)
+for [Facebook's Draft](https://github.com/facebook/draft-js/blob/a9316a723f9e918afde44dea68b5f9f39b7d9b00/CONTRIBUTING.md).
