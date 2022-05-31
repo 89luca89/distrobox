@@ -21,8 +21,9 @@ Run the commands with `--verbose` and post the log here as a file upload
 Attach also the output of `podman logs` or `docker logs`, possibly with `--latest` flag
 
 **Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Version [e.g. 22]
+ - Are you using podman or docker?
+ - Which version or podman or docker?
+ - Which version of distrobox?
 
 **Additional context**
 Add any other context about the problem here.
