@@ -92,8 +92,17 @@ done
   - run `markdownlint $(find . -name '*.md' | grep -vF './.git')`
 - Legibility of the code is more important than code golfing, try to be
   expressive in the code
+- Try to **follow the happy path**:
+  - [This guide](https://maelvls.dev/go-happy-line-of-sight/) is for golang,
+    but it's a very insightful source to follow
 - Error checking is important! Ensure to LBYL (Look Before You Leap), check for
   variables and for code success exit codes
+- If a command or function can fail, ensure you check the outcome:
+  - `if ! my_function; then ...`
+    this is important to handle errors gracefully and to potentially warn users
+    of what's happening
+- Use snake_case for variable naming. Keep variable names lowercase if they are
+  not an environment variable
 - Don't hesitate to comment your code! We're placing high importance on this to
   maintain the code readable and understandeable
 - Update documentation to reflect your changes - Manual pages can be found in
