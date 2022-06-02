@@ -307,7 +307,7 @@ export_application() {
 	desktop_files=$(grep -rilP "Exec=(?!.*distrobox).*${exported_app}" \
 		/usr/share/applications/* \
 		/var/lib/flatpak/exports/share/applications/* \
-		"${HOME}"/.local/share/applications/*  2> /dev/null || :)
+		"${HOME}"/.local/share/applications/* 2>/dev/null || :)
 
 	# Ensure the app we're exporting is installed
 	# Check that we found some desktop files first.
@@ -333,7 +333,7 @@ export_application() {
 		icon_files="${icon_files} $(find \
 			/usr/share/icons \
 			/usr/share/pixmaps \
-			/var/lib/flatpak/exports/share/icons -iname "*${icon_name}*" 2> /dev/null || :)"
+			/var/lib/flatpak/exports/share/icons -iname "*${icon_name}*" 2>/dev/null || :)"
 	done
 
 	# create applications dir if not existing
@@ -391,7 +391,7 @@ export_application() {
 			sed "/^TryExec=.*/d" |
 			sed "/^DBusActivatable=true/d" |
 			sed "s|Name.*|& ${exported_app_label}|g" \
-				> "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+				>"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 		# in the end we add the final quote we've opened in the "container_command_prefix"
 
 		if ! grep -q "StartupWMClass" "/run/host${host_home}/.local/share/applications/${desktop_home_file}"; then
