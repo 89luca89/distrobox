@@ -103,9 +103,9 @@ fi
 
 # uninstall
 for file in "${dest_path}/distrobox"*; do
-	[ -e "${file}" ] && rm -i "${file}"
+	[ -e "${file}" ] && rm "${file}"
 done
 for file in "${man_dest_path}/distrobox"*; do
-	[ -e "${file}" ] && rm -i "${file}"
+	[ -e "${file}" ] && rm "${file}"
 done
 echo "Thank you for using Distrobox. Uninstall complete."
