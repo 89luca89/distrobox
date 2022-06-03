@@ -364,24 +364,25 @@ if [ "${dryrun}" -ne 0 ]; then
 	exit 0
 fi
 
-# Inspect the container we're working with.
-container_status="unknown"
-eval "$(${container_manager} inspect --type container "${container_name}" --format \
-	'container_status={{.State.Status}};
-	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
-	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}};{{end}}{{end}}
-	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
-container_exists="$?"
-# Set SHELL as a login shell
-container_shell="$(basename "${container_shell}") -l"
-# Does the container exists? check if inspect reported errors
-if [ "${container_exists}" -gt 0 ]; then
+# Check if the container is even there
+container_exists=$(${container_manager} ps -aq -f name=^"${container_name}"$)
+if [ "${container_exists}" = "" ]; then
 	# If not, prompt to create it first
 	printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
 	printf >&2 "\nTry running first:\n"
 	printf >&2 "\tdistrobox-create <name-of-container> --image <remote>/<docker>:<tag>\n"
 	exit 1
 fi
+
+# Now inspect the container we're working with.
+container_status="unknown"
+eval "$(${container_manager} inspect --type container "${container_name}" --format \
+	'container_status={{.State.Status}};
+	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
+	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}};{{end}}{{end}}
+	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
+# Set SHELL as a login shell
+container_shell="$(basename "${container_shell}") -l"
 
 # If the container is not already running, we need to start if first
 if [ "${container_status}" != "running" ]; then
