@@ -569,6 +569,15 @@ for host_mount in ${HOST_MOUNTS}; do
 	fi
 done
 
+HOST_MOUNTS_RO_INIT="
+		/run/systemd/journal
+		/run/systemd/resolve
+		/run/systemd/seats
+		/run/systemd/sessions
+		/run/systemd/users
+		/var/lib/systemd/coredump
+		/var/log/journal"
+
 # On some ostree systems, home is in /var/home, but most of the software expects
 # it to be in /home. In the hosts systems this is fixed by using a symlink.
 # Do something similar here with a bind mount.
@@ -668,10 +677,14 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# Also we put a hook to clear some critical paths that do not play well
 	# with read only filesystems, like systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
-		cat << EOF > /etc/apt/apt.conf.d/00_distrobox
-DPkg::Pre-Invoke {"if mountpoint /var/log/journal; then umount /var/log/journal; fi";};
-DPkg::Post-Invoke {"if [ -e /run/host/var/log/journal ]; then mount --rbind -o ro /run/host/var/log/journal /var/log/journal; fi";};
-EOF
+
+		printf "" > /etc/apt/apt.conf.d/00_distrobox
+		for init_mount in ${HOST_MOUNTS_RO_INIT}; do
+			printf 'DPkg::Pre-Invoke {"if mountpoint %s; then umount %s; fi";};\n' \
+				"${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
+			printf 'DPkg::Post-Invoke {"if [ -e /run/host/%s ]; then mount --rbind /run/host/%s %s; fi";};\n' \
+				"${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
+		done
 	fi
 fi
 
@@ -870,14 +883,6 @@ printf  "distrobox: Setting up init system...\n"
 # some of this directories are needed by
 # the init system. If they're mounts, there might
 # be problems. Let's unmount them.
-HOST_MOUNTS_RO_INIT="
-		/run/systemd/journal
-		/run/systemd/seats
-		/run/systemd/sessions
-		/run/systemd/system
-		/run/systemd/users
-		/var/lib/systemd/coredump
-		/var/log/journal"
 for host_mount in  ${HOST_MOUNTS_RO_INIT}; do
 	if mountpoint "${host_mount}"; then umount "${host_mount}"; fi
 done
