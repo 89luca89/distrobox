@@ -195,7 +195,7 @@ if [ "${container_exists}" -gt 0 ]; then
 fi
 
 if [ "${non_interactive}" -eq 0 ]; then
-	# Prompt to download it.
+	# Prompt to stop the container.
 	printf "Do you really want to stop %s? [Y/n]: " "${container_name}"
 	read -r response
 	response="${response:-"Y"}"
