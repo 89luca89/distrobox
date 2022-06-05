@@ -402,7 +402,7 @@ export_application() {
 
 		# In case of an icon in a canonical path, but specified as an absolute
 		# we need to replace the path in the desktop file.
-		sed -i "s|/usr/share/|\/run\/host${host_home}/.local/share/|g" \
+		sed -i "s|Icon=/usr/share/|Icon=/run/host${host_home}/.local/share/|g" \
 			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 		sed -i "s|pixmaps|icons|g" \
 			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
