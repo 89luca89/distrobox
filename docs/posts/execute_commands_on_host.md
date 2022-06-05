@@ -34,7 +34,7 @@ Fedora Distrobox:
 user@fedora-distrobox:~$ sudo dnf install -y flatpak-spawn
 ```
 
-With `flatpak-swpan` we can easily execute commands on the host using:
+With `flatpak-spawn` we can easily execute commands on the host using:
 
 ```shell
 user@fedora-distrobox:~$ flatpak-spawn --host bash -l
