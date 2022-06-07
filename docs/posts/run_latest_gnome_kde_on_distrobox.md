@@ -175,7 +175,7 @@ Centos.
 
 # Using other GUIs
 
-Thanks to [J.S. Evans](https://twitter.com/usenetnerd) he experimented and wrote a befautiful blog post
+Thanks to [J.S. Evans](https://twitter.com/usenetnerd) he experimented and wrote a beautiful blog post
 on how to use Distrobox for much more than simply running apps.
 
 You'll read on how to set up a working Ubuntu container with IceWM running on Xorg using Distrobox:
