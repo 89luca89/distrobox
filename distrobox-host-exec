@@ -108,7 +108,7 @@ if ! command -v flatpak-spawn > /dev/null; then
 	printf "We recommend installing it and then trying distrobox-host-exec again.\n\n"
 	printf "Alternatively, we can try an different (chroot-based) approach, but please\n"
 	printf "be aware that it has severe limitations and some commands will not work!\n\n"
-	printf "Do you really want to continue without installing flatpak-spawn? [N/y] "
+	printf "Do you really want to continue without installing flatpak-spawn? [y/N] "
 	read -r response
 	response=${response:-"N"}
 
