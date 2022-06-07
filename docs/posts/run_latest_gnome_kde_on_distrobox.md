@@ -39,7 +39,7 @@ distrobox enter fedora-rawhide
 ## Running Latest GNOME
 
 First we need to change a couple of bits in the distrobox container to make host's
-systemd session accessible from within the host:
+systemd session accessible from within the container:
 
 ```shell
 ~$ distrobox enter fedora-rawhide
