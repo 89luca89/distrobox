@@ -295,6 +295,18 @@ or if you want to select a custom directory to install without sudo:
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
 ```
 
+If you want to install the last development version, directly from last commit on git, you can use:
+
+```sh
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --next
+```
+
+or:
+
+```sh
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
+```
+
 Alternatively you can clone the project using `git clone` or using the latest
 release [HERE](https://github.com/89luca89/distrobox/releases/latest).
 
