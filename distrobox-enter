@@ -377,9 +377,18 @@ if [ "${dryrun}" -ne 0 ]; then
 	exit 0
 fi
 
+# Now inspect the container we're working with.
+container_status="unknown"
+eval "$(${container_manager} inspect --type container "${container_name}" --format \
+	'container_status={{.State.Status}};
+	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
+	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}};{{end}}{{end}}
+	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
+# Set SHELL as a login shell
+container_shell="$(basename "${container_shell}") -l"
+
 # Check if the container is even there
-container_exists=$(${container_manager} ps -aq -f name=^"${container_name}"$)
-if [ "${container_exists}" = "" ]; then
+if [ "${container_status}" = "unknown" ]; then
 	# If not, prompt to create it first
 	printf >&2 "Cannot find container %s\n" "${container_name}"
 	if [ -z "${container_image}" ]; then
@@ -401,12 +410,12 @@ if [ "${container_exists}" = "" ]; then
 			printf >&2 "Creating the container with command:\n"
 			printf >&2 "  distrobox create -i %s %s\n" "${container_image}" "${container_name}"
 			if [ "${dryrun}" -ne 1 ]; then
-				distrobox-create -i "${container_image}" -n "${container_name}"
+				"$(dirname "${0}")"/distrobox-create -i "${container_image}" -n "${container_name}"
 			fi
 			;;
 		n | N | No | no | NO)
 			printf >&2 "Ok. For creating it, run this command:\n"
-			printf >&2 "\tdistrobox-create <name-of-container> --image <remote>/<docker>:<tag>\n"
+			printf >&2 "\tdistrobox create <name-of-container> --image <remote>/<docker>:<tag>\n"
 			exit 0
 			;;
 		*) # Default case: If no more options then break out of the loop.
@@ -416,16 +425,6 @@ if [ "${container_exists}" = "" ]; then
 			;;
 	esac
 fi
-
-# Now inspect the container we're working with.
-container_status="unknown"
-eval "$(${container_manager} inspect --type container "${container_name}" --format \
-	'container_status={{.State.Status}};
-	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
-	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}};{{end}}{{end}}
-	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
-# Set SHELL as a login shell
-container_shell="$(basename "${container_shell}") -l"
 
 # If the container is not already running, we need to start if first
 if [ "${container_status}" != "running" ]; then
