@@ -366,7 +366,7 @@ clone_container() {
 	# for the new container.
 	container_source_id="$(${container_manager} inspect --type container \
 		"${container_clone}" --format '{{.Id}}')"
-	container_commit_tag="${container_clone}:$(date +%F)"
+	container_commit_tag="$(echo "${container_clone}:$(date +%F)" | tr '[:upper:]' '[:lower:]')"
 
 	# Commit current container state to a new image tag
 	printf >&2 "Duplicating %s...\n" "${container_clone}"
