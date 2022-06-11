@@ -91,15 +91,16 @@ jobs:
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           ${DBX_CONTAINER_MANAGER} pull "${image}"
-          case "${container_name}" in
-            *init*)
-              echo "SYSTEMD DETECTED: creating container with --init..."
-              ./distrobox create --yes -i "${image}" --name "${container_name}" --init
-              ;;
-            *)
-              ./distrobox create --yes -i "${image}" --name "${container_name}"
-              ;;
-          esac
+          ./distrobox create --yes -i "${image}" --name "${container_name}"
+          #case "${container_name}" in
+          #  *init*)
+          #    echo "SYSTEMD DETECTED: creating container with --init..."
+          #    ./distrobox create --yes -i "${image}" --name "${container_name}" --init
+          #    ;;
+          #  *)
+          #    ./distrobox create --yes -i "${image}" --name "${container_name}"
+          #    ;;
+          # esac
 
       # Ensure distrobox enter and init works:
       - name: Distrobox enter - init
