@@ -45,9 +45,12 @@ container_shell="${SHELL:-"bash"}"
 # For example in hosts that do not follow FHS, like NixOS or for shells in custom
 # exotic paths.
 container_shell="$(basename "${container_shell}") -l"
+container_image=""
+container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
 container_manager="autodetect"
 container_name="my-distrobox"
 container_manager_additional_flags=""
+non_interactive=0
 
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
@@ -74,9 +77,15 @@ for config_file in ${config_files}; do
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
+# Fixup non_interactive=[true|false], in case we find it in the config file(s)
+[ "${non_interactive}" = "true" ] && non_interactive=1
+[ "${non_interactive}" = "false" ] && non_interactive=0
+
+[ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_SKIP_WORKDIR}" ] && skip_workdir="${DBX_SKIP_WORKDIR}"
+[ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 
 # Print usage to stdout.
 # Arguments:
@@ -156,6 +165,10 @@ while :; do
 				shift
 				shift
 			fi
+			;;
+		-Y | --yes)
+			non_interactive=1
+			shift
 			;;
 		-e | --exec | --)
 			shift
@@ -364,24 +377,55 @@ if [ "${dryrun}" -ne 0 ]; then
 	exit 0
 fi
 
-# Inspect the container we're working with.
+# Check if the container is even there
+container_exists=$(${container_manager} ps -aq -f name=^"${container_name}"$)
+if [ "${container_exists}" = "" ]; then
+	# If not, prompt to create it first
+	printf >&2 "Cannot find container %s\n" "${container_name}"
+	if [ -z "${container_image}" ]; then
+		container_image="${container_image_default}"
+	fi
+	# If we're not-interactive, just don't ask questions
+	if [ "${non_interactive}" -eq 1 ]; then
+		response="yes"
+	else
+		printf >&2 "Create it now, out of image %s? [Y/n]: " "${container_image}"
+		read -r response
+		response="${response:-"Y"}"
+	fi
+
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response}" in
+		y | Y | Yes | yes | YES)
+			# Ok, let's create the container with just 'distrobox create $container_name
+			printf >&2 "Creating the container with command:\n"
+			printf >&2 "  distrobox create -i %s %s\n" "${container_image}" "${container_name}"
+			if [ "${dryrun}" -ne 1 ]; then
+				distrobox-create -i "${container_image}" -n "${container_name}"
+			fi
+			;;
+		n | N | No | no | NO)
+			printf >&2 "Ok. For creating it, run this command:\n"
+			printf >&2 "\tdistrobox-create <name-of-container> --image <remote>/<docker>:<tag>\n"
+			exit 0
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			exit 1
+			;;
+	esac
+fi
+
+# Now inspect the container we're working with.
 container_status="unknown"
 eval "$(${container_manager} inspect --type container "${container_name}" --format \
 	'container_status={{.State.Status}};
 	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
 	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}};{{end}}{{end}}
 	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
-container_exists="$?"
 # Set SHELL as a login shell
 container_shell="$(basename "${container_shell}") -l"
-# Does the container exists? check if inspect reported errors
-if [ "${container_exists}" -gt 0 ]; then
-	# If not, prompt to create it first
-	printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
-	printf >&2 "\nTry running first:\n"
-	printf >&2 "\tdistrobox-create <name-of-container> --image <remote>/<docker>:<tag>\n"
-	exit 1
-fi
 
 # If the container is not already running, we need to start if first
 if [ "${container_status}" != "running" ]; then
