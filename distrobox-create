@@ -268,12 +268,6 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# We cannot have both a clone AND an image name.
-if [ -n "${container_clone}" ] && [ -n "${container_image}" ]; then
-	printf >&2 "Error: Invalid arguments, choose only one between clone or image name.\n"
-	exit 2
-fi
-
 # If no clone option and no container image, let's choose a default image to use.
 # Fedora toolbox is a sensitive default
 if [ -z "${container_clone}" ] && [ -z "${container_image}" ]; then
