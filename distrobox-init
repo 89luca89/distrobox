@@ -355,7 +355,6 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		microdnf install -y \
 			"${shell_pkg}" \
 			bc \
-			curl \
 			diffutils \
 			findutils \
 			less \

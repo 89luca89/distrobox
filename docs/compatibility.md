@@ -105,7 +105,7 @@ Distrobox guests tested successfully with the following container images:
 
 |    Distro  |    Version | Images    |
 | --- | --- | --- |
-| AlmaLinux | 8 <br> 9 | docker.io/library/almalinux:8 <br> docker.io/library/almalinux:9 |
+| AlmaLinux | 8 <br> 8-minimal <br> 9 <br> 9-minimal | docker.io/library/almalinux:8 <br> docker.io/library/almalinux:9 <br> docker.io/library/almalinux:9-minimal |
 | AlmaLinux (UBI) | 8     | docker.io/almalinux/8-base <br> docker.io/almalinux/8-init    |
 | Alpine Linux    | 3.14 <br> 3.15 | docker.io/library/alpine:latest    |
 | AmazonLinux | 2  | docker.io/library/amazonlinux:2.0.20211005.0    |
@@ -114,7 +114,7 @@ Distrobox guests tested successfully with the following container images:
 | ClearLinux |      | docker.io/library/clearlinux:latest <br> docker.io/library/clearlinux:base    |
 | CentOS | 7 | quay.io/centos/centos:7  |
 | CentOS Stream | 8 <br> 9 | quay.io/centos/centos:stream8 <br> quay.io/centos/centos:stream9  |
-| RedHat (UBI) | 7 <br> 8 | registry.access.redhat.com/ubi7/ubi <br> registry.access.redhat.com/ubi7/ubi-init <br> registry.access.redhat.com/ubi7/ubi-minimal <br> registry.access.redhat.com/ubi8/ubi <br> registry.access.redhat.com/ubi8/ubi-init <br> registry.access.redhat.com/ubi8/ubi-minimal  |
+| RedHat (UBI) | 7 <br> 8 <br> 9 | registry.access.redhat.com/ubi7/ubi <br> registry.access.redhat.com/ubi7/ubi-init <br> registry.access.redhat.com/ubi7/ubi-minimal <br> registry.access.redhat.com/ubi8/ubi <br> registry.access.redhat.com/ubi8/ubi-init <br> registry.access.redhat.com/ubi8/ubi-minimal <br> registry.access.redhat.com/ubi9/ubi <br> registry.access.redhat.com/ubi9/ubi-init <br> registry.access.redhat.com/ubi9/ubi-minimal |
 | Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 | docker.io/debian/eol:wheezy <br> docker.io/library/debian:8 <br> docker.io/library/debian:9 <br> docker.io/library/debian:10 <br> docker.io/library/debian:stable <br> docker.io/library/debian:stable-backports    |
 | Debian | Testing    | docker.io/library/debian:testing  <br>  docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
