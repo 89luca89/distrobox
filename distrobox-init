@@ -842,11 +842,10 @@ printf "distrobox: Executing init hooks...\n"
 # shellcheck disable=SC2086
 eval ${init_hook}
 
-printf "container_setup_done\n"
-
 # If init support is disabled, let's do our routine to keep the container
 # up, running and in sync with host.
 if [ "${init}" -eq 0 ]; then
+	printf "container_setup_done\n"
 	# Keepalive loop
 	HOST_WATCH="
 		/etc/hosts
@@ -884,6 +883,40 @@ printf  "distrobox: Setting up init system...\n"
 for host_mount in  ${HOST_MOUNTS_RO_INIT}; do
 	if mountpoint "${host_mount}"; then umount "${host_mount}"; fi
 done
+if command -v systemctl 2> /dev/null; then
+	# Cleanup systemd to not interfere with the host
+	UNIT_TARGETS="
+		/etc/systemd/system/*.wants/*
+		/usr/lib/systemd/system/basic.target.wants/*
+		/usr/lib/systemd/system/local-fs.target.wants/*
+		/usr/lib/systemd/system/multi-user.target.wants/*
+		/usr/lib/systemd/system/plymouth*
+		/usr/lib/systemd/system/sockets.target.wants/*initctl*
+		/usr/lib/systemd/system/sockets.target.wants/*udev*
+		/usr/lib/systemd/system/sysinit.target.wants/*
+		/usr/lib/systemd/system/systemd-update-utmp*
+	"
+	for unit in $(find "${UNIT_TARGETS}" 2> /dev/null | grep -v systemd-tmpfiles-setup); do
+		systemctl mask "$(basename "${unit}")"
+	done
+fi
+# We don't want these workarounds anymore
+rm  -f /run/systemd/coredump
+rm  -f /run/systemd/io.system.ManagedOOM
+rm  -f /run/systemd/notify
+rm  -f /run/systemd/private
+rm  -f /etc/apt/apt.conf.d/00_distrobox
+rm  -f /usr/share/libalpm/hooks/00-distrobox-post.hook
+rm  -f /usr/share/libalpm/hooks/00-distrobox-pre.hook
+rm  -f /usr/share/libalpm/hooks/99-distrobox-post.hook
+rm  -f /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+rm  -f /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
+rm  -f /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
+# Remove /dev/console when using init systems, this will confuse host system if
+# we use rootful containers
+touch /var/container-console
+mount --rbind /var/container-console /dev/console
 # Now we can launch init
 printf  "distrobox: Firing up init system...\n"
+printf "container_setup_done\n"
 exec  /sbin/init
