@@ -48,7 +48,9 @@ container_shell="$(basename "${container_shell}") -l"
 container_image=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
 container_manager="autodetect"
-container_name="my-distrobox"
+container=""
+container_name=""
+container_name_default="my-distrobox"
 container_manager_additional_flags=""
 non_interactive=0
 
@@ -181,10 +183,10 @@ while :; do
 			exit 1
 			;;
 		*) # Default case: If no more options then break out of the loop.
-			# If we have a flagless option and container_name is not specified
-			# then let's accept argument as container_name
+			# If we have a flagless option
+			# then let's accept argument as container
 			if [ -n "$1" ]; then
-				container_name="$1"
+				container="$1"
 				shift
 			else
 				break
@@ -192,6 +194,14 @@ while :; do
 			;;
 	esac
 done
+
+if [ -z "${container_name}" ]; then
+	if [ -n "${container}" ]; then
+		container_name="${container}"
+	else
+		container_name="${container_name_default}"
+	fi
+fi
 
 set -o errexit
 set -o nounset
@@ -392,7 +402,7 @@ if [ "${container_status}" = "unknown" ]; then
 	# If not, prompt to create it first
 	printf >&2 "Cannot find container %s\n" "${container_name}"
 	if [ -z "${container_image}" ]; then
-		container_image="${container_image_default}"
+		container_image="${container:-${container_image_default}}"
 	fi
 	# If we're not-interactive, just don't ask questions
 	if [ "${non_interactive}" -eq 1 ]; then
