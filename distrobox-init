@@ -684,6 +684,16 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 				"${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
 		done
 	fi
+	if [ -d "/etc/apt/preferences.d" ]; then
+		# Hold off tzdata, we do not want it to manage timezones, we already do
+		# it syncting them with the host. Tzdata does not play well with this so
+		# let's hold it.
+		cat << EOF > /etc/apt/preferences.d/00_distrobox_hold
+Package: tzdata
+Pin: release *
+Pin-Priority: -1
+EOF
+	fi
 fi
 
 if [ -d "/usr/share/libalpm/scripts" ]; then
