@@ -763,6 +763,14 @@ EOF
 
 fi
 
+if [ -d "/etc/krb5.conf.d" ] && [ ! -e "/etc/krb5.conf.d/kcm_default_ccache" ]; then
+	cat << EOF > "/etc/krb5.conf.d/kcm_default_ccache"
+# # To disable the KCM credential cache, comment out the following lines.
+[libdefaults]
+    default_ccache_name = KCM:
+EOF
+fi
+
 printf "distrobox: Setting up sudo...\n"
 mkdir -p /etc/sudoers.d
 # Do not check fqdn when doing sudo, it will not work anyways
