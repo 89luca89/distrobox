@@ -1,36 +1,19 @@
-<!-- markdownlint-disable MD010 -->
-# Create the distrobox
+<!-- markdownlint-disable MD010 MD036 -->
+# NAME
+
+	distrobox create
+	distrobox-create
+
+# DESCRIPTION
 
 distrobox-create takes care of creating the container with input name and image.
 The created container will be tightly integrated with the host, allowing sharing of
 the HOME directory of the user, external storage, external usb devices and
 graphical apps (X11/Wayland), and audio.
 
-Usage:
+# SYNOPSIS
 
-	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
-	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
-	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
-	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
-	distrobox create --clone fedora-35 --name fedora-35-copy
-	distrobox create --image alpine my-alpine-container
-	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
-	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
-
-You can also use environment variables to specify container name, image and container manager:
-
-	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
-
-Supported environment variables:
-
-	DBX_CONTAINER_ALWAYS_PULL
-	DBX_CONTAINER_CUSTOM_HOME
-	DBX_CONTAINER_IMAGE
-	DBX_CONTAINER_MANAGER
-	DBX_CONTAINER_NAME
-	DBX_NON_INTERACTIVE
-
-Options:
+**distrobox create**
 
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:36
 	--name/-n:		name for the distrobox		default: my-distrobox
@@ -53,12 +36,36 @@ Options:
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-Compatibility:
+# COMPATIBILITY
 
 	for a list of compatible images and container managers, please consult the man page:
 		man distrobox
 		man distrobox-compatibility
 	or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#containers-distros
+
+# EXAMPLES
+
+	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
+	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
+	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
+	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
+	distrobox create --clone fedora-35 --name fedora-35-copy
+	distrobox create --image alpine my-alpine-container
+	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
+	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
+
+You can also use environment variables to specify container name, image and container manager:
+
+	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
+
+Supported environment variables:
+
+	DBX_CONTAINER_ALWAYS_PULL
+	DBX_CONTAINER_CUSTOM_HOME
+	DBX_CONTAINER_IMAGE
+	DBX_CONTAINER_MANAGER
+	DBX_CONTAINER_NAME
+	DBX_NON_INTERACTIVE
 
 The `--additional-flags` or `-a` is useful to modify defaults in the container creations.
 For example:

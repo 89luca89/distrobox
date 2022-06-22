@@ -29,6 +29,7 @@ END="$(grep -n -B1 "# Containers Distros" "$(dirname "${0}")/../docs/compatibili
 
 sed -e "${START},${END}d" "$(dirname "${0}")/../docs/compatibility.md" > "${compatibility_file}"
 sed -e "1,${HEAD}d" -i "${compatibility_file}"
+sed -i "s/^#.*/\U&/g" "${compatibility_file}"
 
 pandoc --standalone \
 	--metadata title="DISTROBOX" \

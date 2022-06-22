@@ -1,5 +1,10 @@
-<!-- markdownlint-disable MD010 -->
-# Enter the distrobox
+<!-- markdownlint-disable MD010 MD036 -->
+# NAME
+
+	distrobox enter
+	distrobox-enter
+
+# DESCRIPTION
 
 distrobox-enter takes care of entering the container with the name specified.
 Default command executed is your SHELL, but you can specify different shells or
@@ -7,7 +12,23 @@ entire commands to execute.
 If using it inside a script, an application, or a service, you can specify the
 --headless mode to disable tty and interactivity.
 
-Usage:
+# SYNOPSIS
+
+**distrobox enter**
+
+	--name/-n:		name for the distrobox						default: my-distrobox
+	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
+	--no-tty/-T:		do not instantiate a tty
+	--no-workdir/-nw:		always start the container from container's home directory
+	--additional-flags/-a:	additional flags to pass to the container manager command
+	--help/-h:		show this message
+	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+				way over "sudo distrobox"
+	--dry-run/-d:		only print the container manager command generated
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+
+# EXAMPLES
 
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 	distrobox-enter my-alpine-container -- sh -l
@@ -24,20 +45,6 @@ Supported environment variables:
 	DBX_CONTAINER_NAME
 	DBX_CONTAINER_MANAGER
 	DBX_SKIP_WORKDIR
-
-Options:
-
-	--name/-n:		name for the distrobox						default: my-distrobox
-	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
-	--no-tty/-T:		do not instantiate a tty
-	--no-workdir/-nw:		always start the container from container's home directory
-	--additional-flags/-a:	additional flags to pass to the container manager command
-	--help/-h:		show this message
-	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
-				way over "sudo distrobox"
-	--dry-run/-d:		only print the container manager command generated
-	--verbose/-v:		show more verbosity
-	--version/-V:		show version
 
 This is used to enter the distrobox itself. Personally, I just create multiple profiles in
 my `gnome-terminal` to have multiple distros accessible.

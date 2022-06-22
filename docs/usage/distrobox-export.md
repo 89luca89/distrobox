@@ -1,5 +1,12 @@
-<!-- markdownlint-disable MD010 -->
-# Application and service exporting
+<!-- markdownlint-disable MD010 MD036 -->
+
+# NAME
+
+	distrobox-export
+
+# DESCRIPTION
+
+**Application and service exporting**
 
 distrobox-export takes care of exporting an app a binary or a service from the container
 to the host.
@@ -7,47 +14,9 @@ to the host.
 The exported app will be easily available in your normal launcher and it will
 automatically be launched from the container it is exported from.
 
-The exported services will be available in the host's user's systemd session, so
+# SYNOPSIS
 
-	systemctl --user status exported_service_name
-
-will show the status of the service exported.
-
-The exported binaries will be exported in the "--export-path" of choice as a wrapper
-script that acts naturally both on the host and in the container.
-Note that "--export-path" is NOT OPTIONAL, you have to explicitly set it.
-
-You can specify additional flags to add to the command, for example if you want
-to export an electron app, you could add the "--foreground" flag to the command:
-
-	distrobox-export --app atom --extra-flags "--foreground"
-	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --extra-flags "-p"
-	distrobox-export --service syncthing --extra-flags "-allow-newer-config"
-
-This works for services, binaries, and apps.
-Extra flags are only used then the exported app, binary, or service is used from
-the host, using them inside the container will not include them.
-
-The option "--delete" will un-export an app, binary, or service.
-
-	distrobox-export --app atom --delete
-	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --delete
-	distrobox-export --service syncthing --delete
-	distrobox-export --service nginx --delete
-
-The option "--sudo" will launch the exported item as root inside the distrobox.
-
-Note you can use --app OR --bin OR --service but not together.
-
-	distrobox-export --service nginx --sudo
-
-Usage:
-
-	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --service syncthing [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
-
-Options:
+**distrobox-export**
 
 	--app/-a:		name of the application to export
 	--bin/-b:		absolute path of the binary to export
@@ -65,7 +34,13 @@ Options:
 You may want to install graphical applications or user services in your distrobox.
 Using `distrobox-export` from **inside** the container will let you use them from the host itself.
 
-App export example:
+# EXAMPLES
+
+	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --service syncthing [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
+
+**App export example**
 
 	distrobox-export --app abiword
 
@@ -73,7 +48,7 @@ This tool will simply copy the original `.desktop` files along with needed icons
 add the prefix `/usr/local/bin/distrobox-enter -n distrobox_name -e ...` to the commands to run, and
 save them in your home to be used directly from the host as a normal app.
 
-Service export example:
+**Service export example**
 
 	distrobox-export --service syncthing --extra-flags "--allow-newer-config"
 	distrobox-export --service nginx --sudo
@@ -83,7 +58,13 @@ For services, it will similarly export the systemd unit inside the container to 
 `ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost` with the
 `distrobox-enter` command prefix.
 
-Binary export example:
+The exported services will be available in the host's user's systemd session, so
+
+	systemctl --user status exported_service_name
+
+will show the status of the service exported.
+
+**Binary export example**
 
 	distrobox-export --bin /usr/bin/code --extra-flags "--foreground" --export-path $HOME/.local/bin
 
@@ -92,6 +73,42 @@ In the case of exporting binaries, you will have to specify **where** to export 
 `distrobox-enter -e` from the host, the desired binary.
 This can be handy with the use of `direnv` to have different versions of the same binary based on
 your `env` or project.
+
+The exported binaries will be exported in the "--export-path" of choice as a wrapper
+script that acts naturally both on the host and in the container.
+Note that "--export-path" is NOT OPTIONAL, you have to explicitly set it.
+
+**Additional flags**
+
+You can specify additional flags to add to the command, for example if you want
+to export an electron app, you could add the "--foreground" flag to the command:
+
+	distrobox-export --app atom --extra-flags "--foreground"
+	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --extra-flags "-p"
+	distrobox-export --service syncthing --extra-flags "-allow-newer-config"
+
+This works for services, binaries, and apps.
+Extra flags are only used then the exported app, binary, or service is used from
+the host, using them inside the container will not include them.
+
+**Unexport**
+
+The option "--delete" will un-export an app, binary, or service.
+
+	distrobox-export --app atom --delete
+	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --delete
+	distrobox-export --service syncthing --delete
+	distrobox-export --service nginx --delete
+
+**Run as root in the container**
+
+The option "--sudo" will launch the exported item as root inside the distrobox.
+
+**Notes**
+
+Note you can use --app OR --bin OR --service but not together.
+
+	distrobox-export --service nginx --sudo
 
 ![app-export](https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)
 

@@ -7,4 +7,5 @@
     - [distrobox-stop](distrobox-stop.md)
   - [Inside the distrobox](#inside-the-distrobox)
     - [distrobox-export](distrobox-export.md)
+    - [distrobox-host-exec](distrobox-host-exec.md)
     - [distrobox-init](distrobox-init.md)
