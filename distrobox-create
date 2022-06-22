@@ -620,13 +620,13 @@ if [ "${container_always_pull}" -eq 1 ] ||
 fi
 
 # Generate the create command and run it
-printf "Creating '%s' using image %s\t" "${container_name}" "${container_image}"
+printf >&2 "Creating '%s' using image %s\t" "${container_name}" "${container_image}"
 cmd="$(generate_command)"
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
 if eval ${cmd} > /dev/null; then
 	printf >&2 "\033[32m [ OK ]\n\033[0mDistrobox '%s' successfully created.\n" "${container_name}"
-	printf "To enter, run:\n\n"
+	printf >&2 "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
 		printf "distrobox enter --root %s\n\n" "${container_name}"
 	else
