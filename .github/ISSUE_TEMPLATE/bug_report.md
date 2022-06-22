@@ -7,6 +7,12 @@ assignees: ''
 
 ---
 
+Please, before opening a bug:
+
+- make sure you've read the documentation.
+- Ensure there isn't already an open issue about this.
+- Ensure there isn't already a closed/resolved issue about this.
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
