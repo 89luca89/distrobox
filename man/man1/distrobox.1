@@ -17,7 +17,7 @@
 .\}
 .TH "DISTROBOX" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Compatibility
+.SH COMPATIBILITY
 .PP
 This project \f[B]does not need a dedicated image\f[R].
 It can use any OCI images from docker-hub, quay.io, or any registry of
@@ -31,7 +31,7 @@ bootstrapping it.
 The main concern is having basic Linux utilities (\f[V]mount\f[R]),
 basic user management utilities (\f[V]usermod, passwd\f[R]), and
 \f[V]sudo\f[R] correctly set.
-.SS Supported container managers
+.SS SUPPORTED CONTAINER MANAGERS
 .PP
 \f[V]distrobox\f[R] can run on either \f[V]podman\f[R] or
 \f[V]docker\f[R]
@@ -52,7 +52,7 @@ Follow the official installation guide here:
 <https://docs.docker.com/engine/install>
 .IP \[bu] 2
 <https://docs.docker.com/engine/install/linux-postinstall/>
-.SS Containers Distros
+.SS CONTAINERS DISTROS
 .PP
 Distrobox guests tested successfully with the following container
 images:
@@ -284,7 +284,7 @@ plans to bring support to it.
 If you are looking for unprivlaged NixOS environments, we suggest you
 look into
 nix-shell (https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html).
-.SS New Distro support
+.SS NEW DISTRO SUPPORT
 .PP
 If your distro of choice is not on the list, open an issue requesting
 support for it, we can work together to check if it is possible to add
@@ -292,7 +292,7 @@ support for it.
 .PP
 Or just try using it anyway, if it works, open an issue and it will be
 added to the list!
-.SS Older distributions
+.SS OLDER DISTRIBUTIONS
 .PP
 For older distributions like CentOS 5, CentOS 6, Debian 6, Ubuntu 12.04,
 compatibility is not assured.
@@ -323,15 +323,60 @@ dependencies are met.
 .\}
 .TH "DISTROBOX-CREATE" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Create the distrobox
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox create
+distrobox-create
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-create takes care of creating the container with input name
 and image.
 The created container will be tightly integrated with the host, allowing
 sharing of the HOME directory of the user, external storage, external
 usb devices and graphical apps (X11/Wayland), and audio.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox create\f[R]
+.IP
+.nf
+\f[C]
+--image/-i:     image to use for the container  default: registry.fedoraproject.org/fedora-toolbox:36
+--name/-n:      name for the distrobox      default: my-distrobox
+--pull/-p:      pull latest image unconditionally without asking
+--yes/-Y:       non-interactive, pull images without asking
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--clone/-c:     name of the distrobox container to use as base for a new container
+            this will be useful to either rename an existing distrobox or have multiple copies
+            of the same environment.
+--home/-H       select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
+--volume        additional volumes to add to the container
+--additional-flags/-a:  additional flags to pass to the container manager command
+--init-hooks        additional commands to execute during container initialization
+--pre-init-hooks    additional commands to execute prior to container initialization
+--init/-I       use init system (like systemd) inside the container.
+            this will make host\[aq]s processes not visible from within the container.
+--help/-h:      show this message
+--dry-run/-d:       only print the container manager command generated
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH COMPATIBILITY
+.IP
+.nf
+\f[C]
+for a list of compatible images and container managers, please consult the man page:
+    man distrobox
+    man distrobox-compatibility
+or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#containers-distros
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -365,44 +410,6 @@ DBX_CONTAINER_IMAGE
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
-\f[R]
-.fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---image/-i:     image to use for the container  default: registry.fedoraproject.org/fedora-toolbox:36
---name/-n:      name for the distrobox      default: my-distrobox
---pull/-p:      pull latest image unconditionally without asking
---yes/-Y:       non-interactive, pull images without asking
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---clone/-c:     name of the distrobox container to use as base for a new container
-            this will be useful to either rename an existing distrobox or have multiple copies
-            of the same environment.
---home/-H       select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
---volume        additional volumes to add to the container
---additional-flags/-a:  additional flags to pass to the container manager command
---init-hooks        additional commands to execute during container initialization
---pre-init-hooks    additional commands to execute prior to container initialization
---init/-I       use init system (like systemd) inside the container.
-            this will make host\[aq]s processes not visible from within the container.
---help/-h:      show this message
---dry-run/-d:       only print the container manager command generated
---verbose/-v:       show more verbosity
---version/-V:       show version
-\f[R]
-.fi
-.PP
-Compatibility:
-.IP
-.nf
-\f[C]
-for a list of compatible images and container managers, please consult the man page:
-    man distrobox
-    man distrobox-compatibility
-or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#containers-distros
 \f[R]
 .fi
 .PP
@@ -506,7 +513,15 @@ This is needed because \f[V]/sbin/init\f[R] must be pid 1.
 .\}
 .TH "DISTROBOX-ENTER" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Enter the distrobox
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox enter
+distrobox-enter
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-enter takes care of entering the container with the name
 specified.
@@ -514,8 +529,26 @@ Default command executed is your SHELL, but you can specify different
 shells or entire commands to execute.
 If using it inside a script, an application, or a service, you can
 specify the \[en]headless mode to disable tty and interactivity.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox enter\f[R]
+.IP
+.nf
+\f[C]
+--name/-n:      name for the distrobox                      default: my-distrobox
+--/-e:          end arguments execute the rest as command to execute at login   default: bash -l
+--no-tty/-T:        do not instantiate a tty
+--no-workdir/-nw:       always start the container from container\[aq]s home directory
+--additional-flags/-a:  additional flags to pass to the container manager command
+--help/-h:      show this message
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--dry-run/-d:       only print the container manager command generated
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -543,24 +576,6 @@ Supported environment variables:
 DBX_CONTAINER_NAME
 DBX_CONTAINER_MANAGER
 DBX_SKIP_WORKDIR
-\f[R]
-.fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---name/-n:      name for the distrobox                      default: my-distrobox
---/-e:          end arguments execute the rest as command to execute at login   default: bash -l
---no-tty/-T:        do not instantiate a tty
---no-workdir/-nw:       always start the container from container\[aq]s home directory
---additional-flags/-a:  additional flags to pass to the container manager command
---help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---dry-run/-d:       only print the container manager command generated
---verbose/-v:       show more verbosity
---version/-V:       show version
 \f[R]
 .fi
 .PP
@@ -605,82 +620,25 @@ my_var=test
 .\}
 .TH "DISTROBOX-EXPORT" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Application and service exporting
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox-export
+\f[R]
+.fi
+.SH DESCRIPTION
+.PP
+\f[B]Application and service exporting\f[R]
 .PP
 distrobox-export takes care of exporting an app a binary or a service
 from the container to the host.
 .PP
 The exported app will be easily available in your normal launcher and it
 will automatically be launched from the container it is exported from.
+.SH SYNOPSIS
 .PP
-The exported services will be available in the host\[cq]s user\[cq]s
-systemd session, so
-.IP
-.nf
-\f[C]
-systemctl --user status exported_service_name
-\f[R]
-.fi
-.PP
-will show the status of the service exported.
-.PP
-The exported binaries will be exported in the \[lq]\[en]export-path\[rq]
-of choice as a wrapper script that acts naturally both on the host and
-in the container.
-Note that \[lq]\[en]export-path\[rq] is NOT OPTIONAL, you have to
-explicitly set it.
-.PP
-You can specify additional flags to add to the command, for example if
-you want to export an electron app, you could add the
-\[lq]\[en]foreground\[rq] flag to the command:
-.IP
-.nf
-\f[C]
-distrobox-export --app atom --extra-flags \[dq]--foreground\[dq]
-distrobox-export --bin /usr/bin/vim --export-path \[ti]/.local/bin --extra-flags \[dq]-p\[dq]
-distrobox-export --service syncthing --extra-flags \[dq]-allow-newer-config\[dq]
-\f[R]
-.fi
-.PP
-This works for services, binaries, and apps.
-Extra flags are only used then the exported app, binary, or service is
-used from the host, using them inside the container will not include
-them.
-.PP
-The option \[lq]\[en]delete\[rq] will un-export an app, binary, or
-service.
-.IP
-.nf
-\f[C]
-distrobox-export --app atom --delete
-distrobox-export --bin /usr/bin/vim --export-path \[ti]/.local/bin --delete
-distrobox-export --service syncthing --delete
-distrobox-export --service nginx --delete
-\f[R]
-.fi
-.PP
-The option \[lq]\[en]sudo\[rq] will launch the exported item as root
-inside the distrobox.
-.PP
-Note you can use \[en]app OR \[en]bin OR \[en]service but not together.
-.IP
-.nf
-\f[C]
-distrobox-export --service nginx --sudo
-\f[R]
-.fi
-.PP
-Usage:
-.IP
-.nf
-\f[C]
-distrobox-export --app mpv [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
-distrobox-export --service syncthing [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
-distrobox-export --bin /path/to/bin --export-path \[ti]/.local/bin [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
-\f[R]
-.fi
-.PP
-Options:
+\f[B]distrobox-export\f[R]
 .IP
 .nf
 \f[C]
@@ -703,8 +661,17 @@ You may want to install graphical applications or user services in your
 distrobox.
 Using \f[V]distrobox-export\f[R] from \f[B]inside\f[R] the container
 will let you use them from the host itself.
+.SH EXAMPLES
+.IP
+.nf
+\f[C]
+distrobox-export --app mpv [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
+distrobox-export --service syncthing [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
+distrobox-export --bin /path/to/bin --export-path \[ti]/.local/bin [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
+\f[R]
+.fi
 .PP
-App export example:
+\f[B]App export example\f[R]
 .IP
 .nf
 \f[C]
@@ -718,7 +685,7 @@ with needed icons, add the prefix
 commands to run, and save them in your home to be used directly from the
 host as a normal app.
 .PP
-Service export example:
+\f[B]Service export example\f[R]
 .IP
 .nf
 \f[C]
@@ -732,7 +699,18 @@ container to a \f[V]systemctl --user\f[R] service, prefixing the various
 \f[V]ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost\f[R]
 with the \f[V]distrobox-enter\f[R] command prefix.
 .PP
-Binary export example:
+The exported services will be available in the host\[cq]s user\[cq]s
+systemd session, so
+.IP
+.nf
+\f[C]
+systemctl --user status exported_service_name
+\f[R]
+.fi
+.PP
+will show the status of the service exported.
+.PP
+\f[B]Binary export example\f[R]
 .IP
 .nf
 \f[C]
@@ -746,6 +724,60 @@ create a little wrapper script that will \f[V]distrobox-enter -e\f[R]
 from the host, the desired binary.
 This can be handy with the use of \f[V]direnv\f[R] to have different
 versions of the same binary based on your \f[V]env\f[R] or project.
+.PP
+The exported binaries will be exported in the \[lq]\[en]export-path\[rq]
+of choice as a wrapper script that acts naturally both on the host and
+in the container.
+Note that \[lq]\[en]export-path\[rq] is NOT OPTIONAL, you have to
+explicitly set it.
+.PP
+\f[B]Additional flags\f[R]
+.PP
+You can specify additional flags to add to the command, for example if
+you want to export an electron app, you could add the
+\[lq]\[en]foreground\[rq] flag to the command:
+.IP
+.nf
+\f[C]
+distrobox-export --app atom --extra-flags \[dq]--foreground\[dq]
+distrobox-export --bin /usr/bin/vim --export-path \[ti]/.local/bin --extra-flags \[dq]-p\[dq]
+distrobox-export --service syncthing --extra-flags \[dq]-allow-newer-config\[dq]
+\f[R]
+.fi
+.PP
+This works for services, binaries, and apps.
+Extra flags are only used then the exported app, binary, or service is
+used from the host, using them inside the container will not include
+them.
+.PP
+\f[B]Unexport\f[R]
+.PP
+The option \[lq]\[en]delete\[rq] will un-export an app, binary, or
+service.
+.IP
+.nf
+\f[C]
+distrobox-export --app atom --delete
+distrobox-export --bin /usr/bin/vim --export-path \[ti]/.local/bin --delete
+distrobox-export --service syncthing --delete
+distrobox-export --service nginx --delete
+\f[R]
+.fi
+.PP
+\f[B]Run as root in the container\f[R]
+.PP
+The option \[lq]\[en]sudo\[rq] will launch the exported item as root
+inside the distrobox.
+.PP
+\f[B]Notes\f[R]
+.PP
+Note you can use \[en]app OR \[en]bin OR \[en]service but not together.
+.IP
+.nf
+\f[C]
+distrobox-export --service nginx --sudo
+\f[R]
+.fi
 .PP
 [IMAGE: app-export (https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)]
 .PP
@@ -774,7 +806,14 @@ option to provide a series of flags, for example:
 .\}
 .TH "DISTROBOX-HOST-EXEC" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Host Command Execution
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox-host-exec
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-host-exec lets one execute command on the host, while inside
 of a container.
@@ -784,6 +823,7 @@ is used, and it is the most powerful and recommended method.
 If, instead, \[lq]flatpak-spawn\[rq] can\[cq]t be found, it still try to
 get the job done with \[lq]chroot\[rq] (but beware that not all
 commands/programs will work well in this mode).
+.SH SYNOPSIS
 .PP
 Just pass to \[lq]distrobox-host-exec\[rq] any command and all its
 arguments, if any.
@@ -791,12 +831,15 @@ arguments, if any.
 .nf
 \f[C]
 distrobox-host-exec [command [arguments]]
+
+--help/-h:      show this message
+--verbose/-v:       show more verbosity
+--version/-V:       show version
 \f[R]
 .fi
 .PP
 If no command is provided, it will execute \[lq]/bin/sh\[rq].
-.PP
-Example usage:
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -804,16 +847,6 @@ distrobox-host-exec ls
 distrobox-host-exec bash -l
 distrobox-host-exec flatpak run org.mozilla.firefox
 distrobox-host-exec podman ps -a
-\f[R]
-.fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---help/-h:      show this message
---verbose/-v:       show more verbosity
---version/-V:       show version
 \f[R]
 .fi
 .\
@@ -834,28 +867,30 @@ Options:
 .\}
 .TH "DISTROBOX-INIT" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Init the distrobox (not to be launched manually)
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox-init
+\f[R]
+.fi
+.SH DESCRIPTION
+.PP
+\f[B]Init the distrobox (not to be launched manually)\f[R]
 .PP
 distrobox-init is the entrypoint of a created distrobox.
 Note that this HAS to run from inside a distrobox, will not work if you
 run it from your host.
 .PP
-This is not intended to be used manually, but instead used by
-distrobox-enter to set up the container\[cq]s entrypoint.
+\f[B]This is not intended to be used manually, but instead used by
+distrobox-create to set up the container\[cq]s entrypoint.\f[R]
 .PP
 distrobox-init will take care of installing missing dependencies (eg.
 sudo), set up the user and groups, mount directories from the host to
 ensure the tight integration.
+.SH SYNOPSIS
 .PP
-Usage:
-.IP
-.nf
-\f[C]
-distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
-\f[R]
-.fi
-.PP
-Options:
+\f[B]distrobox-init\f[R]
 .IP
 .nf
 \f[C]
@@ -871,12 +906,13 @@ Options:
 --:         end arguments execute the rest as command to execute during init
 \f[R]
 .fi
-.PP
-This is used as entrypoint for the created container, it will take care
-of creating the users, setting up sudo, mountpoints, and exports.
-.PP
-\f[B]You should not have to launch this manually\f[R], this is used by
-\f[V]distrobox create\f[R] to set up container\[cq]s entrypoint.
+.SH EXAMPLES
+.IP
+.nf
+\f[C]
+distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
+\f[R]
+.fi
 .\
 .\"
 .\" Define V font for inline verbatim, using C font in formats
@@ -895,13 +931,34 @@ of creating the users, setting up sudo, mountpoints, and exports.
 .\}
 .TH "DISTROBOX-LIST" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH List containers
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox list
+distrobox-list
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-list lists available distroboxes.
 It detects them and lists them separately from the rest of normal podman
 or docker containers.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox list\f[R]
+.IP
+.nf
+\f[C]
+--help/-h:      show this message
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--size/-s:      show also container size
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -925,19 +982,6 @@ DBX_CONTAINER_MANAGER
 \f[R]
 .fi
 .PP
-Options:
-.IP
-.nf
-\f[C]
---help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---size/-s:      show also container size
---verbose/-v:       show more verbosity
---version/-V:       show version
-\f[R]
-.fi
-.PP
 [IMAGE: image (https://user-images.githubusercontent.com/598882/147831082-24b5bc2e-b47e-49ac-9b1a-a209478c9705.png)]
 .\
 .\"
@@ -957,11 +1001,33 @@ Options:
 .\}
 .TH "DISTROBOX-RM" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Remove containers
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox rm
+distrobox-rm
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-rm delete one of the available distroboxes.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox rm\f[R]
+.IP
+.nf
+\f[C]
+--name/-n:      name for the distrobox
+--force/-f:     force deletion
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--help/-h:      show this message
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -988,20 +1054,6 @@ DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
 \f[R]
 .fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---name/-n:      name for the distrobox
---force/-f:     force deletion
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---help/-h:      show this message
---verbose/-v:       show more verbosity
---version/-V:       show version
-\f[R]
-.fi
 .\
 .\"
 .\" Define V font for inline verbatim, using C font in formats
@@ -1020,15 +1072,37 @@ Options:
 .\}
 .TH "DISTROBOX-STOP" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Stop containers
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox stop
+distrobox-stop
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-stop stop a running distrobox.
 .PP
 Distroboxes are left running, even after exiting out of them, so that
 subsequent enters are really quick.
 This is how they can be stopped.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox stop\f[R]
+.IP
+.nf
+\f[C]
+--name/-n:      name for the distrobox
+--yes/-Y:       non-interactive, stop without asking
+--help/-h:      show this message
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -1053,19 +1127,5 @@ Supported environment variables:
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
-\f[R]
-.fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---name/-n:      name for the distrobox
---yes/-Y:       non-interactive, stop without asking
---help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---verbose/-v:       show more verbosity
---version/-V:       show version
 \f[R]
 .fi

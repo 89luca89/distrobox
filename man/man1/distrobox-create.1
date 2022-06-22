@@ -16,15 +16,60 @@
 .\}
 .TH "DISTROBOX-CREATE" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Create the distrobox
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox create
+distrobox-create
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-create takes care of creating the container with input name
 and image.
 The created container will be tightly integrated with the host, allowing
 sharing of the HOME directory of the user, external storage, external
 usb devices and graphical apps (X11/Wayland), and audio.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox create\f[R]
+.IP
+.nf
+\f[C]
+--image/-i:     image to use for the container  default: registry.fedoraproject.org/fedora-toolbox:36
+--name/-n:      name for the distrobox      default: my-distrobox
+--pull/-p:      pull latest image unconditionally without asking
+--yes/-Y:       non-interactive, pull images without asking
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--clone/-c:     name of the distrobox container to use as base for a new container
+            this will be useful to either rename an existing distrobox or have multiple copies
+            of the same environment.
+--home/-H       select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
+--volume        additional volumes to add to the container
+--additional-flags/-a:  additional flags to pass to the container manager command
+--init-hooks        additional commands to execute during container initialization
+--pre-init-hooks    additional commands to execute prior to container initialization
+--init/-I       use init system (like systemd) inside the container.
+            this will make host\[aq]s processes not visible from within the container.
+--help/-h:      show this message
+--dry-run/-d:       only print the container manager command generated
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH COMPATIBILITY
+.IP
+.nf
+\f[C]
+for a list of compatible images and container managers, please consult the man page:
+    man distrobox
+    man distrobox-compatibility
+or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#containers-distros
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -58,44 +103,6 @@ DBX_CONTAINER_IMAGE
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
-\f[R]
-.fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---image/-i:     image to use for the container  default: registry.fedoraproject.org/fedora-toolbox:36
---name/-n:      name for the distrobox      default: my-distrobox
---pull/-p:      pull latest image unconditionally without asking
---yes/-Y:       non-interactive, pull images without asking
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---clone/-c:     name of the distrobox container to use as base for a new container
-            this will be useful to either rename an existing distrobox or have multiple copies
-            of the same environment.
---home/-H       select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
---volume        additional volumes to add to the container
---additional-flags/-a:  additional flags to pass to the container manager command
---init-hooks        additional commands to execute during container initialization
---pre-init-hooks    additional commands to execute prior to container initialization
---init/-I       use init system (like systemd) inside the container.
-            this will make host\[aq]s processes not visible from within the container.
---help/-h:      show this message
---dry-run/-d:       only print the container manager command generated
---verbose/-v:       show more verbosity
---version/-V:       show version
-\f[R]
-.fi
-.PP
-Compatibility:
-.IP
-.nf
-\f[C]
-for a list of compatible images and container managers, please consult the man page:
-    man distrobox
-    man distrobox-compatibility
-or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#containers-distros
 \f[R]
 .fi
 .PP

@@ -16,15 +16,37 @@
 .\}
 .TH "DISTROBOX-STOP" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Stop containers
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox stop
+distrobox-stop
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-stop stop a running distrobox.
 .PP
 Distroboxes are left running, even after exiting out of them, so that
 subsequent enters are really quick.
 This is how they can be stopped.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox stop\f[R]
+.IP
+.nf
+\f[C]
+--name/-n:      name for the distrobox
+--yes/-Y:       non-interactive, stop without asking
+--help/-h:      show this message
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -49,19 +71,5 @@ Supported environment variables:
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
-\f[R]
-.fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---name/-n:      name for the distrobox
---yes/-Y:       non-interactive, stop without asking
---help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---verbose/-v:       show more verbosity
---version/-V:       show version
 \f[R]
 .fi

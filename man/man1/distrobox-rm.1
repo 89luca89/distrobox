@@ -16,11 +16,33 @@
 .\}
 .TH "DISTROBOX-RM" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Remove containers
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox rm
+distrobox-rm
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-rm delete one of the available distroboxes.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox rm\f[R]
+.IP
+.nf
+\f[C]
+--name/-n:      name for the distrobox
+--force/-f:     force deletion
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--help/-h:      show this message
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -45,19 +67,5 @@ Supported environment variables:
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
-\f[R]
-.fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---name/-n:      name for the distrobox
---force/-f:     force deletion
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---help/-h:      show this message
---verbose/-v:       show more verbosity
---version/-V:       show version
 \f[R]
 .fi

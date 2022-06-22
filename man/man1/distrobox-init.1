@@ -16,28 +16,30 @@
 .\}
 .TH "DISTROBOX-INIT" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Init the distrobox (not to be launched manually)
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox-init
+\f[R]
+.fi
+.SH DESCRIPTION
+.PP
+\f[B]Init the distrobox (not to be launched manually)\f[R]
 .PP
 distrobox-init is the entrypoint of a created distrobox.
 Note that this HAS to run from inside a distrobox, will not work if you
 run it from your host.
 .PP
-This is not intended to be used manually, but instead used by
-distrobox-enter to set up the container\[cq]s entrypoint.
+\f[B]This is not intended to be used manually, but instead used by
+distrobox-create to set up the container\[cq]s entrypoint.\f[R]
 .PP
 distrobox-init will take care of installing missing dependencies (eg.
 sudo), set up the user and groups, mount directories from the host to
 ensure the tight integration.
+.SH SYNOPSIS
 .PP
-Usage:
-.IP
-.nf
-\f[C]
-distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
-\f[R]
-.fi
-.PP
-Options:
+\f[B]distrobox-init\f[R]
 .IP
 .nf
 \f[C]
@@ -53,9 +55,10 @@ Options:
 --:         end arguments execute the rest as command to execute during init
 \f[R]
 .fi
-.PP
-This is used as entrypoint for the created container, it will take care
-of creating the users, setting up sudo, mountpoints, and exports.
-.PP
-\f[B]You should not have to launch this manually\f[R], this is used by
-\f[V]distrobox create\f[R] to set up container\[cq]s entrypoint.
+.SH EXAMPLES
+.IP
+.nf
+\f[C]
+distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
+\f[R]
+.fi

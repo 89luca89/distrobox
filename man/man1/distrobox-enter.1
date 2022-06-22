@@ -16,7 +16,15 @@
 .\}
 .TH "DISTROBOX-ENTER" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH Enter the distrobox
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox enter
+distrobox-enter
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-enter takes care of entering the container with the name
 specified.
@@ -24,8 +32,26 @@ Default command executed is your SHELL, but you can specify different
 shells or entire commands to execute.
 If using it inside a script, an application, or a service, you can
 specify the \[en]headless mode to disable tty and interactivity.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox enter\f[R]
+.IP
+.nf
+\f[C]
+--name/-n:      name for the distrobox                      default: my-distrobox
+--/-e:          end arguments execute the rest as command to execute at login   default: bash -l
+--no-tty/-T:        do not instantiate a tty
+--no-workdir/-nw:       always start the container from container\[aq]s home directory
+--additional-flags/-a:  additional flags to pass to the container manager command
+--help/-h:      show this message
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--dry-run/-d:       only print the container manager command generated
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -53,24 +79,6 @@ Supported environment variables:
 DBX_CONTAINER_NAME
 DBX_CONTAINER_MANAGER
 DBX_SKIP_WORKDIR
-\f[R]
-.fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---name/-n:      name for the distrobox                      default: my-distrobox
---/-e:          end arguments execute the rest as command to execute at login   default: bash -l
---no-tty/-T:        do not instantiate a tty
---no-workdir/-nw:       always start the container from container\[aq]s home directory
---additional-flags/-a:  additional flags to pass to the container manager command
---help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---dry-run/-d:       only print the container manager command generated
---verbose/-v:       show more verbosity
---version/-V:       show version
 \f[R]
 .fi
 .PP

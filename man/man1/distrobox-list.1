@@ -16,13 +16,34 @@
 .\}
 .TH "DISTROBOX-LIST" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
-.SH List containers
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox list
+distrobox-list
+\f[R]
+.fi
+.SH DESCRIPTION
 .PP
 distrobox-list lists available distroboxes.
 It detects them and lists them separately from the rest of normal podman
 or docker containers.
+.SH SYNOPSIS
 .PP
-Usage:
+\f[B]distrobox list\f[R]
+.IP
+.nf
+\f[C]
+--help/-h:      show this message
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--size/-s:      show also container size
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
 .IP
 .nf
 \f[C]
@@ -43,19 +64,6 @@ Supported environment variables:
 .nf
 \f[C]
 DBX_CONTAINER_MANAGER
-\f[R]
-.fi
-.PP
-Options:
-.IP
-.nf
-\f[C]
---help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
---size/-s:      show also container size
---verbose/-v:       show more verbosity
---version/-V:       show version
 \f[R]
 .fi
 .PP
