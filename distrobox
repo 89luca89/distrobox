@@ -42,6 +42,7 @@ Choose one of the available commands:
 	stop
 	rm
 	version
+	temporary
 EOF
 }
 
@@ -71,6 +72,14 @@ case "${distrobox_command}" in
 		;;
 	rm)
 		"${distrobox_path}"/distrobox-rm "$@"
+		;;
+	temp*)
+		name=$(mktemp -u distrobox-XXXXXXXXXX)
+		"${distrobox_path}"/distrobox-create -i "$1" -n "${name}" -Y
+		"${distrobox_path}"/distrobox-enter "${name}"
+		"${distrobox_path}"/distrobox-stop "${name}" -Y
+		"${distrobox_path}"/distrobox-rm "${name}" -Y
+		echo "temporary distrobox removed"
 		;;
 	-V | --version | version)
 		printf "distrobox: %s\n" "${version}"
