@@ -309,7 +309,16 @@ export_application() {
 		/var/lib/flatpak/exports/share/applications/* \
 		"${HOME}"/.local/share/applications/* 2>/dev/null || :)
 
-	desktop_files=$(grep -riL "Exec=.*$(basename "${0}").*" "${desktop_files}")
+	EXE_NAME=$(basename "${0}")
+
+	desktop_files=$(
+		find /usr/share/applications \
+			/var/lib/flatpak/exports/share/applications \
+			"${HOME}"/.local/share/applications \
+			-type f \
+			-exec grep -qile "Exec=.*${exported_app}.*" {} \; \
+			-exec grep -iLe "Exec=.*${EXE_NAME%%-*}.*" {} \;
+	)
 
 	# Ensure the app we're exporting is installed
 	# Check that we found some desktop files first.
