@@ -38,11 +38,11 @@ distrobox version: ${version}
 Choose one of the available commands:
 	create
 	enter
+	ephemeral
 	list
-	stop
 	rm
+	stop
 	version
-	temporary
 EOF
 }
 
