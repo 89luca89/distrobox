@@ -1,0 +1,126 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+# Optional env variables:
+#	DBX_CONTAINER_MANAGER
+#   DBX_CONTAINER_NAME
+#   DBX_NON_INTERACTIVE
+
+# Dont' run this command as sudo.
+if [ "$(id -u)" -eq 0 ]; then
+	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
+	printf >&2 " try instead running:\n"
+	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
+	exit 1
+fi
+
+container_command=""
+create_flags=""
+distrobox_path="$(dirname "${0}")"
+extra_flags=""
+rootful=0
+verbose=0
+version="1.3.2"
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	cat << EOF
+distrobox version: ${version}
+
+Usage:
+
+	distrobox-rm --name container-name [--force]
+	distrobox-rm container-name [-f]
+
+Options:
+
+	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+				way over "sudo distrobox"
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+EOF
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-r | --root)
+			shift
+			rootful=1
+			;;
+		-v | --verbose)
+			verbose=1
+			shift
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		-e | --exec | --)
+			shift
+			container_command="-- $*"
+			break
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			# If we have a flagless option and container_name is not specified
+			# then let's accept argument as container_name
+			if [ -n "$1" ]; then
+				create_flags="${create_flags} $1"
+				shift
+			else
+				break
+			fi
+			;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+	extra_flags="${extra_flags} --verbose"
+fi
+
+# prepend sudo if we want podman or docker to be rootful
+if [ "${rootful}" -ne 0 ]; then
+	extra_flags="${extra_flags} --root"
+fi
+
+name=$(  mktemp -u distrobox-XXXXXXXXXX)
+# shellcheck disable=SC2086
+"${distrobox_path}"/distrobox-create --name ${name} -Y ${create_flags} ${extra_flags}
+# shellcheck disable=SC2086
+"${distrobox_path}"/distrobox-enter "${name}" ${container_command} ${extra_flags}
+# shellcheck disable=SC2086
+"${distrobox_path}"/distrobox-stop "${name}" -Y ${extra_flags}
+# shellcheck disable=SC2086
+"${distrobox_path}"/distrobox-rm "${name}" -Y ${extra_flags}
