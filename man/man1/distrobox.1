@@ -618,6 +618,86 @@ my_var=test
 . ftr VB CB
 . ftr VBI CBI
 .\}
+.TH "DISTROBOX-EPHEMERAL" "1" "Jun 2022" "Distrobox" "User Manual"
+.hy
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox ephemeral
+distrobox-ephemeral
+\f[R]
+.fi
+.SH DESCRIPTION
+.PP
+distrobox-ephemeral creates a temporary distrobox that is automatically
+destroyed when the command is terminated.
+.SH SYNOPSIS
+.PP
+\f[B]distrobox ephemeral\f[R]
+.IP
+.nf
+\f[C]
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq]
+--verbose/-v:       show more verbosity
+--help/-h:      show this message
+--/-e:          end arguments execute the rest as command to execute at login   default: bash -l
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
+.IP
+.nf
+\f[C]
+distrobox-ephemeral --image alpine:latest -- cat /etc/os-release
+distrobox-ephemeral --root --verbose --image alpine:latest --volume /opt:/opt
+\f[R]
+.fi
+.PP
+You can also use flags from \f[B]distrobox-create\f[R] to customize the
+ephemeral container to run.
+.PP
+Refer to
+.IP
+.nf
+\f[C]
+man distrobox-create
+\f[R]
+.fi
+.PP
+or
+.IP
+.nf
+\f[C]
+distrobox-create --help
+\f[R]
+.fi
+.PP
+Supported environment variables:
+.IP
+.nf
+\f[C]
+distrobox-ephemeral calls distrobox-create, SEE ALSO distrobox-create(1) for
+a list of supported environment variables to use.
+\f[R]
+.fi
+.\
+.\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
 .TH "DISTROBOX-EXPORT" "1" "Jun 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
