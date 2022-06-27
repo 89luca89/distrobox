@@ -51,16 +51,24 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-rm --name container-name [--force]
-	distrobox-rm container-name [-f]
+	distrobox-ephemeral --name container-name [--force]
 
 Options:
 
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox"
-	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
+	--help/-h:		show this message
+	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
 	--version/-V:		show version
+
+See also:
+
+	distrobox-create --help
+
+	for a list of additional flags to specify during the creation.
+	distrobox-ephemeral can use all flags from distrobox-create.
+
 EOF
 }
 
@@ -117,10 +125,10 @@ fi
 
 name=$(  mktemp -u distrobox-XXXXXXXXXX)
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-create --name ${name} -Y ${create_flags} ${extra_flags}
+"${distrobox_path}"/distrobox-create --name ${name} --yes ${create_flags} ${extra_flags}
 # shellcheck disable=SC2086
 "${distrobox_path}"/distrobox-enter "${name}" ${container_command} ${extra_flags}
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-stop "${name}" -Y ${extra_flags}
+"${distrobox_path}"/distrobox-stop "${name}" --yes ${extra_flags}
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-rm "${name}" -Y ${extra_flags}
+"${distrobox_path}"/distrobox-rm --force "${name}" --yes ${extra_flags}
