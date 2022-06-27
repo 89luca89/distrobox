@@ -303,6 +303,13 @@ export_binary() {
 #	or error code.
 export_application() {
 
+	# In this phase we search for applications to export.
+	# First find command will grep throught all files in the canonical directories
+	# and only list files that contain the $exported_app, excluding those that
+	# already contains a distrobox-enter command. So skipping already exported apps.
+	# Second find will list all files that contain the name specified, so that
+	# it is possible to export an app not only by its executable name but also
+	# by its launcher name.
 	desktop_files=$(
 		find /usr/share/applications \
 			/usr/local/share/applications \
