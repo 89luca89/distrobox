@@ -47,6 +47,7 @@ graphical apps (X11/Wayland), and audio.
   - [Outside the distrobox](usage/usage.md#outside-the-distrobox)
     - [distrobox-create](usage/distrobox-create.md)
     - [distrobox-enter](usage/distrobox-enter.md)
+    - [distrobox-ephemeral](usage/distrobox-ephemeral.md)
     - [distrobox-list](usage/distrobox-list.md)
     - [distrobox-rm](usage/distrobox-rm.md)
     - [distrobox-stop](usage/distrobox-stop.md)
