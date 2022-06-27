@@ -38,9 +38,10 @@ distrobox version: ${version}
 Choose one of the available commands:
 	create
 	enter
+	ephemeral
 	list
-	stop
 	rm
+	stop
 	version
 EOF
 }
@@ -71,6 +72,9 @@ case "${distrobox_command}" in
 		;;
 	rm)
 		"${distrobox_path}"/distrobox-rm "$@"
+		;;
+	ephemeral*)
+		"${distrobox_path}"/distrobox-ephemeral "$@"
 		;;
 	-V | --version | version)
 		printf "distrobox: %s\n" "${version}"

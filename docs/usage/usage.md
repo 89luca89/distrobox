@@ -2,6 +2,7 @@
   - [Outside the distrobox](#outside-the-distrobox)
     - [distrobox-create](distrobox-create.md)
     - [distrobox-enter](distrobox-enter.md)
+    - [distrobox-ephemeral](distrobox-ephemeral.md)
     - [distrobox-list](distrobox-list.md)
     - [distrobox-rm](distrobox-rm.md)
     - [distrobox-stop](distrobox-stop.md)
