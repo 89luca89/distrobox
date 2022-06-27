@@ -303,10 +303,27 @@ export_binary() {
 #	or error code.
 export_application() {
 
-	# Find desktop file for the application to export
-	desktop_files=$(grep -ril "Exec=.*${exported_app}" \
-		/usr/share/applications/* \
-		/var/lib/flatpak/exports/share/applications/* 2> /dev/null || :)
+	# In this phase we search for applications to export.
+	# First find command will grep throught all files in the canonical directories
+	# and only list files that contain the $exported_app, excluding those that
+	# already contains a distrobox-enter command. So skipping already exported apps.
+	# Second find will list all files that contain the name specified, so that
+	# it is possible to export an app not only by its executable name but also
+	# by its launcher name.
+	desktop_files=$(
+		find /usr/share/applications \
+			/usr/local/share/applications \
+			/var/lib/flatpak/exports/share/applications \
+			"${HOME}"/.local/share/applications \
+			-type f \
+			-exec grep -qle "Exec=.*${exported_app}.*" {} \; \
+			-exec grep -Le "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox-enter"}.*" {} \;
+		find /usr/share/applications \
+			/usr/local/share/applications \
+			/var/lib/flatpak/exports/share/applications \
+			"${HOME}"/.local/share/applications \
+			-name "${exported_app}*"
+	)
 
 	# Ensure the app we're exporting is installed
 	# Check that we found some desktop files first.
