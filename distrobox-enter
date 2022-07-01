@@ -27,6 +27,7 @@
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
 #	DBX_SKIP_WORKDIR
+#   DBX_SUDO_PROGRAM
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f "/tmp/.*.fifo"' EXIT
 
@@ -51,6 +52,7 @@ container_manager="autodetect"
 container_name="my-distrobox"
 container_manager_additional_flags=""
 non_interactive=0
+distrobox_sudo_program="sudo"
 
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
@@ -86,6 +88,7 @@ done
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_SKIP_WORKDIR}" ] && skip_workdir="${DBX_SKIP_WORKDIR}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
+[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
 # Print usage to stdout.
 # Arguments:
@@ -113,7 +116,10 @@ Options:
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
-				way over "sudo distrobox"
+				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
+				refer to --sudo-program)
+	--sudo-program		when used with --root, specifies a program other than the default 'sudo' with which to launch podman/docker
+				with root privileges (common options include 'pkexec' for a graphical root authentication prompt, 'doas', and so on)
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -155,6 +161,13 @@ while :; do
 		-n | --name)
 			if [ -n "$2" ]; then
 				container_name="$2"
+				shift
+				shift
+			fi
+			;;
+		--sudo-program)
+			if [ -n "$2" ]; then
+				distrobox_sudo_program="$2"
 				shift
 				shift
 			fi
@@ -252,9 +265,18 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
-# prepend sudo if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-	container_manager="sudo ${container_manager}"
+
+	# make sure the given sudo program exists
+	if ! command -v "${distrobox_sudo_program}" > /dev/null; then
+		printf >&2 "Invalid sudo program specified for usage in\n"
+		printf >&2 "managing rootful containers. Please specify\n"
+		printf >&2 "a valid command for the sudo program option, or\n"
+		printf >&2 "do not specify it to use the default 'sudo'."
+		exit 127
+	fi
+	container_manager="${distrobox_sudo_program} ${container_manager}"
 fi
 
 # Generate Podman or Docker command to execute.

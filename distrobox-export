@@ -40,7 +40,8 @@ extra_flags=""
 #	DBX_HOST_HOME is set in case container is created
 #	with custom --home directory
 host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
-is_sudo=""
+is_sudo=0
+sudo_program=""
 rootful=""
 verbose=0
 version="1.3.2"
@@ -65,9 +66,9 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --service syncthing.service [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program]
+	distrobox-export --service syncthing.service [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program]
+	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program]
 
 Options:
 
@@ -79,7 +80,10 @@ Options:
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-	--sudo/-S:		specify if the exported item should be ran as sudo
+	--sudo/-S:		specify if the exported item should be ran as sudo (note: if using a program other than 'sudo' for root privileges on
+				the host is necessary, refer to --sudo-program)
+	--sudo-program		when used with --sudo, specifies a program other than the default 'sudo' with which to launch the exported app
+				with root privileges (common options include 'pkexec' for a graphical root authentication prompt, 'doas', and so on)
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -126,9 +130,16 @@ while :; do
 				shift
 			fi
 			;;
-		-S | --sudo)
-			is_sudo="sudo"
+		-S | --sudo)  # keep param for backwards compatibility
+			is_sudo=1
 			shift
+			;;
+		--sudo-program)
+			if [ -n "$2" ]; then
+				sudo_program="$2"
+				shift
+				shift
+			fi
 			;;
 		-el | --export-label)
 			if [ -n "$2" ]; then
@@ -214,10 +225,23 @@ if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
 	exit 2
 fi
 
+# If --sudo-program was specified, ensure --sudo was also given
+if [ "${is_sudo}" -eq 0 ] && [ -n "${sudo_program}" ]; then
+	printf >&2 "Error: The option --sudo-program may only be used together\n"
+	printf >&2 "with --sudo."
+	exit 2
+fi
+
+# If --sudo was specified, but --sudo-program wasn't, then default to using
+# "sudo" as the sudo program.
+if [ "${is_sudo}" -ne 0 ] && [ -z "${sudo_program}" ]; then
+	sudo_program="sudo"
+fi
+
 # We can assume this as we set it the same as container name during creation.
 container_name=$(uname -n | cut -d'.' -f1)
 # Prefix to add to an existing command to work throught the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- '${is_sudo} "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- '${sudo_program} "
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
 fi
@@ -234,7 +258,7 @@ generate_script() {
 # name: ${container_name}
 if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
     ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
-		${is_sudo} ${exported_bin} ${extra_flags} \$@
+		${sudo_program} ${exported_bin} ${extra_flags} \$@
 else
     ${exported_bin} \$@
 fi

@@ -79,6 +79,24 @@ with your `$USER`.
 
 `distrobox create --name test --image your-choosen-image:tag --root`
 
+## Using a command other than `sudo` to run a rootful container
+
+When using the `--root` option with Distrobox, internally, it uses `sudo` to be able to
+interact with the rootful container, which will prompt for a valid root password on the
+terminal. However, some users might prefer to use a command other than `sudo` in order to
+authenticate as root; for example, `pkexec` could be used to display a graphical
+authentication prompt. If you need this, make sure to specify the desired command
+through the `--sudo-program` option (supported by most `distrobox` subcommands),
+alongside `--root`.
+
+For example, to use `pkexec` to prompt for a valid root password while creating a rootful container:
+
+`distrobox create --name test --image your-chosen-image:tag --root --sudo-program pkexec`
+
+You may also use the environment variable `DBX_SUDO_PROGRAM` for the same purpose:
+
+`DBX_SUDO_PROGRAM="pkexec" distrobox create --name test --image your-chosen-image:tag --root`
+
 ## Duplicate an existing distrobox
 
 It can be useful to just duplicate an already set up environment, to do this,

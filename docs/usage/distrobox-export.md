@@ -26,7 +26,11 @@ automatically be launched from the container it is exported from.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-	--sudo/-S:		specify if the exported item should be ran as sudo
+	--sudo/-S:		specify if the exported item should be run as sudo (note: if using a program
+				other than 'sudo' for root privileges on the host is necessary, refer to --sudo-program)
+	--sudo-program		when used with --sudo, specifies a program other than the default 'sudo' with which
+				to launch the exported app with root privileges on the host (common options include 'pkexec'
+				for a graphical root authentication prompt, 'doas', and so on)
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
