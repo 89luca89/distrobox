@@ -26,14 +26,16 @@ automatically be launched from the container it is exported from.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-	--sudo/-S:		specify if the exported item should be run as sudo (refer to --sudo-program if sudo is
-				not available in the container or not desired)
-	--sudo-program:		when used with --sudo, specifies a program other than the default 'sudo' with which to launch the exported app
-				with root privileges inside this container (common options include 'pkexec' for a graphical root authentication prompt,
+	--sudo/-S:		specify if the exported item should be run as sudo (refer to --sudo-program
+				if sudo is not available in the container or not desired)
+	--sudo-program:		when used with --sudo, specifies a program other than the default 'sudo'
+				with which to launch the exported app with root privileges inside this container
+				(common options include 'pkexec' for a graphical root authentication prompt,
 				'doas', and so on)
-	--host-sudo-program:		if this container is rootful, then this parameter specifies the program that should be used
-				in the host to enter this container with root privileges when launching the exported app/service/binary,
-				other than the default 'sudo' (such as 'pkexec' for a graphical authentication prompt)
+	--host-sudo-program:		if this container is rootful, then this parameter specifies the
+				program that should be used in the host to enter this container with root privileges
+				when launching the exported app/service/binary, other than the default 'sudo'
+				(such as 'pkexec' for a graphical authentication prompt)
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -118,8 +120,8 @@ inside the container every time the exported item is launched. For example:
 	distrobox-export --app simplescreenrecorder --sudo --sudo-program doas
 
 This will ensure that `doas` will be used to launch `simplescreenrecorder` in the container
-every time the exported app is opened through its desktop shortcut (as specified in the
-`.desktop` file). Note that the specified command must already exist inside the container.
+every time the exported app is opened through its desktop shortcut (as specified in its
+'.desktop' file). Note that the specified sudo command must already exist inside the container.
 
 **Exporting items from rootful containers**
 
@@ -128,7 +130,7 @@ This means that when an app, service or binary is exported from inside a rootful
 distrobox will automatically use `--root` whenever the exported item is launched from the host.
 However, this means that root privileges are required to run the exported item from the host,
 which is normally handled using `sudo` in the host system. If, however, you'd prefer to use
-a different command to invoke the rootful container with root privileges, such as
+a different command to invoke the rootful container with host root privileges, such as
 `pkexec` - which can be useful for exported apps, as it provides a graphical prompt
 for authentication - or `doas`, make sure to use the `--host-sudo-program` option
 to specify the desired sudo program.

@@ -97,6 +97,11 @@ You may also use the environment variable `DBX_SUDO_PROGRAM` for the same purpos
 
 `DBX_SUDO_PROGRAM="pkexec" distrobox create --name test --image your-chosen-image:tag --root`
 
+Finally, you may also have any further distrobox commands use `pkexec` (for example) for rootful
+containers by appending the line `distrobox_sudo_program="pkexec"` (replace `pkexec` with the
+desired program) to one of the config file paths that distrobox supports; for example,
+to '~/.distroboxrc'.
+
 ## Duplicate an existing distrobox
 
 It can be useful to just duplicate an already set up environment, to do this,
