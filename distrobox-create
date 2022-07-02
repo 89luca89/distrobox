@@ -360,7 +360,16 @@ if [ "${rootful}" -ne 0 ]; then
 		printf >&2 "do not specify it to use the default 'sudo'.\n"
 		exit 127
 	fi
-	container_manager="${distrobox_sudo_program} ${container_manager}"
+
+	distrobox_invoke_container_manager() { # use functions to avoid injection
+		# shellcheck disable=SC2086
+		"${distrobox_sudo_program}" ${container_manager} "$@" # container_manager is safe to expand
+	}
+else
+	distrobox_invoke_container_manager() {
+		# shellcheck disable=SC2086
+		${container_manager} "$@" # container_manager is safe to expand
+	}
 fi
 
 # Clone a container as a snapshot.
@@ -375,7 +384,7 @@ clone_container() {
 	#
 	# to perform this we first ensure the source container exists and that the
 	# source container is stopped, else the clone will not work,
-	container_source_status="$(${container_manager} inspect --type container \
+	container_source_status="$(distrobox_invoke_container_manager inspect --type container \
 		"${container_clone}" --format '{{.State.Status}}')"
 	# If the container is not already running, we need to start if first
 	if [ "${container_source_status}" = "running" ]; then
@@ -386,13 +395,13 @@ clone_container() {
 
 	# Now we can extract the container ID and commit it to use as source image
 	# for the new container.
-	container_source_id="$(${container_manager} inspect --type container \
+	container_source_id="$(distrobox_invoke_container_manager inspect --type container \
 		"${container_clone}" --format '{{.Id}}')"
 	container_commit_tag="$(echo "${container_clone}:$(date +%F)" | tr '[:upper:]' '[:lower:]')"
 
 	# Commit current container state to a new image tag
 	printf >&2 "Duplicating %s...\n" "${container_clone}"
-	if ! ${container_manager} container commit \
+	if ! distrobox_invoke_container_manager container commit \
 		"${container_source_id}" "${container_commit_tag}" > /dev/null; then
 
 		printf >&2 "Cannot clone container: %s\n" "${container_clone}"
@@ -411,8 +420,22 @@ clone_container() {
 # Outputs:
 #   prints the podman or docker command to create the distrobox container
 generate_command() {
+
+	result_command=""
+	if [ "${dryrun}" -ne 0 ]; then # dryrun => can safely prepend sudo to display what is going on
+		# check for sudo
+		if [ "${rootful}" -ne 0 ]; then
+			# Prepend sudo (it's safe since this will only be printed)
+			result_command="${distrobox_sudo_program} "
+		fi
+		result_command="${result_command}${container_manager}"
+	else # we're actually running it => let's use the safe function
+		result_command="distrobox_invoke_container_manager"
+	fi
+
 	# Set the container hostname the same as the container name.
-	result_command="${container_manager} create"
+	result_command="${result_command} create"
+
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
 		--hostname \"${container_name}.$(uname -n)\"
@@ -590,7 +613,7 @@ fi
 
 # Check if the container already exists.
 # If it does, notify the user and exit.
-if ${container_manager} inspect --type container "${container_name}" > /dev/null 2>&1; then
+if distrobox_invoke_container_manager inspect --type container "${container_name}" > /dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
@@ -613,7 +636,7 @@ fi
 # First, check if the image exists in the host or auto-pull is enabled
 # If not prompt to download it.
 if [ "${container_always_pull}" -eq 1 ] ||
-	! ${container_manager} inspect --type image "${container_image}" > /dev/null 2>&1; then
+	! distrobox_invoke_container_manager inspect --type image "${container_image}" > /dev/null 2>&1; then
 
 	# If we do auto-pull, don't ask questions
 	if [ "${non_interactive}" -eq 1 ] || [ "${container_always_pull}" -eq 1 ]; then
@@ -630,11 +653,15 @@ if [ "${container_always_pull}" -eq 1 ] ||
 	case "${response}" in
 		y | Y | Yes | yes | YES)
 			# Pull the image
-			${container_manager} pull "${container_image}"
+			distrobox_invoke_container_manager pull "${container_image}"
 			;;
 		n | N | No | no | NO)
 			printf >&2 "next time, run this command first:\n"
-			printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
+			if [ "${rootful}" -ne 0 ]; then # prepend sudo
+				printf >&2 "\t%s pull %s\n" "${distrobox_sudo_program} ${container_manager}" "${container_image}"
+			else
+				printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
+			fi
 			exit 0
 			;;
 		*) # Default case: If no more options then break out of the loop.

@@ -276,7 +276,16 @@ if [ "${rootful}" -ne 0 ]; then
 		printf >&2 "do not specify it to use the default 'sudo'.\n"
 		exit 127
 	fi
-	container_manager="${distrobox_sudo_program} ${container_manager}"
+
+	distrobox_invoke_container_manager() { # use functions to avoid injection
+		# shellcheck disable=SC2086
+		"${distrobox_sudo_program}" ${container_manager} "$@" # container_manager is safe to expand
+	}
+else
+	distrobox_invoke_container_manager() {
+		# shellcheck disable=SC2086
+		${container_manager} "$@" # container_manager is safe to expand
+	}
 fi
 
 # Generate Podman or Docker command to execute.
@@ -285,7 +294,20 @@ fi
 # Outputs:
 #   prints the podman or docker command to enter the distrobox container
 generate_command() {
-	result_command="${container_manager} exec"
+
+	result_command=""
+	if [ "${dryrun}" -ne 0 ]; then # dryrun => can safely prepend sudo to display what is going on
+		# check for sudo
+		if [ "${rootful}" -ne 0 ]; then
+			# Prepend sudo (it's safe since this will only be printed)
+			result_command="${distrobox_sudo_program} "
+		fi
+		result_command="${result_command}${container_manager}"
+	else # we're actually running it => let's use the safe function
+		result_command="distrobox_invoke_container_manager"
+	fi
+
+	result_command="${result_command} exec"
 	result_command="${result_command}
 		--interactive
 		--user=\"${USER}\""
@@ -401,7 +423,7 @@ fi
 
 # Now inspect the container we're working with.
 container_status="unknown"
-eval "$(${container_manager} inspect --type container "${container_name}" --format \
+eval "$(distrobox_invoke_container_manager inspect --type container "${container_name}" --format \
 	'container_status={{.State.Status}};
 	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
 	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}};{{end}}{{end}}
@@ -457,18 +479,24 @@ if [ "${container_status}" != "running" ]; then
 	printf >&2 "Container %s is not running.\n" "${container_name}"
 	printf >&2 "Starting container %s\n" "${container_name}"
 	printf >&2 "run this command to follow along:\n\n"
-	printf >&2 " %s logs -f %s\n\n" "${container_manager}" "${container_name}"
+
+	# prepend sudo if necessary (just printing so it's safe)
+	if [ "${rootful}" -ne 0 ]; then
+		printf >&2 " %s logs -f %s\n\n" "${distrobox_sudo_program} ${container_manager}" "${container_name}"
+	else
+		printf >&2 " %s logs -f %s\n\n" "${container_manager}" "${container_name}"
+	fi
 
 	log_timestamp="$(date +%FT%T.%N%:z)"
-	${container_manager} start "${container_name}" > /dev/null
+	distrobox_invoke_container_manager start "${container_name}" > /dev/null
 	# Check if the container is going in error status earlier than the
 	# entrypoint
-	if [ "$(${container_manager} inspect \
+	if [ "$(distrobox_invoke_container_manager inspect \
 		--type container "${container_name}" \
 		--format "{{.State.Status}}")" != "running" ]; then
 
 		printf >&2 "\033[31m Error: could not start entrypoint.\n\033[0m"
-		container_manager_log="$(${container_manager} logs \
+		container_manager_log="$(distrobox_invoke_container_manager logs \
 			--since "${log_timestamp}" "${container_name}")"
 		printf >&2 "%s\n" "${container_manager_log}"
 		exit 1
@@ -479,7 +507,7 @@ if [ "${container_status}" != "running" ]; then
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
 		log_timestamp_new="$(date +%FT%T.%N%:z)"
-		${container_manager} logs --since "${log_timestamp}" "${container_name}" 2> /dev/null > "/tmp/.${container_name}.fifo"
+		distrobox_invoke_container_manager logs --since "${log_timestamp}" "${container_name}" 2> /dev/null > "/tmp/.${container_name}.fifo"
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
 			case "${line}" in

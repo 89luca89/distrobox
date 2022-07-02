@@ -182,18 +182,27 @@ if [ "${rootful}" -ne 0 ]; then
 		printf >&2 "do not specify it to use the default 'sudo'.\n"
 		exit 127
 	fi
-	container_manager="${distrobox_sudo_program} ${container_manager}"
+
+	distrobox_invoke_container_manager() { # use functions to avoid injection
+		# shellcheck disable=SC2086
+		"${distrobox_sudo_program}" ${container_manager} "$@" # container_manager is safe to expand
+	}
+else
+	distrobox_invoke_container_manager() {
+		# shellcheck disable=SC2086
+		${container_manager} "$@" # container_manager is safe to expand
+	}
 fi
 
 # List containers using custom format that inclused MOUNTS
 # we do this as we can detect the custom mounts done by distrobox to distringuish
 # between a normal podman or docker container and a distrobox one.
 if [ "${size}" -ne 0 ]; then
-	container_list=$(${container_manager} ps -a --no-trunc --size --format \
+	container_list=$(distrobox_invoke_container_manager ps -a --no-trunc --size --format \
 		"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}|{{.Size}}")
 	printf " %-12s | %-25s | %-30s | %-40s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE" "SIZE"
 else
-	container_list=$(${container_manager} ps -a --no-trunc --format \
+	container_list=$(distrobox_invoke_container_manager ps -a --no-trunc --format \
 		"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}")
 	printf " %-12s | %-25s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
 fi

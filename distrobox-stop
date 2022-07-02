@@ -209,7 +209,16 @@ if [ "${rootful}" -ne 0 ]; then
 		printf >&2 "do not specify it to use the default 'sudo'.\n"
 		exit 127
 	fi
-	container_manager="${distrobox_sudo_program} ${container_manager}"
+
+	distrobox_invoke_container_manager() { # use functions to avoid injection
+		# shellcheck disable=SC2086
+		"${distrobox_sudo_program}" ${container_manager} "$@" # container_manager is safe to expand
+	}
+else
+	distrobox_invoke_container_manager() {
+		# shellcheck disable=SC2086
+		${container_manager} "$@" # container_manager is safe to expand
+	}
 fi
 
 # Inspect the container we're working with.
@@ -233,7 +242,7 @@ fi
 case "${response}" in
 	y | Y | Yes | yes | YES)
 		# Stop the container
-		${container_manager} stop "${container_name}"
+		distrobox_invoke_container_manager stop "${container_name}"
 		;;
 	n | N | No | no | NO)
 		printf "Aborted.\n"

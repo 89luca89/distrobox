@@ -214,11 +214,20 @@ if [ "${rootful}" -ne 0 ]; then
 		printf >&2 "do not specify it to use the default 'sudo'.\n"
 		exit 127
 	fi
-	container_manager="${distrobox_sudo_program} ${container_manager}"
+
+	distrobox_invoke_container_manager() { # use functions to avoid injection
+		# shellcheck disable=SC2086
+		"${distrobox_sudo_program}" ${container_manager} "$@" # container_manager is safe to expand
+	}
+else
+	distrobox_invoke_container_manager() {
+		# shellcheck disable=SC2086
+		${container_manager} "$@" # container_manager is safe to expand
+	}
 fi
 
 # Inspect the container we're working with.
-container_status="$(${container_manager} inspect --type container \
+container_status="$(distrobox_invoke_container_manager inspect --type container \
 	"${container_name}" --format '{{.State.Status}}')"
 container_exists="$?"
 # Does the container exist? check if inspect reported errors
@@ -232,15 +241,28 @@ fi
 if [ "${container_status}" = "running" ]; then
 	if [ "${force}" -ne 0 ]; then
 		printf >&2 "Stopping container %s\n" "${container_name}"
-		if ! ${container_manager} stop "${container_name}"; then
+		if ! distrobox_invoke_container_manager stop "${container_name}"; then
 			printf >&2 "Could not stop container %s\n" "${container_name}"
 			printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-			printf >&2 "Run:\n\t%s stop %s" "${container_manager}" "${container_name}"
+
+			# prepend sudo if necessary
+			if [ "${rootful}" -ne 0 ]; then
+				printf >&2 "Run:\n\t%s stop %s" "${distrobox_sudo_program} ${container_manager}" "${container_name}"
+			else
+				printf >&2 "Run:\n\t%s stop %s" "${container_manager}" "${container_name}"
+			fi
 			exit 1
 		fi
 	else
 		printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-		printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
+
+		# prepend sudo if necessary
+		if [ "${rootful}" -ne 0 ]; then
+			printf >&2 "Run:\n\t%s stop %s\n" "${distrobox_sudo_program} ${container_manager}" "${container_name}"
+		else
+			printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
+		fi
+
 		printf >&2 'or use the "--force" flag'
 		exit 1
 	fi
@@ -258,7 +280,7 @@ fi
 case "${response}" in
 	y | Y | Yes | yes | YES)
 		# Remove the container
-		${container_manager} rm "${container_name}"
+		distrobox_invoke_container_manager rm "${container_name}"
 		;;
 	n | N | No | no | NO)
 		printf "Aborted.\n"
