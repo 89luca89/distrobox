@@ -40,9 +40,9 @@ Using `distrobox-export` from **inside** the container will let you use them fro
 
 # EXAMPLES
 
-	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --service syncthing [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program "program"]
+	distrobox-export --service syncthing [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program "program"]
+	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program "program"]
 
 **App export example**
 

@@ -27,7 +27,7 @@
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
 #	DBX_SKIP_WORKDIR
-#   DBX_SUDO_PROGRAM
+#	DBX_SUDO_PROGRAM
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f "/tmp/.*.fifo"' EXIT
 

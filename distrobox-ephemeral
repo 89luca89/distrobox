@@ -23,7 +23,7 @@
 #	DBX_CONTAINER_MANAGER
 #   DBX_CONTAINER_NAME
 #   DBX_NON_INTERACTIVE
-#   DBX_SUDO_PROGRAM
+#	DBX_SUDO_PROGRAM
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
@@ -39,7 +39,6 @@ distrobox_path="$(dirname "${0}")"
 extra_flags=""
 rootful=0
 verbose=0
-distrobox_sudo_program=""  # default to empty so that the param is only passed on if it was actually specified
 version="1.3.2"
 
 # Print usage to stdout.
@@ -89,13 +88,6 @@ while :; do
 			shift
 			rootful=1
 			;;
-		--sudo-program)
-			if [ -n "$2" ]; then
-				distrobox_sudo_program="$2"
-				shift
-				shift
-			fi
-			;;
 		-v | --verbose)
 			verbose=1
 			shift
@@ -113,8 +105,8 @@ while :; do
 			# If we have a flagless option and container_name is not specified
 			# then let's accept argument as container_name
 			#
-			# Also, let distrobox-create handle sudo-program flag to avoid
-			# injection
+			# Also, let distrobox-create handle --sudo-program flag to avoid
+			# the possibility of shell injection
 			if [ -n "$1" ]; then
 				create_flags="${create_flags} $1"
 				shift
@@ -136,11 +128,7 @@ fi
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
-
-	# add the specified sudo program to flags; only has effect together with --root
-	if [ -n "${distrobox_sudo_program}" ]; then
-		extra_flags="${extra_flags} --sudo-program '${distrobox_sudo_program}'"
-	fi
+	# --sudo-program will be handled by create_flags
 fi
 
 name=$(  mktemp -u distrobox-XXXXXXXXXX)

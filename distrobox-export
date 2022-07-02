@@ -66,9 +66,9 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program]
-	distrobox-export --service syncthing.service [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program]
-	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program]
+	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program "program"]
+	distrobox-export --service syncthing.service [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program "program"]
+	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo] [--sudo-program "program"]
 
 Options:
 

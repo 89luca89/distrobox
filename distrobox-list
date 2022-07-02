@@ -21,7 +21,7 @@
 # POSIX
 # Optional env variables:
 #	DBX_CONTAINER_MANAGER
-#   DBX_SUDO_PROGRAM
+#	DBX_SUDO_PROGRAM
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
