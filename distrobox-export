@@ -269,7 +269,7 @@ fi
 container_name=$(uname -n | cut -d'.' -f1)
 # Prefix to add to an existing command to work throught the container
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- "
-container_command_prefix="'${container_command_prefix}${sudo_program} "  # comply with line length limit
+container_command_prefix="${container_command_prefix}'${sudo_program} "  # comply with line length limit
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
 fi
