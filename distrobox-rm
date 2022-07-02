@@ -211,7 +211,7 @@ if [ "${rootful}" -ne 0 ]; then
 		printf >&2 "Invalid sudo program specified for usage in\n"
 		printf >&2 "managing rootful containers. Please specify\n"
 		printf >&2 "a valid command for the sudo program option, or\n"
-		printf >&2 "do not specify it to use the default 'sudo'."
+		printf >&2 "do not specify it to use the default 'sudo'.\n"
 		exit 127
 	fi
 	container_manager="${distrobox_sudo_program} ${container_manager}"
