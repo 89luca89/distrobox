@@ -130,7 +130,7 @@ while :; do
 				shift
 			fi
 			;;
-		-S | --sudo)  # keep param for backwards compatibility
+		-S | --sudo) # keep param for backwards compatibility
 			is_sudo=1
 			shift
 			;;
