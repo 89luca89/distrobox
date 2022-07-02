@@ -41,6 +41,9 @@ rootful=0
 verbose=0
 version="1.3.2"
 
+distrobox_sudo_program=""  # default to empty so that the param is only passed on if it was actually specified
+# worth noting that the env var should be picked up by the subcommands, so no need to pick it up here
+
 # Print usage to stdout.
 # Arguments:
 #   None
@@ -88,6 +91,13 @@ while :; do
 			shift
 			rootful=1
 			;;
+		--sudo-program)
+			if [ -n "$2" ]; then
+				distrobox_sudo_program="$2"
+				shift
+				shift
+			fi
+			;;
 		-v | --verbose)
 			verbose=1
 			shift
@@ -104,9 +114,6 @@ while :; do
 		*) # Default case: If no more options then break out of the loop.
 			# If we have a flagless option and container_name is not specified
 			# then let's accept argument as container_name
-			#
-			# Also, let distrobox-create handle --sudo-program flag to avoid
-			# the possibility of shell injection
 			if [ -n "$1" ]; then
 				create_flags="${create_flags} $1"
 				shift
@@ -128,7 +135,20 @@ fi
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
-	# --sudo-program will be handled by create_flags
+
+	# add the specified sudo program to flags; only has effect together with --root
+	if [ -n "${distrobox_sudo_program}" ]; then
+
+		# make sure the given sudo program exists
+		if ! command -v "${distrobox_sudo_program}" > /dev/null; then
+			printf >&2 "Invalid sudo program specified for usage in\n"
+			printf >&2 "managing rootful containers. Please specify\n"
+			printf >&2 "a valid command for the sudo program option, or\n"
+			printf >&2 "do not specify it to use the default 'sudo'."
+			exit 127
+		fi
+		extra_flags="${extra_flags} --sudo-program ${distrobox_sudo_program}"
+	fi
 fi
 
 name=$(  mktemp -u distrobox-XXXXXXXXXX)
