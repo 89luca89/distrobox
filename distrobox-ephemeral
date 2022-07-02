@@ -152,9 +152,11 @@ if [ "${rootful}" -ne 0 ] && [ -n "${distrobox_sudo_program}" ]; then # separate
 	fi
 
 	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-create --name ${name} --yes ${create_flags} ${extra_flags} --sudo-program "${distrobox_sudo_program}"
+	"${distrobox_path}"/distrobox-create --name ${name} --yes ${create_flags} ${extra_flags} \
+--sudo-program "${distrobox_sudo_program}"
 	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-enter "${name}" ${container_command} ${extra_flags} --sudo-program "${distrobox_sudo_program}"
+	"${distrobox_path}"/distrobox-enter "${name}" ${container_command} ${extra_flags} \
+--sudo-program "${distrobox_sudo_program}"
 	# shellcheck disable=SC2086
 	"${distrobox_path}"/distrobox-stop "${name}" --yes ${extra_flags} --sudo-program "${distrobox_sudo_program}"
 	# shellcheck disable=SC2086
