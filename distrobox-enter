@@ -453,9 +453,25 @@ if [ "${container_status}" = "unknown" ]; then
 		y | Y | Yes | yes | YES)
 			# Ok, let's create the container with just 'distrobox create $container_name
 			printf >&2 "Creating the container with command:\n"
-			printf >&2 "  distrobox create -i %s %s\n" "${container_image}" "${container_name}"
-			if [ "${dryrun}" -ne 1 ]; then
-				"$(dirname "${0}")"/distrobox-create -i "${container_image}" -n "${container_name}"
+			if [ "${rootful}" -ne 0 ]; then # pass rootful and sudo program parameters to the create subcommand
+				if [ "${distrobox_sudo_program}" != "sudo" ]; then # custom sudo program was specified => pass it along
+					printf >&2 "  distrobox create -r -i %s %s --sudo-program '%s'\n" \
+						"${container_image}" "${container_name}" "${distrobox_sudo_program}"
+					if [ "${dryrun}" -ne 1 ]; then
+						"$(dirname "${0}")"/distrobox-create -r -i "${container_image}" -n "${container_name}" \
+							--sudo-program "${distrobox_sudo_program}"
+					fi
+				else # use default 'sudo' => --sudo-program not needed (but still rootful => must specify -r)
+					printf >&2 "  distrobox create -r -i %s %s\n" "${container_image}" "${container_name}"
+					if [ "${dryrun}" -ne 1 ]; then
+						"$(dirname "${0}")"/distrobox-create -r -i "${container_image}" -n "${container_name}"
+					fi
+				fi
+			else # rootless container => no -r required
+				printf >&2 "  distrobox create -i %s %s\n" "${container_image}" "${container_name}"
+				if [ "${dryrun}" -ne 1 ]; then
+					"$(dirname "${0}")"/distrobox-create -i "${container_image}" -n "${container_name}"
+				fi
 			fi
 			;;
 		n | N | No | no | NO)
