@@ -131,10 +131,7 @@ Options:
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
-				refer to --sudo-program)
-	--sudo-program:		when used with --root, specifies a program other than the default 'sudo' with which to
-				launch podman/docker with root privileges (common options include 'pkexec' for a graphical root
-				authentication prompt, 'doas', and so on)
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
@@ -181,13 +178,6 @@ while :; do
 		-r | --root)
 			shift
 			rootful=1
-			;;
-		--sudo-program)
-			if [ -n "$2" ]; then
-				distrobox_sudo_program="$2"
-				shift
-				shift
-			fi
 			;;
 		-I | --init)
 			shift
@@ -352,25 +342,7 @@ fi
 
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-
-	# make sure the given sudo program exists
-	if ! command -v "${distrobox_sudo_program}" > /dev/null; then
-		printf >&2 "Invalid sudo program specified for usage in\n"
-		printf >&2 "managing rootful containers. Please specify\n"
-		printf >&2 "a valid command for the sudo program option, or\n"
-		printf >&2 "do not specify it to use the default 'sudo'.\n"
-		exit 127
-	fi
-
-	distrobox_invoke_container_manager() { # use functions to avoid injection
-		# shellcheck disable=SC2086
-		"${distrobox_sudo_program}" ${container_manager} "$@" # container_manager is safe to expand
-	}
-else
-	distrobox_invoke_container_manager() {
-		# shellcheck disable=SC2086
-		${container_manager} "$@" # container_manager is safe to expand
-	}
+	container_manager="${distrobox_sudo_program} ${container_manager}"
 fi
 
 # Clone a container as a snapshot.
@@ -385,7 +357,7 @@ clone_container() {
 	#
 	# to perform this we first ensure the source container exists and that the
 	# source container is stopped, else the clone will not work,
-	container_source_status="$(distrobox_invoke_container_manager inspect --type container \
+	container_source_status="$(${container_manager} inspect --type container \
 		"${container_clone}" --format '{{.State.Status}}')"
 	# If the container is not already running, we need to start if first
 	if [ "${container_source_status}" = "running" ]; then
@@ -396,13 +368,13 @@ clone_container() {
 
 	# Now we can extract the container ID and commit it to use as source image
 	# for the new container.
-	container_source_id="$(distrobox_invoke_container_manager inspect --type container \
+	container_source_id="$(${container_manager} inspect --type container \
 		"${container_clone}" --format '{{.Id}}')"
 	container_commit_tag="$(echo "${container_clone}:$(date +%F)" | tr '[:upper:]' '[:lower:]')"
 
 	# Commit current container state to a new image tag
 	printf >&2 "Duplicating %s...\n" "${container_clone}"
-	if ! distrobox_invoke_container_manager container commit \
+	if ! ${container_manager} container commit \
 		"${container_source_id}" "${container_commit_tag}" > /dev/null; then
 
 		printf >&2 "Cannot clone container: %s\n" "${container_clone}"
@@ -421,21 +393,8 @@ clone_container() {
 # Outputs:
 #   prints the podman or docker command to create the distrobox container
 generate_command() {
-
-	result_command=""
-	if [ "${dryrun}" -ne 0 ]; then # dryrun => can safely prepend sudo to display what is going on
-		# check for sudo
-		if [ "${rootful}" -ne 0 ]; then
-			# Prepend sudo (it's safe since this will only be printed)
-			result_command="${distrobox_sudo_program} "
-		fi
-		result_command="${result_command}${container_manager}"
-	else # we're actually running it => let's use the safe function
-		result_command="distrobox_invoke_container_manager"
-	fi
-
 	# Set the container hostname the same as the container name.
-	result_command="${result_command} create"
+	result_command="${container_manager} create"
 
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
@@ -614,7 +573,7 @@ fi
 
 # Check if the container already exists.
 # If it does, notify the user and exit.
-if distrobox_invoke_container_manager inspect --type container "${container_name}" > /dev/null 2>&1; then
+if ${container_manager} inspect --type container "${container_name}" > /dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
@@ -637,7 +596,7 @@ fi
 # First, check if the image exists in the host or auto-pull is enabled
 # If not prompt to download it.
 if [ "${container_always_pull}" -eq 1 ] ||
-	! distrobox_invoke_container_manager inspect --type image "${container_image}" > /dev/null 2>&1; then
+	! ${container_manager} inspect --type image "${container_image}" > /dev/null 2>&1; then
 
 	# If we do auto-pull, don't ask questions
 	if [ "${non_interactive}" -eq 1 ] || [ "${container_always_pull}" -eq 1 ]; then
@@ -654,15 +613,11 @@ if [ "${container_always_pull}" -eq 1 ] ||
 	case "${response}" in
 		y | Y | Yes | yes | YES)
 			# Pull the image
-			distrobox_invoke_container_manager pull "${container_image}"
+			${container_manager} pull "${container_image}"
 			;;
 		n | N | No | no | NO)
 			printf >&2 "next time, run this command first:\n"
-			if [ "${rootful}" -ne 0 ]; then # prepend sudo
-				printf >&2 "\t%s pull %s\n" "${distrobox_sudo_program} ${container_manager}" "${container_image}"
-			else
-				printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
-			fi
+			printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
 			exit 0
 			;;
 		*) # Default case: If no more options then break out of the loop.
@@ -682,11 +637,7 @@ if eval ${cmd} > /dev/null; then
 	printf >&2 "\033[32m [ OK ]\n\033[0mDistrobox '%s' successfully created.\n" "${container_name}"
 	printf >&2 "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
-		if [ "${distrobox_sudo_program}" != "sudo" ]; then # if a custom sudo program was specified, indicate it in the suggested command
-			printf "distrobox-enter --root --sudo-program '%s' %s\n\n" "${distrobox_sudo_program}" "${container_name}"
-		else # using sudo by default
-			printf "distrobox-enter --root %s\n\n" "${container_name}"
-		fi
+		printf "distrobox-enter --root %s\n\n" "${container_name}"
 	else
 		printf "distrobox enter %s\n\n" "${container_name}"
 	fi

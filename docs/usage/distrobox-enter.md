@@ -24,10 +24,7 @@ If using it inside a script, an application, or a service, you can specify the
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
-				refer to --sudo-program)
-	--sudo-program:		when used with --root, specifies a program other than the default 'sudo' with which to
-				launch podman/docker with root privileges (common options include 'pkexec' for a graphical root
-				authentication prompt, 'doas', and so on)
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -66,15 +63,12 @@ This is possible also using normal env variables:
 	my_var=test
 
 If you'd like to enter a rootful container having distrobox use a program other than 'sudo' to
-run podman/docker as root, such as 'pkexec' or 'doas', you may specify it with `--sudo-program`.
-For example, to use 'doas' to enter a rootful container:
-
-	distrobox enter -n container --root --sudo-program doas
-
-You may also use the `DBX_SUDO_PROGRAM` environment variable to achieve the same effect:
+run podman/docker as root, such as 'pkexec' or 'doas', you may specify it with the
+`DBX_SUDO_PROGRAM` environment variable. For example, to use 'doas' to enter a rootful container:
 
 	DBX_SUDO_PROGRAM="doas" distrobox enter -n container --root
 
-Finally, in one of the config file paths that distrobox supports, such as `~/.distroboxrc`,
-you can also append the line `distrobox_sudo_program="doas"` (for example) to always run
+Additionally, in one of the config file paths that distrobox supports,
+such as `~/.distroboxrc`, you can also append the line
+`distrobox_sudo_program="doas"` (for example) to always run
 distrobox commands involving rootful containers using 'doas'.

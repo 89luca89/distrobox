@@ -15,10 +15,7 @@ when the command is terminated.
 
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
-				refer to --sudo-program)
-	--sudo-program:		when used with --root, specifies a program other than the default 'sudo' with which to
-				launch podman/docker with root privileges (common options include 'pkexec' for a graphical root
-				authentication prompt, 'doas', and so on)
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--verbose/-v:		show more verbosity
 	--help/-h:		show this message
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l

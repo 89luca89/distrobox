@@ -85,10 +85,7 @@ Options:
 	--force/-f:		force deletion
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
-				refer to --sudo-program)
-	--sudo-program:		when used with --root, specifies a program other than the default 'sudo' with which to
-				launch podman/docker with root privileges (common options include 'pkexec' for a graphical root
-				authentication prompt, 'doas', and so on)
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -106,13 +103,6 @@ while :; do
 		-r | --root)
 			shift
 			rootful=1
-			;;
-		--sudo-program)
-			if [ -n "$2" ]; then
-				distrobox_sudo_program="$2"
-				shift
-				shift
-			fi
 			;;
 		-v | --verbose)
 			verbose=1
@@ -206,29 +196,11 @@ fi
 
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-
-	# make sure the given sudo program exists
-	if ! command -v "${distrobox_sudo_program}" > /dev/null; then
-		printf >&2 "Invalid sudo program specified for usage in\n"
-		printf >&2 "managing rootful containers. Please specify\n"
-		printf >&2 "a valid command for the sudo program option, or\n"
-		printf >&2 "do not specify it to use the default 'sudo'.\n"
-		exit 127
-	fi
-
-	distrobox_invoke_container_manager() { # use functions to avoid injection
-		# shellcheck disable=SC2086
-		"${distrobox_sudo_program}" ${container_manager} "$@" # container_manager is safe to expand
-	}
-else
-	distrobox_invoke_container_manager() {
-		# shellcheck disable=SC2086
-		${container_manager} "$@" # container_manager is safe to expand
-	}
+	container_manager="${distrobox_sudo_program} ${container_manager}"
 fi
 
 # Inspect the container we're working with.
-container_status="$(distrobox_invoke_container_manager inspect --type container \
+container_status="$(${container_manager} inspect --type container \
 	"${container_name}" --format '{{.State.Status}}')"
 container_exists="$?"
 # Does the container exist? check if inspect reported errors
@@ -242,28 +214,15 @@ fi
 if [ "${container_status}" = "running" ]; then
 	if [ "${force}" -ne 0 ]; then
 		printf >&2 "Stopping container %s\n" "${container_name}"
-		if ! distrobox_invoke_container_manager stop "${container_name}"; then
+		if ! ${container_manager} stop "${container_name}"; then
 			printf >&2 "Could not stop container %s\n" "${container_name}"
 			printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-
-			# prepend sudo if necessary
-			if [ "${rootful}" -ne 0 ]; then
-				printf >&2 "Run:\n\t%s stop %s" "${distrobox_sudo_program} ${container_manager}" "${container_name}"
-			else
-				printf >&2 "Run:\n\t%s stop %s" "${container_manager}" "${container_name}"
-			fi
+			printf >&2 "Run:\n\t%s stop %s" "${container_manager}" "${container_name}"
 			exit 1
 		fi
 	else
 		printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-
-		# prepend sudo if necessary
-		if [ "${rootful}" -ne 0 ]; then
-			printf >&2 "Run:\n\t%s stop %s\n" "${distrobox_sudo_program} ${container_manager}" "${container_name}"
-		else
-			printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
-		fi
-
+		printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
 		printf >&2 'or use the "--force" flag'
 		exit 1
 	fi
@@ -281,7 +240,7 @@ fi
 case "${response}" in
 	y | Y | Yes | yes | YES)
 		# Remove the container
-		distrobox_invoke_container_manager rm "${container_name}"
+		${container_manager} rm "${container_name}"
 		;;
 	n | N | No | no | NO)
 		printf "Aborted.\n"

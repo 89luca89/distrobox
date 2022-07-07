@@ -117,10 +117,7 @@ Options:
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
-				refer to --sudo-program)
-	--sudo-program:		when used with --root, specifies a program other than the default 'sudo' with which to
-				launch podman/docker with root privileges (common options include 'pkexec' for a graphical root
-				authentication prompt, 'doas', and so on)
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -162,13 +159,6 @@ while :; do
 		-n | --name)
 			if [ -n "$2" ]; then
 				container_name="$2"
-				shift
-				shift
-			fi
-			;;
-		--sudo-program)
-			if [ -n "$2" ]; then
-				distrobox_sudo_program="$2"
 				shift
 				shift
 			fi
@@ -268,25 +258,7 @@ fi
 
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-
-	# make sure the given sudo program exists
-	if ! command -v "${distrobox_sudo_program}" > /dev/null; then
-		printf >&2 "Invalid sudo program specified for usage in\n"
-		printf >&2 "managing rootful containers. Please specify\n"
-		printf >&2 "a valid command for the sudo program option, or\n"
-		printf >&2 "do not specify it to use the default 'sudo'.\n"
-		exit 127
-	fi
-
-	distrobox_invoke_container_manager() { # use functions to avoid injection
-		# shellcheck disable=SC2086
-		"${distrobox_sudo_program}" ${container_manager} "$@" # container_manager is safe to expand
-	}
-else
-	distrobox_invoke_container_manager() {
-		# shellcheck disable=SC2086
-		${container_manager} "$@" # container_manager is safe to expand
-	}
+	container_manager="${distrobox_sudo_program} ${container_manager}"
 fi
 
 # Generate Podman or Docker command to execute.
@@ -295,20 +267,7 @@ fi
 # Outputs:
 #   prints the podman or docker command to enter the distrobox container
 generate_command() {
-
-	result_command=""
-	if [ "${dryrun}" -ne 0 ]; then # dryrun => can safely prepend sudo to display what is going on
-		# check for sudo
-		if [ "${rootful}" -ne 0 ]; then
-			# Prepend sudo (it's safe since this will only be printed)
-			result_command="${distrobox_sudo_program} "
-		fi
-		result_command="${result_command}${container_manager}"
-	else # we're actually running it => let's use the safe function
-		result_command="distrobox_invoke_container_manager"
-	fi
-
-	result_command="${result_command} exec"
+	result_command="${container_manager} exec"
 	result_command="${result_command}
 		--interactive
 		--user=\"${USER}\""
@@ -424,7 +383,7 @@ fi
 
 # Now inspect the container we're working with.
 container_status="unknown"
-eval "$(distrobox_invoke_container_manager inspect --type container "${container_name}" --format \
+eval "$(${container_manager} inspect --type container "${container_name}" --format \
 	'container_status={{.State.Status}};
 	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
 	{{range .Config.Env}}{{if slice . 0 6 | eq "SHELL="}}container_shell={{slice . 6 | printf "%q"}};{{end}}{{end}}
@@ -453,19 +412,10 @@ if [ "${container_status}" = "unknown" ]; then
 		y | Y | Yes | yes | YES)
 			# Ok, let's create the container with just 'distrobox create $container_name
 			printf >&2 "Creating the container with command:\n"
-			if [ "${rootful}" -ne 0 ]; then # pass rootful and sudo program parameters to the create subcommand
-				if [ "${distrobox_sudo_program}" != "sudo" ]; then # custom sudo program was specified => pass it along
-					printf >&2 "  distrobox create -r -i %s %s --sudo-program '%s'\n" \
-						"${container_image}" "${container_name}" "${distrobox_sudo_program}"
-					if [ "${dryrun}" -ne 1 ]; then
-						"$(dirname "${0}")"/distrobox-create -r -i "${container_image}" -n "${container_name}" \
-							--sudo-program "${distrobox_sudo_program}"
-					fi
-				else # use default 'sudo' => --sudo-program not needed (but still rootful => must specify -r)
-					printf >&2 "  distrobox create -r -i %s %s\n" "${container_image}" "${container_name}"
-					if [ "${dryrun}" -ne 1 ]; then
-						"$(dirname "${0}")"/distrobox-create -r -i "${container_image}" -n "${container_name}"
-					fi
+			if [ "${rootful}" -ne 0 ]; then # pass rootful parameter to the create subcommand
+				printf >&2 "  distrobox create -r -i %s %s\n" "${container_image}" "${container_name}"
+				if [ "${dryrun}" -ne 1 ]; then
+					"$(dirname "${0}")"/distrobox-create -r -i "${container_image}" -n "${container_name}"
 				fi
 			else # rootless container => no -r required
 				printf >&2 "  distrobox create -i %s %s\n" "${container_image}" "${container_name}"
@@ -476,7 +426,11 @@ if [ "${container_status}" = "unknown" ]; then
 			;;
 		n | N | No | no | NO)
 			printf >&2 "Ok. For creating it, run this command:\n"
-			printf >&2 "\tdistrobox create <name-of-container> --image <remote>/<docker>:<tag>\n"
+			if [ "${rootful}" -ne 0 ]; then
+				printf >&2 "\tdistrobox create -r <name-of-container> --image <remote>/<docker>:<tag>\n"
+			else
+				printf >&2 "\tdistrobox create <name-of-container> --image <remote>/<docker>:<tag>\n"
+			fi
 			exit 0
 			;;
 		*) # Default case: If no more options then break out of the loop.
@@ -496,24 +450,18 @@ if [ "${container_status}" != "running" ]; then
 	printf >&2 "Container %s is not running.\n" "${container_name}"
 	printf >&2 "Starting container %s\n" "${container_name}"
 	printf >&2 "run this command to follow along:\n\n"
-
-	# prepend sudo if necessary (just printing so it's safe)
-	if [ "${rootful}" -ne 0 ]; then
-		printf >&2 " %s logs -f %s\n\n" "${distrobox_sudo_program} ${container_manager}" "${container_name}"
-	else
-		printf >&2 " %s logs -f %s\n\n" "${container_manager}" "${container_name}"
-	fi
+	printf >&2 " %s logs -f %s\n\n" "${container_manager}" "${container_name}"
 
 	log_timestamp="$(date +%FT%T.%N%:z)"
-	distrobox_invoke_container_manager start "${container_name}" > /dev/null
+	${container_manager} start "${container_name}" > /dev/null
 	# Check if the container is going in error status earlier than the
 	# entrypoint
-	if [ "$(distrobox_invoke_container_manager inspect \
+	if [ "$(${container_manager} inspect \
 		--type container "${container_name}" \
 		--format "{{.State.Status}}")" != "running" ]; then
 
 		printf >&2 "\033[31m Error: could not start entrypoint.\n\033[0m"
-		container_manager_log="$(distrobox_invoke_container_manager logs \
+		container_manager_log="$(${container_manager} logs \
 			--since "${log_timestamp}" "${container_name}")"
 		printf >&2 "%s\n" "${container_manager_log}"
 		exit 1
@@ -524,7 +472,7 @@ if [ "${container_status}" != "running" ]; then
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
 		log_timestamp_new="$(date +%FT%T.%N%:z)"
-		distrobox_invoke_container_manager logs \
+		${container_manager} logs \
 			--since "${log_timestamp}" "${container_name}" 2> /dev/null > "/tmp/.${container_name}.fifo"
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do

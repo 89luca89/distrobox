@@ -41,9 +41,6 @@ rootful=0
 verbose=0
 version="1.3.2"
 
-distrobox_sudo_program=""  # default to empty so that the param is only passed on if it was actually specified
-# worth noting that the env var should be picked up by the subcommands, so no need to pick it up here
-
 # Print usage to stdout.
 # Arguments:
 #   None
@@ -61,10 +58,7 @@ Options:
 
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
-				refer to --sudo-program)
-	--sudo-program:		when used with --root, specifies a program other than the default 'sudo' with which to
-				launch podman/docker with root privileges (common options include 'pkexec' for a graphical root
-				authentication prompt, 'doas', and so on)
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--verbose/-v:		show more verbosity
 	--help/-h:		show this message
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
@@ -91,13 +85,6 @@ while :; do
 		-r | --root)
 			shift
 			rootful=1
-			;;
-		--sudo-program)
-			if [ -n "$2" ]; then
-				distrobox_sudo_program="$2"
-				shift
-				shift
-			fi
 			;;
 		-v | --verbose)
 			verbose=1
@@ -139,36 +126,11 @@ if [ "${rootful}" -ne 0 ]; then
 fi
 
 name=$(  mktemp -u distrobox-XXXXXXXXXX)
-
-# add the specified sudo program to flags; only has effect together with --root
-if [ "${rootful}" -ne 0 ] && [ -n "${distrobox_sudo_program}" ]; then # separate in two cases for safety against shell injection
-
-	# make sure the given sudo program exists
-	if ! command -v "${distrobox_sudo_program}" > /dev/null; then
-		printf >&2 "Invalid sudo program specified for usage in\n"
-		printf >&2 "managing rootful containers. Please specify\n"
-		printf >&2 "a valid command for the sudo program option, or\n"
-		printf >&2 "do not specify it to use the default 'sudo'.\n"
-		exit 127
-	fi
-
-	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-create --name ${name} --yes ${create_flags} ${extra_flags} \
-		--sudo-program "${distrobox_sudo_program}"
-	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-enter "${name}" ${container_command} ${extra_flags} \
-		--sudo-program "${distrobox_sudo_program}"
-	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-stop "${name}" --yes ${extra_flags} --sudo-program "${distrobox_sudo_program}"
-	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-rm --force "${name}" --yes ${extra_flags} --sudo-program "${distrobox_sudo_program}"
-else
-	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-create --name ${name} --yes ${create_flags} ${extra_flags}
-	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-enter "${name}" ${container_command} ${extra_flags}
-	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-stop "${name}" --yes ${extra_flags}
-	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-rm --force "${name}" --yes ${extra_flags}
-fi
+# shellcheck disable=SC2086
+"${distrobox_path}"/distrobox-create --name ${name} --yes ${create_flags} ${extra_flags}
+# shellcheck disable=SC2086
+"${distrobox_path}"/distrobox-enter "${name}" ${container_command} ${extra_flags}
+# shellcheck disable=SC2086
+"${distrobox_path}"/distrobox-stop "${name}" --yes ${extra_flags}
+# shellcheck disable=SC2086
+"${distrobox_path}"/distrobox-rm --force "${name}" --yes ${extra_flags}
