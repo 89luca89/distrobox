@@ -794,7 +794,11 @@ fi
 
 printf "distrobox: Setting up users...\n"
 # Let's add our user to the container. if the user already exists, enforce properties.
-if ! grep -q "^${container_user_name}:" /etc/passwd; then
+#
+# In case of AD or LDAP usernames, it is possible we will have a backslach in the name.
+# In that case grep would fail, so we replace the backslash with a point to make the regex work.
+# shellcheck disable=SC1003
+if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
