@@ -577,11 +577,7 @@ if ${container_manager} inspect --type container "${container_name}" > /dev/null
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
-		if [ "${distrobox_sudo_program}" != "sudo" ]; then # if a custom sudo program was specified, indicate it in the suggested command
-			printf "distrobox-enter --root --sudo-program '%s' %s\n\n" "${distrobox_sudo_program}" "${container_name}"
-		else # using sudo by default
-			printf "distrobox-enter --root %s\n\n" "${container_name}"
-		fi
+		printf "distrobox-enter --root %s\n\n" "${container_name}"
 	else
 		printf "distrobox-enter %s\n\n" "${container_name}"
 	fi
@@ -637,7 +633,7 @@ if eval ${cmd} > /dev/null; then
 	printf >&2 "\033[32m [ OK ]\n\033[0mDistrobox '%s' successfully created.\n" "${container_name}"
 	printf >&2 "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
-		printf "distrobox-enter --root %s\n\n" "${container_name}"
+		printf "distrobox enter --root %s\n\n" "${container_name}"
 	else
 		printf "distrobox enter %s\n\n" "${container_name}"
 	fi

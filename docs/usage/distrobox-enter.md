@@ -68,7 +68,6 @@ run podman/docker as root, such as 'pkexec' or 'doas', you may specify it with t
 
 	DBX_SUDO_PROGRAM="doas" distrobox enter -n container --root
 
-Additionally, in one of the config file paths that distrobox supports,
-such as `~/.distroboxrc`, you can also append the line
-`distrobox_sudo_program="doas"` (for example) to always run
+Additionally, in one of the config file paths that distrobox supports, such as `~/.distroboxrc`,
+you can also append the line `distrobox_sudo_program="doas"` (for example) to always run
 distrobox commands involving rootful containers using 'doas'.
