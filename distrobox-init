@@ -781,7 +781,7 @@ if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
 fi
 # Ensure passwordless sudo is set up for user
 if ! grep -q "${container_user_name} ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
-	printf "%s ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
+	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
 fi
 
 printf "distrobox: Setting up groups...\n"
