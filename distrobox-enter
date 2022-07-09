@@ -453,6 +453,7 @@ if [ "${container_status}" != "running" ]; then
 	fi
 
 	printf >&2 "%-40s\t" " Starting container..."
+	touch "/tmp/.${container_name}.fifo"
 	while true; do
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
