@@ -104,29 +104,6 @@ The option "--delete" will un-export an app, binary, or service.
 
 The option "--sudo" will launch the exported item as root inside the distrobox.
 
-**Exporting items from rootful containers**
-
-The usage of rootful containers requires using the `--root` option alongside distrobox commands.
-This means that when an app, service or binary is exported from inside a rootful container,
-distrobox will automatically use `--root` whenever the exported item is launched from the host.
-However, this means that root privileges are required to run the exported item from the host,
-which is normally handled using `sudo` in the host system. If, however, you'd prefer to use
-a different command to invoke the rootful container with host root privileges, such as
-`pkexec` - which can be useful for exported apps, as it provides a graphical prompt
-for authentication - or `doas`, make sure to use the `--host-sudo-program` option
-to specify the desired sudo program.
-For example, to always request root authentication with `pkexec` (instead of `sudo`) in the host
-to open the kitty app exported from a rootful container, you may use the following command
-while exporting the app:
-
-	distrobox-export --app kitty --host-sudo-program pkexec
-
-This will ensure a graphical authentication prompt for root permissions will be shown before
-attempting to launch the rootful container's `kitty` app from the host, which can be useful
-if your particular desktop environment doesn't work well with launching desktop shortcuts
-that use `sudo`, for example. (This example assumes that `pkexec` is installed and properly
-configured in the host system.)
-
 **Notes**
 
 Note you can use --app OR --bin OR --service but not together.

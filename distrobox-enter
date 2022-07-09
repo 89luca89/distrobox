@@ -412,25 +412,14 @@ if [ "${container_status}" = "unknown" ]; then
 		y | Y | Yes | yes | YES)
 			# Ok, let's create the container with just 'distrobox create $container_name
 			printf >&2 "Creating the container with command:\n"
-			if [ "${rootful}" -ne 0 ]; then # pass rootful parameter to the create subcommand
-				printf >&2 "  distrobox create -r -i %s %s\n" "${container_image}" "${container_name}"
-				if [ "${dryrun}" -ne 1 ]; then
-					"$(dirname "${0}")"/distrobox-create -r -i "${container_image}" -n "${container_name}"
-				fi
-			else # rootless container => no -r required
-				printf >&2 "  distrobox create -i %s %s\n" "${container_image}" "${container_name}"
-				if [ "${dryrun}" -ne 1 ]; then
-					"$(dirname "${0}")"/distrobox-create -i "${container_image}" -n "${container_name}"
-				fi
+			printf >&2 "  distrobox create -i %s %s\n" "${container_image}" "${container_name}"
+			if [ "${dryrun}" -ne 1 ]; then
+				"$(dirname "${0}")"/distrobox-create -i "${container_image}" -n "${container_name}"
 			fi
 			;;
 		n | N | No | no | NO)
 			printf >&2 "Ok. For creating it, run this command:\n"
-			if [ "${rootful}" -ne 0 ]; then # display -r if it was also given to distrobox enter
-				printf >&2 "\tdistrobox create -r <name-of-container> --image <remote>/<docker>:<tag>\n"
-			else # -r wasn't given to distrobox enter => no need to display it
-				printf >&2 "\tdistrobox create <name-of-container> --image <remote>/<docker>:<tag>\n"
-			fi
+			printf >&2 "\tdistrobox create <name-of-container> --image <remote>/<docker>:<tag>\n"
 			exit 0
 			;;
 		*) # Default case: If no more options then break out of the loop.
