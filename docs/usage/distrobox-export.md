@@ -26,16 +26,7 @@ automatically be launched from the container it is exported from.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-	--sudo/-S:		specify if the exported item should be run as sudo (refer to --sudo-program
-				if sudo is not available in the container or not desired)
-	--sudo-program:		when used with --sudo, specifies a program other than the default 'sudo'
-				with which to launch the exported app with root privileges inside this container
-				(common options include 'pkexec' for a graphical root authentication prompt,
-				'doas', and so on)
-	--host-sudo-program:		if this container is rootful, then this parameter specifies the
-				program that should be used in the host to enter this container with root privileges
-				when launching the exported app/service/binary, other than the default 'sudo'
-				(such as 'pkexec' for a graphical authentication prompt)
+	--sudo/-S:		specify if the exported item should be run as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -111,17 +102,7 @@ The option "--delete" will un-export an app, binary, or service.
 
 **Run as root in the container**
 
-The option "--sudo" will launch the exported item as root inside the distrobox, by prepending
-its launch command inside the container with `sudo`. If, however, you'd like to use a different
-command than `sudo` - such as `pkexec` (for a graphical authentication prompt) or `doas` -,
-then specify `--sudo-program command_name` to ensure that `command_name` will be used
-inside the container every time the exported item is launched. For example:
-
-	distrobox-export --app simplescreenrecorder --sudo --sudo-program doas
-
-This will ensure that `doas` will be used to launch `simplescreenrecorder` in the container
-every time the exported app is opened through its desktop shortcut (as specified in its
-'.desktop' file). Note that the specified sudo command must already exist inside the container.
+The option "--sudo" will launch the exported item as root inside the distrobox.
 
 **Exporting items from rootful containers**
 

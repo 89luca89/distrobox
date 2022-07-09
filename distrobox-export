@@ -40,9 +40,7 @@ extra_flags=""
 #	DBX_HOST_HOME is set in case container is created
 #	with custom --home directory
 host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
-is_sudo=0
-sudo_program=""
-host_sudo_program=""
+is_sudo=""
 rootful=""
 verbose=0
 version="1.3.2"
@@ -81,16 +79,7 @@ Options:
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-	--sudo/-S:		specify if the exported item should be run as sudo (refer to --sudo-program
-				if sudo is not available in the container or not desired)
-	--sudo-program:		when used with --sudo, specifies a program other than the default 'sudo'
-				with which to launch the exported app with root privileges inside this container
-				(common options include 'pkexec' for a graphical root authentication prompt,
-				'doas', and so on)
-	--host-sudo-program:		if this container is rootful, then this parameter specifies the
-				program that should be used in the host to enter this container with root privileges
-				when launching the exported app/service/binary, other than the default 'sudo'
-				(such as 'pkexec' for a graphical authentication prompt)
+	--sudo/-S:		specify if the exported item should be run as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -137,23 +126,9 @@ while :; do
 				shift
 			fi
 			;;
-		-S | --sudo) # keep param for backwards compatibility
-			is_sudo=1
+		-S | --sudo)
+			is_sudo="sudo"
 			shift
-			;;
-		--sudo-program)
-			if [ -n "$2" ]; then
-				sudo_program="$2"
-				shift
-				shift
-			fi
-			;;
-		--host-sudo-program)
-			if [ -n "$2" ]; then
-				host_sudo_program="$2"
-				shift
-				shift
-			fi
 			;;
 		-el | --export-label)
 			if [ -n "$2" ]; then
@@ -205,11 +180,7 @@ fi
 
 # Check if we're in a rootful or rootless container.
 if grep -q "rootless=0" /run/.containerenv 2> /dev/null; then
-	if [ -n "${host_sudo_program}" ]; then # use the specified sudo program on the host
-		rootful="--root --sudo-program '${host_sudo_program}'"
-	else # use sudo by default
-		rootful="--root"
-	fi
+	rootful="--root"
 fi
 
 # We're working with HOME, so we must run as USER, not as root.
@@ -243,35 +214,10 @@ if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
 	exit 2
 fi
 
-# If --sudo-program was specified, ensure --sudo was also given - OK to check, because 'sudo_program'
-# isn't read from config files or env
-if [ "${is_sudo}" -eq 0 ] && [ -n "${sudo_program}" ]; then
-	printf >&2 "Error: The option --sudo-program may only be used together\n"
-	printf >&2 "with --sudo."
-	exit 2
-fi
-
-# If --sudo was specified, but --sudo-program wasn't, then default to using
-# "sudo" as the sudo program.
-if [ "${is_sudo}" -ne 0 ] && [ -z "${sudo_program}" ]; then
-	sudo_program="sudo"
-fi
-
-# If a custom sudo program was specified, ensure it exists inside the container
-if [ -n "${sudo_program}" ] && ! command -v "${sudo_program}" > /dev/null; then
-	printf >&2 "Invalid sudo program specified for usage in invoking\n"
-	printf >&2 "the exported app/service/binary as root inside\n"
-	printf >&2 "the container. Please specify a command that exists\n"
-	printf >&2 "inside the container for the --sudo-program option, or\n"
-	printf >&2 "do not specify it to use the default 'sudo'.\n"
-	exit 2
-fi
-
 # We can assume this as we set it the same as container name during creation.
 container_name=$(uname -n | cut -d'.' -f1)
 # Prefix to add to an existing command to work throught the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- "
-container_command_prefix="${container_command_prefix}'${sudo_program} "  # comply with line length limit
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- '${is_sudo} "
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
 fi
@@ -288,7 +234,7 @@ generate_script() {
 # name: ${container_name}
 if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
     ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
-		${sudo_program} ${exported_bin} ${extra_flags} \$@
+		${is_sudo} ${exported_bin} ${extra_flags} \$@
 else
     ${exported_bin} \$@
 fi
