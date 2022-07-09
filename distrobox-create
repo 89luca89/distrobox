@@ -395,7 +395,6 @@ clone_container() {
 generate_command() {
 	# Set the container hostname the same as the container name.
 	result_command="${container_manager} create"
-
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
 		--hostname \"${container_name}.$(uname -n)\"

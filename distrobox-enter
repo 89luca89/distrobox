@@ -426,9 +426,9 @@ if [ "${container_status}" = "unknown" ]; then
 			;;
 		n | N | No | no | NO)
 			printf >&2 "Ok. For creating it, run this command:\n"
-			if [ "${rootful}" -ne 0 ]; then
+			if [ "${rootful}" -ne 0 ]; then # display -r if it was also given to distrobox enter
 				printf >&2 "\tdistrobox create -r <name-of-container> --image <remote>/<docker>:<tag>\n"
-			else
+			else # -r wasn't given to distrobox enter => no need to display it
 				printf >&2 "\tdistrobox create <name-of-container> --image <remote>/<docker>:<tag>\n"
 			fi
 			exit 0
