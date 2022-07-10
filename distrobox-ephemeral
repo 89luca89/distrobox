@@ -23,6 +23,7 @@
 #	DBX_CONTAINER_MANAGER
 #   DBX_CONTAINER_NAME
 #   DBX_NON_INTERACTIVE
+#	DBX_SUDO_PROGRAM
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
@@ -56,7 +57,8 @@ Usage:
 Options:
 
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
-				way over "sudo distrobox"
+				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--verbose/-v:		show more verbosity
 	--help/-h:		show this message
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
@@ -118,7 +120,7 @@ if [ "${verbose}" -ne 0 ]; then
 	extra_flags="${extra_flags} --verbose"
 fi
 
-# prepend sudo if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
 fi

@@ -20,7 +20,8 @@ graphical apps (X11/Wayland), and audio.
 	--pull/-p:		pull latest image unconditionally without asking
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
-				way over "sudo distrobox"
+				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
@@ -66,6 +67,7 @@ Supported environment variables:
 	DBX_CONTAINER_MANAGER
 	DBX_CONTAINER_NAME
 	DBX_NON_INTERACTIVE
+	DBX_SUDO_PROGRAM
 
 The `--additional-flags` or `-a` is useful to modify defaults in the container creations.
 For example:

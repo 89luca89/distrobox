@@ -29,6 +29,7 @@
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
 #	DBX_NON_INTERACTIVE
+#	DBX_SUDO_PROGRAM
 
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
@@ -56,6 +57,7 @@ container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
 non_interactive=0
+distrobox_sudo_program="sudo"
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
 # "realpath" would break situations like Nix or similar symlink based package
@@ -97,6 +99,7 @@ done
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
+[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
 # Print usage to stdout.
 # Arguments:
@@ -127,7 +130,8 @@ Options:
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
-				way over "sudo distrobox"
+				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
@@ -336,9 +340,9 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
-# prepend sudo if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-	container_manager="sudo ${container_manager}"
+	container_manager="${distrobox_sudo_program} ${container_manager}"
 fi
 
 # Clone a container as a snapshot.

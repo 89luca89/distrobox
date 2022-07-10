@@ -3,6 +3,8 @@
   - [Create a distrobox with a custom HOME directory](#create-a-distrobox-with-a-custom-home-directory)
   - [Mount additional volumes in a distrobox](#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](#use-a-different-shell-than-the-host)
+  - [Run the container with real root](#run-the-container-with-real-root)
+  - [Using a command other than sudo to run a rootful container](#using-a-command-other-than-sudo-to-run-a-rootful-container)
   - [Duplicate an existing distrobox](#duplicate-an-existing-distrobox)
   - [Export to the host](#export-to-the-host)
   - [Execute commands on the host](#execute-commands-on-the-host)
@@ -78,6 +80,60 @@ command with the `--root` or `-r` flag, so that distrobox can still integrate be
 with your `$USER`.
 
 `distrobox create --name test --image your-choosen-image:tag --root`
+
+## Using a command other than sudo to run a rootful container
+
+When using the `--root` option with Distrobox, internally, it uses `sudo` to be able to
+interact with the rootful container through podman/docker, which will prompt for a valid
+root password on the terminal. However, some users might prefer to use a command other
+than `sudo` in order to authenticate as root; for example, `pkexec` could be used to
+display a graphical authentication prompt. If you need this, make sure to specify
+the desired command through the `DBX_SUDO_PROGRAM` environment variable
+(supported by most `distrobox` subcommands), alongside `--root`. Sample usage:
+
+`DBX_SUDO_PROGRAM="pkexec" distrobox create --name test --image your-chosen-image:tag --root`
+
+Additionally, you may also have any further distrobox commands use `pkexec` (for example)
+for rootful containers by appending the line `distrobox_sudo_program="pkexec"`
+(replace `pkexec` with the desired program) to one of the config file paths that
+distrobox supports; for example, to '~/.distroboxrc'.
+
+It is also worth noting that, if your sudo program does not have persistence
+(i.e., cooldown before asking for the root password again after a successful authentication)
+configured, then you may have to enter the root password multiple times, as distrobox
+calls multiple podman/docker commands under the hood. In order to avoid this, it is
+recommended to either configure your sudo program to be persistent, or, if that's
+not feasible, use `sudo` whenever possible (which has persistence enabled by default).
+
+However, if you'd like to have a graphical authentication prompt, but would also like
+to benefit from `sudo`'s persistence (to avoid prompting for a password multiple times in a row),
+you may specify `sudo --askpass` as the sudo program.
+The `--askpass` option makes sudo launch the program in the path (or name, if it is in `$PATH`)
+specified by the `SUDO_ASKPASS` environment variable, and uses its output (to stdout)
+as the password input to authenticate as root. If unsuccessful, it launches the program again,
+until either it outputs the correct password, the user cancels the operation, or
+a limit of amount of authentication attempts is reached.
+
+So, for example, assume you'd like to use `zenity --password` to prompt for the sudo password.
+You may save a script, e.g. `my-password-prompt`, to somewhere in your machine - say,
+to `~/.local/bin/my-password-prompt` - with the following contents:
+
+```sh
+#!/bin/sh
+zenity --password
+```
+
+Make it executable using, for example, `chmod` (in the example, by running `chmod +x ~/.local/bin/my-password-prompt` -
+replace with the path to your script). Afterwards, make sure `SUDO_ASKPASS` is set to your newly-created script's path,
+and also ensure `DBX_SUDO_PROGRAM` is set to `sudo --askpass`, and you should be good to go. For example,
+running the below command should only prompt the root authentication GUI once throughout the whole process:
+
+`SUDO_ASKPASS="$HOME/.local/bin/my-password-prompt" DBX_SUDO_PROGRAM="sudo --askpass" distrobox-ephemeral -r`
+
+You may make these options persist by specifying those environment variables in your shell's rc file (such as `~/.bashrc`).
+Note that this will also work if `distrobox_sudo_program="sudo --askpass"` is specified in one of distrobox's config files
+(such as `~/.distroboxrc`), alongside `export SUDO_ASKPASS="/path/to/password/prompt/program"` (for example - however, this
+last line is usually better suited to your shell's rc file).
 
 ## Duplicate an existing distrobox
 
