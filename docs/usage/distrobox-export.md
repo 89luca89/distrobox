@@ -104,6 +104,53 @@ The option "--delete" will un-export an app, binary, or service.
 
 The option "--sudo" will launch the exported item as root inside the distrobox.
 
+**Exporting apps from rootful containers**
+
+It is worth noting that, when exporting any item - which includes graphical apps - from rootful
+containers (created with `distrobox create --root`), root privileges will be needed every time
+the item is launched (in order to enter the rootful container), which, by default, is done
+using `sudo` (see docs for `distrobox-enter` on how to customize that). However, for
+graphical apps in specific, since they launch without a terminal, the usage of `sudo`
+might, at first, make it impossible to launch them.
+
+To fix this without needing to customize the sudo program, one can define a global
+`SUDO_ASKPASS` environment variable on their machine, which is a PATH to an executable
+that is run by `sudo` when no terminal is available (or when it is given the `--askpass`
+or `-A` option), and the output of that executable to stdout is used as the password input.
+The executable is called as many times is needed for authentication as root to succeed
+(unless a limit of amount of attempts is reached).
+
+To do this, pick a program to ask the user for graphical password input. In this example,
+we will use `zenity --password`, which should be present for GNOME users (and can
+also be installed in other DEs) - there are other options, such as
+`kdialog --password "Message"` for KDE users.
+
+Write the call to the desired program to a script file, for example to
+`/usr/bin/my-password-prompt` (sample contents below):
+
+	#!/bin/sh
+	zenity --password "Authentication as root is required"
+
+(You may save the script under, for example, `~/.local/bin` if you want to keep it
+fully local to your user.)
+
+Afterwards, make it executable (e.g. run `sudo chmod +x /usr/bin/my-password-prompt`). Then,
+make sure to set `SUDO_ASKPASS` to `"/usr/bin/my-password-prompt"` (replace with your script's path)
+in a global profile file, so that it is picked up by sudo when running graphical apps (and, therefore,
+sudo will run the script you created to ask for a password).
+This is done with the shell line `export SUDO_ASKPASS="/path/to/script/goes/here"`.
+You can do this for your user only by running the command below:
+
+	echo 'export SUDO_ASKPASS="/usr/bin/mypassword-prompt"' >> ~/.profile
+
+Which appends the appropriate line to the end of your `~/.profile` file, thus making the change
+local to your user. Alternatively, to set it system-wide (for all users), you may create a file
+in `/etc/profile.d/` (or equivalent for your system) with that line.
+
+Now just log out and log back in, and graphical apps exported from rootful containers should
+now be properly asking for root's password before launching (instead of not opening, if that
+was the case before).
+
 **Notes**
 
 Note you can use --app OR --bin OR --service but not together.
