@@ -139,9 +139,9 @@ make sure to set `SUDO_ASKPASS` to `"/usr/bin/my-password-prompt"` (replace with
 in a global profile file, so that it is picked up by sudo when running graphical apps (and, therefore,
 sudo will run the script you created to ask for a password).
 This is done with the shell line `export SUDO_ASKPASS="/path/to/script/goes/here"`.
-You can do this for your user only by running the command below:
+You can do this for your user only by running the command below (replace the script path as needed):
 
-	echo 'export SUDO_ASKPASS="/usr/bin/mypassword-prompt"' >> ~/.profile
+	echo 'export SUDO_ASKPASS="/usr/bin/my-password-prompt"' >> ~/.profile
 
 Which appends the appropriate line to the end of your `~/.profile` file, thus making the change
 local to your user. Alternatively, to set it system-wide (for all users), you may create a file
