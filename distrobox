@@ -73,7 +73,7 @@ case "${distrobox_command}" in
 	rm)
 		"${distrobox_path}"/distrobox-rm "$@"
 		;;
-	ephemeral*)
+	ephemeral)
 		"${distrobox_path}"/distrobox-ephemeral "$@"
 		;;
 	-V | --version | version)

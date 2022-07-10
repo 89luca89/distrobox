@@ -237,20 +237,7 @@ if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; the
 	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
 	exit 127
 fi
-# Small performance optimization, using podman socket shaves
-# about half the time to access informations.
-#
-# Accessed file is /run/user/USER_ID/podman/podman.sock
-#
-# This is not necessary on docker as it is already handled
-# in this way.
-if [ -z "${container_manager#*podman*}" ] &&
-	[ "${rootful}" -eq 0 ] &&
-	[ -S "/run/user/$(id -ru)/podman/podman.sock" ] &&
-	systemctl --user status podman.socket > /dev/null; then
 
-	container_manager="${container_manager} --remote"
-fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
