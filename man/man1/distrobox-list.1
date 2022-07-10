@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-LIST" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-LIST" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -37,7 +37,8 @@ or docker containers.
 \f[C]
 --help/-h:      show this message
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --size/-s:      show also container size
 --verbose/-v:       show more verbosity
 --version/-V:       show version
@@ -64,6 +65,7 @@ Supported environment variables:
 .nf
 \f[C]
 DBX_CONTAINER_MANAGER
+DBX_SUDO_PROGRAM
 \f[R]
 .fi
 .PP

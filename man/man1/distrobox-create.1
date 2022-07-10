@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -42,7 +42,8 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --pull/-p:      pull latest image unconditionally without asking
 --yes/-Y:       non-interactive, pull images without asking
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --clone/-c:     name of the distrobox container to use as base for a new container
             this will be useful to either rename an existing distrobox or have multiple copies
             of the same environment.
@@ -103,6 +104,7 @@ DBX_CONTAINER_IMAGE
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
+DBX_SUDO_PROGRAM
 \f[R]
 .fi
 .PP

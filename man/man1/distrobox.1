@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH COMPATIBILITY
 .PP
@@ -321,7 +321,7 @@ dependencies are met.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -349,7 +349,8 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --pull/-p:      pull latest image unconditionally without asking
 --yes/-Y:       non-interactive, pull images without asking
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --clone/-c:     name of the distrobox container to use as base for a new container
             this will be useful to either rename an existing distrobox or have multiple copies
             of the same environment.
@@ -410,6 +411,7 @@ DBX_CONTAINER_IMAGE
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
+DBX_SUDO_PROGRAM
 \f[R]
 .fi
 .PP
@@ -511,7 +513,7 @@ This is needed because \f[V]/sbin/init\f[R] must be pid 1.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ENTER" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-ENTER" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -542,7 +544,8 @@ specify the \[en]headless mode to disable tty and interactivity.
 --additional-flags/-a:  additional flags to pass to the container manager command
 --help/-h:      show this message
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --dry-run/-d:       only print the container manager command generated
 --verbose/-v:       show more verbosity
 --version/-V:       show version
@@ -576,6 +579,7 @@ Supported environment variables:
 DBX_CONTAINER_NAME
 DBX_CONTAINER_MANAGER
 DBX_SKIP_WORKDIR
+DBX_SUDO_PROGRAM
 \f[R]
 .fi
 .PP
@@ -602,6 +606,23 @@ my_var=test distrobox enter -n dev-arch --additional-flags -- printenv &| grep m
 my_var=test
 \f[R]
 .fi
+.PP
+If you\[cq]d like to enter a rootful container having distrobox use a
+program other than `sudo' to run podman/docker as root, such as `pkexec'
+or `doas', you may specify it with the \f[V]DBX_SUDO_PROGRAM\f[R]
+environment variable.
+For example, to use `doas' to enter a rootful container:
+.IP
+.nf
+\f[C]
+DBX_SUDO_PROGRAM=\[dq]doas\[dq] distrobox enter -n container --root
+\f[R]
+.fi
+.PP
+Additionally, in one of the config file paths that distrobox supports,
+such as \f[V]\[ti]/.distroboxrc\f[R], you can also append the line
+\f[V]distrobox_sudo_program=\[dq]doas\[dq]\f[R] (for example) to always
+run distrobox commands involving rootful containers using `doas'.
 .\
 .\"
 .\" Define V font for inline verbatim, using C font in formats
@@ -618,7 +639,7 @@ my_var=test
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EPHEMERAL" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-EPHEMERAL" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -639,7 +660,8 @@ destroyed when the command is terminated.
 .nf
 \f[C]
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
 --help/-h:      show this message
 --/-e:          end arguments execute the rest as command to execute at login   default: bash -l
@@ -698,7 +720,7 @@ a list of supported environment variables to use.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EXPORT" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-EXPORT" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -730,7 +752,7 @@ will automatically be launched from the container it is exported from.
             Defaults to (on \[rs]$container_name)
 --export-path/-ep:  path where to export the binary
 --extra-flags/-ef:  extra flags to add to the command
---sudo/-S:      specify if the exported item should be ran as sudo
+--sudo/-S:      specify if the exported item should be run as sudo
 --help/-h:      show this message
 --verbose/-v:       show more verbosity
 --version/-V:       show version
@@ -849,6 +871,75 @@ distrobox-export --service nginx --delete
 The option \[lq]\[en]sudo\[rq] will launch the exported item as root
 inside the distrobox.
 .PP
+\f[B]Exporting apps from rootful containers\f[R]
+.PP
+It is worth noting that, when exporting any item - which includes
+graphical apps - from rootful containers (created with
+\f[V]distrobox create --root\f[R]), root privileges will be needed every
+time the item is launched (in order to enter the rootful container),
+which, by default, is done using \f[V]sudo\f[R] (see docs for
+\f[V]distrobox-enter\f[R] on how to customize that).
+However, for graphical apps in specific, since they launch without a
+terminal, the usage of \f[V]sudo\f[R] might, at first, make it
+impossible to launch them.
+.PP
+To fix this without needing to customize the sudo program, one can
+define a global \f[V]SUDO_ASKPASS\f[R] environment variable on their
+machine, which is a PATH to an executable that is run by \f[V]sudo\f[R]
+when no terminal is available (or when it is given the
+\f[V]--askpass\f[R] or \f[V]-A\f[R] option), and the output of that
+executable to stdout is used as the password input.
+The executable is called as many times is needed for authentication as
+root to succeed (unless a limit of amount of attempts is reached).
+.PP
+To do this, pick a program to ask the user for graphical password input.
+In this example, we will use \f[V]zenity --password\f[R], which should
+be present for GNOME users (and can also be installed in other DEs) -
+there are other options, such as
+\f[V]kdialog --password \[dq]Message\[dq]\f[R] for KDE users.
+.PP
+Write the call to the desired program to a script file, for example to
+\f[V]/usr/bin/my-password-prompt\f[R] (sample contents below):
+.IP
+.nf
+\f[C]
+#!/bin/sh
+zenity --password \[dq]Authentication as root is required\[dq]
+\f[R]
+.fi
+.PP
+(You may save the script under, for example, \f[V]\[ti]/.local/bin\f[R]
+if you want to keep it fully local to your user.)
+.PP
+Afterwards, make it executable (e.g.\ run
+\f[V]sudo chmod +x /usr/bin/my-password-prompt\f[R]).
+Then, make sure to set \f[V]SUDO_ASKPASS\f[R] to
+\f[V]\[dq]/usr/bin/my-password-prompt\[dq]\f[R] (replace with your
+script\[cq]s path) in a global profile file, so that it is picked up by
+sudo when running graphical apps (and, therefore, sudo will run the
+script you created to ask for a password).
+This is done with the shell line
+\f[V]export SUDO_ASKPASS=\[dq]/path/to/script/goes/here\[dq]\f[R].
+You can do this for your user only by running the command below (replace
+the script path as needed):
+.IP
+.nf
+\f[C]
+echo \[aq]export SUDO_ASKPASS=\[dq]/usr/bin/my-password-prompt\[dq]\[aq] >> \[ti]/.profile
+\f[R]
+.fi
+.PP
+Which appends the appropriate line to the end of your
+\f[V]\[ti]/.profile\f[R] file, thus making the change local to your
+user.
+Alternatively, to set it system-wide (for all users), you may create a
+file in \f[V]/etc/profile.d/\f[R] (or equivalent for your system) with
+that line.
+.PP
+Now just log out and log back in, and graphical apps exported from
+rootful containers should now be properly asking for root\[cq]s password
+before launching (instead of not opening, if that was the case before).
+.PP
 \f[B]Notes\f[R]
 .PP
 Note you can use \[en]app OR \[en]bin OR \[en]service but not together.
@@ -884,7 +975,7 @@ option to provide a series of flags, for example:
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-HOST-EXEC" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-HOST-EXEC" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -945,7 +1036,7 @@ distrobox-host-exec podman ps -a
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-INIT" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-INIT" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1009,7 +1100,7 @@ distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-LIST" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-LIST" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1032,7 +1123,8 @@ or docker containers.
 \f[C]
 --help/-h:      show this message
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --size/-s:      show also container size
 --verbose/-v:       show more verbosity
 --version/-V:       show version
@@ -1059,6 +1151,7 @@ Supported environment variables:
 .nf
 \f[C]
 DBX_CONTAINER_MANAGER
+DBX_SUDO_PROGRAM
 \f[R]
 .fi
 .PP
@@ -1079,7 +1172,7 @@ DBX_CONTAINER_MANAGER
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-RM" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-RM" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1101,7 +1194,8 @@ distrobox-rm delete one of the available distroboxes.
 --name/-n:      name for the distrobox
 --force/-f:     force deletion
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --help/-h:      show this message
 --verbose/-v:       show more verbosity
 --version/-V:       show version
@@ -1132,6 +1226,7 @@ Supported environment variables:
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
+DBX_SUDO_PROGRAM
 \f[R]
 .fi
 .\
@@ -1150,7 +1245,7 @@ DBX_NON_INTERACTIVE
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-STOP" "1" "Jun 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-STOP" "1" "Jul 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1177,7 +1272,8 @@ This is how they can be stopped.
 --yes/-Y:       non-interactive, stop without asking
 --help/-h:      show this message
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq]
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
 --version/-V:       show version
 \f[R]
@@ -1207,5 +1303,6 @@ Supported environment variables:
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
 DBX_NON_INTERACTIVE
+DBX_SUDO_PROGRAM
 \f[R]
 .fi
