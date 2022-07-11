@@ -173,11 +173,11 @@ fi
 if [ "${size}" -ne 0 ]; then
 	container_list=$(${container_manager} ps -a --no-trunc --size --format \
 		"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}|{{.Size}}")
-	printf " %-12s | %-25s | %-30s | %-40s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE" "SIZE"
+	printf " %-12s | %-20s | %-30s | %-40s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE" "SIZE"
 else
 	container_list=$(${container_manager} ps -a --no-trunc --format \
 		"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}")
-	printf " %-12s | %-25s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
+	printf " %-12s | %-20s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
 fi
 IFS='
 '
@@ -195,13 +195,23 @@ for container in ${container_list}; do
 
 		# If the container is Up and Running, print it in green and go next.
 		if [ -z "${container_status##*Up*}" ] || [ -z "${container_status##*running*}" ]; then
-			printf "\033[32m %-12s | %-25s | %-30s | %-40s | %-30s\n\033[0m" \
-				"${container_id}" "${container_name}" "${container_status}" "${container_image}" "${container_size}"
+			if [ "${size}" -ne 0 ]; then
+				printf "\033[32m %-12s | %-20s | %-30s | %-40s | %-30s\n\033[0m" \
+					"${container_id}" "${container_name}" "${container_status}" "${container_image}" "${container_size}"
+			else
+				printf "\033[32m %-12s | %-20s | %-30s | %-40s\n\033[0m" \
+					"${container_id}" "${container_name}" "${container_status}" "${container_image}"
+			fi
 			continue
 		fi
 		# print it in yellow if not Running
-		printf "\033[33m %-12s | %-25s | %-30s | %-40s | %-30s\n\033[0m" \
-			"${container_id}" "${container_name}" "${container_status}" "${container_image}" "${container_size}"
+		if [ "${size}" -ne 0 ]; then
+			printf "\033[33m %-12s | %-20s | %-30s | %-40s | %-30s\n\033[0m" \
+				"${container_id}" "${container_name}" "${container_status}" "${container_image}" "${container_size}"
+		else
+			printf "\033[33m %-12s | %-20s | %-30s | %-40s\n\033[0m" \
+				"${container_id}" "${container_name}" "${container_status}" "${container_image}"
+		fi
 
 	fi
 done
