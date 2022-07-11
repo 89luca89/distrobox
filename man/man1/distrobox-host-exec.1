@@ -31,8 +31,7 @@ of a container.
 If \[lq]flatpak-spawn\[rq] is installed in the container, this is what
 is used, and it is the most powerful and recommended method.
 If, instead, \[lq]flatpak-spawn\[rq] can\[cq]t be found, it still try to
-get the job done with \[lq]chroot\[rq] (but beware that not all
-commands/programs will work well in this mode).
+get the job done with \[lq]host-spawn\[rq], an alternative project.
 .SH SYNOPSIS
 .PP
 Just pass to \[lq]distrobox-host-exec\[rq] any command and all its
@@ -48,7 +47,20 @@ distrobox-host-exec [command [arguments]]
 \f[R]
 .fi
 .PP
-If no command is provided, it will execute \[lq]/bin/sh\[rq].
+If no command is provided, it will execute \[lq]$SHELL\[rq].
+.PP
+Alternatively, use symlinks to make \f[V]distrobox-host-exec\f[R]
+execute as that command:
+.IP
+.nf
+\f[C]
+\[ti]$: ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
+\[ti]$: ls -l /usr/local/bin/podman
+lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman -> /usr/bin/distrobox-host-exec
+\[ti]$: podman version
+\&...this is executed on host...
+\f[R]
+.fi
 .SH EXAMPLES
 .IP
 .nf
