@@ -124,7 +124,8 @@ if ! command -v flatpak-spawn > /dev/null; then
 		case "${response}" in
 			y | Y | Yes | yes | YES)
 				# Download matching version with current distrobox
-				if ! curl -L "https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-$(uname -m)" \
+				if ! curl -L \
+					"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-$(uname -m)" \
 					-o /tmp/host-spawn; then
 
 					printf "Error: Cannot download /usr/bin/host-spawn\n"

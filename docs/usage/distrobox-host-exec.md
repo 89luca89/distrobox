@@ -25,13 +25,11 @@ If no command is provided, it will execute "$SHELL".
 
 Alternatively, use symlinks to make `distrobox-host-exec` execute as that command:
 
-```console
-~$: ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
-~$: ls -l /usr/local/bin/podman
-lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman -> /usr/bin/distrobox-host-exec
-~$: podman version
-...this is executed on host...
-```
+	~$: ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
+	~$: ls -l /usr/local/bin/podman
+	lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman -> /usr/bin/distrobox-host-exec
+	~$: podman version
+	...this is executed on host...
 
 # EXAMPLES
 

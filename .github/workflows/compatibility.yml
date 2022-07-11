@@ -38,7 +38,7 @@ jobs:
       # Fetch from compatibility table all the distros supported
       - id: check_file_changed
         run: |
-          if git diff --name-only HEAD^ HEAD  | grep -E "^distrobox|compatibility.md"; then
+          if git diff --name-only HEAD^ HEAD | grep -v host-exec | grep -E "^distrobox|compatibility.md"; then
             echo "::set-output name=distrobox_changed::True"
           else
             echo "::set-output name=distrobox_changed::False"
