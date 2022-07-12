@@ -120,20 +120,14 @@ each Distrobox we choose to integrate with VSCode:
     "remote.containers.copyGitConfig": false,
     "remote.containers.gitCredentialHelperConfigLocation": "none",
     "terminal.integrated.profiles.linux": {
-      "capsh": {
-        "path": "/usr/sbin/capsh",
+      "shell": {
+        "path": "${localEnv:SHELL}",
         "args": [
-          "--caps=",
-          "--",
-          "-c",
-          "exec \"$@\"",
-          "/bin/sh",
-          "${localEnv:SHELL}",
           "-l"
         ]
       }
     },
-    "terminal.integrated.defaultProfile.linux": "capsh"
+    "terminal.integrated.defaultProfile.linux": "shell"
   },
   "remoteEnv": {
     "COLORTERM": "${localEnv:COLORTERM}",
