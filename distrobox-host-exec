@@ -114,7 +114,9 @@ fi
 # If flatpak-spawn is not present, let's use host-spawn utility
 if ! command -v flatpak-spawn > /dev/null; then
 	# Setup host-spawn as a way to execute commands back on the host
-	if [ ! -e /usr/bin/host-spawn ] || [ "$(/usr/bin/host-spawn --version)" != "${host_spawn_version}" ]; then
+	if ! command -v host-spawn > /dev/null ||
+		[ "$(host-spawn --version)" != "${host_spawn_version}" ]; then
+
 		printf "Warning: no flatpak-spawn nor host-spawn found!\n"
 		printf "Do you want to install host-spawn utility? [Y/n] "
 		read -r response
