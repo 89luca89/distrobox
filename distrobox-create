@@ -56,22 +56,10 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
-non_interactive=0
 distrobox_sudo_program="sudo"
-# Use cd + dirname + pwd so that we do not have relative paths in mount points
-# We're not using "realpath" here so that symlinks are not resolved this way
-# "realpath" would break situations like Nix or similar symlink based package
-# management.
-distrobox_entrypoint_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-init"
-distrobox_export_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-export"
-distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
-# In case init or export are not in the same path as create, let's search
-# in PATH for them.
-[ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(command -v distrobox-init)"
-[ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(command -v distrobox-export)"
-[ ! -e "${distrobox_hostexec_path}" ] && distrobox_hostexec_path="$(command -v distrobox-hostexec)"
 dryrun=0
 init=0
+non_interactive=0
 rootful=0
 verbose=0
 version="1.3.2"
@@ -423,9 +411,6 @@ generate_command() {
 		--env \"SHELL=${SHELL:-"/bin/bash"}\"
 		--env \"HOME=${container_user_home}\"
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave
-		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
-		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
-		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
 		--volume /sys:/sys:rslave
@@ -551,13 +536,6 @@ generate_command() {
 	# Return generated command.
 	printf "%s" "${result_command}"
 }
-
-# Check that we have a complete distrobox installation or
-# entrypoint and export will not work.
-if [ -z "${distrobox_entrypoint_path}" ] || [ -z "${distrobox_export_path}" ]; then
-	printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}"
-	exit 127
-fi
 
 # dry run mode, just generate the command and print it. No creation.
 if [ "${dryrun}" -ne 0 ]; then
