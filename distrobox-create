@@ -522,6 +522,11 @@ generate_command() {
 	result_command="${result_command} ${container_manager_additional_flags}"
 
 	# Now execute the entrypoint, refer to `distrobox-init -h` for instructions
+	#
+	# Be aware that entrypoint corresponds to distrobox-init, the copying of it
+	# inside the container is moved to distrobox-enter, in the start phase.
+	# This is done to make init, export and host-exec location independent from
+	# the host, and easier to upgrade.
 	result_command="${result_command} ${container_image}
 		/usr/bin/entrypoint -v --name \"${container_user_name}\"
 		--user ${container_user_uid}
