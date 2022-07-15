@@ -23,7 +23,7 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 # Defaults
 host_command=""
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
-host_spawn_version="1.0.1"
+host_spawn_version="1.0.2"
 verbose=0
 version="1.3.2"
 
@@ -150,7 +150,7 @@ if ! command -v flatpak-spawn > /dev/null; then
 		esac
 
 	fi
-	host-spawn "${host_command}" "$@"
+	host-spawn --no-pty "${host_command}" "$@"
 	# Exit here, we don't continue execution
 	exit $?
 fi

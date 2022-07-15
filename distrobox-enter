@@ -443,7 +443,7 @@ if [ "${container_status}" != "running" ]; then
 	# IMPORTANT STEP:
 	#
 	# Before starting, ensure we copy the entrypoint, the export and the host-exec utilities.
-	# This approach should solve the locaction-dependency, on systems like NixOS, or
+	# This approach should solve the location-dependency, on systems like NixOS, or
 	# If one wants to change the installation path of distrobox (eg: from /usr/bin to ~/.local/bin).
 	${container_manager} cp "${distrobox_entrypoint_path}" "${container_name}":/usr/bin/entrypoint
 	${container_manager} cp "${distrobox_export_path}" "${container_name}":/usr/bin/distrobox-export
