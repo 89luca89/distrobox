@@ -408,6 +408,7 @@ generate_command() {
 	# Also mount in the container the distrobox-export and distrobox-host-exec
 	# utilities.
 	result_command="${result_command}
+		--label \"manager=distrobox\"
 		--env \"SHELL=${SHELL:-"/bin/bash"}\"
 		--env \"HOME=${container_user_home}\"
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave

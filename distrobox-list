@@ -33,7 +33,6 @@ fi
 
 # Defaults
 rootful=0
-size=0
 verbose=0
 version="1.3.2"
 container_manager="autodetect"
@@ -90,10 +89,6 @@ while :; do
 		-r | --root)
 			shift
 			rootful=1
-			;;
-		-s | --size)
-			size=1
-			shift
 			;;
 		-v | --verbose)
 			verbose=1
@@ -170,15 +165,9 @@ fi
 # List containers using custom format that inclused MOUNTS
 # we do this as we can detect the custom mounts done by distrobox to distringuish
 # between a normal podman or docker container and a distrobox one.
-if [ "${size}" -ne 0 ]; then
-	container_list=$(${container_manager} ps -a --no-trunc --size --format \
-		"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}|{{.Size}}")
-	printf " %-12s | %-20s | %-30s | %-40s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE" "SIZE"
-else
-	container_list=$(${container_manager} ps -a --no-trunc --format \
-		"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Mounts}}")
-	printf " %-12s | %-20s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
-fi
+container_list=$( ${container_manager} ps -a --no-trunc --format \
+	"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Labels}}{{.Mounts}}")
+printf  " %-12s | %-20s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
 IFS='
 '
 # Header of the output
@@ -191,27 +180,15 @@ for container in ${container_list}; do
 		container_image="$(printf "%s" "${container}" | cut -d'|' -f2)"
 		container_name="$(printf "%s" "${container}" | cut -d'|' -f3)"
 		container_status="$(printf "%s" "${container}" | cut -d'|' -f4)"
-		container_size="$(printf "%s" "${container}" | cut -d'|' -f6)"
 
 		# If the container is Up and Running, print it in green and go next.
 		if [ -z "${container_status##*Up*}" ] || [ -z "${container_status##*running*}" ]; then
-			if [ "${size}" -ne 0 ]; then
-				printf "\033[32m %-12s | %-20s | %-30s | %-40s | %-30s\n\033[0m" \
-					"${container_id}" "${container_name}" "${container_status}" "${container_image}" "${container_size}"
-			else
-				printf "\033[32m %-12s | %-20s | %-30s | %-40s\n\033[0m" \
-					"${container_id}" "${container_name}" "${container_status}" "${container_image}"
-			fi
+			printf "\033[32m %-12s | %-20s | %-30s | %-40s\n\033[0m" \
+				"${container_id}" "${container_name}" "${container_status}" "${container_image}"
 			continue
 		fi
 		# print it in yellow if not Running
-		if [ "${size}" -ne 0 ]; then
-			printf "\033[33m %-12s | %-20s | %-30s | %-40s | %-30s\n\033[0m" \
-				"${container_id}" "${container_name}" "${container_status}" "${container_image}" "${container_size}"
-		else
-			printf "\033[33m %-12s | %-20s | %-30s | %-40s\n\033[0m" \
-				"${container_id}" "${container_name}" "${container_status}" "${container_image}"
-		fi
-
+		printf "\033[33m %-12s | %-20s | %-30s | %-40s\n\033[0m" \
+			"${container_id}" "${container_name}" "${container_status}" "${container_image}"
 	fi
 done
