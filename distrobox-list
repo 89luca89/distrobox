@@ -167,9 +167,20 @@ fi
 # between a normal podman or docker container and a distrobox one.
 container_list=$( ${container_manager} ps -a --no-trunc --format \
 	"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Labels}}{{.Mounts}}")
-printf  " %-12s | %-20s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
+printf  "%-12s | %-20s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
 IFS='
 '
+
+# if we're in not a tty, don't use colors
+GREEN=""
+YELLOW=""
+CLEAR=""
+if [ -t 1 ]; then
+	# we're in a tty, use colors
+	GREEN='\033[32m'
+	YELLOW='\033[33m'
+	CLEAR='\033[0m'
+fi
 # Header of the output
 for container in ${container_list}; do
 	# Check if the current container has a custom mount point for distrobox.
@@ -183,12 +194,18 @@ for container in ${container_list}; do
 
 		# If the container is Up and Running, print it in green and go next.
 		if [ -z "${container_status##*Up*}" ] || [ -z "${container_status##*running*}" ]; then
-			printf "\033[32m %-12s | %-20s | %-30s | %-40s\n\033[0m" \
-				"${container_id}" "${container_name}" "${container_status}" "${container_image}"
-			continue
+			# echo -e is not defined in posix, and printing with %s will not work
+			# for colors, so we're disabling this lint for color prints.
+			# shellcheck disable=SC2059
+			printf "${GREEN}"
+		else
+			# shellcheck disable=SC2059
+			printf "${YELLOW}"
 		fi
 		# print it in yellow if not Running
-		printf "\033[33m %-12s | %-20s | %-30s | %-40s\n\033[0m" \
+		printf "%-12s | %-20s | %-30s | %-40s\n" \
 			"${container_id}" "${container_name}" "${container_status}" "${container_image}"
 	fi
+	# shellcheck disable=SC2059
+	printf "${CLEAR}"
 done
