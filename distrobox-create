@@ -74,6 +74,8 @@ config_files="
 	${HOME}/.distroboxrc
 "
 for config_file in ${config_files}; do
+	# Shellcheck will give error for sourcing a variable file as it cannot follow
+	# it. We don't care so let's disable this linting for now.
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
