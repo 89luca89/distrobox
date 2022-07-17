@@ -33,7 +33,6 @@ install --prefix /usr/local
 
 Options:
 	--prefix/-P:		base bath where all files will be deployed (default /usr/local if root, ~/.local if not)
-	--path/-p:		(DEPRECATED) path where to deploy the files (default /usr/local/bin if root, ~/.local/bin if not)
 	--help/-h:		show this message
 	-v:			show more verbosity
 EOF
@@ -50,13 +49,6 @@ while :; do
 		-v | --verbose)
 			shift
 			verbose=1
-			;;
-		-p | --path)
-			if [ -n "$2" ]; then
-				dest_path="$2"
-				shift
-				shift
-			fi
 			;;
 		-N | --next)
 			if [ -n "$2" ]; then
@@ -76,12 +68,7 @@ while :; do
 	esac
 done
 
-if [ -n "${dest_path}" ] && [ -n "${prefix}" ]; then
-	printf >&2 "Both -p and -P are set. Cannot continue. Exiting.\n"
-	exit 1
-fi
 
-if [ -z "${dest_path}" ]; then
 	if [ -z "${prefix}" ]; then
 		prefix="/usr/local"
 		# in case we're not root, just default to the home directory
@@ -91,11 +78,6 @@ if [ -z "${dest_path}" ]; then
 	fi
 	dest_path="${prefix}/bin"
 	man_dest_path="${prefix}/share/man/man1"
-else
-	printf >&2 "Warning: -p/--path is deprecated. Please refer to the documentation and switch to -P/--prefix.\n"
-	# dest_path is already set
-	man_dest_path="${dest_path}/../share/man/man1"
-fi
 
 set -o errexit
 set -o nounset
