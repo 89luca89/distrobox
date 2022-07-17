@@ -111,6 +111,7 @@ Distrobox guests tested successfully with the following container images:
 | AmazonLinux | 2  | docker.io/library/amazonlinux:2.0.20211005.0    |
 | AmazonLinux | 2022  | public.ecr.aws/amazonlinux/amazonlinux:2022 |
 | Archlinux     | | docker.io/library/archlinux:latest    |
+| Crystal Linux     | | docker.io/crystallinux/crystal:latest    |
 | ClearLinux |      | docker.io/library/clearlinux:latest <br> docker.io/library/clearlinux:base    |
 | CentOS | 7 | quay.io/centos/centos:7  |
 | CentOS Stream | 8 <br> 9 | quay.io/centos/centos:stream8 <br> quay.io/centos/centos:stream9  |
@@ -143,6 +144,8 @@ This will **not** occur after the first time, **subsequent enters will be much f
 NixOS is not a supported container distro, and there are currently no plans to
 bring support to it. If you are looking for unprivlaged NixOS environments,
 we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html).
+
+Crystal Linux may first require you to open the container with `distrobox enter boxnamehere -- bash` to install the shell that your host uses, should you not be using Bash. Otherwise, the `distrobox enter` command may fail.
 
 ### New Distro support
 
