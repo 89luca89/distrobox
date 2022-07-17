@@ -85,6 +85,9 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
+[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
+[ ! -w "${man_dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${man_dest_path}" && exit 1
+
 # uninstall
 for file in "${dest_path}/distrobox"*; do
 	[ -e "${file}" ] && rm "${file}"

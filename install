@@ -145,5 +145,8 @@ else
 	fi
 fi
 
+[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
+[ ! -w "${man_dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${man_dest_path}" && exit 1
+
 printf >&2 "Successfully installed to %s.\n" "${dest_path}"
 printf >&2 "Be sure that %s is in your \$PATH environment variable for it to work.\n" "${dest_path}"
