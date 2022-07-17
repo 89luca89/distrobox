@@ -68,15 +68,15 @@ while :; do
 	esac
 done
 
-	if [ -z "${prefix}" ]; then
-		prefix="/usr/local"
-		# in case we're not root, just default to the home directory
-		if [ "$(id -u)" -ne 0 ]; then
-			prefix="${HOME}/.local"
-		fi
+if  [ -z "${prefix}" ]; then
+	prefix="/usr/local"
+	# in case we're not root, just default to the home directory
+	if [ "$(id -u)" -ne 0 ]; then
+		prefix="${HOME}/.local"
 	fi
-	dest_path="${prefix}/bin"
-	man_dest_path="${prefix}/share/man/man1"
+fi
+dest_path="${prefix}/bin"
+man_dest_path="${prefix}/share/man/man1"
 
 set -o errexit
 set -o nounset
