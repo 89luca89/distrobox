@@ -32,6 +32,7 @@ if [ "$(id -u)" -eq 0 ]; then
 fi
 
 # Defaults
+no_color=0
 rootful=0
 verbose=0
 version="1.3.2"
@@ -72,6 +73,7 @@ Usage:
 Options:
 
 	--help/-h:		show this message
+	--no-color:		disable color formatting
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
@@ -87,6 +89,10 @@ while :; do
 			# Call a "show_help" function to display a synopsis, then exit.
 			show_help
 			exit 0
+			;;
+		--no-color)
+			shift
+			no_color=1
 			;;
 		-r | --root)
 			shift
@@ -167,9 +173,9 @@ fi
 # List containers using custom format that inclused MOUNTS
 # we do this as we can detect the custom mounts done by distrobox to distringuish
 # between a normal podman or docker container and a distrobox one.
-container_list=$( ${container_manager} ps -a --no-trunc --format \
+container_list=$(${container_manager} ps -a --no-trunc --format \
 	"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Labels}}{{.Mounts}}")
-printf  "%-12s | %-20s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
+printf "%-12s | %-20s | %-30s | %-30s\n" "ID" "NAME" "STATUS" "IMAGE"
 IFS='
 '
 
@@ -177,7 +183,7 @@ IFS='
 GREEN=""
 YELLOW=""
 CLEAR=""
-if [ -t 1 ]; then
+if [ -t 1 ] && [ "${no_color}" -ne 1 ]; then
 	# we're in a tty, use colors
 	GREEN='\033[32m'
 	YELLOW='\033[33m'
