@@ -86,6 +86,9 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 # uninstall
+for file in "${dest_path}/distrobox"*; do
+	[ -e "${file}" ] && rm "${file}"
+done
 for file in "${man_dest_path}/distrobox"*; do
 	[ -e "${file}" ] && rm "${file}"
 done
