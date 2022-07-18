@@ -32,7 +32,6 @@ uninstall --prefix /usr/local
 
 Options:
 	--prefix/-P:		base bath where all files will be deployed (default /usr/local if root, ~/.local if not)
-	--path/-p:		(DEPRECATED) path where to deploy the files (default /usr/local/bin if root, ~/.local/bin if not)
 	--help/-h:		show this message
 	-v:			show more verbosity
 EOF
@@ -69,26 +68,15 @@ while :; do
 	esac
 done
 
-if [ -n "${dest_path}" ] && [ -n "${prefix}" ]; then
-	printf >&2 "Both -p and -P are set. Cannot continue. Exiting.\n"
-	exit 1
-fi
-
-if [ -z "${dest_path}" ]; then
-	if [ -z "${prefix}" ]; then
-		prefix="/usr/local"
-		# in case we're not root, just default to the home directory
-		if [ "$(id -u)" -ne 0 ]; then
-			prefix="${HOME}/.local"
-		fi
+if  [ -z "${prefix}" ]; then
+	prefix="/usr/local"
+	# in case we're not root, just default to the home directory
+	if [ "$(id -u)" -ne 0 ]; then
+		prefix="${HOME}/.local"
 	fi
-	dest_path="${prefix}/bin"
-	man_dest_path="${prefix}/share/man/man1"
-else
-	printf >&2 "Warning: -p/--path is deprecated. Please refer to the documentation and switch to -P/--prefix.\n"
-	# dest_path is already set
-	man_dest_path="${dest_path}/../share/man/man1"
 fi
+dest_path="${prefix}/bin"
+man_dest_path="${prefix}/share/man/man1"
 
 set -o errexit
 set -o nounset
@@ -97,9 +85,8 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# Ensure the foundamental variables are set and not empty, we will not proceed if
-# they are not all set.
-[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}/bin" && exit 1
+[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
+[ ! -w "${man_dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${man_dest_path}" && exit 1
 
 # uninstall
 for file in "${dest_path}/distrobox"*; do
