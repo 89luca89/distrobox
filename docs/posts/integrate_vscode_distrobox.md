@@ -1,11 +1,11 @@
 - [Distrobox](../README.md)
-  - [Integrate VSCode and Distrobox](integrate_vscode_distrobox.md)
+  - [Integrate VSCode and Distrobox](#integrate-vscode-and-distrobox)
     - [The easy one](#the-easy-one)
     - [The not so easy one](#the-not-so-easy-one)
-      - [First step, install it](#first-step--install-it)
-      - [Second step, extensions](#second-step--extensions)
-      - [Third step, podman wrapper](#third-step--podman-wrapper)
-      - [Fourth step, configure the container](#fourth-step--configure-the-container)
+      - [First step, install it](#first-step-install-it)
+      - [Second step, extensions](#second-step-extensions)
+      - [Third step, podman wrapper](#third-step-podman-wrapper)
+      - [Fourth step, configure the container](#fourth-step-configure-the-container)
     - [Final Result](#final-result)
 
 ---
@@ -60,7 +60,7 @@ to integrate VSCode installed via **Flatpak** with Distrobox.
 Note that this integration process is inspired by the awesome project [toolbox-vscode](https://github.com/owtaylor/toolbox-vscode)
 so many thanks to @owtaylor for the heavy lifting!
 
-### First step, install it
+### First step install it
 
 ```shell
 ~$ flatpak install --user app/com.visualstudio.code
@@ -72,7 +72,7 @@ Now we want to install VSCode [Remote Container extension](https://marketplace.v
 
 ![image](https://user-images.githubusercontent.com/598882/149207447-76a82e91-dd3f-43fa-8c52-9c2e85ae8fee.png)
 
-### Third step, podman wrapper
+### Third step podman wrapper
 
 Being in a Flatpak, we will need access to host's `podman` (or `docker`) to be
 able to use the containers. Place this in your `~/.local/bin/podman-host`
@@ -107,7 +107,7 @@ set it to the path of `podman-exec`, like in the example
 This will give a way to execute host's container manager from within the
 flatpak app.
 
-### Fourth step, configure the container
+### Fourth step configure the container
 
 We need not to deploy a configuration for our container. We should create one for
 each Distrobox we choose to integrate with VSCode:
