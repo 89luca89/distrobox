@@ -33,6 +33,7 @@ install --prefix /usr/local
 
 Options:
 	--prefix/-P:		base bath where all files will be deployed (default /usr/local if root, ~/.local if not)
+	--next/-N:		install latest development version from git, instead of the latest stable release.
 	--help/-h:		show this message
 	-v:			show more verbosity
 EOF
