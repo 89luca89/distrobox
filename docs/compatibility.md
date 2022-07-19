@@ -145,8 +145,6 @@ NixOS is not a supported container distro, and there are currently no plans to
 bring support to it. If you are looking for unprivlaged NixOS environments,
 we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html).
 
-Crystal Linux may first require you to open the container with `distrobox enter boxnamehere -- bash` to install the shell that your host uses, should you not be using Bash. Otherwise, the `distrobox enter` command may fail.
-
 ### New Distro support
 
 If your distro of choice is not on the list, open an issue requesting support
