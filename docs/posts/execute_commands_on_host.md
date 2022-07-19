@@ -1,10 +1,10 @@
 - [Distrobox](../README.md)
-  - [Execute a command on the Host](execute_commands_on_host.md)
-    - [With distrobox-host-exec](#distrobox-host-exec)
-    - [Manually](#manually)
-      - [The easy one](#the-easy-one)
-      - [The not so easy one](#the-not-so-easy-one)
+  - [Execute a command on the host](#execute-a-command-on-the-host)
+    - [With distrobox-host-exec](#with-distrobox-host-exec)
+    - [Using symlinks](#using-symlinks)
   - [Integrate host with container seamlessly](#integrate-host-with-container-seamlessly)
+    - [bash or zsh](#bash-or-zsh)
+    - [fish](#fish)
 
 ---
 
@@ -69,7 +69,7 @@ OS/Arch:      linux/amd64
 Another cool trick we can pull, is to use the handy `command_not_found_handle` function
 to try and execute missing commands in the container on the host.
 
-## bash / zsh
+## bash or zsh
 
 Place this in your `~/.profile`:
 
