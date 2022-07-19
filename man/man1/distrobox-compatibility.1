@@ -69,33 +69,35 @@ Images
 T}
 _
 T{
-AlmaLinux
-T}@T{
-8 8-minimal 9 9-minimal
-T}@T{
-docker.io/library/almalinux:8 docker.io/library/almalinux:9
-docker.io/library/almalinux:9-minimal
-T}
-T{
 AlmaLinux (UBI)
 T}@T{
 8
 T}@T{
-docker.io/almalinux/8-base docker.io/almalinux/8-init
+quay.io/almalinux/8-base:8 quay.io/almalinux/8-init:8
+T}
+T{
+AlmaLinux
+T}@T{
+8 8-minimal 9 9-minimal
+T}@T{
+quay.io/almalinux/almalinux:8 quay.io/almalinux/almalinux:9
+quay.io/almalinux/almalinux:9-minimal
 T}
 T{
 Alpine Linux
 T}@T{
-3.14 3.15
+3.15 3.16
 T}@T{
+docker.io/library/alpine:3.15 docker.io/library/alpine:3.16
 docker.io/library/alpine:latest
 T}
 T{
 AmazonLinux
 T}@T{
-2
+1 2
 T}@T{
-docker.io/library/amazonlinux:2.0.20211005.0
+public.ecr.aws/amazonlinux/amazonlinux:1
+public.ecr.aws/amazonlinux/amazonlinux:2
 T}
 T{
 AmazonLinux
@@ -111,10 +113,11 @@ T}@T{
 docker.io/library/archlinux:latest
 T}
 T{
-ClearLinux
+CentOS Stream
 T}@T{
+8 9
 T}@T{
-docker.io/library/clearlinux:latest docker.io/library/clearlinux:base
+quay.io/centos/centos:stream8 quay.io/centos/centos:stream9
 T}
 T{
 CentOS
@@ -124,26 +127,10 @@ T}@T{
 quay.io/centos/centos:7
 T}
 T{
-CentOS Stream
+ClearLinux
 T}@T{
-8 9
 T}@T{
-quay.io/centos/centos:stream8 quay.io/centos/centos:stream9
-T}
-T{
-RedHat (UBI)
-T}@T{
-7 8 9
-T}@T{
-registry.access.redhat.com/ubi7/ubi
-registry.access.redhat.com/ubi7/ubi-init
-registry.access.redhat.com/ubi7/ubi-minimal
-registry.access.redhat.com/ubi8/ubi
-registry.access.redhat.com/ubi8/ubi-init
-registry.access.redhat.com/ubi8/ubi-minimal
-registry.access.redhat.com/ubi9/ubi
-registry.access.redhat.com/ubi9/ubi-init
-registry.access.redhat.com/ubi9/ubi-minimal
+docker.io/library/clearlinux:latest docker.io/library/clearlinux:base
 T}
 T{
 Debian
@@ -171,21 +158,27 @@ T}@T{
 docker.io/library/debian:unstable
 T}
 T{
-Neurodebian
-T}@T{
-nd100
-T}@T{
-docker.io/library/neurodebian:nd100
-T}
-T{
 Fedora
 T}@T{
-34 35 36 37 Rawhide
+35 36 37 Rawhide
 T}@T{
-registry.fedoraproject.org/fedora-toolbox:34 docker.io/library/fedora:34
-registry.fedoraproject.org/fedora-toolbox:35 docker.io/library/fedora:35
-docker.io/library/fedora:36 registry.fedoraproject.org/fedora:37
-docker.io/library/fedora:rawhide
+registry.fedoraproject.org/fedora-toolbox:35 quay.io/fedora/fedora:35
+quay.io/fedora/fedora:36 registry.fedoraproject.org/fedora:37
+quay.io/fedora/fedora:rawhide
+T}
+T{
+Gentoo Linux
+T}@T{
+rolling
+T}@T{
+You will have to Build your own to have a complete Gentoo docker image
+T}
+T{
+Kali Linux
+T}@T{
+rolling
+T}@T{
+docker.io/kalilinux/kali-rolling:latest
 T}
 T{
 Mageia
@@ -193,6 +186,13 @@ T}@T{
 8
 T}@T{
 docker.io/library/mageia
+T}
+T{
+Neurodebian
+T}@T{
+nd100
+T}@T{
+docker.io/library/neurodebian:nd100
 T}
 T{
 Opensuse
@@ -212,17 +212,39 @@ T}
 T{
 Oracle Linux
 T}@T{
-7 8
+6 6-slim 7 7-slim 8 8-slim 9 9-slim
 T}@T{
+container-registry.oracle.com/os/oraclelinux:6
+container-registry.oracle.com/os/oraclelinux:6-slim
 container-registry.oracle.com/os/oraclelinux:7
+container-registry.oracle.com/os/oraclelinux:7-slim
 container-registry.oracle.com/os/oraclelinux:8
+container-registry.oracle.com/os/oraclelinux:8-slim
+container-registry.oracle.com/os/oraclelinux:9
+container-registry.oracle.com/os/oraclelinux:9-slim
+T}
+T{
+RedHat (UBI)
+T}@T{
+7 8 9
+T}@T{
+registry.access.redhat.com/ubi7/ubi
+registry.access.redhat.com/ubi7/ubi-init
+registry.access.redhat.com/ubi7/ubi-minimal
+registry.access.redhat.com/ubi8/ubi
+registry.access.redhat.com/ubi8/ubi-init
+registry.access.redhat.com/ubi8/ubi-minimal
+registry.access.redhat.com/ubi9/ubi
+registry.access.redhat.com/ubi9/ubi-init
+registry.access.redhat.com/ubi9/ubi-minimal
 T}
 T{
 Rocky Linux
 T}@T{
-8
+8 8-minimal
 T}@T{
-docker.io/rockylinux/rockylinux:8
+quay.io/rockylinux/rockylinux:8 quay.io/rockylinux/rockylinux:8-minimal
+quay.io/rockylinux/rockylinux:latest
 T}
 T{
 Scientific Linux
@@ -248,25 +270,11 @@ docker.io/library/ubuntu:18.04 docker.io/library/ubuntu:20.04
 docker.io/library/ubuntu:21.10 docker.io/library/ubuntu:22.04
 T}
 T{
-Kali Linux
-T}@T{
-rolling
-T}@T{
-docker.io/kalilinux/kali-rolling:latest
-T}
-T{
 Void Linux
 T}@T{
 T}@T{
 ghcr.io/void-linux/void-linux:latest-full-x86_64
 ghcr.io/void-linux/void-linux:latest-full-x86_64-musl
-T}
-T{
-Gentoo Linux
-T}@T{
-rolling
-T}@T{
-You will have to Build your own to have a complete Gentoo docker image
 T}
 .TE
 .PP
