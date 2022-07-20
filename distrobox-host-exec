@@ -130,7 +130,7 @@ if ! command -v flatpak-spawn > /dev/null; then
 					"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-$(uname -m)" \
 					-o /tmp/host-spawn; then
 
-					printf "Error: Cannot download /usr/bin/host-spawn\n"
+					printf "Error: Cannot download host-spawn\n"
 					exit 1
 				fi
 				if [ -e /tmp/host-spawn ]; then
@@ -150,7 +150,24 @@ if ! command -v flatpak-spawn > /dev/null; then
 		esac
 
 	fi
-	host-spawn --no-pty "${host_command}" "$@"
+
+	# This workaround is needed because of a bug in gio (used by xdg-open) where
+	# a race condition happens when allocating a pty, leading to the command
+	# being killed before having time to be executed.
+	#
+	# https://gitlab.gnome.org/GNOME/glib/-/issues/2695
+	# https://github.com/1player/host-spawn/issues/7
+	#
+	# As an (ugly) workaround, we will not allocate a pty for those commands.
+	if [ "$(basename "${host_command}")" = "xdg-open" ] ||
+		[ "$(basename "${host_command}")" = "gio" ]; then
+
+		host-spawn --no-pty "${host_command}" "$@"
+		# Exit here, we don't continue execution
+		exit $?
+	fi
+
+	host-spawn "${host_command}" "$@"
 	# Exit here, we don't continue execution
 	exit $?
 fi
