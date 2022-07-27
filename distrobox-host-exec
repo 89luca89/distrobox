@@ -22,6 +22,7 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
 host_command=""
+host_spawn=""
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
 host_spawn_version="1.0.2"
 verbose=0
@@ -76,9 +77,10 @@ if [ -z "${host_command}" ]; then
 				printf "distrobox: %s\n" "${version}"
 				exit 0
 				;;
-			--) # End of all options.
-				shift
-				;;
+			--hs | --host-spawn) 
+			host_spawn="host_spawn"
+			shift
+			;;
 			--) # End of all options.
 				shift
 				;;
