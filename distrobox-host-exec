@@ -127,8 +127,8 @@ if ! command -v flatpak-spawn > /dev/null; then
 
         # if host spawn flag hasn't been set
         if ! [ "$install_host_spawn" = "yes" ]; then   
-		    printf "Distrobox Warning: no flatpak-spawn nor host-spawn found!\n"
-		    printf "View distrobox-host-exec docs on Github for more details"
+		    printf "Distrobox Warning: no flatpak-spawn or host-spawn found!\n"
+		    printf "View distrobox-host-exec docs on Github for more details."
 		    printf "Do you want to install host-spawn utility? [Y/n] "
 		    read -r response
 		    install_host_spawn=${response:-"Y"}
