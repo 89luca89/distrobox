@@ -412,10 +412,15 @@ if [ "${container_status}" = "unknown" ]; then
 	case "${response}" in
 		y | Y | Yes | yes | YES)
 			# Ok, let's create the container with just 'distrobox create $container_name
+			create_command="$(dirname "${0}")/distrobox-create"
+			if [ "${rootful}" -ne 0 ]; then
+				create_command="${create_command} --root"
+			fi
+			create_command="${create_command} -i ${container_image} -n ${container_name}"
 			printf >&2 "Creating the container with command:\n"
-			printf >&2 "  distrobox create -i %s %s\n" "${container_image}" "${container_name}"
+			printf >&2 "  %s\n" "${create_command}"
 			if [ "${dryrun}" -ne 1 ]; then
-				"$(dirname "${0}")"/distrobox-create -i "${container_image}" -n "${container_name}"
+				eval "${create_command}"
 			fi
 			;;
 		n | N | No | no | NO)
