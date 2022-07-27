@@ -128,7 +128,7 @@ if ! command -v flatpak-spawn > /dev/null; then
         # if non-interactive flag flag hasn't been set
         if [ "${non_interactive}" -eq 0 ]; then
 	        # Prompt to download it.
-		    printf "Distrobox Warning: no flatpak-spawn nor host-spawn found!\n"
+		    printf "Distrobox Warning: no flatpak-spawn or host-spawn found!\n"
 		    printf "View distrobox-host-exec docs on Github for more details.\n"
 		    printf "Do you want to install host-spawn utility? [Y/n] "
 		    read -r response
