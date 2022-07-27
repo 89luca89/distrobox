@@ -51,7 +51,7 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
-    --yes/-Y:      Automatically answer yes to prompt: 
+    --yes/-Y:      Automatically answer yes to prompt:
                                 host-spawn will be installed on the guest system
                                 if neither flatpak-build or host-spawn are detected
 EOF
@@ -79,10 +79,10 @@ if [ -z "${host_command}" ]; then
 				printf "distrobox: %s\n" "${version}"
 				exit 0
 				;;
-		    -Y | --yes)
-			    non_interactive=1
-			    shift
-			    ;;
+			-Y | --yes)
+				non_interactive=1
+				shift
+				;;
 			--) # End of all options.
 				shift
 				;;
@@ -125,17 +125,17 @@ if ! command -v flatpak-spawn > /dev/null; then
 	if ! command -v host-spawn > /dev/null ||
 		[ "$(host-spawn --version)" != "${host_spawn_version}" ]; then
 
-        # if non-interactive flag flag hasn't been set
-        if [ "${non_interactive}" -eq 0 ]; then
-	        # Prompt to download it.
-		    printf "Distrobox Warning: no flatpak-spawn or host-spawn found!\n"
-		    printf "View distrobox-host-exec docs on Github for more details.\n"
-		    printf "Do you want to install host-spawn utility? [Y/n] "
-		    read -r response
-		    response=${response:-"Y"}
-        else
-        	response="yes"
-        fi
+		# if non-interactive flag flag hasn't been set
+		if [ "${non_interactive}" -eq 0 ]; then
+			# Prompt to download it.
+			printf "Distrobox Warning: no flatpak-spawn or host-spawn found!\n"
+			printf "View distrobox-host-exec docs on Github for more details.\n"
+			printf "Do you want to install host-spawn utility? [Y/n] "
+			read -r response
+			response=${response:-"Y"}
+		else
+			response="yes"
+		fi
 		# Accept only y,Y,Yes,yes,n,N,No,no.
 		case "${response}" in
 			y | Y | Yes | yes | YES)
