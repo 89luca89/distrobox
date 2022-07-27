@@ -29,7 +29,7 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f "/tmp/.*.fifo "/tmp/.*.status""' EXIT
+trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f $HOME/.cache/.*.fifo $HOME/.cache/.*.status"' EXIT
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
@@ -473,14 +473,15 @@ if [ "${container_status}" != "running" ]; then
 	fi
 
 	printf >&2 "%-40s\t" " Starting container..."
-	touch "/tmp/.${container_name}.fifo"
-	touch "/tmp/.${container_name}.status"
+	mkdir -p "$HOME/.cache/"
+	touch "$HOME/.cache/.${container_name}.fifo"
+	touch "$HOME/.cache/.${container_name}.status"
 	while true; do
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
 		log_timestamp_new="$(date +%FT%T.%N%:z)"
 		${container_manager} logs \
-			--since "${log_timestamp}" "${container_name}" 2> /dev/null > "/tmp/.${container_name}.fifo"
+			--since "${log_timestamp}" "${container_name}" 2> /dev/null > "$HOME/.cache/.${container_name}.fifo"
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
 			case "${line}" in
@@ -505,14 +506,14 @@ if [ "${container_status}" != "running" ]; then
 					;;
 				*) ;;
 			esac
-		done < "/tmp/.${container_name}.fifo"
+		done < "$HOME/.cache/.${container_name}.fifo"
 
 		# Register new timestamp where to start logs from.
 		log_timestamp="${log_timestamp_new}"
 	done
 	# cleanup fifo
-	rm -f "/tmp/.${container_name}.fifo"
-	rm -f "/tmp/.${container_name}.status"
+	rm -f "$HOME/.cache/.${container_name}.fifo"
+	rm -f "$HOME/.cache/.${container_name}.status"
 	printf >&2 "\nContainer Setup Complete!\n"
 fi
 
