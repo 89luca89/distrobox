@@ -50,6 +50,7 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
+    --host-spawn:     execute the command inside a host-spawn sandbox instead of the default flatpak sandbox
 EOF
 }
 
@@ -74,6 +75,9 @@ if [ -z "${host_command}" ]; then
 			-V | --version)
 				printf "distrobox: %s\n" "${version}"
 				exit 0
+				;;
+			--) # End of all options.
+				shift
 				;;
 			--) # End of all options.
 				shift
