@@ -11,7 +11,7 @@ You need to build your own image. The official resource is [here](https://github
 but here is a simple Dockerfile:
 
 ``` Dockerfile
-FROM registry.hub.docker.com/gentoo/portage:latest
+FROM registry.hub.docker.com/gentoo/portage:latest as portage
 FROM registry.hub.docker.com/gentoo/stage3:systemd
 COPY --from=portage /var/db/repos/gentoo /var/db/repos/gentoo
 ```
