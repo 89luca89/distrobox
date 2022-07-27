@@ -22,9 +22,9 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 # Defaults
 host_command=""
-install_host_spawn=""
+non_interactive=0
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
-host_spawn_version="1.0.3"
+host_spawn_version="1.1.0"
 verbose=0
 version="1.3.2"
 
@@ -51,9 +51,9 @@ Options:
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
-    --no-confirm/-nc:   skip prompt so the host-spawn will be installed
-                        on guest system automatically, if neither
-                        flatpak-build or host-spawn are detected
+    --yes/-Y:      Automatically answer yes to prompt: 
+                        host-spawn will be installed on the guest system
+                        if neither flatpak-build or host-spawn are detected
 EOF
 }
 
@@ -79,10 +79,10 @@ if [ -z "${host_command}" ]; then
 				printf "distrobox: %s\n" "${version}"
 				exit 0
 				;;
-			-nc | --no-confirm) 
-			install_host_spawn="yes"
-			shift
-			;;
+		    -Y | --yes)
+			    non_interactive=1
+			    shift
+			    ;;
 			--) # End of all options.
 				shift
 				;;
@@ -125,16 +125,19 @@ if ! command -v flatpak-spawn > /dev/null; then
 	if ! command -v host-spawn > /dev/null ||
 		[ "$(host-spawn --version)" != "${host_spawn_version}" ]; then
 
-        # if host spawn flag hasn't been set
-        if ! [ "$install_host_spawn" = "yes" ]; then   
+        # if non-interactive flag flag hasn't been set
+        if [ "${non_interactive}" -eq 0 ]; then
+	        # Prompt to download it.
 		    printf "Distrobox Warning: no flatpak-spawn nor host-spawn found!\n"
 		    printf "View distrobox-host-exec docs on Github for more details.\n"
 		    printf "Do you want to install host-spawn utility? [Y/n] "
 		    read -r response
-		    install_host_spawn=${response:-"Y"}
+		    response=${response:-"Y"}
+        else
+        	response="yes"
         fi
 		# Accept only y,Y,Yes,yes,n,N,No,no.
-		case "${install_host_spawn}" in
+		case "${response}" in
 			y | Y | Yes | yes | YES)
 				# Download matching version with current distrobox
 				if ! curl -L \
