@@ -29,7 +29,7 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f "/tmp/.*.fifo"' EXIT
+trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f "/tmp/.*.fifo "/tmp/.*.status""' EXIT
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
@@ -473,6 +473,7 @@ if [ "${container_status}" != "running" ]; then
 
 	printf >&2 "%-40s\t" " Starting container..."
 	touch "/tmp/.${container_name}.fifo"
+	touch "/tmp/.${container_name}.status"
 	while true; do
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
@@ -490,7 +491,12 @@ if [ "${container_status}" != "running" ]; then
 					printf >&2 "\n\033[33m %s\033[0m" "${line}"
 					;;
 				*"distrobox:"*)
-					printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "$(echo "${line}" | cut -d':' -f2-)"
+					current_line="$(echo "${line}" | cut -d':' -f2-)"
+					# Save current line in the status, to avoid printing the same line multiple times
+					if ! grep -q "${current_line}" "/tmp/.${container_name}.status"; then
+						printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "${current_line}"
+						printf "%s\n" "${current_line}" > "/tmp/.${container_name}.status"
+					fi
 					;;
 				*"container_setup_done"*)
 					printf >&2 "\033[32m [ OK ]\n\033[0m"
@@ -502,10 +508,10 @@ if [ "${container_status}" != "running" ]; then
 
 		# Register new timestamp where to start logs from.
 		log_timestamp="${log_timestamp_new}"
-		sleep 1
 	done
 	# cleanup fifo
 	rm -f "/tmp/.${container_name}.fifo"
+	rm -f "/tmp/.${container_name}.status"
 	printf >&2 "\nContainer Setup Complete!\n"
 fi
 
