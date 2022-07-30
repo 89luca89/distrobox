@@ -249,6 +249,7 @@ Configuration files can be placed in the following paths, from the least importa
 to the most important:
 
 - /usr/share/distrobox/distrobox.conf
+- /usr/etc/distrobox/distrobox.conf
 - /etc/distrobox/distrobox.conf
 - ${HOME}/.config/distrobox/distrobox.conf
 - ${HOME}/.distroboxrc
