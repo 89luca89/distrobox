@@ -134,7 +134,7 @@ else
 		fi
 	done
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/man/" ]; then
-		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/man/*; do
+		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/man/man1/*; do
 			install -D -m 0644 -t "${man_dest_path}" "${file}"
 		done
 	fi
