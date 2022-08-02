@@ -630,4 +630,3 @@ if eval ${cmd} >/dev/null; then
 	exit 0
 fi
 printf >&2 "\033[31m [ ERR ]\n\033[0m"
-
