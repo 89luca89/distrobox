@@ -22,6 +22,7 @@
       # Nixpkgs instantiated for supported system types.
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
 
+      #pkgs = import nixpkgs { };
     in
 
     {
@@ -38,7 +39,7 @@
 
               mkdir -p $out/bin 
               #./install -p $out/bin 
-              install -Dm755 -t "$out/bin" distrobox distrobox-create distrobox-enter distrobox-ephemeral distrobox-export distrobox-host-exec distrobox-init distrobox-rm distrobox-stop
+              install -Dm755 -t "$out/bin" distrobox distrobox-create distrobox-enter distrobox-ephemeral distrobox-export distrobox-host-exec distrobox-init distrobox-rm distrobox-stop distrobox-list
 
               runHook postInstall
             '';
@@ -62,7 +63,6 @@
       checks = forAllSystems
         (system:
           with nixpkgsFor.${system};
-
           {
             inherit (self.packages.${system}) distrobox;
 
@@ -70,7 +70,7 @@
             test = stdenv.mkDerivation {
               name = "distrobox-test-${version}";
 
-              buildInputs = [ distrobox ];
+              buildInputs = [ distrobox nixpkgs.legacyPackages.${system}.podman nixpkgs.legacyPackages.${system}.shfmt];
 
               unpackPhase = "true";
 
@@ -83,34 +83,12 @@
                   echo 'distrobox create is not functioning'
                   exit 1
                 fi
-                if distrobox enter
+                echo 'running shfmt tests'
+                shfmt -d . 
               '';
 
               installPhase = "mkdir -p $out";
             };
-          }
-
-          // lib.optionalAttrs stdenv.isLinux {
-            # A VM test of the NixOS module.
-            vmTest =
-              with import (nixpkgs + "/nixos/lib/testing-python.nix") {
-                inherit system;
-              };
-
-              makeTest {
-                nodes = {
-                  client = { ... }: {
-                    imports = [ self.nixosModules.hello ];
-                  };
-                };
-
-                testScript =
-                  ''
-                    start_all()
-                    client.wait_for_unit("multi-user.target")
-                    client.succeed("hello")
-                  '';
-              };
           }
         );
 
