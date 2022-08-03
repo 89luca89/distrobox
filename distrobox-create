@@ -98,7 +98,7 @@ done
 # Outputs:
 #   print usage with examples.
 show_help() {
-	cat <<EOF
+	cat << EOF
 distrobox version: ${version}
 
 Usage:
@@ -149,114 +149,114 @@ EOF
 # Parse arguments
 while :; do
 	case $1 in
-	-h | --help)
-		# Call a "show_help" function to display a synopsis, then exit.
-		show_help
-		exit 0
-		;;
-	-v | --verbose)
-		verbose=1
-		shift
-		;;
-	-V | --version)
-		printf "distrobox: %s\n" "${version}"
-		exit 0
-		;;
-	-d | --dry-run)
-		shift
-		dryrun=1
-		;;
-	-r | --root)
-		shift
-		rootful=1
-		;;
-	-I | --init)
-		shift
-		init=1
-		;;
-	-i | --image)
-		if [ -n "$2" ]; then
-			container_image="$2"
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
+			verbose=1
 			shift
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		-d | --dry-run)
 			shift
-		fi
-		;;
-	-n | --name)
-		if [ -n "$2" ]; then
-			container_name="$2"
+			dryrun=1
+			;;
+		-r | --root)
 			shift
+			rootful=1
+			;;
+		-I | --init)
 			shift
-		fi
-		;;
-	-c | --clone)
-		if [ -n "$2" ]; then
-			container_clone="$2"
+			init=1
+			;;
+		-i | --image)
+			if [ -n "$2" ]; then
+				container_image="$2"
+				shift
+				shift
+			fi
+			;;
+		-n | --name)
+			if [ -n "$2" ]; then
+				container_name="$2"
+				shift
+				shift
+			fi
+			;;
+		-c | --clone)
+			if [ -n "$2" ]; then
+				container_clone="$2"
+				shift
+				shift
+			fi
+			;;
+		-H | --home)
+			if [ -n "$2" ]; then
+				container_user_custom_home="$2"
+				shift
+				shift
+			fi
+			;;
+		-p | --pull)
+			container_always_pull=1
 			shift
+			;;
+		-Y | --yes)
+			non_interactive=1
 			shift
-		fi
-		;;
-	-H | --home)
-		if [ -n "$2" ]; then
-			container_user_custom_home="$2"
+			;;
+		--volume)
+			if [ -n "$2" ]; then
+				container_manager_additional_flags="${container_manager_additional_flags} ${1} ${2}"
+				shift
+				shift
+			fi
+			;;
+		-a | --additional-flags)
+			if [ -n "$2" ]; then
+				container_manager_additional_flags="${container_manager_additional_flags} ${2}"
+				shift
+				shift
+			fi
+			;;
+		--init-hooks)
+			if [ -n "$2" ]; then
+				container_init_hook="$2"
+				shift
+				shift
+			fi
+			;;
+		--pre-init-hooks)
+			if [ -n "$2" ]; then
+				container_pre_init_hook="--pre-init-hooks \"${2}\""
+				shift
+				shift
+			fi
+			;;
+		--) # End of all options.
 			shift
-			shift
-		fi
-		;;
-	-p | --pull)
-		container_always_pull=1
-		shift
-		;;
-	-Y | --yes)
-		non_interactive=1
-		shift
-		;;
-	--volume)
-		if [ -n "$2" ]; then
-			container_manager_additional_flags="${container_manager_additional_flags} ${1} ${2}"
-			shift
-			shift
-		fi
-		;;
-	-a | --additional-flags)
-		if [ -n "$2" ]; then
-			container_manager_additional_flags="${container_manager_additional_flags} ${2}"
-			shift
-			shift
-		fi
-		;;
-	--init-hooks)
-		if [ -n "$2" ]; then
-			container_init_hook="$2"
-			shift
-			shift
-		fi
-		;;
-	--pre-init-hooks)
-		if [ -n "$2" ]; then
-			container_pre_init_hook="--pre-init-hooks \"${2}\""
-			shift
-			shift
-		fi
-		;;
-	--) # End of all options.
-		shift
-		break
-		;;
-	-*) # Invalid options.
-		printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
-		show_help
-		exit 1
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		# If we have a flagless option and container_name is not specified
-		# then let's accept argument as container_name
-		if [ -n "$1" ]; then
-			container_name="$1"
-			shift
-		else
 			break
-		fi
-		;;
+			;;
+		-*) # Invalid options.
+			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+			show_help
+			exit 1
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			# If we have a flagless option and container_name is not specified
+			# then let's accept argument as container_name
+			if [ -n "$1" ]; then
+				container_name="$1"
+				shift
+			else
+				break
+			fi
+			;;
 	esac
 done
 
@@ -296,27 +296,27 @@ fi
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
 case "${container_manager}" in
-autodetect)
-	if command -v podman >/dev/null; then
+	autodetect)
+		if command -v podman > /dev/null; then
+			container_manager="podman"
+		elif command -v docker > /dev/null; then
+			container_manager="docker"
+		fi
+		;;
+	podman)
 		container_manager="podman"
-	elif command -v docker >/dev/null; then
+		;;
+	docker)
 		container_manager="docker"
-	fi
-	;;
-podman)
-	container_manager="podman"
-	;;
-docker)
-	container_manager="docker"
-	;;
-*)
-	printf >&2 "Invalid input %s.\n" "${container_manager}"
-	printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-	;;
+		;;
+	*)
+		printf >&2 "Invalid input %s.\n" "${container_manager}"
+		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
+		;;
 esac
 
 # Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" >/dev/null && [ "${dryrun}" -eq 0 ]; then
+if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
 	# Error: we need at least one between docker or podman.
 	printf >&2 "Missing dependency: we need a container manager.\n"
 	printf >&2 "Please install one of podman or docker.\n"
@@ -366,7 +366,7 @@ clone_container() {
 	# Commit current container state to a new image tag
 	printf >&2 "Duplicating %s...\n" "${container_clone}"
 	if ! ${container_manager} container commit \
-		"${container_source_id}" "${container_commit_tag}" >/dev/null; then
+		"${container_source_id}" "${container_commit_tag}" > /dev/null; then
 
 		printf >&2 "Cannot clone container: %s\n" "${container_clone}"
 		return 1
@@ -464,11 +464,10 @@ generate_command() {
 		result_command="${result_command}
         --volume /nix:/nix"
 	fi
-	if [ -d "/run/current-system/sw/" ]; then
-		result_command="${result_command}
-        --volume $(realpath /run/current-system/sw):/run/current-system/sw/" #This is where Nix stores its system paths.
-	fi
-
+    if [ -d "/run/current-system/sw" ]; then 
+        result_command="${result_command}
+        --volume $(realpath /run/current-system/sw):/run/current-system/sw"
+    fi 
 	# If we have a custom home to use,
 	#	1- override the HOME env variable
 	#	2- expor the DISTROBOX_HOST_HOME env variable pointing to original HOME
@@ -563,7 +562,7 @@ fi
 
 # Check if the container already exists.
 # If it does, notify the user and exit.
-if ${container_manager} inspect --type container "${container_name}" >/dev/null 2>&1; then
+if ${container_manager} inspect --type container "${container_name}" > /dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
@@ -582,7 +581,7 @@ fi
 # First, check if the image exists in the host or auto-pull is enabled
 # If not prompt to download it.
 if [ "${container_always_pull}" -eq 1 ] ||
-	! ${container_manager} inspect --type image "${container_image}" >/dev/null 2>&1; then
+	! ${container_manager} inspect --type image "${container_image}" > /dev/null 2>&1; then
 
 	# If we do auto-pull, don't ask questions
 	if [ "${non_interactive}" -eq 1 ] || [ "${container_always_pull}" -eq 1 ]; then
@@ -597,20 +596,20 @@ if [ "${container_always_pull}" -eq 1 ] ||
 
 	# Accept only y,Y,Yes,yes,n,N,No,no.
 	case "${response}" in
-	y | Y | Yes | yes | YES)
-		# Pull the image
-		${container_manager} pull "${container_image}"
-		;;
-	n | N | No | no | NO)
-		printf >&2 "next time, run this command first:\n"
-		printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
-		exit 0
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		printf >&2 "Invalid input.\n"
-		printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
-		exit 1
-		;;
+		y | Y | Yes | yes | YES)
+			# Pull the image
+			${container_manager} pull "${container_image}"
+			;;
+		n | N | No | no | NO)
+			printf >&2 "next time, run this command first:\n"
+			printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
+			exit 0
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			exit 1
+			;;
 	esac
 fi
 
@@ -619,7 +618,7 @@ printf >&2 "Creating '%s' using image %s\t" "${container_name}" "${container_ima
 cmd="$(generate_command)"
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
-if eval ${cmd} >/dev/null; then
+if eval ${cmd} > /dev/null; then
 	printf >&2 "\033[32m [ OK ]\n\033[0mDistrobox '%s' successfully created.\n" "${container_name}"
 	printf >&2 "To enter, run:\n\n"
 	if [ "${rootful}" -ne 0 ]; then
