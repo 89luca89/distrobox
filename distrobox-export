@@ -303,9 +303,10 @@ export_binary() {
 #	or error code.
 export_application() {
 
+	[ -d /var/lib/flatpak/exports/share/applications ] &&
+		canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
 	[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
 	[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
-	[ -d /var/lib/flatpak/exports/share/applications ] && canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
 	[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
 
 	# In this phase we search for applications to export.
@@ -412,8 +413,8 @@ export_application() {
 		# in the end we add the final quote we've opened in the "container_command_prefix"
 
 		if ! grep -q "StartupWMClass" "/run/host${host_home}/.local/share/applications/${desktop_home_file}"; then
-			printf "StartupWMClass=%s\n" "${exported_app}" >> \
-				"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+			printf "StartupWMClass=%s\n" "${exported_app}" >> "\
+/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 		fi
 		# In case of an icon in a non canonical path, we need to replace the path
 		# in the desktop file.

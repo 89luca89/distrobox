@@ -495,9 +495,9 @@ if [ "${container_status}" != "running" ]; then
 				*"distrobox:"*)
 					current_line="$(echo "${line}" | cut -d':' -f2-)"
 					# Save current line in the status, to avoid printing the same line multiple times
-					if ! grep -q "${current_line}" "/tmp/.${container_name}.status"; then
+					if ! grep -q "${current_line}" "${HOME}/.cache/.${container_name}.status"; then
 						printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "${current_line}"
-						printf "%s\n" "${current_line}" > "/tmp/.${container_name}.status"
+						printf "%s\n" "${current_line}" > "${HOME}/.cache/.${container_name}.status"
 					fi
 					;;
 				*"container_setup_done"*)
