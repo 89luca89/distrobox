@@ -464,7 +464,7 @@ generate_command() {
 		result_command="${result_command}
         --volume /nix:/nix"
 	fi
-	if [ -d "/run/current-system/sw" ]; then 
+	if [ -d "/run/current-system/sw" ]; then
 		result_command="${result_command}
 	--volume /run/current-system/sw:/run/current-system/sw"
 	fi
