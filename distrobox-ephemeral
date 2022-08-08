@@ -125,7 +125,7 @@ if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
 fi
 
-name=$(  mktemp -u distrobox-XXXXXXXXXX)
+name=$(mktemp -u distrobox-XXXXXXXXXX)
 # shellcheck disable=SC2086
 "${distrobox_path}"/distrobox-create --name ${name} --yes ${create_flags} ${extra_flags}
 # shellcheck disable=SC2086
