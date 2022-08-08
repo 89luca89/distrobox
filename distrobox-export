@@ -303,6 +303,11 @@ export_binary() {
 #	or error code.
 export_application() {
 
+	[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
+	[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
+	[ -d /var/lib/flatpak/exports/share/applications ] && canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
+	[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
+
 	# In this phase we search for applications to export.
 	# First find command will grep throught all files in the canonical directories
 	# and only list files that contain the $exported_app, excluding those that
@@ -311,17 +316,13 @@ export_application() {
 	# it is possible to export an app not only by its executable name but also
 	# by its launcher name.
 	desktop_files=$(
-		find /usr/share/applications \
-			/usr/local/share/applications \
-			/var/lib/flatpak/exports/share/applications \
-			"${HOME}"/.local/share/applications \
+		# shellcheck disable=SC2086
+		find ${canon_dirs} \
 			-type f \
 			-exec grep -qle "Exec=.*${exported_app}.*" {} \; \
 			-exec grep -Le "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox-enter"}.*" {} \;
-		find /usr/share/applications \
-			/usr/local/share/applications \
-			/var/lib/flatpak/exports/share/applications \
-			"${HOME}"/.local/share/applications \
+		# shellcheck disable=SC2086
+		find ${canon_dirs} \
 			-name "${exported_app}*"
 	)
 

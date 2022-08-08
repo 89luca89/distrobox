@@ -82,7 +82,7 @@ case "${distrobox_command}" in
 		;;
 	help | --help | -h)
 		if command -v man > /dev/null; then
-			man distrobox
+			man distrobox || show_help
 			exit 0
 		fi
 		show_help
