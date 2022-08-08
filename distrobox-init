@@ -377,7 +377,7 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-        pacman --noconfirm --overwrite "*" -Syuu
+		pacman --noconfirm -Syyu
 		if ! pacman -Sy --noconfirm "${shell_pkg}"; then
 			SHELL="/bin/bash"
 			shell_pkg="bash"

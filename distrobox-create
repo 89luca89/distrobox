@@ -464,10 +464,10 @@ generate_command() {
 		result_command="${result_command}
         --volume /nix:/nix"
 	fi
-    if [ -d "/run/current-system/sw" ]; then 
-        result_command="${result_command}
-        --volume /run/current-system/sw:/run/current-system/sw"
-    fi 
+	if [ -d "/run/current-system/sw" ]; then 
+		result_command="${result_command}
+	--volume /run/current-system/sw:/run/current-system/sw"
+	fi
 	# If we have a custom home to use,
 	#	1- override the HOME env variable
 	#	2- expor the DISTROBOX_HOST_HOME env variable pointing to original HOME
