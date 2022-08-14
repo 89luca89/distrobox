@@ -106,13 +106,19 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 	fi
 else
 	# check that we have base dependencies
-	if ! command -v curl || ! command -v tar; then
-		printf >&2 "Online install depends on curl and tar\n"
+	if ! { command -v curl || command -v wget; } || ! command -v tar; then
+		printf >&2 "Online install depends on tar and either curl or wget\n"
 		exit 1
 	fi
 
+	if command -v curl >/dev/null 2>&1; then
+		download="curl -Lo"
+	elif command -v wget >/dev/null 2>&1; then
+		download="wget -qO"
+	fi
+
 	if [ "${next}" -eq 0 ]; then
-		release_ver=$(curl -L https://github.com/89luca89/distrobox/releases/latest |
+		release_ver=$($download - https://github.com/89luca89/distrobox/releases/latest |
 			grep 'refs/tags' | tail -1 | cut -d'"' -f2)
 		release_name=$(echo "${release_ver}" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$')
 	else
@@ -123,7 +129,7 @@ else
 	tmp_dir="$(mktemp -d)"
 	cd "${tmp_dir}"
 	# download our target
-	curl -L "https://github.com/${release_ver}" -o "${release_name}"
+	$download "${release_name}" "https://github.com/${release_ver}"
 	# uncompress
 	tar xvf "${release_name}"
 	# deploy our files
