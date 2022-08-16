@@ -303,10 +303,10 @@ export_binary() {
 #	or error code.
 export_application() {
 
-	[ -d /var/lib/flatpak/exports/share/applications ] &&
-		canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
 	[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
 	[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
+	[ -d /var/lib/flatpak/exports/share/applications ] &&
+		canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
 	[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
 
 	# In this phase we search for applications to export.
