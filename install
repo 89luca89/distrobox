@@ -111,14 +111,14 @@ else
 		exit 1
 	fi
 
-	if command -v curl >/dev/null 2>&1; then
+	if command -v curl > /dev/null 2>&1; then
 		download="curl -Lo"
-	elif command -v wget >/dev/null 2>&1; then
+	elif command -v wget > /dev/null 2>&1; then
 		download="wget -qO"
 	fi
 
 	if [ "${next}" -eq 0 ]; then
-		release_ver=$($download - https://github.com/89luca89/distrobox/releases/latest |
+		release_ver=$(${download} - https://github.com/89luca89/distrobox/releases/latest |
 			grep 'refs/tags' | tail -1 | cut -d'"' -f2)
 		release_name=$(echo "${release_ver}" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$')
 	else
@@ -129,7 +129,7 @@ else
 	tmp_dir="$(mktemp -d)"
 	cd "${tmp_dir}"
 	# download our target
-	$download "${release_name}" "https://github.com/${release_ver}"
+	${download} "${release_name}" "https://github.com/${release_ver}"
 	# uncompress
 	tar xvf "${release_name}"
 	# deploy our files
