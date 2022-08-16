@@ -215,7 +215,17 @@ if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
 fi
 
 # We can assume this as we set it the same as container name during creation.
-container_name=$(uname -n | cut -d'.' -f1)
+if [ -e /.dockerenv ]; then
+	# we're in docker, let's use this trick
+	container_name=$(grep "memory:/" < /proc/self/cgroup | sed 's|.*/||')
+elif [ -e /run/.containerenv ]; then
+	# we're in podman, use this other trick
+	container_name=$(grep "name=" /run/.containerenv | cut -d'=' -f2-)
+else
+	# fallback to a more simple way but error prone
+	container_name=$(uname -n | cut -d'.' -f1)
+fi
+
 # Prefix to add to an existing command to work throught the container
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- '${is_sudo} "
 if [ -z "${exported_app_label}" ]; then
