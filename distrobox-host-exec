@@ -55,7 +55,7 @@ Options:
 	--version/-V:		show version
     --yes/-Y:      Automatically answer yes to prompt:
                                 host-spawn will be installed on the guest system
-                                if host-spawn is detected.
+                                if host-spawn is not detected.
                                 This behaviour is default when running in a non-interactive shell.
 EOF
 }
@@ -129,7 +129,7 @@ if  ! command -v host-spawn > /dev/null ||
 	# if non-interactive flag flag hasn't been set
 	if [ "${non_interactive}" -eq 0 ]; then
 		# Prompt to download it.
-		printf "Distrobox Warning: no host-spawn found!\n"
+		printf "Warning: host-spawn not found or version is too old!\n"
 		printf "Do you want to install host-spawn utility? [Y/n] "
 		read -r response
 		response=${response:-"Y"}

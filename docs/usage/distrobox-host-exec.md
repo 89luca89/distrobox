@@ -7,9 +7,9 @@
 
 distrobox-host-exec lets one execute command on the host, while inside of a container.
 
-If "flatpak-spawn" is installed in the container, this is what is used, and it is the
-most powerful and recommended method. If, instead, "flatpak-spawn" can't be found, it
-still try to get the job done with "host-spawn", an alternative project.
+Under the hood, distrobox-host-exec uses `host-spawn` a project that let's us
+execute commands back on the host.
+If the tool is not found the user will be prompted to install it.
 
 # SYNOPSIS
 
