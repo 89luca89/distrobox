@@ -85,7 +85,7 @@ config_files="
 	/usr/share/distrobox/distrobox.conf
 	/usr/etc/distrobox/distrobox.conf
 	/etc/distrobox/distrobox.conf
-	${HOME}/.config/distrobox/distrobox.conf
+	${XDG_CONFIG_HOME:-"${HOME}/.config"}/distrobox/distrobox.conf
 	${HOME}/.distroboxrc
 "
 for config_file in ${config_files}; do
