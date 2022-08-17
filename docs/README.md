@@ -289,6 +289,12 @@ Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30),
 [alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli),
 [AtilaSaraiva](https://github.com/AtilaSaraiva), [michel-slm](https://github.com/michel-slm)
 
+## Alternative methods
+
+Here is a list of alternative ways to install distrobox
+
+### Curl
+
 Else, if you like to live your life dangerously, or you want the latest release,
 you can trust me and simply run this in your terminal:
 
@@ -314,6 +320,8 @@ or:
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
 ```
 
+### Git
+
 Alternatively you can clone the project using `git clone` or using the latest
 release [HERE](https://github.com/89luca89/distrobox/releases/latest).
 
@@ -324,6 +332,34 @@ such as `./install --prefix ~/.distrobox`.
 
 Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas
 the manpages get installed to `${prefix}/share/man`.
+
+### Flatpak
+
+⚠️ ⚠️ ⚠️  This is experimental! ⚠️ ⚠️ ⚠️
+
+You can find flatpak builds of distrobox here:
+[io.github.luca.distrobox](https://github.com/89luca89/io.github.luca.distrobox/releases)  
+Download the latest release flatpak and run
+
+```sh
+flatpak install io.github.luca.distrobox.flatpak
+```
+
+You can then run distrobox with:
+
+```sh
+flatpak run io.github.luca.distrobox create ...
+flatpak run io.github.luca.distrobox enter ...
+flatpak run io.github.luca.distrobox list ...
+[...]
+```
+
+It will  be handy to add an `alias distrobox="flatpak run io.github.luca.distrobox"` to your shell,
+so that you can run distrobox commands normally.
+
+Being experimental, please if you encounter problems, report them!
+
+---
 
 Check the [Host Distros](compatibility.md#host-distros) compatibility list for
 distro-specific instructions.
