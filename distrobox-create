@@ -466,7 +466,7 @@ generate_command() {
 	fi
 	if [ -d "/run/current-system/sw" ]; then
 		result_command="${result_command}
-	--volume /run/current-system/sw:/run/current-system/sw"
+		--volume /run/current-system/sw:/run/current-system/sw"
 	fi
 	# If we have a custom home to use,
 	#	1- override the HOME env variable
