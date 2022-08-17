@@ -18,13 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
-
 # Defaults
 host_command=""
 non_interactive=0
+# If we're in a non-interactive shell, let's act accordingly
+if [ -t 0 ]; then
+	non_interactive=1
+fi
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
-host_spawn_version="1.2.0"
+host_spawn_version="1.2.1"
 verbose=0
 version="1.3.2"
 
@@ -53,7 +55,8 @@ Options:
 	--version/-V:		show version
     --yes/-Y:      Automatically answer yes to prompt:
                                 host-spawn will be installed on the guest system
-                                if neither flatpak-build or host-spawn are detected
+                                if host-spawn is detected.
+                                This behaviour is default when running in a non-interactive shell.
 EOF
 }
 
@@ -119,75 +122,69 @@ if [ -z "${host_command}" ]; then
 	host_command="${distrobox_host_exec_default_command}"
 fi
 
-# If flatpak-spawn is not present, let's use host-spawn utility
-if ! command -v flatpak-spawn > /dev/null; then
-	# Setup host-spawn as a way to execute commands back on the host
-	if ! command -v host-spawn > /dev/null ||
-		[ "$(host-spawn --version)" != "${host_spawn_version}" ]; then
+# Setup host-spawn as a way to execute commands back on the host
+if  ! command -v host-spawn > /dev/null ||
+	[ "$(host-spawn --version)" != "${host_spawn_version}" ]; then
 
-		# if non-interactive flag flag hasn't been set
-		if [ "${non_interactive}" -eq 0 ]; then
-			# Prompt to download it.
-			printf "Distrobox Warning: no flatpak-spawn or host-spawn found!\n"
-			printf "View distrobox-host-exec docs on Github for more details.\n"
-			printf "Do you want to install host-spawn utility? [Y/n] "
-			read -r response
-			response=${response:-"Y"}
-		else
-			response="yes"
-		fi
-		# Accept only y,Y,Yes,yes,n,N,No,no.
-		case "${response}" in
-			y | Y | Yes | yes | YES)
-				# Download matching version with current distrobox
-				if ! curl -L \
-					"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-$(uname -m)" \
-					-o /tmp/host-spawn; then
+	# if non-interactive flag flag hasn't been set
+	if [ "${non_interactive}" -eq 0 ]; then
+		# Prompt to download it.
+		printf "Distrobox Warning: no host-spawn found!\n"
+		printf "Do you want to install host-spawn utility? [Y/n] "
+		read -r response
+		response=${response:-"Y"}
+	else
+		response="yes"
+	fi
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response}" in
+		y | Y | Yes | yes | YES)
+			# Download matching version with current distrobox
+			if ! curl -L \
+				"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-$(uname -m)" \
+				-o /tmp/host-spawn; then
 
-					printf "Error: Cannot download host-spawn\n"
-					exit 1
-				fi
-				if [ -e /tmp/host-spawn ]; then
-					sudo mv /tmp/host-spawn /usr/bin/
-					sudo chmod +x /usr/bin/host-spawn
-				fi
-				;;
-			n | N | No | no | NO)
-				printf "Installation aborted, either install host-spawn or flatpak-spawn.\n"
-				exit 0
-				;;
-			*) # Default case: If no more options then break out of the loop.
-				printf >&2 "Invalid input.\n"
-				printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+				printf "Error: Cannot download host-spawn\n"
 				exit 1
-				;;
-		esac
+			fi
+			if [ -e /tmp/host-spawn ]; then
+				sudo mv /tmp/host-spawn /usr/bin/
+				sudo chmod +x /usr/bin/host-spawn
+			fi
+			;;
+		n | N | No | no | NO)
+			printf "Installation aborted, please install host-spawn.\n"
+			exit 0
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			exit 1
+			;;
+	esac
 
-	fi
+fi
 
-	# This workaround is needed because of a bug in gio (used by xdg-open) where
-	# a race condition happens when allocating a pty, leading to the command
-	# being killed before having time to be executed.
-	#
-	# https://gitlab.gnome.org/GNOME/glib/-/issues/2695
-	# https://github.com/1player/host-spawn/issues/7
-	#
-	# As an (ugly) workaround, we will not allocate a pty for those commands.
-	if [ "$(basename "${host_command}")" = "xdg-open" ] ||
-		[ "$(basename "${host_command}")" = "gio" ]; then
+###
+# This workaround is needed because of a bug in gio (used by xdg-open) where
+# a race condition happens when allocating a pty, leading to the command
+# being killed before having time to be executed.
+#
+# https://gitlab.gnome.org/GNOME/glib/-/issues/2695
+# https://github.com/1player/host-spawn/issues/7
+#
+# As an (ugly) workaround, we will not allocate a pty for those commands.
+###
+# Also, we don't initialize a pty, if we're not in a tty.
+if  [ "$(basename "${host_command}")" = "xdg-open" ] ||
+	[ "$(basename "${host_command}")" = "gio" ] ||
+	[ -t 0 ]; then
 
-		host-spawn --no-pty "${host_command}" "$@"
-		# Exit here, we don't continue execution
-		exit $?
-	fi
-
-	host-spawn "${host_command}" "$@"
+	host-spawn --no-pty "${host_command}" "$@"
 	# Exit here, we don't continue execution
 	exit $?
 fi
 
-# Use flatpak-spawn if we have it
-flatpak-spawn --host \
-	--forward-fd=1 --forward-fd=2 \
-	--env=TERM="${TERM}" \
-	"${host_command}" "$@"
+host-spawn  "${host_command}" "$@"
+# Exit here, we don't continue execution
+exit  $?
