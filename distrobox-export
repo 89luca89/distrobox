@@ -244,9 +244,9 @@ generate_script() {
 # name: ${container_name}
 if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
     ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
-		${is_sudo} ${exported_bin} ${extra_flags} \$@
+${is_sudo} ${exported_bin} ${extra_flags} "\$@"
 else
-    ${exported_bin} \$@
+    ${exported_bin} "\$@"
 fi
 EOF
 	return $?
