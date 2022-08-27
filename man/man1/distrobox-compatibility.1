@@ -23,10 +23,13 @@ This project \f[B]does not need a dedicated image\f[R].
 It can use any OCI images from docker-hub, quay.io, or any registry of
 your choice.
 .PP
-Granted, they may not be as featureful as expected (some of them do not
-even have \f[V]which\f[R], \f[V]mount\f[R], \f[V]less\f[R] or
-\f[V]vi\f[R]) but that\[cq]s all doable in the container itself after
-bootstrapping it.
+Many cloud images are stripped down on purpose to save size and may not
+include commands such as \f[V]which\f[R], \f[V]mount\f[R],
+\f[V]less\f[R] or \f[V]vi\f[R]).
+Additional packages can be installed once inside the container.
+We recommend using your preferred automation tool inside the container
+if you find yourself having to repeatedly create new containers.
+Maintaining your own custom image is also an option.
 .PP
 The main concern is having basic Linux utilities (\f[V]mount\f[R]),
 basic user management utilities (\f[V]usermod, passwd\f[R]), and
@@ -38,7 +41,7 @@ basic user management utilities (\f[V]usermod, passwd\f[R]), and
 .PP
 It depends either on \f[V]podman\f[R] configured in
 \f[V]rootless mode\f[R] or on \f[V]docker\f[R] configured without sudo
-(follow THIS
+(follow THESE
 instructions (https://docs.docker.com/engine/install/linux-postinstall/))
 .IP \[bu] 2
 Minimum podman version: \f[B]2.1.0\f[R]
