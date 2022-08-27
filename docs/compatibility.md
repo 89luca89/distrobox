@@ -13,9 +13,11 @@
 This project **does not need a dedicated image**. It can use any OCI images from
 docker-hub, quay.io, or any registry of your choice.
 
-Granted, they may not be as featureful as expected (some of them do not even have
-`which`, `mount`, `less` or `vi`) but that's all doable in the container itself
-after bootstrapping it.
+Many cloud images are stripped down on purpose to save size and may not include
+commands such as `which`, `mount`, `less` or `vi`). Additional packages can be 
+installed once inside the container. We recommend using your preferred automation
+tool inside the container if you find yourself having to repeatedly create new containers. 
+Maintaining your own custom image is also an option.
 
 The main concern is having basic Linux utilities (`mount`), basic user management
 utilities (`usermod, passwd`), and `sudo` correctly set.
@@ -25,7 +27,7 @@ utilities (`usermod, passwd`), and `sudo` correctly set.
 `distrobox` can run on either `podman` or `docker`
 
 It depends either on `podman` configured in `rootless mode`
-or on `docker` configured without sudo (follow [THIS instructions](https://docs.docker.com/engine/install/linux-postinstall/))
+or on `docker` configured without sudo (follow [THESE instructions](https://docs.docker.com/engine/install/linux-postinstall/))
 
 - Minimum podman version: **2.1.0**
 - Minimum docker version: **18.06.1**
