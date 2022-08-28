@@ -14,9 +14,9 @@ This project **does not need a dedicated image**. It can use any OCI images from
 docker-hub, quay.io, or any registry of your choice.
 
 Many cloud images are stripped down on purpose to save size and may not include
-commands such as `which`, `mount`, `less` or `vi`). Additional packages can be 
+commands such as `which`, `mount`, `less` or `vi`). Additional packages can be
 installed once inside the container. We recommend using your preferred automation
-tool inside the container if you find yourself having to repeatedly create new containers. 
+tool inside the container if you find yourself having to repeatedly create new containers.
 Maintaining your own custom image is also an option.
 
 The main concern is having basic Linux utilities (`mount`), basic user management
