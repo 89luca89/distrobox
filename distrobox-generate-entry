@@ -168,8 +168,8 @@ fi
 
 # If we delete, just ask confirmation and exit.
 if [ "${delete}" -ne 0 ]; then
-	rm "${HOME}/.local/share/applications/${container_name}.desktop"
-	exit $?
+	[ -e "${HOME}/.local/share/applications/${container_name}.desktop" ] &&
+		rm "${HOME}/.local/share/applications/${container_name}.desktop"
 fi
 
 if ! ${container_manager} inspect --type container "${container_name}" > /dev/null; then

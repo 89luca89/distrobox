@@ -242,11 +242,11 @@ fi
 # Accept only y,Y,Yes,yes,n,N,No,no.
 case "${response}" in
 	y | Y | Yes | yes | YES)
+		# We're going to deleted the box, let's also delete the entry
+		"$(dirname "${0}")/distrobox-generate-entry" "${container_name}" --delete
+
 		# Remove the container
 		${container_manager} rm "${container_name}"
-
-		# We've deleted the box, let's also delete the entry
-		"$(dirname "${0}")/distrobox-generate-entry" "${container_name}" --delete
 		;;
 	n | N | No | no | NO)
 		printf "Aborted.\n"
