@@ -39,13 +39,10 @@ if [ "$(id -u)" -eq 0 ]; then
 	exit 1
 fi
 
-# Use cd + dirname + pwd so that we do not have relative paths in mount points
-# We're not using "realpath" here so that symlinks are not resolved this way
-# "realpath" would break situations like Nix or similar symlink based package
-# management.
-distrobox_entrypoint_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-init"
-distrobox_export_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-export"
-distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
+# Finx components we need to copy inside the container.
+distrobox_entrypoint_path="$(dirname "$(realpath "${0}")")/distrobox-init"
+distrobox_export_path="$(dirname "$(realpath "${0}")")/distrobox-export"
+distrobox_hostexec_path="$(dirname "$(realpath "${0}")")/distrobox-host-exec"
 # In case init or export are not in the same path as create, let's search
 # in PATH for them.
 [ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(command -v distrobox-init)"
