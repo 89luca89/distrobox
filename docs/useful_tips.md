@@ -61,7 +61,14 @@ Simply use:
 
 ## Use a different shell than the host
 
-By default distrobox will pick up the shell from the host and use it inside the container.
+From version 1.3.2, `distrobox enter` will execute the login shell of the container's user
+by default. So, just change the default shell in the container using:
+
+`chsh -s /bin/shell-to-use`
+
+exit and log back in the container.
+
+For version older than 1.3.2, distrobox will pick up the shell from the host and use it inside the container.
 If you want a different one you can use:
 
 `SHELL=/bin/zsh distrobox create -n test`
