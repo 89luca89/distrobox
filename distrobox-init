@@ -275,8 +275,10 @@ if ! command -v find || ! command -v mount || ! command -v passwd ||
 		fi
 		apt-get install -y \
 			"${shell_pkg}" \
+			apt-utils \
 			bc \
 			curl \
+			dialog \
 			diffutils \
 			findutils \
 			less \
@@ -570,6 +572,7 @@ for host_mount in ${HOST_MOUNTS}; do
 done
 
 HOST_MOUNTS_RO_INIT="
+		/etc/localtime
 		/run/systemd/journal
 		/run/systemd/resolve
 		/run/systemd/seats
@@ -686,16 +689,6 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 				"${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
 		done
 	fi
-	if [ -d "/etc/apt/preferences.d" ]; then
-		# Hold off tzdata, we do not want it to manage timezones, we already do
-		# it syncting them with the host. Tzdata does not play well with this so
-		# let's hold it.
-		cat << EOF > /etc/apt/preferences.d/00_distrobox_hold
-Package: tzdata
-Pin: release *
-Pin-Priority: -1
-EOF
-	fi
 fi
 
 if [ -d "/usr/share/libalpm/scripts" ]; then
@@ -703,8 +696,7 @@ if [ -d "/usr/share/libalpm/scripts" ]; then
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 	for net_mount in ${HOST_MOUNTS_RO}; do
-		printf "if mountpoint %s; then umount %s; fi\n" "${net_mount}" "${net_mount}" >> \
-			/usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+		printf "if mountpoint %s; then umount %s; fi\n" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 		printf "if [ -e /run/host/%s ]; then mount --rbind -o ro /run/host/%s %s; fi\n" \
 			"${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 	done
