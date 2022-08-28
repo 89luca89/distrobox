@@ -500,6 +500,9 @@ integration\f[R].
 From within the container you will not be able to see and manage
 host\[cq]s processes.
 This is needed because \f[V]/sbin/init\f[R] must be pid 1.
+.PP
+From version 1.3.2 of distrobox, when you create a new container, it
+will also generate an entry in the applications list.
 .\
 .\"
 .\" Define V font for inline verbatim, using C font in formats
@@ -962,6 +965,56 @@ to work from inside the container, use the \f[V]--extra-flags\f[R]
 option to provide a series of flags, for example:
 .PP
 \f[V]distrobox-export --app atom --extra-flags \[dq]--foreground\[dq]\f[R]
+.\
+.\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
+.TH "DISTROBOX-GENERATE-ENTRY" "1" "Aug 2022" "Distrobox" "User Manual"
+.hy
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox generate-entry
+distrobox-generate-entry
+\f[R]
+.fi
+.SH DESCRIPTION
+.PP
+distrobox-generate-entry will create a desktop icon for one of the
+available distroboxes.
+This will be then deleted when you remove the matching distrobox.
+.SH SYNOPSIS
+.PP
+\f[B]distrobox generate-entry\f[R]
+.IP
+.nf
+\f[C]
+--help/-h:      show this message
+--delete/-d:        delete the entry
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
+.IP
+.nf
+\f[C]
+distrobox-generate-entry container-name [--delete]
+\f[R]
+.fi
 .\
 .\"
 .\" Define V font for inline verbatim, using C font in formats
