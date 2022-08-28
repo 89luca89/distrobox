@@ -125,13 +125,14 @@ but in a simplified way using POSIX sh and aiming at broader compatibility.
 
 All the props go to them as they had the great idea to implement this stuff.
 
-It is divided into 8 commands:
+It is divided into 9 commands:
 
 - `distrobox-create` - creates the container
 - `distrobox-enter`  - to enter the container
 - `distrobox-list` - to list containers created with distrobox
 - `distrobox-rm` - to delete a container created with distrobox
 - `distrobox-stop` - to stop a running container created with distrobox
+- `distrobox-generate-entry` - to create an entry of a created container in the applications list
 - `distrobox-init`   - the entrypoint of the container (not meant to be used manually)
 - `distrobox-export` - it is meant to be used inside the container,
   useful to export apps and services from the container to the host

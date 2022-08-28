@@ -626,6 +626,9 @@ if eval ${cmd} > /dev/null; then
 	else
 		printf "distrobox enter %s\n\n" "${container_name}"
 	fi
-	exit 0
+
+	# We've created the box, let's also create the entry
+	"$(dirname "${0}")/distrobox-generate-entry" "${container_name}"
+	exit $?
 fi
 printf >&2 "\033[31m [ ERR ]\n\033[0m"

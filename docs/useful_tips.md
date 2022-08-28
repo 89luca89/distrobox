@@ -27,6 +27,17 @@
 
 # Useful tips
 
+## Launch a distrobox from you applications list
+
+Starting from distrobox 1.3.2, containers created will automatically generate a desktop entry.
+For containers generated with older versions, you can use:
+
+`distrobox generate-entry you-container-name`
+
+To delete it:
+
+`distrobox generate-entry you-container-name --delete`
+
 ## Execute complex commands directly from distrobox enter
 
 Sometimes it is necessary to execure complex commands from a distrobox enter,

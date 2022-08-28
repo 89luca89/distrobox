@@ -73,6 +73,9 @@ case "${distrobox_command}" in
 	rm)
 		"${distrobox_path}"/distrobox-rm "$@"
 		;;
+	generate-entry)
+		"${distrobox_path}"/distrobox-generate-entry "$@"
+		;;
 	ephemeral)
 		"${distrobox_path}"/distrobox-ephemeral "$@"
 		;;

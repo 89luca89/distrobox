@@ -118,3 +118,6 @@ Inside the container we will be able to use normal systemd units:
 Note that enabling `--init` **will disable host's process integration**.
 From within the container you will not be able to see and manage host's processes.
 This is needed because `/sbin/init` must be pid 1.
+
+From version 1.3.2 of distrobox, when you create a new container, it will also generate
+an entry in the applications list.
