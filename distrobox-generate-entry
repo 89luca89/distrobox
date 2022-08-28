@@ -145,7 +145,7 @@ case "${container_manager}" in
 esac
 
 # Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
+if ! command -v "${container_manager}" > /dev/null; then
 	# Error: we need at least one between docker or podman.
 	printf >&2 "Missing dependency: we need a container manager.\n"
 	printf >&2 "Please install one of podman or docker.\n"
@@ -172,11 +172,10 @@ if [ "${delete}" -ne 0 ]; then
 	exit $?
 fi
 
-if ! ${container_manager} inspect --type container "${container_name}" >/dev/null; then
+if ! ${container_manager} inspect --type container "${container_name}" > /dev/null; then
 	printf >&2 "Cannot find container %s. Please create it first.\n" "${container_name}"
 	exit 1
 fi
-
 
 distrobox_path="$(dirname "$(realpath "${0}")")"
 entry_name="$(echo "${container_name}" | cut -c1 | tr "[:lower:]" "[:upper:]")$(echo "${container_name}" | cut -c2-)"
@@ -186,11 +185,14 @@ Name=${entry_name}
 GenericName=Terminal entering ${entry_name}
 Comment=Terminal entering ${entry_name}
 Keywords=distrobox;
-Exec=$distrobox_path/distrobox enter ${container_name}
-Icon=$HOME/.local/share/icons/terminal-distrobox-icon.png
+Exec=${distrobox_path}/distrobox enter ${container_name}
+Icon=${HOME}/.local/share/icons/terminal-distrobox-icon.png
 NoDisplay=false
 Terminal=true
 Type=Application
 Category=Distrobox;System;Utility"
 
-echo "$TEMPLATE" > "${HOME}/.local/share/applications/${container_name}.desktop"
+# Ensure the destination dir exists.
+mkdir -p "${HOME}/.local/share/applications"
+
+echo "${TEMPLATE}" > "${HOME}/.local/share/applications/${container_name}.desktop"

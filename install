@@ -146,7 +146,8 @@ else
 			install -D -m 0644 -t "${man_dest_path}" "${file}"
 		done
 	fi
-	install -D -m 0644 -t "${icon_dest_path}"  "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.png
+	install -D -m 0644 -t "${icon_dest_path}" \
+		"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.png
 
 	# securely delete unneeded files
 	cd
