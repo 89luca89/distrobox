@@ -481,11 +481,11 @@ if [ "${container_status}" != "running" ]; then
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
 			case "${line}" in
-				*"Error"*)
+				*"Error:"*)
 					printf >&2 "\033[31m %s\n\033[0m" "${line}"
 					exit 1
 					;;
-				*"Warning"*)
+				*"Warning:"*)
 					printf >&2 "\n\033[33m %s\033[0m" "${line}"
 					;;
 				*"distrobox:"*)
