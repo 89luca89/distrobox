@@ -230,7 +230,8 @@ Enter created distrobox:
 
 `distrobox enter test`
   
-Add [various](https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#host-distros) distroboxes, eg Ubuntu 20.04:
+Add [various](https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#host-distros)
+distroboxes, eg Ubuntu 20.04:
 
 `distrobox create -i ubuntu:20.04
 
