@@ -170,6 +170,7 @@ fi
 if [ "${delete}" -ne 0 ]; then
 	[ -e "${HOME}/.local/share/applications/${container_name}.desktop" ] &&
 		rm "${HOME}/.local/share/applications/${container_name}.desktop"
+	exit
 fi
 
 if ! ${container_manager} inspect --type container "${container_name}" > /dev/null; then
