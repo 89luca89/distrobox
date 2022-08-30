@@ -244,7 +244,7 @@ case "${response}" in
 	y | Y | Yes | yes | YES)
 		# We're going to deleted the box, let's also delete the entry
 		if [ "${rootful}" -eq 0 ]; then
-			"$(dirname "${0}")/distrobox-generate-entry" "${container_name}" --delete
+			"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete
 		fi
 
 		# Remove the container

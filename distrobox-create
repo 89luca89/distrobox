@@ -629,7 +629,7 @@ if eval ${cmd} > /dev/null; then
 
 	# We've created the box, let's also create the entry
 	if [ "${rootful}" -eq 0 ]; then
-		"$(dirname "${0}")/distrobox-generate-entry" "${container_name}"
+		"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}"
 	fi
 	exit $?
 fi
