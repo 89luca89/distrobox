@@ -25,7 +25,8 @@ all=0
 container_manager="autodetect"
 container_name="my-distrobox"
 delete=0
-icon="${HOME}/.local/share/icons/terminal-distrobox-icon.png"
+icon="auto"
+icon_default="${HOME}/.local/share/icons/terminal-distrobox-icon.png"
 verbose=0
 version="1.3.2"
 
@@ -157,6 +158,7 @@ fi
 # If we delete, just ask confirmation and exit.
 if [ "${delete}" -ne 0 ]; then
 	rm -f "${HOME}/.local/share/applications/${container_name}.desktop"
+	printf "%s\n" "${container_name}"
 	exit
 fi
 
@@ -204,11 +206,59 @@ if ! ${container_manager} inspect --type container "${container_name}" > /dev/nu
 	exit 1
 fi
 
+# Ensure the destination dir exists.
+mkdir -p "${HOME}/.local/share/applications"
+mkdir -p "${HOME}/.local/share/icons/distrobox"
+
 distrobox_path="$(dirname "$(realpath "${0}")")"
 entry_name="$(echo "${container_name}" | cut -c1 | tr "[:lower:]" "[:upper:]")$(echo "${container_name}" | cut -c2-)"
 
-# Ensure the destination dir exists.
-mkdir -p "${HOME}/.local/share/applications"
+if [ "${icon}" = "auto" ]; then
+	# Set icon to the generic terminal as a fallback.
+	icon="${icon_default}"
+	# This is a NON comprehensive list of logos of the most popular distirbutions. If you find logos for
+	# other supported distros, add it here.
+	DISTRO_ICON_MAP="
+		alma:https://upload.wikimedia.org/wikipedia/commons/e/ec/AlmaLinux_Icon_Logo.png
+		alpine:https://d1q6f0aelx0por.cloudfront.net/product-logos/library-alpine-logo.png
+		arch:https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Archlogo900.png/640px-Archlogo900.png
+		centos:https://upload.wikimedia.org/wikipedia/commons/6/63/CentOS_color_logo.svg
+		clear--os:https://d1q6f0aelx0por.cloudfront.net/product-logos/library-clearlinux-logo.png
+		debian:https://free-astro.org/images/0/04/Debian_logo.png
+		fedora:https://upload.wikimedia.org/wikipedia/commons/4/41/Fedora_icon_%282021%29.svg
+		gentoo:https://upload.wikimedia.org/wikipedia/commons/e/e2/Logo-gentoo.png
+		opensuse-leap:https://en.opensuse.org/images/4/44/Button-filled-colour.png
+		opensuse-tumbleweed:https://en.opensuse.org/images/4/44/Button-filled-colour.png
+		rhel:https://avatars.githubusercontent.com/u/12718395?.png
+		rocky:https://raw.githubusercontent.com/rocky-linux/rocky-logos/r9/pixmaps/fedora-logo-sprite.png
+		slackware:https://distrowatch.com/images/yvzhuwbpy/slackware.png
+		ubuntu:https://upload.wikimedia.org/wikipedia/commons/a/ab/Logo-ubuntu_cof-orange-hex.svg
+		void:https://voidlinux.org/assets/img/void_bg.png
+	"
+	# Try to detect container's distribution by using /etc/os-release
+	${container_manager} cp "${container_name}":/etc/os-release /tmp/"${container_name}".os-release
+	container_distro="$(grep "^ID=" /tmp/"${container_name}".os-release |
+		cut -d'=' -f2- |
+		sed "s|linux||g" |
+		tr -d ' ' |
+		tr -d '"')"
+	rm -f /tmp/"${container_name}".os-release
+
+	icon_url="$(echo "$DISTRO_ICON_MAP" | grep "${container_distro}:" | cut -d':' -f2-)"
+	if [ -n "${icon_url}" ]; then
+		icon_extension="${icon_url##*.}"
+
+		if wget -c -q "${icon_url}" -O "${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"; then
+			icon="${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"
+		else
+			# Wget failed for some reasons. Default to generic terminal icon as declared at the beginning.
+			printf >&2 "Warning: Failed to download icon. Defaulting to generic one.\n"
+		fi
+	else
+		# Distribution not found in the list. Default to generic terminal icon as declared at the beginning.
+		printf >&2 "Warning: Distribution not found in default icon set. Defaulting to generic one.\n"
+	fi
+fi
 
 cat << EOF > "${HOME}/.local/share/applications/${container_name}.desktop"
 [Desktop Entry]
@@ -224,3 +274,5 @@ Terminal=true
 TryExec=${distrobox_path}/distrobox
 Type=Application
 EOF
+
+printf "%s\n" "${container_name}"

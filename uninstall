@@ -97,4 +97,5 @@ for file in "${man_dest_path}/distrobox"*; do
 	[ -e "${file}" ] && rm "${file}"
 done
 [  -e "${icon_dest_path}"/terminal-distrobox-icon.png ] && rm "${icon_dest_path}"/terminal-distrobox-icon.png
+[  -e "${icon_dest_path}"/distrobox ] && rm -rf "${icon_dest_path}"/distrobox
 echo "Thank you for using Distrobox. Uninstall complete."
