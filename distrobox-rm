@@ -35,7 +35,6 @@ fi
 
 # Defaults
 container_manager="autodetect"
-container_name="my-distrobox"
 force=0
 non_interactive=0
 rootful=0
@@ -64,9 +63,12 @@ done
 [ "${non_interactive}" = "false" ] && non_interactive=0
 
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
-[ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 [ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
+
+# Declare it AFTER config sourcing because we do not want a default name set for rm.
+container_name=""
+container_name_list=""
 
 # Print usage to stdout.
 # Arguments:
@@ -79,13 +81,11 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-rm --name container-name [--force]
-	distrobox-rm container-name [-f]
+	distrobox-rm [-f/--force] container-name [container-name1 container-name2 ...]
 
 Options:
 
 	--name/-n:		name for the distrobox
-	--force/-f:		force deletion
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
@@ -119,13 +119,6 @@ while :; do
 			force=1
 			shift
 			;;
-		-n | --name)
-			if [ -n "$2" ]; then
-				container_name="$2"
-				shift
-				shift
-			fi
-			;;
 		-Y | --yes)
 			non_interactive=1
 			shift
@@ -143,7 +136,7 @@ while :; do
 			# If we have a flagless option and container_name is not specified
 			# then let's accept argument as container_name
 			if [ -n "$1" ]; then
-				container_name="$1"
+				container_name_list="${container_name_list} $1"
 				shift
 			else
 				break
@@ -202,61 +195,69 @@ if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program} ${container_manager}"
 fi
 
-# Inspect the container we're working with.
-container_status="$(${container_manager} inspect --type container \
-	"${container_name}" --format '{{.State.Status}}')"
-container_exists="$?"
-# Does the container exist? check if inspect reported errors
-if [ "${container_exists}" -gt 0 ]; then
-	# If not, prompt to create it first
-	printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
+# check if we have containers to delete
+if [ -z "${container_name_list}" ]; then
+	printf >&2 "Please specify a container name.\n"
 	exit 1
 fi
 
-# If the container is not already running, we need to start if first
-if [ "${container_status}" = "running" ]; then
-	if [ "${force}" -ne 0 ]; then
-		printf >&2 "Stopping container %s\n" "${container_name}"
-		if ! ${container_manager} stop "${container_name}"; then
-			printf >&2 "Could not stop container %s\n" "${container_name}"
-			printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-			printf >&2 "Run:\n\t%s stop %s" "${container_manager}" "${container_name}"
-			exit 1
-		fi
-	else
-		printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-		printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
-		printf >&2 'or use the "--force" flag'
+for container_name in ${container_name_list}; do
+	# Inspect the container we're working with.
+	container_status="$(${container_manager} inspect --type container \
+		"${container_name}" --format '{{.State.Status}}')"
+	container_exists="$?"
+	# Does the container exist? check if inspect reported errors
+	if [ "${container_exists}" -gt 0 ]; then
+		# If not, prompt to create it first
+		printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
 		exit 1
 	fi
-fi
-if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
-	# Prompt to download it.
-	printf "Do you really want to delete %s? [Y/n]: " "${container_name}"
-	read -r response
-	response="${response:-"Y"}"
-else
-	response="yes"
-fi
 
-# Accept only y,Y,Yes,yes,n,N,No,no.
-case "${response}" in
-	y | Y | Yes | yes | YES)
-		# We're going to deleted the box, let's also delete the entry
-		if [ "${rootful}" -eq 0 ]; then
-			"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete
+	# If the container is not already running, we need to start if first
+	if [ "${container_status}" = "running" ]; then
+		if [ "${force}" -ne 0 ]; then
+			printf >&2 "Stopping container %s\n" "${container_name}"
+			if ! ${container_manager} stop "${container_name}"; then
+				printf >&2 "Could not stop container %s\n" "${container_name}"
+				printf >&2 "Please stop container %s before deletion\n" "${container_name}"
+				printf >&2 "Run:\n\t%s stop %s" "${container_manager}" "${container_name}"
+				exit 1
+			fi
+		else
+			printf >&2 "Please stop container %s before deletion\n" "${container_name}"
+			printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
+			printf >&2 'or use the "--force" flag'
+			exit 1
 		fi
+	fi
+	if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
+		# Prompt to download it.
+		printf "Do you really want to delete %s? [Y/n]: " "${container_name}"
+		read -r response
+		response="${response:-"Y"}"
+	else
+		response="yes"
+	fi
 
-		# Remove the container
-		${container_manager} rm "${container_name}"
-		;;
-	n | N | No | no | NO)
-		printf "Aborted.\n"
-		exit 0
-		;;
-	*) # Default case: If no more options then break out of the loop.
-		printf >&2 "Invalid input.\n"
-		printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
-		exit 1
-		;;
-esac
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response}" in
+		y | Y | Yes | yes | YES)
+			# We're going to deleted the box, let's also delete the entry
+			if [ "${rootful}" -eq 0 ]; then
+				"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete
+			fi
+
+			# Remove the container
+			${container_manager} rm "${container_name}"
+			;;
+		n | N | No | no | NO)
+			printf "Aborted.\n"
+			exit 0
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			exit 1
+			;;
+	esac
+done
