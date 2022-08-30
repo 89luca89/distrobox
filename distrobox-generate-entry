@@ -21,6 +21,7 @@
 # POSIX
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
+all=0
 container_manager="autodetect"
 container_name="my-distrobox"
 delete=0
@@ -63,6 +64,7 @@ Usage:
 Options:
 
 	--help/-h:		show this message
+	--all/-a:		perform for all distroboxes
 	--delete/-d:		delete the entry
 	--icon/-i:		specify a custom icon [/path/to/icon] (default auto)
 	--verbose/-v:		show more verbosity
@@ -93,6 +95,10 @@ while :; do
 			;;
 		-d | --delete)
 			delete=1
+			shift
+			;;
+		-a | --all)
+			all=1
 			shift
 			;;
 		-i | --icon)
@@ -129,6 +135,29 @@ set -o nounset
 # set verbosity
 if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
+fi
+
+if [ -z "${container_name}" ]; then
+	printf >&2 "Please specify the name of the container.\n"
+	exit 1
+fi
+
+if [ "${all}" -ne 0 ]; then
+	container_names="$(distrobox list --no-color | tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
+	for container_name in ${container_names}; do
+		if [ "${delete}" -ne 0 ]; then
+			"${0}" "${container_name}" --delete
+			continue
+		fi
+		"${0}" "${container_name}"
+	done
+	exit
+fi
+
+# If we delete, just ask confirmation and exit.
+if [ "${delete}" -ne 0 ]; then
+	rm -f "${HOME}/.local/share/applications/${container_name}.desktop"
+	exit
 fi
 
 # We depend on a container manager let's be sure we have it
@@ -168,17 +197,6 @@ fi
 # add  verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
-fi
-
-if [ -z "${container_name}" ]; then
-	printf >&2 "Please specify the name of the container.\n"
-	exit 1
-fi
-
-# If we delete, just ask confirmation and exit.
-if [ "${delete}" -ne 0 ]; then
-	rm -f "${HOME}/.local/share/applications/${container_name}.desktop"
-	exit
 fi
 
 if ! ${container_manager} inspect --type container "${container_name}" > /dev/null; then
