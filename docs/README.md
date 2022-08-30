@@ -182,23 +182,14 @@ It also aims to enter the container **as fast as possible**, every millisecond
 adds up if you use the container as your default environment for your terminal:
 
 These are some sample results of `distrobox-enter` on the same container on my
-weak laptop from 2015 with 2 core cpu:
+weak laptop:
 
-```sh
-Total time for 100 container enters:
-
-  ~$ time (for i in {1..100}; do distrobox-enter --name fedora-toolbox-35 -- whoami; done)
-  real 0m36.209s
-  user 0m6.520s
-  sys 0m4.803s
-
-Mean:
-
-36.209s/100 = ~0.362ms mean time to enter the container
+```console
+~$ hyperfine --warmup 3 --runs 100 "distrobox enter bench -- whoami"
+Benchmark 1: distrobox enter bench -- whoami
+  Time (mean ± σ):     395.6 ms ±  10.5 ms    [User: 167.4 ms, System: 62.4 ms]
+  Range (min … max):   297.3 ms … 408.9 ms    100 runs
 ```
-
-I would like to keep it always below the
-[Doherty Treshold](https://lawsofux.com/doherty-threshold/) of 400ms.
 
 #### Security implications
 
@@ -208,7 +199,7 @@ The container will have complete access to your home, pen drives and so on,
 so do not expect it to be highly sandboxed like a plain
 docker/podman container or a flatpak.
 
-⚠️ **BE CAREFUL**: if you use docker, or you use podman with the `--root/-r` flag,
+⚠️ **BE CAREFUL**:⚠️  if you use docker, or you use podman with the `--root/-r` flag,
 the containers will run as root, so **root inside the rootful container can modify
 system stuff outside the container**,
 if you have security concern for this, **use podman that runs in rootless mode**.
