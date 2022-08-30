@@ -24,6 +24,7 @@ trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 container_manager="autodetect"
 container_name="my-distrobox"
 delete=0
+icon="${HOME}/.local/share/icons/terminal-distrobox-icon.png"
 verbose=0
 version="1.3.2"
 
@@ -57,12 +58,13 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-generate-entry container-name [--delete]
+	distrobox-generate-entry container-name [--delete] [--icon [auto,/path/to/icon]]
 
 Options:
 
 	--help/-h:		show this message
 	--delete/-d:		delete the entry
+	--icon/-i:		specify a custom icon [/path/to/icon] (default auto)
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 EOF
@@ -92,6 +94,13 @@ while :; do
 		-d | --delete)
 			delete=1
 			shift
+			;;
+		-i | --icon)
+			if [ -n "$2" ]; then
+				icon="$2"
+				shift
+				shift
+			fi
 			;;
 		--) # End of all options.
 			shift
@@ -168,8 +177,7 @@ fi
 
 # If we delete, just ask confirmation and exit.
 if [ "${delete}" -ne 0 ]; then
-	[ -e "${HOME}/.local/share/applications/${container_name}.desktop" ] &&
-		rm "${HOME}/.local/share/applications/${container_name}.desktop"
+	rm -f "${HOME}/.local/share/applications/${container_name}.desktop"
 	exit
 fi
 
@@ -181,19 +189,20 @@ fi
 distrobox_path="$(dirname "$(realpath "${0}")")"
 entry_name="$(echo "${container_name}" | cut -c1 | tr "[:lower:]" "[:upper:]")$(echo "${container_name}" | cut -c2-)"
 
-TEMPLATE="[Desktop Entry]
-Name=${entry_name}
-GenericName=Terminal entering ${entry_name}
-Comment=Terminal entering ${entry_name}
-Keywords=distrobox;
-Exec=${distrobox_path}/distrobox enter ${container_name}
-Icon=${HOME}/.local/share/icons/terminal-distrobox-icon.png
-NoDisplay=false
-Terminal=true
-Type=Application
-Category=Distrobox;System;Utility"
-
 # Ensure the destination dir exists.
 mkdir -p "${HOME}/.local/share/applications"
 
-echo "${TEMPLATE}" > "${HOME}/.local/share/applications/${container_name}.desktop"
+cat << EOF > "${HOME}/.local/share/applications/${container_name}.desktop"
+[Desktop Entry]
+Name=${entry_name}
+GenericName=Terminal entering ${entry_name}
+Comment=Terminal entering ${entry_name}
+Category=Distrobox;System;Utility"
+Exec=${distrobox_path}/distrobox enter ${container_name}
+Icon=${icon}
+Keywords=distrobox;
+NoDisplay=false
+Terminal=true
+TryExec=${distrobox_path}/distrobox
+Type=Application
+EOF
