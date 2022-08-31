@@ -1,0 +1,50 @@
+.\
+.\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
+.TH "DISTROBOX-UPGRADE" "1" "Aug 2022" "Distrobox" "User Manual"
+.hy
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox-upgrade
+\f[R]
+.fi
+.SH DESCRIPTION
+.PP
+distrobox-upgrade will enter the specified list of containers and will
+perform an upgrade using the container\[cq]s package manager.
+.SH SYNOPSIS
+.PP
+\f[B]distrobox upgrade\f[R]
+.IP
+.nf
+\f[C]
+--help/-h:      show this message
+--all/-a:       perform for all distroboxes
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
+.IP
+.nf
+\f[C]
+distrobox-upgrade --all
+distrobox-upgrade alpine-linux ubuntu22 my-distrobox123
+distrobox upgrade CONTAINER_NAME [CONTAINER_NAME1 CONTAINER_NAME2 ...]
+\f[R]
+.fi

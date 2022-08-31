@@ -21,7 +21,6 @@
 .nf
 \f[C]
 distrobox generate-entry
-distrobox-generate-entry
 \f[R]
 .fi
 .SH DESCRIPTION
@@ -35,16 +34,18 @@ This will be then deleted when you remove the matching distrobox.
 .IP
 .nf
 \f[C]
---help/-h:      show this message
---delete/-d:        delete the entry
---verbose/-v:       show more verbosity
---version/-V:       show version
+    --help/-h:            show this message
+    --all/-a:              perform for all distroboxes
+    --delete/-d:            delete the entry
+    --icon/-i:            specify a custom icon [/path/to/icon] (default auto)
+    --verbose/-v:          show more verbosity
+    --version/-V:          show version
 \f[R]
 .fi
 .SH EXAMPLES
 .IP
 .nf
 \f[C]
-distrobox-generate-entry container-name [--delete]
+distrobox-generate-entry container-name [--delete] [--icon [auto,/path/to/icon]]
 \f[R]
 .fi
