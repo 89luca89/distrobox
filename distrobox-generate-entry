@@ -244,7 +244,7 @@ if [ "${icon}" = "auto" ]; then
 		tr -d '"')"
 	rm -f /tmp/"${container_name}".os-release
 
-	icon_url="$(echo "$DISTRO_ICON_MAP" | grep "${container_distro}:" | cut -d':' -f2-)"
+	icon_url="$(echo "${DISTRO_ICON_MAP}" | grep "${container_distro}:" | cut -d':' -f2-)"
 	if [ -n "${icon_url}" ]; then
 		icon_extension="${icon_url##*.}"
 

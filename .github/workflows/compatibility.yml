@@ -209,4 +209,4 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox rm --force --name "${container_name}"
+          ./distrobox rm --force "${container_name}"
