@@ -7,6 +7,8 @@
     - [distrobox-list](distrobox-list.md)
     - [distrobox-rm](distrobox-rm.md)
     - [distrobox-stop](distrobox-stop.md)
+    - [distrobox-upgrade](distrobox-upgrade.md)
+    - [distrobox-generate-entry](distrobox-generate-entry.md)
   - [Inside the distrobox](#inside-the-distrobox)
     - [distrobox-export](distrobox-export.md)
     - [distrobox-host-exec](distrobox-host-exec.md)

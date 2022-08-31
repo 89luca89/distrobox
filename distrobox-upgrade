@@ -1,0 +1,182 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
+
+all=0
+container_manager="autodetect"
+distrobox_path="$(dirname "$(realpath "${0}")")"
+verbose=0
+version="1.3.2"
+
+# Source configuration files, this is done in an hierarchy so local files have
+# priority over system defaults
+# leave priority to environment variables.
+config_files="
+	/usr/share/distrobox/distrobox.conf
+	/usr/etc/distrobox/distrobox.conf
+	/etc/distrobox/distrobox.conf
+	${XDG_CONFIG_HOME:-"${HOME}/.config"}/distrobox/distrobox.conf
+	${HOME}/.distroboxrc
+"
+for config_file in ${config_files}; do
+	# Shellcheck will give error for sourcing a variable file as it cannot follow
+	# it. We don't care so let's disable this linting for now.
+	# shellcheck disable=SC1090
+	[ -e "${config_file}" ] && . "${config_file}"
+done
+[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
+
+# Declare it AFTER config sourcing because we do not want a default name set.
+container_name=""
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	cat << EOF
+distrobox version: ${version}
+
+Usage:
+
+	distrobox-upgrade container-name
+	distrobox-upgrade --all
+
+Options:
+
+	--help/-h:		show this message
+	--all/-a:		perform for all distroboxes
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+EOF
+}
+
+if [ $# -eq 0 ]; then
+	show_help
+	exit
+fi
+
+# Parse arguments
+while :; do
+	case $1 in
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
+			verbose=1
+			shift
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		-a | --all)
+			all=1
+			shift
+			;;
+		--) # End of all options.
+			shift
+			break
+			;;
+		-*) # Invalid options.
+			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+			show_help
+			exit 1
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			# If we have a flagless option and container_name is not specified
+			# then let's accept argument as container_name
+			if [ -n "$1" ]; then
+				container_name="${container_name} $1"
+				shift
+			else
+				break
+			fi
+			;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+if [ -z "${container_name}" ] && [ "${all}" -eq 0 ]; then
+	printf >&2 "Please specify the name of the container.\n"
+	exit 1
+fi
+
+# We depend on a container manager let's be sure we have it
+# First we use podman, else docker
+case "${container_manager}" in
+	autodetect)
+		if command -v podman > /dev/null; then
+			container_manager="podman"
+		elif command -v docker > /dev/null; then
+			container_manager="docker"
+		fi
+		;;
+	podman)
+		container_manager="podman"
+		;;
+	docker)
+		container_manager="docker"
+		;;
+	*)
+		printf >&2 "Invalid input %s.\n" "${container_manager}"
+		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
+		;;
+esac
+
+# Be sure we have a container manager to work with.
+if ! command -v "${container_manager}" > /dev/null; then
+	# Error: we need at least one between docker or podman.
+	printf >&2 "Missing dependency: we need a container manager.\n"
+	printf >&2 "Please install one of podman or docker.\n"
+	printf >&2 "You can follow the documentation on:\n"
+	printf >&2 "\tman distrobox-compatibility\n"
+	printf >&2 "or:\n"
+	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	exit 127
+fi
+
+# add  verbose if -v is specified
+if [ "${verbose}" -ne 0 ]; then
+	container_manager="${container_manager} --log-level debug"
+fi
+
+# If all, just set container_name to the list of names in distrobox-list
+if [ "${all}" -ne 0 ]; then
+	container_name="$("${distrobox_path}"/distrobox-list --no-color | tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
+fi
+
+# Launch the entrypoint in upgrade mode
+for container in ${container_name}; do
+	printf >&2 "\033[1;31m Upgrading %s...\n\033[0m" "${container}"
+	# shellcheck disable=SC2086
+	"${distrobox_path}"/distrobox-enter ${container} -- sudo /usr/bin/entrypoint --upgrade
+done

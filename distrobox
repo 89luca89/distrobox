@@ -38,10 +38,12 @@ distrobox version: ${version}
 Choose one of the available commands:
 	create
 	enter
-	ephemeral
 	list
 	rm
 	stop
+	upgrade
+	ephemeral
+	generate-entry
 	version
 EOF
 }
@@ -72,6 +74,9 @@ case "${distrobox_command}" in
 		;;
 	rm)
 		"${distrobox_path}"/distrobox-rm "$@"
+		;;
+	upgrade)
+		"${distrobox_path}"/distrobox-upgrade "$@"
 		;;
 	generate-entry)
 		"${distrobox_path}"/distrobox-generate-entry "$@"
