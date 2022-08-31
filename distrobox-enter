@@ -295,7 +295,7 @@ generate_command() {
 	fi
 	result_command="${result_command}
 		--workdir=\"${workdir}\"
-		--env=\"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
+		--env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
@@ -306,7 +306,7 @@ generate_command() {
 		# multiline or containing spaces.
 		# We also NEED to ignore the HOME variable, as this is set at create time
 		# and needs to stay that way to use custom home dirs.
-		result_command="${result_command} --env=\"${i}\""
+		result_command="${result_command} --env \"${i}\""
 	done
 
 	# Start with the $PATH set in the container's config
@@ -325,7 +325,7 @@ generate_command() {
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
-	result_command="${result_command} --env=\"PATH=${container_paths}\""
+	result_command="${result_command} --env \"PATH=${container_paths}\""
 
 	# Ensure the standard FHS program paths are in XDG_DATA_DIRS environment
 	standard_paths="/usr/local/share /usr/share"
@@ -336,7 +336,7 @@ generate_command() {
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
-	result_command="${result_command} --env=\"XDG_DATA_DIRS=${container_paths}\""
+	result_command="${result_command} --env \"XDG_DATA_DIRS=${container_paths}\""
 
 	# Ensure the standard FHS program paths are in XDG_CONFIG_DIRS environment
 	standard_paths="/etc/xdg"
@@ -347,7 +347,7 @@ generate_command() {
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
-	result_command="${result_command} --env=\"XDG_CONFIG_DIRS=${container_paths}\""
+	result_command="${result_command} --env \"XDG_CONFIG_DIRS=${container_paths}\""
 
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then

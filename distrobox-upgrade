@@ -19,11 +19,18 @@
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
 # POSIX
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
+# Dont' run this command as sudo.
+if [ "$(id -u)" -eq 0 ]; then
+	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
+	printf >&2 " try instead running:\n"
+	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
+	exit 1
+fi
 
 all=0
 container_manager="autodetect"
 distrobox_path="$(dirname "$(realpath "${0}")")"
+distrobox_sudo_program="sudo"
 verbose=0
 version="1.3.2"
 
@@ -44,6 +51,7 @@ for config_file in ${config_files}; do
 	[ -e "${config_file}" ] && . "${config_file}"
 done
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
+[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
 # Declare it AFTER config sourcing because we do not want a default name set.
 container_name=""
@@ -66,6 +74,9 @@ Options:
 
 	--help/-h:		show this message
 	--all/-a:		perform for all distroboxes
+	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 EOF
@@ -95,6 +106,10 @@ while :; do
 		-a | --all)
 			all=1
 			shift
+			;;
+		-r | --root)
+			shift
+			rootful=1
 			;;
 		--) # End of all options.
 			shift
@@ -169,14 +184,30 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
+# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+if [ "${rootful}" -ne 0 ]; then
+	container_manager="${distrobox_sudo_program} ${container_manager}"
+fi
+
 # If all, just set container_name to the list of names in distrobox-list
 if [ "${all}" -ne 0 ]; then
-	container_name="$("${distrobox_path}"/distrobox-list --no-color | tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
+
+	# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+	if [ "${rootful}" -ne 0 ]; then
+		container_name="$("${distrobox_path}"/distrobox-list --root --no-color | tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
+	else
+		container_name="$("${distrobox_path}"/distrobox-list --no-color | tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
+	fi
 fi
 
 # Launch the entrypoint in upgrade mode
 for container in ${container_name}; do
 	printf >&2 "\033[1;31m Upgrading %s...\n\033[0m" "${container}"
-	# shellcheck disable=SC2086
-	"${distrobox_path}"/distrobox-enter ${container} -- sudo /usr/bin/entrypoint --upgrade
+	if [ "${rootful}" -ne 0 ]; then
+		# shellcheck disable=SC2086
+		"${distrobox_path}"/distrobox-enter --root ${container} -- sudo /usr/bin/entrypoint --upgrade
+	else
+		# shellcheck disable=SC2086
+		"${distrobox_path}"/distrobox-enter ${container} -- sudo /usr/bin/entrypoint --upgrade
+	fi
 done
