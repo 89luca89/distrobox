@@ -94,6 +94,7 @@ jobs:
       - name: Run Differential ShellCheck
         uses: redhat-plumbers-in-action/differential-shellcheck@v2
         with:
+          severity: style
           token: ${{ secrets.GITHUB_TOKEN }}
 
   bashate:
