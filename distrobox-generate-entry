@@ -168,15 +168,19 @@ case "${container_manager}" in
 	autodetect)
 		if command -v podman > /dev/null; then
 			container_manager="podman"
+			container_manager_cp_command="podman cp"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
+			container_manager_cp_command="docker cp -L"
 		fi
 		;;
 	podman)
 		container_manager="podman"
+		container_manager_cp_command="podman cp"
 		;;
 	docker)
 		container_manager="docker"
+		container_manager_cp_command="docker cp -L"
 		;;
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
@@ -236,7 +240,7 @@ if [ "${icon}" = "auto" ]; then
 		void:https://voidlinux.org/assets/img/void_bg.png
 	"
 	# Try to detect container's distribution by using /etc/os-release
-	${container_manager} cp "${container_name}":/etc/os-release /tmp/"${container_name}".os-release
+	${container_manager_cp_command} "${container_name}":/etc/os-release /tmp/"${container_name}".os-release
 	container_distro="$(grep "^ID=" /tmp/"${container_name}".os-release |
 		cut -d'=' -f2- |
 		sed "s|linux||g" |
