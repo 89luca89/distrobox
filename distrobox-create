@@ -288,7 +288,7 @@ fi
 #	ubuntu:20.04 -> ubuntu-20.04
 #	registry.fedoraproject.org/fedora-toolbox:35 -> fedora-toolbox-35
 #	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
-if [ -z "${container_name}" ]; then
+if [ -z ${container_name} ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/[:.]/-/g')"
 fi
 
