@@ -67,14 +67,35 @@ jobs:
         run: |
           result=0
           podman pull docker.io/koalaman/shellcheck:stable
-          for file in $(find . -type f -not -path "*.git*"); do
+          for file in $(find . -type f -name ".*" -prune -o -print | grep -v '.git'); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
-              podman run --rm -v "$PWD:/mnt" docker.io/koalaman/shellcheck:stable -s sh -a -o all -Sstyle -Calways -x -e SC2310,SC2311,SC2312  $file
+              # Should read the .shellcheckrc file to behave like  -s sh -a -o all -Sstyle -Calways -x -e SC2310,SC2311,SC2312
+              podman run --rm -v "$PWD:/mnt" docker.io/koalaman/shellcheck:stable -a -Sstyle -Calways $file
               result=$(( result + $? ))
             fi
           done
           exit $result
+
+  differential-shellcheck:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Run Differential ShellCheck
+        uses: redhat-plumbers-in-action/differential-shellcheck@v3
+        with:
+          severity: style
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   bashate:
     runs-on: ubuntu-latest

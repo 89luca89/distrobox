@@ -1,0 +1,20 @@
+# Overrides the shell detected from the shebang. This is useful for files meant to be included (and thus lacking a shebang), or possibly as a more targeted alternative to 'disable=SC2039'.
+shell=sh
+
+# Always allow ShellCheck to open arbitrary files from 'source' statements.
+external-sources=true
+
+# Enable all optional checks
+enable=all
+
+# This function is invoked in an 'if' condition so set -e will be disabled. Invoke separately if failures should cause the script to exit.
+# - We don't want to exit if errors happen inside a check, that's why we have a check...
+disable=SC2310
+
+# Bash implicitly disabled set -e for this function invocation because it's inside a command substitution. Add set -e; before it or enable inherit_errexit.
+# - Don't care if we inherit errexit inside substitutions, we do checks for that.
+disable=SC2311
+
+# Consider invoking this command separately to avoid masking its return value (or use '|| true' to ignore).
+# - We already check errors and adding "|| true" everywhere hinders readability.
+disable=SC2312
