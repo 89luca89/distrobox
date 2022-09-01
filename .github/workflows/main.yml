@@ -92,7 +92,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Differential ShellCheck
-        uses: redhat-plumbers-in-action/differential-shellcheck@v2
+        uses: redhat-plumbers-in-action/differential-shellcheck@v3
         with:
           severity: style
           token: ${{ secrets.GITHUB_TOKEN }}
