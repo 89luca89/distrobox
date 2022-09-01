@@ -699,7 +699,6 @@ printf "distrobox: Setting up package manager exceptions...\n"
 if [ -d "/usr/lib/rpm/macros.d/" ]; then
 	# Loop through all the environment vars
 	# and export them to the container.
-	set +o xtrace
 	net_mounts=""
 	for net_mount in \
 		${HOST_MOUNTS_RO} ${HOST_MOUNTS} \
@@ -710,10 +709,6 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 		net_mounts="${net_mount}:${net_mounts}"
 
 	done
-	# re-enable logging if it was enabled previously.
-	if [ "${verbose}" -ne 0 ]; then
-		set -o xtrace
-	fi
 	net_mounts=${net_mounts%?}
 	cat << EOF > /usr/lib/rpm/macros.d/macros.distrobox
 %_netsharedpath ${net_mounts}
@@ -726,15 +721,10 @@ fi
 if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# Loop through all the environment vars
 	# and export them to the container.
-	set +o xtrace
 	printf "" > /etc/dpkg/dpkg.cfg.d/00_distrobox
 	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
 		printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
 	done
-	# re-enable logging if it was enabled previously.
-	if [ "${verbose}" -ne 0 ]; then
-		set -o xtrace
-	fi
 
 	# Also we put a hook to clear some critical paths that do not play well
 	# with read only filesystems, like systemd.
@@ -751,7 +741,6 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 fi
 
 if [ -d "/usr/share/libalpm/scripts" ]; then
-	set +o xtrace
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 	for net_mount in ${HOST_MOUNTS_RO}; do
@@ -760,10 +749,6 @@ if [ -d "/usr/share/libalpm/scripts" ]; then
 		printf "if [ -e /run/host/%s ]; then mount --rbind -o ro /run/host/%s %s; fi\n" \
 			"${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 	done
-	# re-enable logging if it was enabled previously.
-	if [ "${verbose}" -ne 0 ]; then
-		set -o xtrace
-	fi
 	# in case we're not using an init image, neutralize systemd post installation hooks
 	# so that we do not encounter problems along the way.
 	cat << EOF > /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
