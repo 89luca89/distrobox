@@ -219,6 +219,7 @@ if [ -n "${pre_init_hook}" ]; then
 	eval ${pre_init_hook}
 fi
 
+###############################################################################
 printf "distrobox: Installing basic packages...\n"
 # Extract shell name from the $SHELL environment variable
 # If not present as package in the container, we want to install it.
@@ -591,9 +592,10 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Exit as command not found
 		exit 127
 	fi
-
 fi
+###############################################################################
 
+###############################################################################
 printf "distrobox: Setting up read-only mounts...\n"
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="
@@ -603,7 +605,9 @@ HOST_MOUNTS_RO="
 for host_mount_ro in ${HOST_MOUNTS_RO}; do
 	mount_bind /run/host"${host_mount_ro}" "${host_mount_ro}" ro
 done
+###############################################################################
 
+###############################################################################
 printf "distrobox: Setting up read-write mounts...\n"
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
@@ -648,7 +652,9 @@ if [ -e "/var/home/${container_user_name}" ] && [ ! -e "/home/${container_user_n
 		printf "Warning: Cannot bind mount %s to /run/host%s\n" "/var/home" "/home"
 	fi
 fi
+###############################################################################
 
+###############################################################################
 printf "distrobox: Setting up host's sockets integration...\n"
 # Find all the user's socket and mount them inside the container
 # this will allow for continuity of functionality between host and container
@@ -675,7 +681,9 @@ for host_socket in ${host_sockets}; do
 		fi
 	fi
 done
+###############################################################################
 
+###############################################################################
 printf "distrobox: Integrating host's themes, icons, fonts...\n"
 # Themes and icons integration works using a bind mount inside the container
 # of the host's themes and icons directory. This ensures that the host's home will
@@ -692,11 +700,15 @@ if ! mount_bind "/run/host/usr/share/fonts" "/usr/local/share/fonts" rw; then
 	printf "Warning: Cannot bind mount /run/host/usr/share/fonts to /usr/local/share/fonts\n"
 	printf "Warning: Fonts integration with the host is disabled.\n"
 fi
+###############################################################################
 
 printf "distrobox: Setting up package manager exceptions...\n"
+
+###############################################################################
 # In case of an RPM distro, we can specify that our bind_mount directories
 # are in fact net shares. This prevents conflicts during package installations.
 if [ -d "/usr/lib/rpm/macros.d/" ]; then
+	printf "distrobox: Setting up rpm exceptions...\n"
 	# Loop through all the environment vars
 	# and export them to the container.
 	net_mounts=""
@@ -715,12 +727,15 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 EOF
 
 fi
+###############################################################################
 
+###############################################################################
 # In case of an DEB distro, we can specify that our bind_mount directories
 # have to be ignored. This prevents conflicts during package installations.
 if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# Loop through all the environment vars
 	# and export them to the container.
+	printf "distrobox: Setting up dpkg exceptions...\n"
 	printf "" > /etc/dpkg/dpkg.cfg.d/00_distrobox
 	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
 		printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
@@ -729,7 +744,7 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	# Also we put a hook to clear some critical paths that do not play well
 	# with read only filesystems, like systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
-
+		printf "distrobox: Setting up apt hooks...\n"
 		printf "" > /etc/apt/apt.conf.d/00_distrobox
 		for init_mount in ${HOST_MOUNTS_RO_INIT}; do
 			printf 'DPkg::Pre-Invoke {"if mountpoint %s; then umount %s; fi";};\n' \
@@ -739,10 +754,18 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 		done
 	fi
 fi
+###############################################################################
 
+###############################################################################
+# Workarounds for pacman. We need to exclude the paths by using a pre-hook to umount them and a
+# post-hook to remount them. Additionally we neutralize the systemd-post-hooks as they do not
+# work on a rootless container system.
 if [ -d "/usr/share/libalpm/scripts" ]; then
+	printf "distrobox: Setting up pacman exceptions...\n"
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
+	chmod +x /usr/share/libalpm/scripts/*distrobox*.sh
 	for net_mount in ${HOST_MOUNTS_RO}; do
 		printf "if mountpoint %s; then umount %s; fi\n" \
 			"${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
@@ -751,64 +774,30 @@ if [ -d "/usr/share/libalpm/scripts" ]; then
 	done
 	# in case we're not using an init image, neutralize systemd post installation hooks
 	# so that we do not encounter problems along the way.
-	cat << EOF > /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
-#!/bin/sh
-if [ ! -e /run/systemd/system ]; then
+	# This will be removed if we're using --init.
+	cat << EOF >> /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
 	echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
-fi
 EOF
-	chmod +x /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
-	chmod +x /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
-	chmod +x /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
-
-	cat << EOF > /usr/share/libalpm/hooks/00-distrobox-pre.hook
+	# create hooks files for them
+	printf "distrobox: Setting up pacman hooks...\n"
+	rm -f /usr/share/libalpm/hooks/*distrobox*
+	for hook in 00_distrobox_pre_hook 01_distrobox_post_hook 02_distrobox_post_hook; do
+		when="PostTransaction"
+		[ -z "${hook##*pre*}" ] && when="PreTransaction"
+		cat << EOF > "/usr/share/libalpm/hooks/${hook}.hook"
 [Trigger]
 Operation = Install
 Operation = Upgrade
 Type = Package
 Target = *
-
 [Action]
-Description = Distrobox pre-hooks...
-When = PreTransaction
-Exec = /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
+Description = Distrobox hook ${hook}...
+When = ${when}
+Exec = /usr/share/libalpm/scripts/${hook}.sh
 EOF
-
-	cat << EOF > /usr/share/libalpm/hooks/00-distrobox-post.hook
-[Trigger]
-Operation = Install
-Operation = Upgrade
-Type = Package
-Target = *
-
-[Action]
-Description = Distrobox post-hooks 1...
-When = PostTransaction
-Exec = /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
-EOF
-
-	cat << EOF > /usr/share/libalpm/hooks/99-distrobox-post.hook
-[Trigger]
-Operation = Install
-Operation = Upgrade
-Type = Package
-Target = *
-
-[Action]
-Description = Distrobox post-hooks 2...
-When = PostTransaction
-Exec = /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
-EOF
-
+	done
 fi
-
-if [ -d "/etc/krb5.conf.d" ] && [ ! -e "/etc/krb5.conf.d/kcm_default_ccache" ]; then
-	cat << EOF > "/etc/krb5.conf.d/kcm_default_ccache"
-# # To disable the KCM credential cache, comment out the following lines.
-[libdefaults]
-    default_ccache_name = KCM:
-EOF
-fi
+###############################################################################
 
 printf "distrobox: Setting up sudo...\n"
 mkdir -p /etc/sudoers.d
@@ -832,6 +821,16 @@ if ! grep -q "^${container_user_name}:" /etc/group; then
 fi
 
 printf "distrobox: Setting up users...\n"
+
+# Setup kerberos integration with the host
+if [ -d "/etc/krb5.conf.d" ] && [ ! -e "/etc/krb5.conf.d/kcm_default_ccache" ]; then
+	cat << EOF > "/etc/krb5.conf.d/kcm_default_ccache"
+# # To disable the KCM credential cache, comment out the following lines.
+[libdefaults]
+    default_ccache_name = KCM:
+EOF
+fi
+
 # Let's add our user to the container. if the user already exists, enforce properties.
 #
 # In case of AD or LDAP usernames, it is possible we will have a backslach in the name.
@@ -976,12 +975,8 @@ rm  -f /run/systemd/io.system.ManagedOOM
 rm  -f /run/systemd/notify
 rm  -f /run/systemd/private
 rm  -f /etc/apt/apt.conf.d/00_distrobox
-rm  -f /usr/share/libalpm/hooks/00-distrobox-post.hook
-rm  -f /usr/share/libalpm/hooks/00-distrobox-pre.hook
-rm  -f /usr/share/libalpm/hooks/99-distrobox-post.hook
-rm  -f /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
-rm  -f /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
-rm  -f /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
+rm  -f /usr/share/libalpm/hooks/*distrobox*.hook
+rm  -f /usr/share/libalpm/scripts/*distrobox*.sh
 # Remove /dev/console when using init systems, this will confuse host system if
 # we use rootful containers
 touch /var/container-console
