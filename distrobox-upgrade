@@ -31,6 +31,7 @@ all=0
 container_manager="autodetect"
 distrobox_path="$(dirname "$(realpath "${0}")")"
 distrobox_sudo_program="sudo"
+rootful=0
 verbose=0
 version="1.3.2"
 

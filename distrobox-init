@@ -924,20 +924,22 @@ if [ "${init}" -eq 0 ]; then
 			# do stuff, only if we need to.
 			file_watch_src="/run/host${file_watch}"
 			# check if the target file is a symlink and take the source
-			if [ -L "${file_watch_src}" ]; then
-				file_watch_src="$(readlink -f "/run/host${file_watch}")"
-				# if it's an absolute link, we need to append /run/host ourselves.
-				if ! echo "${file_watch_src}" | grep -q "/run/host"; then
-					file_watch_src="/run/host${file_watch_src}"
+			if [ -e "${file_watch_src}" ]; then
+				if [ -L "${file_watch_src}" ]; then
+					file_watch_src="$(readlink -f "/run/host${file_watch}")"
+					# if it's an absolute link, we need to append /run/host ourselves.
+					if ! echo "${file_watch_src}" | grep -q "/run/host"; then
+						file_watch_src="/run/host${file_watch_src}"
+					fi
 				fi
-			fi
-			if ! diff "${file_watch}" "${file_watch_src}" > /dev/null; then
-				# We only do this, if the file is a bind mount in the first place.
-				# This could be useful for init-hooks that involve umounting those
-				# files so that can be separated from the host.
-				mountpoint "${file_watch}" &&
-					umount "${file_watch}" &&
-					mount_bind "/run/host${file_watch}" "${file_watch}" rw
+				if ! diff "${file_watch}" "${file_watch_src}" > /dev/null; then
+					# We only do this, if the file is a bind mount in the first place.
+					# This could be useful for init-hooks that involve umounting those
+					# files so that can be separated from the host.
+					mountpoint "${file_watch}" &&
+						umount "${file_watch}" &&
+						mount_bind "/run/host${file_watch}" "${file_watch}" rw
+				fi
 			fi
 		done
 		sleep 15
