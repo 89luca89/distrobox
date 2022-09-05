@@ -57,11 +57,35 @@ Distrobox has been successfully tested on:
 | OpenSUSE | Leap 15.4 <br> Leap 15.3 <br> Leap 15.2 | Packages are available [here](https://software.opensuse.org/download/package?package=distrobox&project=home%3Adfaggioli%3Amicroos-desktop) (thanks [dfaggioli](https://github.com/dfaggioli)!).<br> To install on openSUSE Leap 15, Use the following repository links in the `zypper addrepo` command: [15.4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.4/home:dfaggioli:microos-desktop.repo), [15.3](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.3/home:dfaggioli:microos-desktop.repo), [15.2](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.2/home:dfaggioli:microos-desktop.repo). Then: <br>  `zypper refresh && zypper install distrobox`. <br> `Podman` under SUSE Leap, cannot initialize correctly the containers managed by ``distrobox`` until [this OpenSUSE bug](https://bugzilla.opensuse.org/show_bug.cgi?id=1199871) is fixed, or ``podman`` loggin is configured properly. |
 | OpenSUSE | Tumbleweed <br> MicroOS | `distrobox` is available in default repos (thanks [dfaggioli](https://github.com/dfaggioli)!) <br> For Tumbleweed, do: `zypper install distrobox`. <br> For MicroOS, do: `pkcon install distrobox` and reboot the system. |
 | SUSE Linux Enterprise Server | 15&nbsp;Service&nbsp;Pack&nbsp;4 <br> 15&nbsp;Service&nbsp;Pack&nbsp;3 <br> 15&nbsp;Service&nbsp;Pack&nbsp;2 | Same procedure as the one for openSUSE (Leap, respective versions, of course). Use the following repository links in the `zypper addrepo` command: [SLE-15-SP4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.4/home:dfaggioli:microos-desktop.repo), [SLE-15-SP3](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.3/home:dfaggioli:microos-desktop.repo), [SLE-15-SP4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/SLE_15_SP2/home:dfaggioli:microos-desktop.repo). Then: <br>  `zypper refresh && zypper install distrobox`. <br> `Podman` under SUSE Leap, cannot initialize correctly the containers managed by ``distrobox`` until [this OpenSUSE bug](https://bugzilla.opensuse.org/show_bug.cgi?id=1199871) is fixed, or ``podman`` loggin is configured properly. |
+| SteamOS 3 | | You can use `steamos-readonly disable` and follow `Arch Linux` instructions. This will **NOT** survive reboots.<br>Else you can follow the [Install Podman in a static manner](#install-podman-in-a-static-manner) guide, this will install it in your $HOME and it will survive reboots.|
 | RedHat | 8 <br> 9  | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
 | Ubuntu | 18.04 <br> 20.04 <br> 21.10 | Older versions based on 20.04 or earlier may need external repos to install newer Podman and Docker releases. <br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. <br> [Now PPA available!](https://launchpad.net/~michel-slm/+archive/ubuntu/distrobox), also `distrobox` is available in default repos in `22.10` (thanks [michel-slm](https://github.com/michel-slm)!)  |
 | Void Linux | glibc | Systemd service export will not work. |
 
-### Compatibility notes
+### Install Podman in a static manner
+
+If on your distribution (eg. SteamOS) can be difficult to install something and keep it
+between reboots, then you could use this script to install `podman` in your `$HOME`.
+
+This has some limitations, for starters, it won't work in `rootful` mode for now,
+but otherwise it's working for normal use.
+
+Run:
+
+```sh
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/extras/install-podman | sh -s -- --prefix ~/.local
+```
+
+Provided the only dependency on the host (`newuidmap/newgidmap`, of the package `uidmap`),
+you should be good to go.
+
+To uninstall:
+
+```sh
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/extras/install-podman | sh -s -- --prefix ~/.local --remove
+```
+
+#### Compatibility notes
 
 If your container is not able to connect to your host xserver, make sure to
 install `xhost` on the host machine and run `xhost +si:localuser:$USER`.
@@ -74,7 +98,7 @@ Note also that in some distributions, root filesystem is **not** mounted as a sh
 this will give an error like:
 
 ```sh
-$ distrobox-enter 
+$ distrobox-enter
 Error response from daemon: path /sys is mounted on /sys but it is not a shared or slave mount
 Error: failed to start containers: ...
 ```
@@ -82,7 +106,7 @@ Error: failed to start containers: ...
 To resolve this, use this command:
 
 ```sh
- mount --make-rshared /
+mount --make-rshared /
 ```
 
 To make it permanent, you can place it in `/etc/rc.local`.
