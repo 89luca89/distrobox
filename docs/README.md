@@ -43,6 +43,7 @@ graphical apps (X11/Wayland), and audio.
     - [Git](#git)
     - [Flatpak](#flatpak)
   - [Dependencies](#dependencies)
+    - [Install Podman without root](compatibility.md#install-podman-in-a-static-manner)
   - [Uninstallation](#uninstallation)
 - [Compatibility](compatibility.md)
   - [Supported container managers](compatibility.md#supported-container-managers)
@@ -156,8 +157,8 @@ Fedora Silverblue on his project [ublue](https://github.com/castrojo/ublue)
 
 ## Why
 
-- Provide a mutable environment on an immutable OS, like Endless OS,
-  Fedora Silverblue, OpenSUSE MicroOS or SteamOS3
+- Provide a mutable environment on an immutable OS, like [Endless OS,
+  Fedora Silverblue, OpenSUSE MicroOS](compatibility.md#host-distros)  or [SteamOS3](compatibility.md#install-podman-in-a-static-manner)
 - Provide a locally privileged environment for sudoless setups
   (eg. company-provided laptops, security reasons, etc...)
 - To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat)
@@ -375,8 +376,12 @@ distro-specific instructions.
 
 Distrobox depends on a container manager to work, you can choose to install
 either podman or docker.
+
 Please look in the [Compatibility Table](compatibility.md#host-distros) for your
 distribution notes.
+
+There are ways to install [Podman without root privileges and in home.](compatibility.md#install-podman-in-a-static-manner)
+This should play well with completely sudoless setups and with devices like the Stean Deck.
 
 ---
 
