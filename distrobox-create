@@ -464,6 +464,12 @@ generate_command() {
 		result_command="${result_command}
         --volume /nix:/nix"
 	fi
+
+        # Ditto, but mount the store directory of Guix.
+	if [ -d "/gnu" ]; then
+		result_command="${result_command}
+        --volume /gnu:/gnu"
+	fi
 	if [ -d "/run/current-system/sw" ]; then
 		result_command="${result_command}
 		--volume /run/current-system/sw:/run/current-system/sw"
