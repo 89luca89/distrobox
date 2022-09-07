@@ -220,7 +220,7 @@ if [ -e /.dockerenv ]; then
 	container_name=$(grep "memory:/" < /proc/self/cgroup | sed 's|.*/||')
 elif [ -e /run/.containerenv ]; then
 	# we're in podman, use this other trick
-	container_name=$(grep "name=" /run/.containerenv | cut -d'=' -f2-)
+	container_name=$(grep "name=" /run/.containerenv | cut -d'=' -f2-| tr -d '"')
 else
 	# fallback to a more simple way but error prone
 	container_name=$(uname -n | cut -d'.' -f1)
