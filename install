@@ -109,18 +109,21 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 		install -D -m 0644 -t "${icon_dest_path}" terminal-distrobox-icon.png
 	fi
 else
+	printf >&2 "\033[1;31m Checking dependencies...\n\033[0m"
 	# check that we have base dependencies
-	if ! { command -v curl || command -v wget; } || ! command -v tar; then
+	if ! { command -v curl > /dev/null || command -v wget > /dev/null; } || ! command -v tar > /dev/null; then
 		printf >&2 "Online install depends on tar and either curl or wget\n"
+		printf >&2 "Ensure you have all dependencies installed.\n"
 		exit 1
 	fi
 
 	if command -v curl > /dev/null 2>&1; then
-		download="curl -Lo"
+		download="curl -sLo"
 	elif command -v wget > /dev/null 2>&1; then
 		download="wget -qO"
 	fi
 
+	printf >&2 "\033[1;31m Downloading...\n\033[0m"
 	if [ "${next}" -eq 0 ]; then
 		release_ver=$(${download} - https://github.com/89luca89/distrobox/releases/latest |
 			grep 'refs/tags' | tail -1 | cut -d'"' -f2)
@@ -135,7 +138,12 @@ else
 	# download our target
 	${download} "${release_name}" "https://github.com/${release_ver}"
 	# uncompress
-	tar xvf "${release_name}"
+	printf >&2 "\033[1;31m Unpacking...\n\033[0m"
+	if [ "${verbose}" -ne 0 ]; then
+		tar xvf "${release_name}"
+	else
+		tar xf "${release_name}"
+	fi
 	# deploy our files
 	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox*; do
 		if ! install -D -m 0755 -t "${dest_path}" "${file}"; then
@@ -163,5 +171,5 @@ fi
 [ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
 [ ! -w "${man_dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${man_dest_path}" && exit 1
 
-printf >&2 "Successfully installed to %s.\n" "${dest_path}"
-printf >&2 "Be sure that %s is in your \$PATH environment variable for it to work.\n" "${dest_path}"
+printf >&2 "\033[1;31m Successfully installed to %s.\n\033[0m" "${dest_path}"
+printf >&2 "\033[1;31m Be sure that %s is in your \$PATH environment variable for it to work.\n\033[0m" "${dest_path}"
