@@ -365,7 +365,7 @@ generate_command() {
 	else
 		# if no command was specified, let's execute a command that will find
 		# and run the default shell for the user
-		result_command="${result_command} sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :)"\"
+		result_command="${result_command} sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l"\"
 	fi
 
 	# Return generated command.
