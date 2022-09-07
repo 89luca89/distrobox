@@ -29,7 +29,7 @@
 
 ## Launch a distrobox from you applications list
 
-Starting from distrobox 1.3.2, containers created will automatically generate a desktop entry.
+Starting from distrobox 1.4.0, containers created will automatically generate a desktop entry.
 For containers generated with older versions, you can use:
 
 `distrobox generate-entry you-container-name`
@@ -72,14 +72,14 @@ Simply use:
 
 ## Use a different shell than the host
 
-From version 1.3.2, `distrobox enter` will execute the login shell of the container's user
+From version 1.4.0, `distrobox enter` will execute the login shell of the container's user
 by default. So, just change the default shell in the container using:
 
 `chsh -s /bin/shell-to-use`
 
 exit and log back in the container.
 
-For version older than 1.3.2, distrobox will pick up the shell from the host and use it inside the container.
+For version older than 1.4.0, distrobox will pick up the shell from the host and use it inside the container.
 If you want a different one you can use:
 
 `SHELL=/bin/zsh distrobox create -n test`

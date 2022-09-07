@@ -43,7 +43,7 @@ host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
 is_sudo=""
 rootful=""
 verbose=0
-version="1.3.2"
+version="1.4.0"
 
 # We depend on some commands, let's be sure we have them
 base_dependencies="basename grep sed find"
@@ -220,7 +220,7 @@ if [ -e /.dockerenv ]; then
 	container_name=$(grep "memory:/" < /proc/self/cgroup | sed 's|.*/||')
 elif [ -e /run/.containerenv ]; then
 	# we're in podman, use this other trick
-	container_name=$(grep "name=" /run/.containerenv | cut -d'=' -f2-| tr -d '"')
+	container_name=$(grep "name=" /run/.containerenv | cut -d'=' -f2- | tr -d '"')
 else
 	# fallback to a more simple way but error prone
 	container_name=$(uname -n | cut -d'.' -f1)
