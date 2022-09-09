@@ -96,6 +96,8 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 if [ "${remove}" -ne 0 ]; then
+
+	export PATH="${PATH}:${dest_path}/bin"
 	printf >&2 "\033[1;31m Resetting...\n\033[0m"
 	"${dest_path}/bin/podman" system reset -f > /dev/null
 	printf >&2 "\033[1;31m Removing...\n\033[0m"
