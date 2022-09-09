@@ -112,7 +112,8 @@ RELEASE=$(curl -s -L https://github.com/mgoltzsche/podman-static/releases/latest
 	grep href |
 	grep podman |
 	grep download |
-	grep linux | grep amd64 | sort | tail -n 1 | cut -d'"' -f2)
+	grep linux |
+	grep 'podman-linux-amd64.tar.gz"' | cut -d'"' -f2)
 printf >&2 "\033[1;31m Found %s, downloading...\n\033[0m" "${RELEASE}"
 
 NAME=$(echo "${RELEASE}" | rev | cut -d'/' -f1 | rev)
