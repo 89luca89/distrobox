@@ -154,7 +154,6 @@ printf >&2 "\033[1;31m Migrating...\n\033[0m"
 export PATH="${PATH}:${dest_path}/bin"
 
 "${dest_path}/bin/podman" system migrate
-ln -sf "${dest_path}/bin/podman" "${prefix}/bin/podman"
 
 printf >&2 "Successfully installed to %s.\n" "${dest_path}"
 printf >&2 "Be sure that %s is in your \$PATH environment variable for it to work.\n" "${dest_path}/bin"
