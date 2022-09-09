@@ -33,6 +33,7 @@ graphical apps (X11/Wayland), and audio.
 	--init/-I		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
 	--help/-h:		show this message
+	--no-entry:             do not generate a container entry in the application list
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
