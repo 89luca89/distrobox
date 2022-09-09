@@ -158,7 +158,7 @@ Fedora Silverblue on his project [ublue](https://github.com/castrojo/ublue)
 ## Why
 
 - Provide a mutable environment on an immutable OS, like [Endless OS,
-  Fedora Silverblue, OpenSUSE MicroOS](compatibility.md#host-distros)  or [SteamOS3](compatibility.md#install-podman-in-a-static-manner)
+  Fedora Silverblue, OpenSUSE MicroOS](compatibility.md#host-distros)  or [SteamOS3](posts/install_on_steamos.md)
 - Provide a locally privileged environment for sudoless setups
   (eg. company-provided laptops, security reasons, etc...)
 - To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat)
@@ -327,6 +327,9 @@ or:
 ```sh
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
 ```
+
+> **Warning**
+> Remember to add <prefix-path-you-choose>/bin to your PATH, to make it work.
 
 ### Git
 
