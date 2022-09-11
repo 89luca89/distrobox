@@ -95,44 +95,60 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
+export  PATH="${PATH}:${dest_path}/bin"
+
+## Uninstall ###################################################################
+
 if [ "${remove}" -ne 0 ]; then
 
-	export PATH="${PATH}:${dest_path}/bin"
 	printf >&2 "\033[1;31m Resetting...\n\033[0m"
 	"${dest_path}/bin/podman" system reset -f > /dev/null
 	printf >&2 "\033[1;31m Removing...\n\033[0m"
-	rm -r "${dest_path}" "${conf_path}/containers" "${prefix}/bin/podman"
+	rm -r "${dest_path}" "${conf_path}/containers"
 	printf >&2 "\033[1;31m Done.\n\033[0m"
 	exit $?
 fi
+
+###############################################################################
+
+## Get crun ###################################################################
+
+printf >&2 "\033[1;31m Fetching latest crun version...\n\033[0m"
+RELEASE=$(curl -s -L https://github.com/containers/crun/releases/latest |
+	grep 'crun.*-linux-amd64"' | cut -d'"' -f2)
+NAME=$(echo "${RELEASE}" | rev | cut -d'/' -f1 | rev)
+
+printf >&2 "\033[1;31m Found %s, downloading...\n\033[0m" "${RELEASE}"
+curl -L "https://github.com/${RELEASE}" -o "/tmp/crun"
+chmod +x /tmp/crun
+
+###############################################################################
+
+## Get podman ###################################################################
 
 printf >&2 "\033[1;31m Fetching latest podman version...\n\033[0m"
 # Using static podman bulds semplifies our lifes! Thanks to the wonderful project
 #   https://github.com/mgoltzsche/podman-static
 # All credits to @mgoltzsche for the builds.
 RELEASE=$(curl -s -L https://github.com/mgoltzsche/podman-static/releases/latest |
-	grep href |
-	grep podman |
-	grep download |
-	grep linux |
 	grep 'podman-linux-amd64.tar.gz"' | cut -d'"' -f2)
-printf >&2 "\033[1;31m Found %s, downloading...\n\033[0m" "${RELEASE}"
-
 NAME=$(echo "${RELEASE}" | rev | cut -d'/' -f1 | rev)
+
+printf >&2 "\033[1;31m Found %s, downloading...\n\033[0m" "${RELEASE}"
 # Download and unpack the tar in /tmp
 curl -L "https://github.com/${RELEASE}" -o "/tmp/${NAME}"
-printf >&2 "\033[1;31m Unpacking...\n\033[0m"
+printf >&2 "\033[1;31m Unpacking Podman...\n\033[0m"
 tar xf /tmp/"${NAME}" -C /tmp/
 
-# Setup the config and local dirs, they are needed to make podman work
-# on this particular setup
-mkdir -p "${conf_path}" "${dest_path}" "${prefix}/bin"
+###############################################################################
 
 printf >&2 "\033[1;31m Copying in %s...\n\033[0m" "${dest_path}"
 # Copy default config files in there
+mkdir -p "${conf_path}" "${dest_path}"
 cp -r /tmp/podman-linux-amd64/usr/local/bin "${dest_path}"
 cp -r /tmp/podman-linux-amd64/usr/local/lib "${dest_path}"
 cp -r /tmp/podman-linux-amd64/etc/containers "${conf_path}"
+mv /tmp/crun "${dest_path}/bin/crun"
 
 printf >&2 "\033[1;31m Configuring...\n\033[0m"
 # We need to tell podman to use those costom directories in order to make
@@ -153,8 +169,6 @@ rm -f /tmp/"${NAME}"
 rm -rf /tmp/podman-linux-amd64/
 
 printf >&2 "\033[1;31m Migrating...\n\033[0m"
-
-export PATH="${PATH}:${dest_path}/bin"
 
 "${dest_path}/bin/podman" system migrate
 
