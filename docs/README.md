@@ -331,7 +331,7 @@ curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -
 ```
 
 > **Warning**
-> Remember to add <prefix-path-you-choose>/bin to your PATH, to make it work.
+> Remember to add prefix-path-you-choose/bin to your PATH, to make it work.
 
 ### Git
 
