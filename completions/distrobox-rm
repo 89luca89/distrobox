@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # shellcheck disable=all
 
-source "${PWD}/distrobox"
+if [ -e /usr/share/bash-completion/completions/distrobox ]; then
+    source /usr/share/bash-completion/completions/distrobox
+fi
+if [ -e "${HOME}/.local/share/bash-completion/completions/distrobox" ]; then
+    source "${HOME}/.local/share/bash-completion/completions/distrobox"
+fi
 
 complete -F _generate_from_help distrobox-rm
