@@ -162,6 +162,18 @@ if [ "${delete}" -ne 0 ]; then
 	exit
 fi
 
+if  ! command -v curl > /dev/null && ! command -v wget > /dev/null; then
+	printf >&2 "Icon generation depends on either curl or wget\n"
+	printf >&2 "Fallbacking to default icon.\n"
+	download="null"
+fi
+
+if  command -v curl > /dev/null 2>&1; then
+	download="curl -sLo"
+elif  command -v wget > /dev/null 2>&1; then
+	download="wget -qO"
+fi
+
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
 case "${container_manager}" in
@@ -249,10 +261,10 @@ if [ "${icon}" = "auto" ]; then
 	rm -f /tmp/"${container_name}".os-release
 
 	icon_url="$(echo "${DISTRO_ICON_MAP}" | grep "${container_distro}:" | cut -d':' -f2-)"
-	if [ -n "${icon_url}" ]; then
+	if [ -n "${icon_url}" ] && [ "${download}" != "null" ]; then
 		icon_extension="${icon_url##*.}"
 
-		if wget -c -q "${icon_url}" -O "${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"; then
+		if ${download} - "${icon_url}" > "${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"; then
 			icon="${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"
 		else
 			# Wget failed for some reasons. Default to generic terminal icon as declared at the beginning.
