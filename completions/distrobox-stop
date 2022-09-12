@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# shellcheck disable=all
+
+source "${PWD}/distrobox"
+
+complete -F _generate_from_help distrobox-stop

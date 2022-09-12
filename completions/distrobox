@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# shellcheck disable=all
+
+_generate_from_help() {
+	command=$1
+
+	local cur prev totalopts opts diropts
+
+	COMPREPLY=()
+
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD - 1]}"
+	opts="$($command --help | sed 's|^\t||g' | grep '^--' | cut -d':' -f1 | tr '/' ' ' | tr '\n' ' ')"
+	totalopts="$(echo $opts | tr ' ' '|')"
+	diropts="-H|--home|--volume"
+
+	if [[ ${prev} =~ ${diropts} ]]; then
+		COMPREPLY=($(compgen -d -- ${cur}))
+		return 0
+	fi
+
+	if [[ ${cur} == -* ]]; then
+		COMPREPLY+=($(compgen -W "${opts}" -- ${cur}))
+		return 0
+	elif [[ ${command} != *"create"* ]] && [[ ${command} != *"ephemeral"* ]] && [[ ${command} != *"list"* ]]; then
+		while IFS= read -r line; do
+			COMPREPLY+=("$line")
+		done < <(distrobox-list --no-color | tail -n+2 | awk '{print $3}')
+		return 0
+	fi
+}
+
+__distrobox() {
+	if [ "${#COMP_WORDS[@]}" == "2" ]; then
+		COMPREPLY=($(compgen -W "$(distrobox | tail -n+4 | xargs echo)" "${COMP_WORDS[1]}"))
+	elif [ "${#COMP_WORDS[@]}" -gt "2" ]; then
+		_generate_from_help distrobox-"${COMP_WORDS[1]}"
+	fi
+}
+
+complete -F __distrobox distrobox

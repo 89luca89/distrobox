@@ -78,6 +78,7 @@ fi
 dest_path="${prefix}/bin"
 man_dest_path="${prefix}/share/man/man1"
 icon_dest_path="${prefix}/share/icons"
+completion_dest_path="${prefix}/share/bash-completion/completions/"
 
 set -o errexit
 set -o nounset
@@ -94,6 +95,9 @@ for file in "${dest_path}/distrobox"*; do
 	[ -e "${file}" ] && rm "${file}"
 done
 for file in "${man_dest_path}/distrobox"*; do
+	[ -e "${file}" ] && rm "${file}"
+done
+for file in "${completion_dest_path}/distrobox"*; do
 	[ -e "${file}" ] && rm "${file}"
 done
 [  -e "${icon_dest_path}"/terminal-distrobox-icon.png ] && rm "${icon_dest_path}"/terminal-distrobox-icon.png

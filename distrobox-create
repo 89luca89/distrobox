@@ -129,12 +129,12 @@ Options:
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
-	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
-	--volume		additional volumes to add to the container
+	--home/-H:		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
+	--volume:		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
-	--init-hooks		additional commands to execute during container initialization
-	--pre-init-hooks	additional commands to execute prior to container initialization
-	--init/-I		use init system (like systemd) inside the container.
+	--init-hooks:		additional commands to execute during container initialization
+	--pre-init-hooks:	additional commands to execute prior to container initialization
+	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list

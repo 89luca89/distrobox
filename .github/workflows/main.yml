@@ -24,7 +24,7 @@ jobs:
       - name: Run dash -n
         run: |
           result=0
-          for file in $(find . -type f -not -path "*.git*"); do
+          for file in $(find . -type f -not -path "*.git*" -a -not -path "*completions*"); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
               dash -n $file
