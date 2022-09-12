@@ -28,7 +28,7 @@
 #	DBX_CONTAINER_IMAGE
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
-#	DBX_CONTAINER_NO_ENTRY
+#	DBX_CONTAINER_ENTRY
 #	DBX_NON_INTERACTIVE
 #	DBX_SUDO_PROGRAM
 
@@ -50,7 +50,7 @@ container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
 container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
-container_no_entry=0
+container_entry=1
 container_name=""
 container_pre_init_hook=""
 container_user_custom_home=""
@@ -91,7 +91,7 @@ done
 [ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
-[ -n "${DBX_CONTAINER_NO_ENTRY}" ] && container_no_entry="${DBX_CONTAINER_NO_ENTRY}"
+[ -n "${DBX_CONTAINER_ENTRY}" ] && container_entry="${DBX_CONTAINER_ENTRY}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 [ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
@@ -168,7 +168,7 @@ while :; do
 			;;
 		--no-entry)
 			shift
-			container_no_entry=1
+			container_entry=0
 			;;
 		-d | --dry-run)
 			shift
@@ -641,7 +641,7 @@ if eval ${cmd} > /dev/null; then
 
 	# We've created the box, let's also create the entry
 	if [ "${rootful}" -eq 0 ]; then
-		if [ "${container_no_entry}" -eq 0 ]; then
+		if [ "${container_entry}" -ne 0 ]; then
 			"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}"
 		fi
 	fi

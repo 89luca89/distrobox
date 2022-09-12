@@ -270,7 +270,7 @@ container_user_custom_home="/home/.local/share/container-home-test"
 container_image="registry.opensuse.org/opensuse/toolbox:latest"
 container_manager="docker"
 container_name="test-name-1"
-container_no_entry=0
+container_entry=0
 non_interactive="1"
 skip_workdir="0"
 ```
@@ -282,7 +282,7 @@ Alternatively it is possible to specify preferences using ENV variables:
 - DBX_CONTAINER_IMAGE
 - DBX_CONTAINER_MANAGER
 - DBX_CONTAINER_NAME
-- DBX_CONTAINER_NO_ENTRY
+- DBX_CONTAINER_ENTRY
 - DBX_NON_INTERACTIVE
 - DBX_SKIP_WORKDIR
 
