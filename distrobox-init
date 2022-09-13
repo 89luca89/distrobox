@@ -234,7 +234,7 @@ fi
 if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! command -v passwd ||
 	! command -v sudo || ! command -v useradd || ! command -v diff ||
 	! command -v pinentry || ! command -v wget || ! command -v curl ||
-	! command -v less || ! command -v bc ||
+	! command -v less || ! command -v bc || ! command -v time || ! command -v lsof ||
 	! command -v "${shell_pkg}"; then
 
 	# Detect the available package manager
@@ -261,7 +261,9 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl \
 			diffutils \
 			findutils \
+			gnupg \
 			less \
+			lsof \
 			ncurses \
 			pinentry \
 			procps \
@@ -300,14 +302,18 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			dialog \
 			diffutils \
 			findutils \
+			gnupg2 \
 			less \
 			libnss-myhostname \
+			libvte-2.9[0-9]-common \
 			libvte-common \
+			lsof \
 			ncurses-base \
 			passwd \
 			pinentry-curses \
 			procps \
 			sudo \
+			time \
 			wget \
 			util-linux
 
@@ -334,14 +340,18 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			bc \
 			curl \
 			diffutils \
+			dnf-plugins-core \
 			findutils \
+			gnupg2 \
 			less \
+			lsof \
 			ncurses \
 			passwd \
 			pinentry \
 			procps-ng \
 			shadow-utils \
 			sudo \
+			time \
 			util-linux \
 			wget \
 			vte-profile
@@ -388,16 +398,19 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			bc \
 			diffutils \
 			findutils \
+			gnupg \
 			less \
+			lsof \
 			ncurses \
 			passwd \
 			pinentry \
 			procps \
 			shadow-utils \
 			sudo \
+			time \
 			wget \
+			vte-profile \
 			util-linux
-		# vte-profile
 
 	elif command -v pacman; then
 		# If we need to upgrade, do it and exit, no further action required.
@@ -425,12 +438,15 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl \
 			diffutils \
 			findutils \
+			gnupg \
 			less \
+			lsof \
 			ncurses \
 			pinentry \
 			procps-ng \
 			shadow \
 			sudo \
+			time \
 			util-linux \
 			wget \
 			vte-common
@@ -455,13 +471,16 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl \
 			diffutils \
 			findutils \
+			gnupg2 \
 			less \
 			libvte-2 \
+			lsof \
 			ncurses \
 			pinentry \
 			procps \
 			shadow \
 			sudo \
+			time \
 			wget \
 			util-linux
 
@@ -503,11 +522,14 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl \
 			diffutils \
 			findutils \
+			gnupg2 \
 			less \
+			lsof \
 			ncurses-base \
 			procps-ng \
 			shadow \
 			sudo \
+			time \
 			wget \
 			util-linux
 
@@ -535,13 +557,16 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl \
 			diffutils \
 			findutils \
+			gnupg2 \
 			less \
+			lsof \
 			ncurses \
 			passwd \
 			pinentry \
 			procps \
 			shadow-utils \
 			sudo \
+			time \
 			util-linux \
 			wget \
 			vte-profile
@@ -562,14 +587,17 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl \
 			diffutils \
 			findutils \
+			gnupg \
 			less \
 			libvte-2* \
+			lsof \
 			ncurses \
 			pinentry \
 			procps \
 			shadow \
 			sudo \
 			systemd \
+			time \
 			wget \
 			util-linux
 		# In openSUSE official images, zypper is configured to ignore recommended
