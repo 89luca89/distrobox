@@ -153,10 +153,26 @@ mv /tmp/crun "${dest_path}/bin/crun"
 printf >&2 "\033[1;31m Configuring...\n\033[0m"
 # We need to tell podman to use those costom directories in order to make
 # it work from custom directories
-echo "conmon_path=[ \"${dest_path}/lib/podman/conmon\" ]
-static_dir = \"${dest_path}/share/podman/libpod\"
-volume_path = \"${dest_path}//share/podman/volume\"
-" >> "${conf_path}/containers/containers.conf"
+cat << EOF > "${conf_path}/containers/containers.conf"
+# See https://github.com/containers/common/blob/master/pkg/config/containers.conf
+[engine]
+# can be croupfs, systemd
+cgroup_manager = "systemd"
+# can be file, journald
+events_logger="file"
+exit_command_delay = 10
+# can be runc, crun
+runtime = "crun"
+stop_timeout = 5
+cni_plugin_dirs = [ "${dest_path}/lib/cni" ]
+conmon_path=[ "${dest_path}/lib/podman/conmon" ]
+helper_binaries_dir = [ "${dest_path}/lib/podman" ]
+static_dir = "${dest_path}/share/podman/libpod"
+volume_path = "${dest_path}/share/podman/volume"
+[engine.runtimes]
+crun = [ "${dest_path}/bin/crun" ]
+runc = [ "${dest_path}/bin/runc" ]
+EOF
 
 # Same for mouning programs
 sed -i "s|/var|${dest_path}|g" "${conf_path}/containers/storage.conf"
