@@ -307,7 +307,7 @@ Here is a list of alternative ways to install distrobox
 
 ### Curl
 
-Else, if you like to live your life dangerously, or you want the latest release,
+If you like to live your life dangerously, or you want the latest release,
 you can trust me and simply run this in your terminal:
 
 ```sh
