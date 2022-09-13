@@ -114,9 +114,11 @@ fi
 ## Get crun ###################################################################
 
 CRUN_VERSION="1.6"
-printf >&2 "\033[1;31m Fetching crun $CRUN_VERSION...\n\033[0m"
+printf >&2 "\033[1;31m Fetching crun %s...\n\033[0m" "${CRUN_VERSION}"
 # Download the binary to /tmp
-curl -L "https://github.com/containers/crun/releases/download/${CRUN_VERSION}/crun-${CRUN_VERSION}-linux-amd64" -o "/tmp/crun"
+curl -L \
+	"https://github.com/containers/crun/releases/download/${CRUN_VERSION}/crun-${CRUN_VERSION}-linux-amd64" \
+	-o "/tmp/crun"
 chmod +x /tmp/crun
 
 ###############################################################################
@@ -124,12 +126,14 @@ chmod +x /tmp/crun
 ## Get podman ###################################################################
 
 PODMAN_VERSION="4.2.0"
-printf >&2 "\033[1;31m Fetching podman ${PODMAN_VERSION}...\n\033[0m"
+printf >&2 "\033[1;31m Fetching podman %s...\n\033[0m" "${PODMAN_VERSION}"
 # Using static podman bulds semplifies our lifes! Thanks to the wonderful project
 #   https://github.com/mgoltzsche/podman-static
 # All credits to @mgoltzsche for the builds.
 # Download and unpack the tar in /tmp
-curl -L "https://github.com/mgoltzsche/podman-static/releases/download/v${PODMAN_VERSION}/podman-linux-amd64.tar.gz" -o /tmp/podman-linux-amd64.tar.gz
+curl -L \
+	"https://github.com/mgoltzsche/podman-static/releases/download/v${PODMAN_VERSION}/podman-linux-amd64.tar.gz" \
+	-o /tmp/podman-linux-amd64.tar.gz
 printf >&2 "\033[1;31m Unpacking Podman...\n\033[0m"
 tar xf /tmp/podman-linux-amd64.tar.gz -C /tmp/
 
