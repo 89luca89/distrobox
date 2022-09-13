@@ -113,32 +113,25 @@ fi
 
 ## Get crun ###################################################################
 
-printf >&2 "\033[1;31m Fetching latest crun version...\n\033[0m"
-RELEASE=$(curl -s -L https://github.com/containers/crun/releases/latest |
-	grep 'crun.*-linux-amd64"' | cut -d'"' -f2)
-NAME=$(echo "${RELEASE}" | rev | cut -d'/' -f1 | rev)
-
-printf >&2 "\033[1;31m Found %s, downloading...\n\033[0m" "${RELEASE}"
-curl -L "https://github.com/${RELEASE}" -o "/tmp/crun"
+CRUN_VERSION="1.6"
+printf >&2 "\033[1;31m Fetching crun $CRUN_VERSION...\n\033[0m"
+# Download the binary to /tmp
+curl -L "https://github.com/containers/crun/releases/download/${CRUN_VERSION}/crun-${CRUN_VERSION}-linux-amd64" -o "/tmp/crun"
 chmod +x /tmp/crun
 
 ###############################################################################
 
 ## Get podman ###################################################################
 
-printf >&2 "\033[1;31m Fetching latest podman version...\n\033[0m"
+PODMAN_VERSION="4.2.0"
+printf >&2 "\033[1;31m Fetching podman ${PODMAN_VERSION}...\n\033[0m"
 # Using static podman bulds semplifies our lifes! Thanks to the wonderful project
 #   https://github.com/mgoltzsche/podman-static
 # All credits to @mgoltzsche for the builds.
-RELEASE=$(curl -s -L https://github.com/mgoltzsche/podman-static/releases/latest |
-	grep 'podman-linux-amd64.tar.gz"' | cut -d'"' -f2)
-NAME=$(echo "${RELEASE}" | rev | cut -d'/' -f1 | rev)
-
-printf >&2 "\033[1;31m Found %s, downloading...\n\033[0m" "${RELEASE}"
 # Download and unpack the tar in /tmp
-curl -L "https://github.com/${RELEASE}" -o "/tmp/${NAME}"
+curl -L "https://github.com/mgoltzsche/podman-static/releases/download/v${PODMAN_VERSION}/podman-linux-amd64.tar.gz" -o /tmp/podman-linux-amd64.tar.gz
 printf >&2 "\033[1;31m Unpacking Podman...\n\033[0m"
-tar xf /tmp/"${NAME}" -C /tmp/
+tar xf /tmp/podman-linux-amd64.tar.gz -C /tmp/
 
 ###############################################################################
 
@@ -181,8 +174,7 @@ sed -i "s|mount_program =.*|mount_program = \"${dest_path}/bin/fuse-overlayfs\"|
 
 printf >&2 "\033[1;31m Cleaning up...\n\033[0m"
 # Cleanup
-rm -f /tmp/"${NAME}"
-rm -rf /tmp/podman-linux-amd64/
+rm -rf /tmp/podman-linux-amd64/ /tmp/podman-linux-amd64.tar.gz /tmp/crun
 
 printf >&2 "\033[1;31m Migrating...\n\033[0m"
 
