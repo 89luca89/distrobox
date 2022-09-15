@@ -4,7 +4,7 @@
 _generate_from_help() {
 	command=$1
 
-	local cur prev totalopts opts diropts
+	local list cur prev totalopts opts diropts
 
 	COMPREPLY=()
 
@@ -24,8 +24,9 @@ _generate_from_help() {
 		return 0
 	elif [[ ${command} != *"create"* ]] && [[ ${command} != *"ephemeral"* ]] && [[ ${command} != *"list"* ]]; then
 		while IFS= read -r line; do
-			COMPREPLY+=("$line")
+			list+="$line "
 		done < <(distrobox-list --no-color | tail -n+2 | awk '{print $3}')
+		COMPREPLY=($(compgen -W "${list}" "${cur}"))
 		return 0
 	fi
 }
