@@ -272,6 +272,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			util-linux \
 			wget \
 			vte3
+		# These are graphics drivers for 3d applications
+		# shellcheck disable=SC2046
+		apk add \
+			$(apk search -q mesa-dri) \
+			$(apk search -q mesa-vulkan) \
+			vulkan-loader
 
 	elif command -v apt-get; then
 		# If we need to upgrade, do it and exit, no further action required.
@@ -317,6 +323,17 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			wget \
 			util-linux
 
+		# These are graphics drivers for 3d applications
+		apt-get install -y \
+			libegl1-mesa \
+			libgl1-mesa-glx
+		# Older versions of debian/ubuntu don't have vulkan, check for it.
+		if apt-cache show libvulkan1 > /dev/null; then
+			apt-get install -y \
+				libvulkan1 \
+				mesa-vulkan-drivers
+		fi
+
 	elif command -v dnf; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
@@ -355,6 +372,14 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			util-linux \
 			wget \
 			vte-profile
+
+		# These are graphics drivers for 3d applications
+		if dnf list mesa-dri-drivers > /dev/null; then
+			dnf install -y \
+				mesa-dri-drivers \
+				mesa-vulkan-drivers \
+				vulkan
+		fi
 
 	elif command -v emerge; then
 		# Check if shell_pkg is available in distro's repo. If not we
@@ -412,6 +437,14 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vte-profile \
 			util-linux
 
+		# These are graphics drivers for 3d applications
+		# On these very minimal images, graphics can be abstent
+		# from the repos, so let's ignore the error in this case.
+		microdnf install -y \
+			mesa-dri-drivers \
+			mesa-vulkan-drivers \
+			vulkan || :
+
 	elif command -v pacman; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
@@ -451,6 +484,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			wget \
 			vte-common
 
+		# These are graphics drivers for 3d applications
+		pacman -Sy --noconfirm \
+			mesa \
+			opengl-driver \
+			vulkan-intel \
+			vulkan-radeon
+
 	elif command -v slackpkg; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
@@ -484,6 +524,10 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			wget \
 			util-linux
 
+		# These are graphics drivers for 3d applications
+		yes | slackpkg install -default_answer=yes -batch=yes \
+			mesa
+
 	elif command -v swupd; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
@@ -500,6 +544,11 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			shells \
 			sysadmin-basic \
 			wget
+
+		# These are graphics drivers for 3d applications
+		swupd bundle-add \
+			lib-opengl \
+			devpkg-Vulkan-Loader
 
 	elif command -v xbps-install; then
 		# If we need to upgrade, do it and exit, no further action required.
@@ -532,6 +581,9 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			time \
 			wget \
 			util-linux
+
+		# These are graphics drivers for 3d applications
+		xbps-install -Sy mesa-dri
 
 	elif command -v yum; then
 		# If we need to upgrade, do it and exit, no further action required.
@@ -571,6 +623,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			wget \
 			vte-profile
 
+		# These are graphics drivers for 3d applications
+		# yum distros are too old to have vulkan anyway.
+		if yum list mesa-dri-drivers > /dev/null; then
+			yum install -y \
+				mesa-dri-drivers
+		fi
+
 	elif command -v zypper; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
@@ -600,6 +659,14 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			time \
 			wget \
 			util-linux
+
+		# These are graphics drivers for 3d applications
+		zypper install -y \
+			Mesa-dri \
+			libvulkan1 \
+			libvulkan_intel \
+			libvulkan_radeon
+
 		# In openSUSE official images, zypper is configured to ignore recommended
 		# packages (i.e., weak dependencies). This however, results in a rather
 		# poor out-of-the-box experience (e.g., when trying to run GUI apps).
