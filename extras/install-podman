@@ -125,7 +125,7 @@ chmod +x /tmp/crun
 
 ## Get podman ###################################################################
 
-PODMAN_VERSION="4.2.0"
+PODMAN_VERSION="4.2.1"
 printf >&2 "\033[1;31m Fetching podman %s...\n\033[0m" "${PODMAN_VERSION}"
 # Using static podman bulds semplifies our lifes! Thanks to the wonderful project
 #   https://github.com/mgoltzsche/podman-static
