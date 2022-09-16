@@ -691,6 +691,7 @@ printf "distrobox: Setting up host's sockets integration...\n"
 # the container or accessing docker and libvirt sockets.
 host_sockets="$(find /run/host/run -name 'user' \
 	-prune -o -name 'nscd' \
+	-prune -o -name 'bees' \
 	-prune -o -name 'system_bus_socket' \
 	-prune -o -type s -print \
 	2> /dev/null || :)"
