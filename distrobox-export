@@ -312,7 +312,7 @@ export_binary() {
 #	needed desktop files in /run/host/$host_home/.local/share/applications
 #	or error code.
 export_application() {
-
+	canon_dirs=""
 	[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
 	[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
 	[ -d /var/lib/flatpak/exports/share/applications ] &&
