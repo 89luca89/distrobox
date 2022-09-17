@@ -1,0 +1,52 @@
+#!/usr/bin/env -S -i sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+printf "RUN distrobox-enter\n"
+trap 'rm -rf /tmp/test/' EXIT
+
+set -o nounset
+
+mkdir -p /tmp/test
+cd "$(dirname "${0}")/".. || exit
+./install -P /tmp/test 2> /dev/null
+export PATH="/tmp/test:${PATH}"
+cd "$(dirname "${0}")/" || exit
+
+printf "distrobox-enter: Test version flag... "
+out="$(/tmp/test/bin/distrobox-enter --version)"
+if echo "${out}" | grep -qE "distrobox: [0-9]+\.[0-9\+\.[0-9]+"; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "distrobox-enter: Test command with unknown flag... "
+out="$(/tmp/test/bin/distrobox-enter --unknownflag 2>&1)"
+if [ "${?}" -eq 1 ]; then
+	if echo "${out}" | grep -qE "ERROR: Invalid flag '--unknownflag'"; then
+		printf "PASS\n"
+	else
+		printf "FAIL\n"
+		exit 1
+	fi
+else
+	printf "FAIL\n"
+	exit 1
+fi

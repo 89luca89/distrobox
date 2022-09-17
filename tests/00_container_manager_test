@@ -1,0 +1,271 @@
+#!/usr/bin/env -S -i sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+printf "RUN container-manager\n"
+
+trap 'rm -f /tmp/test/docker /tmp/test/podman' EXIT
+
+set -o nounset
+
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "${0}")/../lib/container-manager"
+
+mkdir -p /tmp/test
+touch /tmp/test/docker /tmp/test/podman
+chmod +x /tmp/test/docker /tmp/test/podman
+export PATH="/tmp/test:${PATH}"
+
+printf "container_manager: Test insufficient parameters... "
+# Missing 1 parameter
+if ! detect_container_manager \
+	"autodetect" \
+	0 \
+	0 \
+	"sudo" 2> /dev/null; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test too many parameters... "
+# Exceeding 1 parameter
+if ! detect_container_manager \
+	"autodetect" \
+	0 \
+	0 \
+	0 \
+	0 \
+	"sudo" 2> /dev/null; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test right number of parameters... "
+if detect_container_manager \
+	"autodetect" \
+	0 \
+	0 \
+	0 \
+	"sudo" > /dev/null; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test missing container manager... "
+# Missing container manager
+detect_container_manager \
+	"dockerNOT" \
+	0 \
+	0 \
+	0 \
+	"sudo" 2> /dev/null
+error_code="$?"
+if [ "${error_code}" = "127" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test docker detection... "
+result="$(detect_container_manager \
+	"docker" \
+	0 \
+	0 \
+	0 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "docker" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test podman detection... "
+result="$(detect_container_manager \
+	"podman" \
+	0 \
+	0 \
+	0 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "podman" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test automatic detection... "
+result="$(detect_container_manager \
+	"autodetect" \
+	0 \
+	0 \
+	0 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "podman" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test docker dryrun... "
+result="$(detect_container_manager \
+	"docker" \
+	1 \
+	0 \
+	0 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "docker" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test podman dryrun... "
+result="$(detect_container_manager \
+	"podman" \
+	1 \
+	0 \
+	0 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "podman" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test docker rootful... "
+result="$(detect_container_manager \
+	"docker" \
+	1 \
+	1 \
+	0 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "sudo docker" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test podman rootful... "
+result="$(detect_container_manager \
+	"podman" \
+	1 \
+	1 \
+	0 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "sudo podman" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test docker verbose... "
+result="$(detect_container_manager \
+	"docker" \
+	1 \
+	0 \
+	1 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "docker --log-level debug" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test podman verbose... "
+result="$(detect_container_manager \
+	"podman" \
+	1 \
+	0 \
+	1 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "podman --log-level debug" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test docker rootful verbose... "
+result="$(detect_container_manager \
+	"docker" \
+	1 \
+	1 \
+	1 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "sudo docker --log-level debug" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test podman rootful verbose... "
+result="$(detect_container_manager \
+	"podman" \
+	1 \
+	1 \
+	1 \
+	"sudo" 2> /dev/null)"
+if [ "${result}" = "sudo podman --log-level debug" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test docker rootful verbose custom sudo program... "
+result="$(detect_container_manager \
+	"docker" \
+	1 \
+	1 \
+	1 \
+	"test1234" 2> /dev/null)"
+if [ "${result}" = "test1234 docker --log-level debug" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "container_manager: Test podman rootful verbose custom sudo program... "
+result="$(detect_container_manager \
+	"podman" \
+	1 \
+	1 \
+	1 \
+	"test1234" 2> /dev/null)"
+if [ "${result}" = "test1234 podman --log-level debug" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi

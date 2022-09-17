@@ -1,0 +1,51 @@
+---
+# This is a basic workflow to help you get started with Actions
+
+name: Unit Test
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, ready_for_review, edited]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  # Prepare distros matrix
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      targets: ${{ steps.set-matrix.outputs.targets }}
+    steps:
+
+      - uses: actions/checkout@v2
+
+      # Fetch test list
+      - id: set-matrix
+        run: |
+            echo "::set-output name=targets::$(ls -1 tests/[0-9][0-9]* |
+              jq -R -s -c 'split("\n")[:-1]')"
+
+  run:
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        test: ${{fromJSON(needs.setup.outputs.targets)}}
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Ensure distrobox create works:
+      - name: Run unit test
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          env -S -i sh ${{ matrix.test }}

@@ -1,0 +1,203 @@
+#!/usr/bin/env -S -i sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+printf "RUN enter-command\n"
+
+set -o nounset
+
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "${0}")/../lib/enter-command"
+
+USER=unittest
+
+printf "enter_command: Test insufficient parameters... "
+# Missing 1 parameter
+if ! generate_enter_command \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" 2> /dev/null; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "enter_command: Test too many parameters... "
+# Exceeding 1 parameter
+if ! generate_enter_command \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	0 \
+	0 2> /dev/null; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "enter_command: Test right number of parameters... "
+if generate_enter_command \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	"" \
+	0 \
+	0 \
+	0 > /dev/null; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "enter_command: Test basic enter command... "
+cmd="$(generate_enter_command \
+	"test-container-manager" \
+	"" \
+	"test" \
+	"/home/test" \
+	"/bin/sh" \
+	"/tmp/distrobox-enter" \
+	0 \
+	0 \
+	0)"
+expected="test-container-manager exec
+		--interactive
+		--user=\"unittest\"
+			--tty
+		--workdir=\"/run/host$(pwd)\"
+		--env \"DISTROBOX_ENTER_PATH=/tmp/distrobox-enter\" --env \"PWD=$(pwd)\" --env \"SHLVL=0\" --env \"PATH=\" --env \"XDG_DATA_DIRS=\" --env \"XDG_CONFIG_DIRS=\"  test /bin/sh"
+if [ "${cmd}" = "${expected}" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "enter_command: Test additional container manager flags... "
+cmd="$(generate_enter_command \
+	"test-container-manager" \
+	"--test-flag" \
+	"test" \
+	"/home/test" \
+	"/bin/sh" \
+	"/tmp/distrobox-enter" \
+	0 \
+	0 \
+	0)"
+expected="test-container-manager exec
+		--interactive
+		--user=\"unittest\"
+			--tty
+		--workdir=\"/run/host$(pwd)\"
+		--env \"DISTROBOX_ENTER_PATH=/tmp/distrobox-enter\" --env \"PWD=$(pwd)\" --env \"SHLVL=0\" --env \"PATH=\" --env \"XDG_DATA_DIRS=\" --env \"XDG_CONFIG_DIRS=\" --test-flag test /bin/sh"
+if [ "${cmd}" = "${expected}" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "enter_command: Test headless... "
+cmd="$(generate_enter_command \
+	"test-container-manager" \
+	"--test-flag" \
+	"test" \
+	"/home/test" \
+	"/bin/sh" \
+	"/tmp/distrobox-enter" \
+	1 \
+	0 \
+	0)"
+expected="test-container-manager exec
+		--interactive
+		--user=\"unittest\"
+		--workdir=\"/run/host$(pwd)\"
+		--env \"DISTROBOX_ENTER_PATH=/tmp/distrobox-enter\" --env \"PWD=$(pwd)\" --env \"SHLVL=0\" --env \"PATH=\" --env \"XDG_DATA_DIRS=\" --env \"XDG_CONFIG_DIRS=\" --test-flag test /bin/sh"
+if [ "${cmd}" = "${expected}" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "enter_command: Test skip workdir... "
+cmd="$(generate_enter_command \
+	"test-container-manager" \
+	"--test-flag" \
+	"test" \
+	"/home/test" \
+	"/bin/sh" \
+	"/tmp/distrobox-enter" \
+	1 \
+	1 \
+	0)"
+expected="test-container-manager exec
+		--interactive
+		--user=\"unittest\"
+		--workdir=\"/home/test\"
+		--env \"DISTROBOX_ENTER_PATH=/tmp/distrobox-enter\" --env \"PWD=$(pwd)\" --env \"SHLVL=0\" --env \"PATH=\" --env \"XDG_DATA_DIRS=\" --env \"XDG_CONFIG_DIRS=\" --test-flag test /bin/sh"
+if [ "${cmd}" = "${expected}" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
+
+printf "enter_command: Test default command... "
+cmd="$(generate_enter_command \
+	"test-container-manager" \
+	"--test-flag" \
+	"test" \
+	"/home/test" \
+	"" \
+	"/tmp/distrobox-enter" \
+	1 \
+	1 \
+	0)"
+expected='test-container-manager exec
+		--interactive
+		--user="unittest"
+		--workdir="/home/test"
+		--env "DISTROBOX_ENTER_PATH=/tmp/distrobox-enter" --env "PWD='$(pwd)'" --env "SHLVL=0" --env "PATH=" --env "XDG_DATA_DIRS=" --env "XDG_CONFIG_DIRS=" --test-flag test sh -c "\$(getent passwd unittest | cut -f 7 -d :) -l"'
+if [ "${cmd}" = "${expected}" ]; then
+	printf "PASS\n"
+else
+	printf "FAIL\n"
+	exit 1
+fi
