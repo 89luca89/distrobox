@@ -75,10 +75,11 @@ if  [ -z "${prefix}" ]; then
 		prefix="${HOME}/.local"
 	fi
 fi
-dest_path="${prefix}/bin"
-man_dest_path="${prefix}/share/man/man1"
-icon_dest_path="${prefix}/share/icons"
 completion_dest_path="${prefix}/share/bash-completion/completions/"
+dest_path="${prefix}/bin"
+icon_dest_path="${prefix}/share/icons"
+lib_path="${prefix}/lib/distrobox"
+man_dest_path="${prefix}/share/man/man1"
 
 set -o errexit
 set -o nounset
@@ -102,5 +103,6 @@ for file in "${completion_dest_path}/distrobox"*; do
 done
 [  -e "${icon_dest_path}"/terminal-distrobox-icon.png ] && rm "${icon_dest_path}"/terminal-distrobox-icon.png
 [  -e "${icon_dest_path}"/distrobox ] && rm -rf "${icon_dest_path}"/distrobox
+[  -e "${lib_path}" ] && rm -rf "${lib_path}"
 
 printf >&2 "\033[1;31m Thank you for using Distrobox. Uninstall complete.\n\033[0m"

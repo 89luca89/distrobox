@@ -733,14 +733,14 @@ for host_mount in ${HOST_MOUNTS}; do
 done
 
 HOST_MOUNTS_RO_INIT="
-		/etc/localtime
-		/run/systemd/journal
-		/run/systemd/resolve
-		/run/systemd/seats
-		/run/systemd/sessions
-		/run/systemd/users
-		/var/lib/systemd/coredump
-		/var/log/journal"
+	/etc/localtime
+	/run/systemd/journal
+	/run/systemd/resolve
+	/run/systemd/seats
+	/run/systemd/sessions
+	/run/systemd/users
+	/var/lib/systemd/coredump
+	/var/log/journal"
 
 # On some ostree systems, home is in /var/home, but most of the software expects
 # it to be in /home. In the hosts systems this is fixed by using a symlink.

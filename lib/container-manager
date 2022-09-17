@@ -1,0 +1,86 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# Detect container manager to use.
+# Arguments:
+#	container_manager
+#	dryrun
+#	rootful
+#	verbose
+#	distrobox_sudo_program
+# Outputs:
+#   prints the command of the container manager to use
+detect_container_manager() {
+	# We need exactly 5 arguments
+	if [ "$#" -ne 5 ]; then
+		printf >&2 "Error: insufficient parameters.\n"
+		return 1
+	fi
+	container_manager="${1}"
+	dryrun="${2}"
+	rootful="${3}"
+	verbose="${4}"
+	distrobox_sudo_program="${5}"
+
+	# We depend on a container manager let's be sure we have it
+	# First we use podman, else docker
+	case "${container_manager}" in
+		autodetect)
+			if command -v podman > /dev/null; then
+				container_manager="podman"
+			elif command -v docker > /dev/null; then
+				container_manager="docker"
+			fi
+			;;
+		podman)
+			container_manager="podman"
+			;;
+		docker)
+			container_manager="docker"
+			;;
+		*)
+			printf >&2 "Invalid input %s.\n" "${container_manager}"
+			printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
+			;;
+	esac
+
+	# Be sure we have a container manager to work with.
+	if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
+		# Error: we need at least one between docker or podman.
+		printf >&2 "Missing dependency: we need a container manager.\n"
+		printf >&2 "Please install one of podman or docker.\n"
+		printf >&2 "You can follow the documentation on:\n"
+		printf >&2 "\tman distrobox-compatibility\n"
+		printf >&2 "or:\n"
+		printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+		return 127
+	fi
+	# add  verbose if -v is specified
+	if [ "${verbose}" -ne 0 ]; then
+		container_manager="${container_manager} --log-level debug"
+	fi
+
+	# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+	if [ "${rootful}" -ne 0 ]; then
+		container_manager="${distrobox_sudo_program} ${container_manager}"
+	fi
+
+	printf "%s" "${container_manager}"
+}

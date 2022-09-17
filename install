@@ -77,10 +77,11 @@ if  [ -z "${prefix}" ]; then
 		prefix="${HOME}/.local"
 	fi
 fi
-dest_path="${prefix}/bin"
-man_dest_path="${prefix}/share/man/man1"
-icon_dest_path="${prefix}/share/icons"
 completion_dest_path="${prefix}/share/bash-completion/completions/"
+dest_path="${prefix}/bin"
+icon_dest_path="${prefix}/share/icons"
+lib_path="${prefix}/lib/distrobox"
+man_dest_path="${prefix}/share/man/man1"
 
 set -o errexit
 set -o nounset
@@ -105,6 +106,11 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 	if [ -e "man" ]; then
 		for file in man/man1/*; do
 			install -D -m 0644 -t "${man_dest_path}" "${file}"
+		done
+	fi
+	if [ -e "lib" ]; then
+		for file in lib/*; do
+			install -D -m 0644 -t "${lib_path}" "${file}"
 		done
 	fi
 	if [ -e "completions" ]; then
@@ -160,6 +166,11 @@ else
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/man/" ]; then
 		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/man/man1/*; do
 			install -D -m 0644 -t "${man_dest_path}" "${file}"
+		done
+	fi
+	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/lib/" ]; then
+		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/lib/*; do
+			install -D -m 0644 -t "${lib_path}" "${file}"
 		done
 	fi
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/completions/" ]; then

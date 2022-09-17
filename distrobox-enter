@@ -38,54 +38,39 @@ if [ "$(id -u)" -eq 0 ]; then
 	exit 1
 fi
 
+# Common to all
+container_manager="autodetect"
+distrobox_sudo_program="sudo"
+dryrun=0
+non_interactive=0
+rootful=0
+verbose=0
+version="1.4.1"
 # Defaults
 container_command=""
 container_image=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
-container_manager="autodetect"
-container_name="my-distrobox"
 container_manager_additional_flags=""
-non_interactive=0
-distrobox_sudo_program="sudo"
-
+container_name="my-distrobox"
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
 # "realpath" would break situations like Nix or similar symlink based package
 # management.
 distrobox_enter_path="$(cd "$(dirname "$0")" && pwd)/distrobox-enter"
-dryrun=0
 headless=0
-rootful=0
 skip_workdir=0
-verbose=0
-version="1.4.1"
 
-# Source configuration files, this is done in an hierarchy so local files have
-# priority over system defaults
-# leave priority to environment variables.
-config_files="
-	/usr/share/distrobox/distrobox.conf
-	/usr/etc/distrobox/distrobox.conf
-	/etc/distrobox/distrobox.conf
-	${XDG_CONFIG_HOME:-"${HOME}/.config"}/distrobox/distrobox.conf
-	${HOME}/.distroboxrc
-"
-for config_file in ${config_files}; do
-	# Shellcheck will give error for sourcing a variable file as it cannot follow
-	# it. We don't care so let's disable this linting for now.
-	# shellcheck disable=SC1090
-	[ -e "${config_file}" ] && . "${config_file}"
-done
-# Fixup non_interactive=[true|false], in case we find it in the config file(s)
-[ "${non_interactive}" = "true" ] && non_interactive=1
-[ "${non_interactive}" = "false" ] && non_interactive=0
+# Load configurations, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/config-load"
 
-[ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
-[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
-[ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
-[ -n "${DBX_SKIP_WORKDIR}" ] && skip_workdir="${DBX_SKIP_WORKDIR}"
-[ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
-[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
+# Load container_manager detection logic, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/container-manager"
+
+# Load container enter logic, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/enter-command"
 
 # Print usage to stdout.
 # Arguments:
@@ -201,173 +186,29 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# We depend on a container manager let's be sure we have it
-# First we use podman, else docker
-case "${container_manager}" in
-	autodetect)
-		if command -v podman > /dev/null; then
-			container_manager="podman"
-		elif command -v docker > /dev/null; then
-			container_manager="docker"
-		fi
-		;;
-	podman)
-		container_manager="podman"
-		;;
-	docker)
-		container_manager="docker"
-		;;
-	*)
-		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-		;;
-esac
-
-# Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
-	# Error: we need at least one between docker or podman.
-	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
-	printf >&2 "You can follow the documentation on:\n"
-	printf >&2 "\tman distrobox-compatibility\n"
-	printf >&2 "or:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
-	exit 127
-fi
-
-# add  verbose if -v is specified
-if [ "${verbose}" -ne 0 ]; then
-	container_manager="${container_manager} --log-level debug"
-fi
-
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
-if [ "${rootful}" -ne 0 ]; then
-	container_manager="${distrobox_sudo_program} ${container_manager}"
-fi
-
-# Generate Podman or Docker command to execute.
-# Arguments:
-#   None
-# Outputs:
-#   prints the podman or docker command to enter the distrobox container
-generate_command() {
-	result_command="${container_manager} exec"
-	result_command="${result_command}
-		--interactive
-		--user=\"${USER}\""
-
-	# For some usage, like use in service, or launched by non-terminal
-	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
-	# the container.
-	# To work around this, --headless let's you skip the --tty flag and make it
-	# work in tty-less situations.
-	# Disable tty also if we're NOT in a tty (test -t 0).
-	if [ "${headless}" -eq 0 ] && [ -t 0 ]; then
-		result_command="${result_command}
-			--tty"
-	fi
-
-	# Entering container using our user and workdir.
-	# Start container from working directory. Else default to home. Else do /.
-	# Since we are entering from host, drop at workdir through '/run/host'
-	# which represents host's root inside container. Any directory on host
-	# even if not explicitly mounted is bound to exist under /run/host.
-	# Since user $HOME is very likely present in container, enter there directly
-	# to avoid confusing the user about shifted paths.
-	# pass distrobox-enter path, it will be used in the distrobox-export tool.
-	if [ "${skip_workdir}" -eq 0 ]; then
-		workdir="$(echo "${PWD:-${container_home:-"/"}}" | sed -e 's/"/\\\"/g')"
-		if [ -n "${workdir##*"${container_home}"*}" ]; then
-			workdir="/run/host${workdir}"
-		fi
-	else
-		# Skipping workdir we just enter $HOME of the container.
-		workdir="${container_home}"
-	fi
-	result_command="${result_command}
-		--workdir=\"${workdir}\"
-		--env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
-	# Loop through all the environment vars
-	# and export them to the container.
-	set +o xtrace
-	# disable logging fot this snippet, or it will be too talkative.
-	for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
-		grep -Ev '^(HOST|HOSTNAME|HOME|PATH|SHELL|XDG_.*_DIRS|^_)'); do
-		# We filter the environment so that we do not have strange variables,
-		# multiline or containing spaces.
-		# We also NEED to ignore the HOME variable, as this is set at create time
-		# and needs to stay that way to use custom home dirs.
-		result_command="${result_command} --env \"${i}\""
-	done
-
-	# Start with the $PATH set in the container's config
-	container_paths="${container_path:-""}"
-	# Ensure the standard FHS program paths are in PATH environment
-	standard_paths="/usr/local/sbin /usr/local/bin /usr/sbin /usr/bin /sbin /bin"
-	# add to the PATH after the existing paths, and only if not already present
-	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${container_paths}:${standard_path}"
-		fi
-	done
-	# Ensure the $PATH entries from the host are appended as well
-	for standard_path in $(echo "${PATH}" | tr ':' ' '); do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${container_paths}:${standard_path}"
-		fi
-	done
-	result_command="${result_command} --env \"PATH=${container_paths}\""
-
-	# Ensure the standard FHS program paths are in XDG_DATA_DIRS environment
-	standard_paths="/usr/local/share /usr/share"
-	container_paths="${XDG_DATA_DIRS:=}"
-	# add to the XDG_DATA_DIRS only after the host's paths, and only if not already present.
-	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${container_paths}:${standard_path}"
-		fi
-	done
-	result_command="${result_command} --env \"XDG_DATA_DIRS=${container_paths}\""
-
-	# Ensure the standard FHS program paths are in XDG_CONFIG_DIRS environment
-	standard_paths="/etc/xdg"
-	container_paths="${XDG_CONFIG_DIRS:=}"
-	# add to the XDG_CONFIG_DIRS only after the host's paths, and only if not already present.
-	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${container_paths}:${standard_path}"
-		fi
-	done
-	result_command="${result_command} --env \"XDG_CONFIG_DIRS=${container_paths}\""
-
-	# re-enable logging if it was enabled previously.
-	if [ "${verbose}" -ne 0 ]; then
-		set -o xtrace
-	fi
-
-	# Add additional flags
-	result_command="${result_command} ${container_manager_additional_flags}"
-
-	# Run selected container with specified command.
-	result_command="${result_command} ${container_name}"
-
-	if [ -n "${container_command}" ]; then
-		result_command="${result_command} ${container_command}"
-	else
-		# if no command was specified, let's execute a command that will find
-		# and run the default shell for the user
-		result_command="${result_command} sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l"\"
-	fi
-
-	# Return generated command.
-	printf "%s" "${result_command}"
-}
+# Detect the container manager using the function in the container-manager lib
+container_manager="$(detect_container_manager \
+	"${container_manager}" \
+	"${dryrun}" \
+	"${rootful}" \
+	"${verbose}" \
+	"${distrobox_sudo_program}")"
 
 container_home="${HOME}"
 container_path="${PATH}"
 # dry run mode, just generate the command and print it. No execution.
 if [ "${dryrun}" -ne 0 ]; then
-	cmd="$(generate_command)"
+	cmd="$(generate_enter_command \
+		"${container_manager}" \
+		"${container_manager_additional_flags}" \
+		"${container_name}" \
+		"${container_home}" \
+		"${container_command}" \
+		"${distrobox_enter_path}" \
+		"${headless}" \
+		"${skip_workdir}" \
+		"${verbose}")"
+
 	cmd="$(echo "${cmd}" | tr '[:blank:]\n' ' ' | tr -s ' ')"
 	printf "%s\n" "${cmd}"
 	exit 0
@@ -496,6 +337,16 @@ if [ "${container_status}" != "running" ]; then
 fi
 
 # Generate the exec command and run it
-cmd="$(generate_command)"
+cmd="$( generate_enter_command \
+	"${container_manager}" \
+	"${container_manager_additional_flags}" \
+	"${container_name}" \
+	"${container_home}" \
+	"${container_command}" \
+	"${distrobox_enter_path}" \
+	"${headless}" \
+	"${skip_workdir}" \
+	"${verbose}")"
+
 # shellcheck disable=SC2086
 eval ${cmd}

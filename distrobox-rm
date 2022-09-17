@@ -33,38 +33,24 @@ if [ "$(id -u)" -eq 0 ]; then
 	exit 1
 fi
 
-# Defaults
+# Common to all
 container_manager="autodetect"
-force=0
+distrobox_sudo_program="sudo"
+dryrun=0
 non_interactive=0
 rootful=0
 verbose=0
-distrobox_sudo_program="sudo"
 version="1.4.1"
+# Defaults
+force=0
 
-# Source configuration files, this is done in an hierarchy so local files have
-# priority over system defaults
-# leave priority to environment variables.
-config_files="
-	/usr/share/distrobox/distrobox.conf
-	/usr/etc/distrobox/distrobox.conf
-	/etc/distrobox/distrobox.conf
-	${XDG_CONFIG_HOME:-"${HOME}/.config"}/distrobox/distrobox.conf
-	${HOME}/.distroboxrc
-"
-for config_file in ${config_files}; do
-	# Shellcheck will give error for sourcing a variable file as it cannot follow
-	# it. We don't care so let's disable this linting for now.
-	# shellcheck disable=SC1090
-	[ -e "${config_file}" ] && . "${config_file}"
-done
-# Fixup non_interactive=[true|false], in case we find it in the config file(s)
-[ "${non_interactive}" = "true" ] && non_interactive=1
-[ "${non_interactive}" = "false" ] && non_interactive=0
+# Load configurations, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/config-load"
 
-[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
-[ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
-[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
+# Load container_manager detection logic, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/container-manager"
 
 # Declare it AFTER config sourcing because we do not want a default name set for rm.
 container_name=""
@@ -89,6 +75,8 @@ Options:
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
+	--force/-f:		force removal (stop and remove)
+	--yes/-Y:		assume yes to all questions
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -152,48 +140,13 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-# We depend on a container manager let's be sure we have it
-# First we use podman, else docker
-case "${container_manager}" in
-	autodetect)
-		if command -v podman > /dev/null; then
-			container_manager="podman"
-		elif command -v docker > /dev/null; then
-			container_manager="docker"
-		fi
-		;;
-	podman)
-		container_manager="podman"
-		;;
-	docker)
-		container_manager="docker"
-		;;
-	*)
-		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-		;;
-esac
-
-# Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" > /dev/null; then
-	# Error: we need at least one between docker or podman.
-	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
-	printf >&2 "You can follow the documentation on:\n"
-	printf >&2 "\tman distrobox-compatibility\n"
-	printf >&2 "or:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
-	exit 127
-fi
-# add  verbose if -v is specified
-if [ "${verbose}" -ne 0 ]; then
-	container_manager="${container_manager} --log-level debug"
-fi
-
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
-if [ "${rootful}" -ne 0 ]; then
-	container_manager="${distrobox_sudo_program} ${container_manager}"
-fi
+# Detect the container manager using the function in the container-manager lib
+container_manager="$(detect_container_manager \
+	"${container_manager}" \
+	"${dryrun}" \
+	"${rootful}" \
+	"${verbose}" \
+	"${distrobox_sudo_program}")"
 
 # check if we have containers to delete
 if [ -z "${container_name_list}" ]; then

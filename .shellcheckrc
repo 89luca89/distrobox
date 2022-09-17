@@ -18,3 +18,4 @@ disable=SC2311
 # Consider invoking this command separately to avoid masking its return value (or use '|| true' to ignore).
 # - We already check errors and adding "|| true" everywhere hinders readability.
 disable=SC2312
+disable=SC2034

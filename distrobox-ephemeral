@@ -33,13 +33,15 @@ if [ "$(id -u)" -eq 0 ]; then
 	exit 1
 fi
 
+# Common to all
+rootful=0
+verbose=0
+version="1.4.1"
+# Defaults
 container_command=""
 create_flags=""
 distrobox_path="$(dirname "${0}")"
 extra_flags=""
-rootful=0
-verbose=0
-version="1.4.1"
 
 # Print usage to stdout.
 # Arguments:

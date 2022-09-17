@@ -21,33 +21,29 @@
 # POSIX
 trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
-all=0
+# Common to all
 container_manager="autodetect"
+distrobox_sudo_program="sudo"
+dryrun=0
+non_interactive=0
+rootful=0
+verbose=0
+version="1.4.1"
+# Defaults
+all=0
+container_manager_cp_command="podman cp"
 container_name="my-distrobox"
 delete=0
 icon="auto"
 icon_default="${HOME}/.local/share/icons/terminal-distrobox-icon.png"
-verbose=0
-version="1.4.1"
 
-# Source configuration files, this is done in an hierarchy so local files have
-# priority over system defaults
-# leave priority to environment variables.
-config_files="
-	/usr/share/distrobox/distrobox.conf
-	/usr/etc/distrobox/distrobox.conf
-	/etc/distrobox/distrobox.conf
-	${XDG_CONFIG_HOME:-"${HOME}/.config"}/distrobox/distrobox.conf
-	${HOME}/.distroboxrc
-"
-for config_file in ${config_files}; do
-	# Shellcheck will give error for sourcing a variable file as it cannot follow
-	# it. We don't care so let's disable this linting for now.
-	# shellcheck disable=SC1090
-	[ -e "${config_file}" ] && . "${config_file}"
-done
-[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
-[ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
+# Load configurations, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/config-load"
+
+# Load container_manager detection logic, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/container-manager"
 
 # Print usage to stdout.
 # Arguments:
@@ -174,47 +170,17 @@ elif  command -v wget > /dev/null 2>&1; then
 	download="wget -qO"
 fi
 
-# We depend on a container manager let's be sure we have it
-# First we use podman, else docker
-case "${container_manager}" in
-	autodetect)
-		if command -v podman > /dev/null; then
-			container_manager="podman"
-			container_manager_cp_command="podman cp"
-		elif command -v docker > /dev/null; then
-			container_manager="docker"
-			container_manager_cp_command="docker cp -L"
-		fi
-		;;
-	podman)
-		container_manager="podman"
-		container_manager_cp_command="podman cp"
-		;;
-	docker)
-		container_manager="docker"
-		container_manager_cp_command="docker cp -L"
-		;;
-	*)
-		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-		;;
-esac
+# Detect the container manager using the function in the container-manager lib
+container_manager="$(detect_container_manager \
+	"${container_manager}" \
+	"${dryrun}" \
+	"${rootful}" \
+	"${verbose}" \
+	"${distrobox_sudo_program}")"
 
-# Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" > /dev/null; then
-	# Error: we need at least one between docker or podman.
-	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
-	printf >&2 "You can follow the documentation on:\n"
-	printf >&2 "\tman distrobox-compatibility\n"
-	printf >&2 "or:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
-	exit 127
-fi
-
-# add  verbose if -v is specified
-if [ "${verbose}" -ne 0 ]; then
-	container_manager="${container_manager} --log-level debug"
+# In case we use docker, we need to use a specific flag.
+if  [ -z "${container_manager#*docker*}" ]; then
+	container_manager_cp_command="docker cp -L"
 fi
 
 if ! ${container_manager} inspect --type container "${container_name}" > /dev/null; then

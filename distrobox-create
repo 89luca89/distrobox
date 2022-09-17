@@ -42,15 +42,23 @@ if [ "$(id -u)" -eq 0 ]; then
 	exit 1
 fi
 
+# Common to all
+container_manager="autodetect"
+distrobox_sudo_program="sudo"
+dryrun=0
+non_interactive=0
+rootful=0
+verbose=0
+version="1.4.1"
+# Defaults
 # Defaults
 container_always_pull=0
 container_clone=""
+container_entry=1
 container_image=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
 container_init_hook=""
-container_manager="autodetect"
 container_manager_additional_flags=""
-container_entry=1
 container_name=""
 container_pre_init_hook=""
 container_user_custom_home=""
@@ -58,10 +66,7 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
-distrobox_sudo_program="sudo"
-dryrun=0
 init=0
-non_interactive=0
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
 # "realpath" would break situations like Nix or similar symlink based package
@@ -74,38 +79,18 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 [ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(command -v distrobox-init)"
 [ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(command -v distrobox-export)"
 [ ! -e "${distrobox_hostexec_path}" ] && distrobox_hostexec_path="$(command -v distrobox-hostexec)"
-rootful=0
-verbose=0
-version="1.4.1"
 
-# Source configuration files, this is done in an hierarchy so local files have
-# priority over system defaults
-# leave priority to environment variables.
-config_files="
-	/usr/share/distrobox/distrobox.conf
-	/usr/etc/distrobox/distrobox.conf
-	/etc/distrobox/distrobox.conf
-	${XDG_CONFIG_HOME:-"${HOME}/.config"}/distrobox/distrobox.conf
-	${HOME}/.distroboxrc
-"
-for config_file in ${config_files}; do
-	# Shellcheck will give error for sourcing a variable file as it cannot follow
-	# it. We don't care so let's disable this linting for now.
-	# shellcheck disable=SC1090
-	[ -e "${config_file}" ] && . "${config_file}"
-done
-# Fixup non_interactive=[true|false], in case we find it in the config file(s)
-[ "${non_interactive}" = "true" ] && non_interactive=1
-[ "${non_interactive}" = "false" ] && non_interactive=0
+# Load configurations, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/config-load"
 
-[ -n "${DBX_CONTAINER_ALWAYS_PULL}" ] && container_always_pull="${DBX_CONTAINER_ALWAYS_PULL}"
-[ -n "${DBX_CONTAINER_CUSTOM_HOME}" ] && container_user_custom_home="${DBX_CONTAINER_CUSTOM_HOME}"
-[ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
-[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
-[ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
-[ -n "${DBX_CONTAINER_ENTRY}" ] && container_entry="${DBX_CONTAINER_ENTRY}"
-[ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
-[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
+# Load container_manager detection logic, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/container-manager"
+
+# Load container creation logic, we use a "lib" for it, let's source it
+# shellcheck disable=SC1090 disable=SC1091
+. "$(dirname "$(realpath "${0}")")/../lib/distrobox/create-command"
 
 # Print usage to stdout.
 # Arguments:
@@ -287,6 +272,14 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
+# Detect the container manager using the function in the container-manager lib
+container_manager="$(detect_container_manager \
+	"${container_manager}" \
+	"${dryrun}" \
+	"${rootful}" \
+	"${verbose}" \
+	"${distrobox_sudo_program}")"
+
 # If no clone option and no container image, let's choose a default image to use.
 # Fedora toolbox is a sensitive default
 if [ -z "${container_clone}" ] && [ -z "${container_image}" ]; then
@@ -313,269 +306,6 @@ if [ -z "${container_name}" ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/[:.]/-/g')"
 fi
 
-# We depend on a container manager let's be sure we have it
-# First we use podman, else docker
-case "${container_manager}" in
-	autodetect)
-		if command -v podman > /dev/null; then
-			container_manager="podman"
-		elif command -v docker > /dev/null; then
-			container_manager="docker"
-		fi
-		;;
-	podman)
-		container_manager="podman"
-		;;
-	docker)
-		container_manager="docker"
-		;;
-	*)
-		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
-		;;
-esac
-
-# Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
-	# Error: we need at least one between docker or podman.
-	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
-	printf >&2 "You can follow the documentation on:\n"
-	printf >&2 "\tman distrobox-compatibility\n"
-	printf >&2 "or:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
-	exit 127
-fi
-# add  verbose if -v is specified
-if [ "${verbose}" -ne 0 ]; then
-	container_manager="${container_manager} --log-level debug"
-fi
-
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
-if [ "${rootful}" -ne 0 ]; then
-	container_manager="${distrobox_sudo_program} ${container_manager}"
-fi
-
-# Clone a container as a snapshot.
-# Arguments:
-#   None
-# Outputs:
-#   prints the image name of the newly cloned container
-clone_container() {
-	# We need to clone a container.
-	# to do this we will commit the container and create a new tag. Then use it
-	# as image for the new container.
-	#
-	# to perform this we first ensure the source container exists and that the
-	# source container is stopped, else the clone will not work,
-	container_source_status="$(${container_manager} inspect --type container \
-		"${container_clone}" --format '{{.State.Status}}')"
-	# If the container is not already running, we need to start if first
-	if [ "${container_source_status}" = "running" ]; then
-		printf >&2 "Container %s is running.\nPlease stop it first.\n" "${container_clone}"
-		printf >&2 "Cannot clone a running container.\n"
-		return 1
-	fi
-
-	# Now we can extract the container ID and commit it to use as source image
-	# for the new container.
-	container_source_id="$(${container_manager} inspect --type container \
-		"${container_clone}" --format '{{.Id}}')"
-	container_commit_tag="$(echo "${container_clone}:$(date +%F)" | tr '[:upper:]' '[:lower:]')"
-
-	# Commit current container state to a new image tag
-	printf >&2 "Duplicating %s...\n" "${container_clone}"
-	if ! ${container_manager} container commit \
-		"${container_source_id}" "${container_commit_tag}" > /dev/null; then
-
-		printf >&2 "Cannot clone container: %s\n" "${container_clone}"
-		return 1
-	fi
-
-	# Return the image tag to use for the new container creation.
-	printf "%s" "${container_commit_tag}"
-	return 0
-
-}
-
-# Generate Podman or Docker command to execute.
-# Arguments:
-#   None
-# Outputs:
-#   prints the podman or docker command to create the distrobox container
-generate_command() {
-	# Set the container hostname the same as the container name.
-	result_command="${container_manager} create"
-	# use the host's namespace for ipc, network, pid, ulimit
-	result_command="${result_command}
-		--hostname \"${container_name}.$(uname -n)\"
-		--ipc host
-		--name \"${container_name}\"
-		--network host
-		--privileged
-		--security-opt label=disable
-		--user root:root"
-
-	if [ "${init}" -eq 0 ]; then
-		result_command="${result_command}
-			--pid host"
-	fi
-	# Mount useful stuff inside the container.
-	# We also mount host's root filesystem to /run/host, to be able to syphon
-	# dynamic configurations from the host.
-	#
-	# Mount user home, dev and host's root inside container.
-	# This grants access to external devices like usb webcams, disks and so on.
-	#
-	# Mount also the distrobox-init utility as the container entrypoint.
-	# Also mount in the container the distrobox-export and distrobox-host-exec
-	# utilities.
-	result_command="${result_command}
-		--label \"manager=distrobox\"
-		--env \"SHELL=${SHELL:-"/bin/bash"}\"
-		--env \"HOME=${container_user_home}\"
-		--volume /:/run/host:rslave
-		--volume /dev:/dev:rslave
-		--volume /sys:/sys:rslave
-		--volume /tmp:/tmp:rslave
-		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
-		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
-		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
-		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
-
-	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
-	# will be mounted inside the rootless container.
-	#
-	# This works around this and allows the rootless container to work when selinux
-	# policies are installed inside it.
-	#
-	# Ref. Podman issue 4452:
-	#    https://github.com/containers/podman/issues/4452
-	if [ -e "/sys/fs/selinux" ]; then
-		result_command="${result_command}
-			--volume /sys/fs/selinux"
-	fi
-
-	# This fix is needed as systemd (or journald) will try to set ACLs on this
-	# path. For now overlayfs and fuse.overlayfs are not compatible with ACLs
-	#
-	# This works around this using an unnamed volume so that this path will be
-	# mounted with a normal non-overlay FS, allowing ACLs and preventing errors.
-	#
-	# This work around works in conjunction with distrobox-init's package manager
-	# setups.
-	# So that we can use pre/post hooks for package managers to present to the
-	# systemd install script a blank path to work with, and mount the host's
-	# journal path afterwards.
-	result_command="${result_command}
-			--volume /var/log/journal"
-
-	# In some systems, for example using sysvinit, /dev/shm is a symlink
-	# to /run/shm, instead of the other way around.
-	# Resolve this detecting if /dev/shm is a symlink and mount original
-	# source also in the container.
-	if [ -L "/dev/shm" ]; then
-		result_command="${result_command}
-			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
-	fi
-
-	# If you are using NixOS, or have Nix or Guix installed, /nix and /gnu are volumes containing
-	# you binaries and many configs.
-	# They be mounted if you want to execute those binaries from within
-	# the container. Therefore we need to mount as a volume, but only if they exists.
-	nix_dirs="
-		/nix
-		/gnu
-		/run/current-system/sw
-	"
-	for nix_dir in ${nix_dirs}; do
-		if [ -d "${nix_dir}" ]; then
-			result_command="${result_command}
-				--volume ${nix_dir}:${nix_dir}"
-		fi
-	done
-
-	# If we have a custom home to use,
-	#	1- override the HOME env variable
-	#	2- expor the DISTROBOX_HOST_HOME env variable pointing to original HOME
-	# 	3- mount the custom home inside the container.
-	if [ -n "${container_user_custom_home}" ]; then
-		result_command="${result_command}
-			--env \"HOME=${container_user_custom_home}\"
-			--env \"DISTROBOX_HOST_HOME=${container_user_home}\"
-			--volume \"${container_user_custom_home}:${container_user_custom_home}:rslave\""
-	fi
-
-	# Mount also the /var/home dir on ostree based systems
-	# do this only if $HOME was not already set to /var/home/username
-	if [ "${container_user_home}" != "/var/home/${container_user_name}" ] &&
-		[ -d "/var/home/${container_user_name}" ]; then
-
-		result_command="${result_command}
-			--volume \"/var/home/${container_user_name}\":\"/var/home/${container_user_name}\":rslave"
-	fi
-
-	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
-	if [ -d "/run/user/${container_user_uid}" ]; then
-		result_command="${result_command}
-			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}:rslave"
-	fi
-
-	# These are dynamic configs needed by the container to function properly
-	# and integrate with the host
-	#
-	# We're doing this now instead of inside the init because some distros will
-	# have symlinks places for these files that use absolute paths instead of
-	# relative paths.
-	# This is the bare minimum to ensure connectivity inside the container.
-	# These files, will then be kept updated by the main loop every 15 seconds.
-	result_command="${result_command}
-		--volume /etc/hosts:/etc/hosts:ro
-		--volume /etc/localtime:/etc/localtime:ro
-		--volume /etc/resolv.conf:/etc/resolv.conf:ro"
-
-	# These flags are not supported by docker, so we use them only if our
-	# container manager is podman.
-	if [ -z "${container_manager#*podman*}" ]; then
-		result_command="${result_command}
-			--ulimit host
-			--annotation run.oci.keep_original_groups=1
-			--mount type=devpts,destination=/dev/pts"
-		if [ "${init}" -eq 1 ]; then
-			result_command="${result_command}
-				--systemd=always"
-		fi
-		# Use keep-id only if going rootless.
-		if [ "${rootful}" -eq 0 ]; then
-			result_command="${result_command}
-				--userns keep-id"
-		fi
-	fi
-
-	# Add additional flags
-	result_command="${result_command} ${container_manager_additional_flags}"
-
-	# Now execute the entrypoint, refer to `distrobox-init -h` for instructions
-	#
-	# Be aware that entrypoint corresponds to distrobox-init, the copying of it
-	# inside the container is moved to distrobox-enter, in the start phase.
-	# This is done to make init, export and host-exec location independent from
-	# the host, and easier to upgrade.
-	result_command="${result_command} ${container_image}
-		/usr/bin/entrypoint -v --name \"${container_user_name}\"
-		--user ${container_user_uid}
-		--group ${container_user_gid}
-		--home \"${container_user_custom_home:-"${container_user_home}"}\"
-		--init \"${init}\"
-		${container_pre_init_hook}
-		-- '${container_init_hook}'
-		"
-	# use container_user_custom_home if defined, else fallback to normal home.
-
-	# Return generated command.
-	printf "%s" "${result_command}"
-}
-
 # Check that we have a complete distrobox installation or
 # entrypoint and export will not work.
 if [ -z "${distrobox_entrypoint_path}" ] || [ -z "${distrobox_export_path}" ]; then
@@ -588,7 +318,25 @@ if [ "${dryrun}" -ne 0 ]; then
 	if [ -n "${container_clone}" ]; then
 		container_image="${container_clone}"
 	fi
-	cmd="$(generate_command)"
+
+	cmd="$(generate_create_command \
+		"${container_image}" \
+		"${container_init_hook}" \
+		"${container_manager}" \
+		"${container_manager_additional_flags}" \
+		"${container_name}" \
+		"${container_pre_init_hook}" \
+		"${container_user_gid}" \
+		"${container_user_home}" \
+		"${container_user_custom_home}" \
+		"${container_user_name}" \
+		"${container_user_uid}" \
+		"${distrobox_entrypoint_path}" \
+		"${distrobox_export_path}" \
+		"${distrobox_hostexec_path}" \
+		"${init}" \
+		"${rootful}")"
+
 	cmd="$(echo "${cmd}" | tr '[:blank:]\n' ' ' | tr -s ' ')"
 	printf "%s\n" "${cmd}"
 	exit 0
@@ -610,7 +358,7 @@ fi
 # if we are using the clone flag, let's set the image variable
 # to the output of container duplication
 if [ -n "${container_clone}" ]; then
-	container_image="$(clone_container)"
+	container_image="$(clone_container "${container_clone}" "${container_manager}")"
 fi
 # First, check if the image exists in the host or auto-pull is enabled
 # If not prompt to download it.
@@ -649,7 +397,24 @@ fi
 
 # Generate the create command and run it
 printf >&2 "Creating '%s' using image %s\t" "${container_name}" "${container_image}"
-cmd="$(generate_command)"
+cmd="$( generate_create_ommand \
+	"${container_image}" \
+	"${container_init_hook}" \
+	"${container_manager}" \
+	"${container_manager_additional_flags}" \
+	"${container_name}" \
+	"${container_pre_init_hook}" \
+	"${container_user_gid}" \
+	"${container_user_home}" \
+	"${container_user_custom_home}" \
+	"${container_user_name}" \
+	"${container_user_uid}" \
+	"${distrobox_entrypoint_path}" \
+	"${distrobox_export_path}" \
+	"${distrobox_hostexec_path}" \
+	"${init}" \
+	"${rootful}")"
+
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
 if eval ${cmd} > /dev/null; then
@@ -662,10 +427,8 @@ if eval ${cmd} > /dev/null; then
 	fi
 
 	# We've created the box, let's also create the entry
-	if [ "${rootful}" -eq 0 ]; then
-		if [ "${container_entry}" -ne 0 ]; then
-			"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}"
-		fi
+	if [ "${rootful}" -eq 0 ] && [ "${container_entry}" -ne 0 ]; then
+		"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}"
 	fi
 	exit $?
 fi
