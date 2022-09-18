@@ -59,7 +59,7 @@ usage [HERE](./usage/distrobox-create.md)
 
 Simply use:
 
-`distrobox create --name test --image your-choosen-image:tag --home /your/custom/home`
+`distrobox create --name test --image your-chosen-image:tag --home /your/custom/home`
 
 ## Mount additional volumes in a distrobox
 
@@ -68,7 +68,7 @@ usage [HERE](./usage/distrobox-create.md)
 
 Simply use:
 
-`distrobox create --name test --image your-choosen-image:tag --volume /your/custom/volume/path`
+`distrobox create --name test --image your-chosen-image:tag --volume /your/custom/volume/path`
 
 ## Use a different shell than the host
 
@@ -97,7 +97,7 @@ Instead of running `sudo distrobox` to do stuff, it is better to simply use norm
 command with the `--root` or `-r` flag, so that distrobox can still integrate better
 with your `$USER`.
 
-`distrobox create --name test --image your-choosen-image:tag --root`
+`distrobox create --name test --image your-chosen-image:tag --root`
 
 ## Using a command other than sudo to run a rootful container
 
@@ -180,7 +180,7 @@ You can create a distrobox with will have the same hostname as the host by
 creating it with the following init-hook:
 
 ```sh
-distrobox create --name test --image your-choosen-image:tag \
+distrobox create --name test --image your-chosen-image:tag \
                   --init-hooks '"$(uname -n)" > /etc/hostname'`
 ```
 
@@ -197,7 +197,7 @@ If you want to have a separate system remote between host and container,
 you can create your distrobox with the followint init-hook:
 
 ```sh
-distrobox create --name test --image your-choosen-image:tag \
+distrobox create --name test --image your-chosen-image:tag \
                         --init-hooks 'umount /var/lib/flatpak'`
 ```
 
