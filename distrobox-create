@@ -25,6 +25,7 @@
 # Optional env variables:
 #	DBX_CONTAINER_ALWAYS_PULL
 #	DBX_CONTAINER_CUSTOM_HOME
+#	DBX_CONTAINER_HOME_PREFIX
 #	DBX_CONTAINER_IMAGE
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
@@ -45,6 +46,7 @@ fi
 # Defaults
 container_always_pull=0
 container_clone=""
+container_home_prefix=""
 container_image=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
 container_init_hook=""
@@ -100,6 +102,7 @@ done
 
 [ -n "${DBX_CONTAINER_ALWAYS_PULL}" ] && container_always_pull="${DBX_CONTAINER_ALWAYS_PULL}"
 [ -n "${DBX_CONTAINER_CUSTOM_HOME}" ] && container_user_custom_home="${DBX_CONTAINER_CUSTOM_HOME}"
+[ -n "${DBX_CONTAINER_HOME_PREFIX}" ] && container_home_prefix="${DBX_CONTAINER_HOME_PREFIX}"
 [ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
@@ -142,6 +145,7 @@ Options:
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
 	--home/-H:		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
+	--prefix/-P:		select a custom HOME directory prefix. Container's HOME will be PREFIX/CONTAINER_NAME
 	--volume:		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--init-hooks:		additional commands to execute during container initialization
@@ -218,6 +222,13 @@ while :; do
 		-H | --home)
 			if [ -n "$2" ]; then
 				container_user_custom_home="$2"
+				shift
+				shift
+			fi
+			;;
+		-P | --prefix)
+			if [ -n "$2" ]; then
+				container_home_prefix="$2"
 				shift
 				shift
 			fi
@@ -495,11 +506,35 @@ generate_command() {
 		fi
 	done
 
+	# If we have a home prefix to use,
+	#	1- override the HOME env variable
+	#	2- export the DISTROBOX_HOST_HOME env variable pointing to original HOME
+	# 	3- mount the home inside the container.
+	if [ -n "${container_home_prefix}" ] && [ -z "${container_user_custom_home}" ]; then
+		if [ ! -d "${container_home_prefix}/${container_name}" ]; then
+			if ! mkdir -p "${container_home_prefix}/${container_name}"; then
+				printf >&2 "Do you have permission to write to %s?\n" "${container_home_prefix}"
+				exit 1
+			fi
+		fi
+		result_command="${result_command}
+			--env \"HOME=${container_home_prefix}/${container_name}\"
+			--env \"DISTROBOX_HOST_HOME=${container_user_home}/${container_name}\"
+			--volume ${container_home_prefix}/${container_name}:${container_home_prefix}/${container_name}:rslave"
+	fi
+
+
 	# If we have a custom home to use,
 	#	1- override the HOME env variable
-	#	2- expor the DISTROBOX_HOST_HOME env variable pointing to original HOME
+	#	2- export the DISTROBOX_HOST_HOME env variable pointing to original HOME
 	# 	3- mount the custom home inside the container.
 	if [ -n "${container_user_custom_home}" ]; then
+		if [ ! -d "${container_user_custom_home}" ]; then
+			if ! mkdir -p ${container_user_custom_home}; then
+				printf >&2 "Do you have permission to write to %s?\n" "${container_user_custom_home}"
+				exit 1
+			fi
+		fi
 		result_command="${result_command}
 			--env \"HOME=${container_user_custom_home}\"
 			--env \"DISTROBOX_HOST_HOME=${container_user_home}\"
