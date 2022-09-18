@@ -530,7 +530,7 @@ generate_command() {
 	# 	3- mount the custom home inside the container.
 	if [ -n "${container_user_custom_home}" ]; then
 		if [ ! -d "${container_user_custom_home}" ]; then
-			if ! mkdir -p "${container_user_custom_home}""; then
+			if ! mkdir -p "${container_user_custom_home}"; then
 				printf >&2 "Do you have permission to write to %s?\n" "${container_user_custom_home}"
 				exit 1
 			fi
