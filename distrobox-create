@@ -523,7 +523,6 @@ generate_command() {
 			--volume ${container_home_prefix}/${container_name}:${container_home_prefix}/${container_name}:rslave"
 	fi
 
-
 	# If we have a custom home to use,
 	#	1- override the HOME env variable
 	#	2- export the DISTROBOX_HOST_HOME env variable pointing to original HOME
