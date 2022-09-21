@@ -503,7 +503,7 @@ generate_command() {
 		result_command="${result_command}
 			--env \"HOME=${container_user_custom_home}\"
 			--env \"DISTROBOX_HOST_HOME=${container_user_home}\"
-			--volume ${container_user_custom_home}:${container_user_custom_home}:rslave"
+			--volume \"${container_user_custom_home}:${container_user_custom_home}:rslave\""
 	fi
 
 	# Mount also the /var/home dir on ostree based systems
