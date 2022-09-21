@@ -397,7 +397,7 @@ fi
 
 # Generate the create command and run it
 printf >&2 "Creating '%s' using image %s\t" "${container_name}" "${container_image}"
-cmd="$( generate_create_ommand \
+cmd="$( generate_create_command \
 	"${container_image}" \
 	"${container_init_hook}" \
 	"${container_manager}" \

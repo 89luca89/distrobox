@@ -85,20 +85,26 @@ jobs:
       - uses: actions/checkout@v2
 
       # Ensure distrobox create works:
+      - name: Distrobox install
+        shell: 'script -q -e -c "bash {0}"'
+        run: |
+          sudo ./install
+
+      # Ensure distrobox create works:
       - name: Distrobox create
         shell: 'script -q -e -c "bash {0}"'
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           ${DBX_CONTAINER_MANAGER} pull "${image}"
-          ./distrobox create --yes -i "${image}" --name "${container_name}"
+          /usr/local/bin/distrobox create --yes -i "${image}" --name "${container_name}"
           #case "${container_name}" in
           #  *init*)
           #    echo "SYSTEMD DETECTED: creating container with --init..."
-          #    ./distrobox create --yes -i "${image}" --name "${container_name}" --init
+          #    /usr/local/bin/distrobox create --yes -i "${image}" --name "${container_name}" --init
           #    ;;
           #  *)
-          #    ./distrobox create --yes -i "${image}" --name "${container_name}"
+          #    /usr/local/bin/distrobox create --yes -i "${image}" --name "${container_name}"
           #    ;;
           # esac
 
@@ -108,7 +114,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox enter --name "${container_name}" -- whoami
+          /usr/local/bin/distrobox enter --name "${container_name}" -- whoami
           # Temporary disable systemd init on github runners, it seems to be incompatible
           # with runner services:
           #   Failed to create /system.slice/runner-provisioner.service/init.scope control group: Permission denied
@@ -116,10 +122,10 @@ jobs:
           # case "${container_name}" in
           #   *init*)
           #     echo "SYSTEMD DETECTED: performing systemctl check..."
-          #     ./distrobox enter --name "${container_name}" -- systemctl status --no-pager
+          #     /usr/local/bin/distrobox enter --name "${container_name}" -- systemctl status --no-pager
           #     ;;
           #   *)
-          #     ./distrobox enter --name "${container_name}" -- whoami
+          #     /usr/local/bin/distrobox enter --name "${container_name}" -- whoami
           #     ;;
           # esac
 
@@ -131,7 +137,7 @@ jobs:
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(./distrobox enter --name "${container_name}" -- whoami | tr -d '\r' | tr -d '^@')"
+          command_output="$(/usr/local/bin/distrobox enter --name "${container_name}" -- whoami | tr -d '\r' | tr -d '^@')"
           expected_output="$(whoami)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
@@ -145,7 +151,7 @@ jobs:
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(./distrobox enter --name "${container_name}" -- uname -n | tr -d '\r' | tr -d '^@')"
+          command_output="$(/usr/local/bin/distrobox enter --name "${container_name}" -- uname -n | tr -d '\r' | tr -d '^@')"
           expected_output="${container_name}.$(uname -n)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
@@ -157,7 +163,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox enter "${container_name}" -- distrobox-export --bin /bin/uname --export-path ${HOME}/
+          /usr/local/bin/distrobox enter "${container_name}" -- distrobox-export --bin /bin/uname --export-path ${HOME}/
           # Assert that distrobox exported binary indeed works
           set -x
           command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
@@ -172,7 +178,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox enter "${container_name}" -- distrobox-export --sudo --bin /bin/uname --export-path ${HOME}/
+          /usr/local/bin/distrobox enter "${container_name}" -- distrobox-export --sudo --bin /bin/uname --export-path ${HOME}/
           # Assert that distrobox exported binary indeed works
           set -x
           command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
@@ -186,14 +192,14 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox list | grep "${container_name}" | grep "${image}" | grep -E "Up|running"
+          /usr/local/bin/distrobox list | grep "${container_name}" | grep "${image}" | grep -E "Up|running"
 
       # Ensure distrobox stop works:
       - name: Distrobox stop
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox stop --yes "${container_name}"
+          /usr/local/bin/distrobox stop --yes "${container_name}"
 
       # Ensure distrobox rm works:
       - name: Distrobox logs on failure
@@ -209,4 +215,4 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox rm --force "${container_name}"
+          /usr/local/bin/distrobox rm --force "${container_name}"
