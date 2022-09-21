@@ -558,6 +558,9 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		fi
 		# Ensure we avoid errors by keeping xbps updated
 		xbps-install -Syu xbps
+		# We have to lock this package, as it's incompatible with distrobox's
+		# mount process.
+		xbps-pkgdb -m repolock base-files
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
