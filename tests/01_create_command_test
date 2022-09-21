@@ -1,4 +1,4 @@
-#!/usr/bin/env -S -i sh
+#!/usr/bin/env -S -i sh 
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of the distrobox project:
@@ -117,7 +117,7 @@ cmd="$(generate_create_command \
 	0 \
 	0)"
 expected="test-container-manager create
-		--hostname \"test-container-name.fedora-rawhide.fedora\"
+		--hostname \"test-container-name.$(uname -n)\"
 		--ipc host
 		--name \"test-container-name\"
 		--network host
@@ -175,7 +175,7 @@ cmd="$(generate_create_command \
 	0 \
 	0)"
 expected="test-container-manager create
-		--hostname \"test-container-name.fedora-rawhide.fedora\"
+		--hostname \"test-container-name.$(uname -n)\"
 		--ipc host
 		--name \"test-container-name\"
 		--network host
@@ -233,7 +233,7 @@ cmd="$(generate_create_command \
 	0 \
 	0)"
 expected="test-container-manager create
-		--hostname \"test-container-name.fedora-rawhide.fedora\"
+		--hostname \"test-container-name.$(uname -n)\"
 		--ipc host
 		--name \"test-container-name\"
 		--network host
@@ -291,7 +291,7 @@ cmd="$(generate_create_command \
 	0 \
 	0)"
 expected="test-container-manager create
-		--hostname \"test-container-name.fedora-rawhide.fedora\"
+		--hostname \"test-container-name.$(uname -n)\"
 		--ipc host
 		--name \"test-container-name\"
 		--network host
@@ -330,7 +330,7 @@ else
 	exit 1
 fi
 
-printf "create_command: Test container create with pre-init hooks... "
+printf "create_command: Test container create with custom home... "
 cmd="$(generate_create_command \
 	"alpine:latest" \
 	"umount /tmp" \
@@ -349,7 +349,7 @@ cmd="$(generate_create_command \
 	0 \
 	0)"
 expected="test-container-manager create
-		--hostname \"test-container-name.fedora-rawhide.fedora\"
+		--hostname \"test-container-name.$(uname -n)\"
 		--ipc host
 		--name \"test-container-name\"
 		--network host
@@ -372,7 +372,7 @@ expected="test-container-manager create
 			--volume /var/log/journal
 			--env \"HOME=/home/custom-user-home\"
 			--env \"DISTROBOX_HOST_HOME=/home/test-home\"
-			--volume /home/custom-user-home:/home/custom-user-home:rslave
+			--volume \"/home/custom-user-home:/home/custom-user-home:rslave\"
 		--volume /etc/hosts:/etc/hosts:ro
 		--volume /etc/localtime:/etc/localtime:ro
 		--volume /etc/resolv.conf:/etc/resolv.conf:ro --test-flag alpine:latest
@@ -410,7 +410,7 @@ cmd="$(generate_create_command \
 	1 \
 	0)"
 expected="test-container-manager create
-		--hostname \"test-container-name.fedora-rawhide.fedora\"
+		--hostname \"test-container-name.$(uname -n)\"
 		--ipc host
 		--name \"test-container-name\"
 		--network host
@@ -432,7 +432,7 @@ expected="test-container-manager create
 			--volume /var/log/journal
 			--env \"HOME=/home/custom-user-home\"
 			--env \"DISTROBOX_HOST_HOME=/home/test-home\"
-			--volume /home/custom-user-home:/home/custom-user-home:rslave
+			--volume \"/home/custom-user-home:/home/custom-user-home:rslave\"
 		--volume /etc/hosts:/etc/hosts:ro
 		--volume /etc/localtime:/etc/localtime:ro
 		--volume /etc/resolv.conf:/etc/resolv.conf:ro --test-flag alpine:latest
@@ -470,7 +470,7 @@ cmd="$(generate_create_command \
 	1 \
 	0)"
 expected="podman create
-		--hostname \"test-container-name.fedora-rawhide.fedora\"
+		--hostname \"test-container-name.$(uname -n)\"
 		--ipc host
 		--name \"test-container-name\"
 		--network host
@@ -492,7 +492,7 @@ expected="podman create
 			--volume /var/log/journal
 			--env \"HOME=/home/custom-user-home\"
 			--env \"DISTROBOX_HOST_HOME=/home/test-home\"
-			--volume /home/custom-user-home:/home/custom-user-home:rslave
+			--volume \"/home/custom-user-home:/home/custom-user-home:rslave\"
 		--volume /etc/hosts:/etc/hosts:ro
 		--volume /etc/localtime:/etc/localtime:ro
 		--volume /etc/resolv.conf:/etc/resolv.conf:ro
@@ -535,7 +535,7 @@ cmd="$(generate_create_command \
 	1 \
 	1)"
 expected="podman create
-		--hostname \"test-container-name.fedora-rawhide.fedora\"
+		--hostname \"test-container-name.$(uname -n)\"
 		--ipc host
 		--name \"test-container-name\"
 		--network host
@@ -557,7 +557,7 @@ expected="podman create
 			--volume /var/log/journal
 			--env \"HOME=/home/custom-user-home\"
 			--env \"DISTROBOX_HOST_HOME=/home/test-home\"
-			--volume /home/custom-user-home:/home/custom-user-home:rslave
+			--volume \"/home/custom-user-home:/home/custom-user-home:rslave\"
 		--volume /etc/hosts:/etc/hosts:ro
 		--volume /etc/localtime:/etc/localtime:ro
 		--volume /etc/resolv.conf:/etc/resolv.conf:ro
