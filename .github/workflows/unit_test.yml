@@ -28,7 +28,7 @@ jobs:
       # Fetch test list
       - id: set-matrix
         run: |
-            echo "::set-output name=targets::$(ls -1 tests/[0-9][0-9]* |
+            echo "::set-output name=targets::$(ls -1 tests/[0-9][0-9]_* |
               jq -R -s -c 'split("\n")[:-1]')"
 
   run:

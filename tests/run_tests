@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -o errexit
+set -o nounset
+
+for test_file in tests/[0-9][0-9]_*; do
+	podman run \
+		--privileged \
+		--user 999:999 \
+		--volume "$(pwd):/mnt/" \
+		--rm -it alpine:latest \
+		sh -c "env -i sh /mnt/${test_file}"
+done
