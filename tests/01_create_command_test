@@ -1,4 +1,4 @@
-#!/usr/bin/env -S -i sh 
+#!/usr/bin/env -i sh 
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of the distrobox project:
@@ -45,6 +45,7 @@ if ! generate_create_command \
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -71,6 +72,7 @@ if ! generate_create_command \
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -95,6 +97,7 @@ if generate_create_command \
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -153,6 +156,7 @@ if [ "${cmd}" = "${expected}" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -211,6 +215,7 @@ if [ "${cmd}" = "${expected}" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -269,6 +274,7 @@ if [ "${cmd}" = "${expected}" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -327,6 +333,7 @@ if [ "${cmd}" = "${expected}" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -388,6 +395,7 @@ if [ "${cmd}" = "${expected}" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -448,6 +456,7 @@ if [ "${cmd}" = "${expected}" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -513,6 +522,7 @@ if [ "${cmd}" = "${expected}" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -577,5 +587,6 @@ if [ "${cmd}" = "${expected}" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi

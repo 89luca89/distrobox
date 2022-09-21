@@ -48,4 +48,9 @@ jobs:
       - name: Run unit test
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          env -S -i sh -x ${{ matrix.test }}
+          podman run \
+            --privileged \
+            --user 999:999 \
+            --volume "$PWD":/mnt/ \
+            --rm -it alpine:latest \
+            sh -c "env -i sh /mnt/${{ matrix.test }}"

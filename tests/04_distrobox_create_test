@@ -1,4 +1,4 @@
-#!/usr/bin/env -S -i sh
+#!/usr/bin/env -i sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of the distrobox project:
@@ -48,24 +48,6 @@ if [ "${?}" -eq 1 ]; then
 		printf "FAIL\n"
 		exit 1
 	fi
-else
-	printf "FAIL\n"
-	exit 1
-fi
-
-printf "distrobox-create: Test command with non existent image... "
-out="$(/tmp/test/bin/distrobox-create --yes --image foo.org/bar:baz 2>&1)"
-if [ "${?}" -eq 125 ]; then
-	printf "PASS\n"
-else
-	printf "FAIL\n"
-	exit 1
-fi
-
-printf "distrobox-create: Test command with invalid image tag... "
-out="$(/tmp/test/bin/distrobox-create --yes --image docker.io/alpine:-12 2>&1)"
-if [ "${?}" -eq 125 ]; then
-	printf "PASS\n"
 else
 	printf "FAIL\n"
 	exit 1

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S -i sh
+#!/usr/bin/env -i sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of the distrobox project:
@@ -46,15 +46,6 @@ if [ "${?}" -eq 1 ]; then
 		printf "FAIL\n"
 		exit 1
 	fi
-else
-	printf "FAIL\n"
-	exit 1
-fi
-
-printf "distrobox-generate-entry: Test command with unknown container name... "
-out="$(/tmp/test/bin/distrobox-generate-entry foo-bar-baz 2>&1)"
-if [ "${?}" -eq 1 ]; then
-	printf "PASS\n"
 else
 	printf "FAIL\n"
 	exit 1

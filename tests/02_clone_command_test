@@ -1,4 +1,4 @@
-#!/usr/bin/env -S -i sh
+#!/usr/bin/env -i sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of the distrobox project:
@@ -30,6 +30,7 @@ if ! clone_container 2> /dev/null; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -42,5 +43,6 @@ if ! clone_container \
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi

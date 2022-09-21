@@ -1,4 +1,4 @@
-#!/usr/bin/env -S -i sh
+#!/usr/bin/env -i sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of the distrobox project:
@@ -41,6 +41,7 @@ if ! detect_container_manager \
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -56,6 +57,7 @@ if ! detect_container_manager \
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -69,6 +71,7 @@ if detect_container_manager \
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -85,6 +88,7 @@ if [ "${error_code}" = "127" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -99,6 +103,7 @@ if [ "${result}" = "docker" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -113,6 +118,7 @@ if [ "${result}" = "podman" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -127,6 +133,7 @@ if [ "${result}" = "podman" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -141,6 +148,7 @@ if [ "${result}" = "docker" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -155,6 +163,7 @@ if [ "${result}" = "podman" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -169,6 +178,7 @@ if [ "${result}" = "sudo docker" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -183,6 +193,7 @@ if [ "${result}" = "sudo podman" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -197,6 +208,7 @@ if [ "${result}" = "docker --log-level debug" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -211,6 +223,7 @@ if [ "${result}" = "podman --log-level debug" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -225,6 +238,7 @@ if [ "${result}" = "sudo docker --log-level debug" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -239,6 +253,7 @@ if [ "${result}" = "sudo podman --log-level debug" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -253,6 +268,7 @@ if [ "${result}" = "test1234 docker --log-level debug" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
 
@@ -267,5 +283,6 @@ if [ "${result}" = "test1234 podman --log-level debug" ]; then
 	printf "PASS\n"
 else
 	printf "FAIL\n"
+	diff <(echo "$cmd") <(echo "$expected")
 	exit 1
 fi
