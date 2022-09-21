@@ -48,4 +48,4 @@ jobs:
       - name: Run unit test
         shell: 'script -q -e -c "bash {0}"'
         run: |
-          env -S -i sh ${{ matrix.test }}
+          env -S -i sh -x ${{ matrix.test }}
