@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # shellcheck disable=all
 
 _generate_from_help() {
