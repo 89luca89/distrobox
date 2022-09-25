@@ -58,6 +58,8 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
+container_network=""
+container_network_default="host"
 distrobox_sudo_program="sudo"
 dryrun=0
 init=0
@@ -143,6 +145,7 @@ Options:
 				of the same environment.
 	--home/-H:		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
 	--volume:		additional volumes to add to the container
+	--network:		select a network namespace for the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--init-hooks:		additional commands to execute during container initialization
 	--pre-init-hooks:	additional commands to execute prior to container initialization
@@ -258,6 +261,13 @@ while :; do
 				shift
 			fi
 			;;
+		--network)
+			if [ -n "$2" ]; then
+				container_network="${2}"
+				shift
+				shift
+			fi
+			;;
 		--) # End of all options.
 			shift
 			break
@@ -311,6 +321,10 @@ fi
 #	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
 if [ -z "${container_name}" ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/[:.]/-/g')"
+fi
+
+if [ -z "${container_network}" ]; then
+	container_network="${container_network_default}"
 fi
 
 # We depend on a container manager let's be sure we have it
@@ -411,7 +425,7 @@ generate_command() {
 		--hostname \"${container_name}.$(uname -n)\"
 		--ipc host
 		--name \"${container_name}\"
-		--network host
+		--network ${container_network}
 		--privileged
 		--security-opt label=disable
 		--user root:root"
@@ -530,9 +544,13 @@ generate_command() {
 	# This is the bare minimum to ensure connectivity inside the container.
 	# These files, will then be kept updated by the main loop every 15 seconds.
 	result_command="${result_command}
-		--volume /etc/hosts:/etc/hosts:ro
-		--volume /etc/localtime:/etc/localtime:ro
-		--volume /etc/resolv.conf:/etc/resolv.conf:ro"
+		--volume /etc/localtime:/etc/localtime:ro"
+
+	if [ "${container_network}" = "${container_network_default}" ]; then
+		result_command="${result_command}
+			--volume /etc/hosts:/etc/hosts:ro
+			--volume /etc/resolv.conf:/etc/resolv.conf:ro"
+	fi
 
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
