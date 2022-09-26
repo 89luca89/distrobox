@@ -26,7 +26,6 @@ graphical apps (X11/Wayland), and audio.
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
 	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
-	--prefix/-P:		select a custom HOME directory prefix. Container's HOME will be PREFIX/CONTAINER_NAME
 	--volume		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--init-hooks		additional commands to execute during container initialization
@@ -65,6 +64,7 @@ Supported environment variables:
 
 	DBX_CONTAINER_ALWAYS_PULL
 	DBX_CONTAINER_CUSTOM_HOME
+	DBX_CONTAINER_HOME_PREFIX
 	DBX_CONTAINER_IMAGE
 	DBX_CONTAINER_MANAGER
 	DBX_CONTAINER_NAME
