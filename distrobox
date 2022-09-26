@@ -89,10 +89,6 @@ case "${distrobox_command}" in
 		exit 0
 		;;
 	help | --help | -h)
-		if command -v man > /dev/null; then
-			man distrobox || show_help
-			exit 0
-		fi
 		show_help
 		exit 0
 		;;
