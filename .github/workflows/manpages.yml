@@ -50,10 +50,11 @@ jobs:
       - id: generate
         run: |
           VERSION=2.19.2
-          RELEASE="jgm/pandoc/releases/download/${VERSION}/pandoc-${VERSION}-linux-amd64.tar.gz"
+          RELEASE="jgm/pandoc/releases/download/${VERSION}/pandoc-${VERSION}-1-amd64.deb"
           NAME=$(echo $RELEASE | rev | cut -d'/' -f1 | rev)
 
           curl -L https://github.com/$RELEASE -o $NAME
+          sudo apt-get update
           sudo apt-get install -y ./$NAME
           sudo apt-get install -y ronn
 
