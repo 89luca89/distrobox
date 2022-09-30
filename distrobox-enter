@@ -173,7 +173,16 @@ while :; do
 			;;
 		-e | --exec | --)
 			shift
-			container_command=$*
+			# container_command=$*
+			container_command="$1"
+			shift
+			for arg in "$@"; do
+				if echo "$arg" | grep -q '"'; then
+					container_command="$container_command  '${arg}'"
+				else
+					container_command="$container_command  \"${arg}\""
+				fi
+			done
 			break
 			;;
 		-*) # Invalid options.

@@ -247,8 +247,17 @@ generate_script() {
 # distrobox_binary
 # name: ${container_name}
 if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
-    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
-${is_sudo} ${exported_bin} ${extra_flags} "\$@"
+    command="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
+${is_sudo} ${exported_bin} ${extra_flags} "
+
+	for arg in "\$@"; do
+		if echo "\${arg}" | grep -q '"'; then
+			command="\${command}  '\${arg}'"
+		else
+			command="\${command}  \"\${arg}\""
+		fi
+	done
+	eval "\${command}"
 else
     ${exported_bin} "\$@"
 fi
