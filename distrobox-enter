@@ -177,7 +177,10 @@ while :; do
 			container_command="$1"
 			shift
 			for arg in "$@"; do
-				if echo "${arg}" | grep -q '"'; then
+				if echo "${arg}" | grep -Eq "'|\""; then
+					container_command="${container_command} \
+						$(echo "${arg}" | sed "s|'|\\\'|g" | sed 's|"|\\\"|g')"
+				elif echo "${arg}" | grep -q '"'; then
 					container_command="${container_command}  '${arg}'"
 				else
 					container_command="${container_command}  \"${arg}\""
