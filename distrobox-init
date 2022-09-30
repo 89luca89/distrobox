@@ -180,7 +180,7 @@ mount_bind() (
 	! [ -d "${source_dir}" ] && ! [ -f "${source_dir}" ] && return 0
 
 	# if target_dir exists, check if it is a mountpoint and umount it.
-	if [ -e "${target_dir}" ] && mountpoint "${target_dir}"; then
+	if [ -e "${target_dir}" ] && findmnt "${target_dir}" > /dev/null; then
 		umount "${target_dir}"
 	fi
 	# if the source_dir exists, then create the target_dir
@@ -846,7 +846,7 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 		printf "distrobox: Setting up apt hooks...\n"
 		printf "" > /etc/apt/apt.conf.d/00_distrobox
 		for init_mount in ${HOST_MOUNTS_RO_INIT}; do
-			printf 'DPkg::Pre-Invoke {"if mountpoint %s; then umount %s; fi";};\n' \
+			printf 'DPkg::Pre-Invoke {"if findmnt %s >/dev/null; then umount %s; fi";};\n' \
 				"${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
 			printf 'DPkg::Post-Invoke {"if [ -e /run/host/%s ]; then mount --rbind /run/host/%s %s; fi";};\n' \
 				"${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
@@ -866,7 +866,7 @@ if [ -d "/usr/share/libalpm/scripts" ]; then
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
 	chmod +x /usr/share/libalpm/scripts/*distrobox*.sh
 	for net_mount in ${HOST_MOUNTS_RO}; do
-		printf "if mountpoint %s; then umount %s; fi\n" \
+		printf "if findmnt %s >/dev/null; then umount %s; fi\n" \
 			"${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 		printf "if [ -e /run/host/%s ]; then mount --rbind -o ro /run/host/%s %s; fi\n" \
 			"${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
@@ -1035,7 +1035,7 @@ if [ "${init}" -eq 0 ]; then
 					# We only do this, if the file is a bind mount in the first place.
 					# This could be useful for init-hooks that involve umounting those
 					# files so that can be separated from the host.
-					mountpoint "${file_watch}" &&
+					findmnt "${file_watch}" > /dev/null &&
 						umount "${file_watch}" &&
 						mount_bind "/run/host${file_watch}" "${file_watch}" rw
 				fi
@@ -1051,7 +1051,7 @@ printf  "distrobox: Setting up init system...\n"
 # the init system. If they're mounts, there might
 # be problems. Let's unmount them.
 for host_mount in  ${HOST_MOUNTS_RO_INIT}; do
-	if mountpoint "${host_mount}"; then umount "${host_mount}"; fi
+	if findmnt "${host_mount}" > /dev/null; then umount "${host_mount}"; fi
 done
 if command -v systemctl 2> /dev/null; then
 	# Cleanup systemd to not interfere with the host

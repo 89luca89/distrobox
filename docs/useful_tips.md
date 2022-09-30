@@ -15,7 +15,6 @@
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
   - [Using a different architecture](#using-a-different-architecture)
-  - [Improve distrobox enter performance](#improve-distrobox-enter-performance)
   - [Slow creation on podman and image size getting bigger with distrobox create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](#container-save-and-restore)
   - [Check used resources](#check-used-resources)
@@ -295,15 +294,6 @@ aarch64
 ```
 
 ![image](https://user-images.githubusercontent.com/598882/170837120-9170a9fa-6153-4684-a435-d60a0136b563.png)
-
-## Improve distrobox enter performance
-
-If you are experiencing a bit slow performance using `podman` you should enable
-the podman socket using
-
-`systemctl --user enable --now podman.socket`
-
-this will improve a lot `podman`'s command performances.
 
 ## Slow creation on podman and image size getting bigger with distrobox create
 
