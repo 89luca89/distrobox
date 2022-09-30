@@ -385,11 +385,11 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		if ! emerge --ask=n --autounmask-continue "${shell_pkg}"; then
+		if ! emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"; then
 			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
-		emerge --ask=n --autounmask-continue --quiet-build \
+		emerge --ask=n --autounmask-continue --noreplace --quiet-build \
 			"${shell_pkg}" \
 			bc \
 			net-misc/curl \
@@ -403,7 +403,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			sudo \
 			util-linux \
 			wget \
-			vte
+			x11-libs/vte
 
 	elif command -v microdnf; then
 		# If we need to upgrade, do it and exit, no further action required.
