@@ -388,16 +388,18 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		fi
 		emerge --ask=n --autounmask-continue --noreplace --quiet-build \
 			"${shell_pkg}" \
+			app-crypt/gnupg \
 			bc \
-			net-misc/curl \
 			diffutils \
 			findutils \
 			less \
 			ncurses \
+			net-misc/curl \
 			pinentry \
 			procps \
 			shadow \
 			sudo \
+			sys-process/lsof \
 			util-linux \
 			wget
 
