@@ -252,7 +252,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
 		if ! apk add "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		apk add \
@@ -297,7 +296,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
 		if ! apt-get install -y "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		apt-get install -y \
@@ -349,7 +347,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
 		if ! dnf install -y "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		dnf install -y --allowerasing \
@@ -386,7 +383,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
 		if ! emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		emerge --ask=n --autounmask-continue --noreplace --quiet-build \
@@ -415,7 +411,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
 		if ! microdnf install -y "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		microdnf install -y \
@@ -462,7 +457,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# that it is set up correctly for the user.
 		pacman --noconfirm -Syyu
 		if ! pacman -Sy --noconfirm "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		pacman -Sy --noconfirm \
@@ -502,7 +496,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
 		if ! yes | slackpkg install -default_answer=yes -batch=yes "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		yes | slackpkg install -default_answer=yes -batch=yes \
@@ -565,7 +558,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
 		if ! xbps-install -Sy "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		xbps-install -Sy \
@@ -603,7 +595,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
 		if ! yum install -y "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		yum install -y \
@@ -640,7 +631,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			exit
 		fi
 		if ! zypper install -y "${shell_pkg}"; then
-			SHELL="/bin/bash"
 			shell_pkg="bash"
 		fi
 		zypper install -y \
@@ -689,6 +679,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		printf "Error: could not set up base dependencies.\n"
 		# Exit as command not found
 		exit 127
+	fi
+	# Ash shell is an exception, it is not a standalone package, but part of busybox.
+	# for this reason, use this quirk to adjust the package name.
+	if [ "${shell_pkg}" = "ash" ]; then
+		SHELL="/bin/sh"
+	else
+		SHELL="$(command -v "${shell_pkg}")"
 	fi
 fi
 ###############################################################################
