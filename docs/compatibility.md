@@ -154,7 +154,7 @@ Distrobox guests tested successfully with the following container images:
 | Debian | Testing    | docker.io/library/debian:testing  <br>  docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
 | Fedora | 35 <br> 36 <br> 37 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox:35 <br> quay.io/fedora/fedora:35 <br> quay.io/fedora/fedora:36 <br> registry.fedoraproject.org/fedora:37 <br> quay.io/fedora/fedora:rawhide    |
-| Gentoo Linux | rolling | You will have to [Build your own](distrobox_gentoo.md) to have a complete Gentoo docker image |
+| Gentoo Linux | rolling | docker.io/gentoo/stage3:latest |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Mageia | 8 | docker.io/library/mageia |
 | Neurodebian | nd100 | docker.io/library/neurodebian:nd100 |
