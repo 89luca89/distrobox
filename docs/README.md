@@ -79,7 +79,6 @@ graphical apps (X11/Wayland), and audio.
   - [Using init system inside a distrobox](useful_tips.md#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](useful_tips.md#using-distrobox-as-main-cli)
   - [Using a different architecture](useful_tips.md#using-a-different-architecture)
-  - [Improve distrobox-enter performance](useful_tips.md#improve-distrobox-enter-performance)
   - [Slow creation on podman and image size getting bigger with distrobox-create](useful_tips.md#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](useful_tips.md#container-save-and-restore)
   - [Check used resources](useful_tips.md#check-used-resources)
