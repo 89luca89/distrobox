@@ -177,10 +177,10 @@ while :; do
 			container_command="$1"
 			shift
 			for arg in "$@"; do
-				if echo "$arg" | grep -q '"'; then
-					container_command="$container_command  '${arg}'"
+				if echo "${arg}" | grep -q '"'; then
+					container_command="${container_command}  '${arg}'"
 				else
-					container_command="$container_command  \"${arg}\""
+					container_command="${container_command}  \"${arg}\""
 				fi
 			done
 			break
