@@ -214,15 +214,19 @@ if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
 	exit 2
 fi
 
-# We can assume this as we set it the same as container name during creation.
-if [ -e /.dockerenv ]; then
+if  [ -n "${CONTAINER_ID}" ]; then
+	container_name="${CONTAINER_ID}"
+# if the variable is not set, let's fall back to some tricks.
+elif  [ -e /.dockerenv ]; then
 	# we're in docker, let's use this trick
 	container_name=$(grep "memory:/" < /proc/self/cgroup | sed 's|.*/||')
 elif [ -e /run/.containerenv ]; then
 	# we're in podman, use this other trick
 	container_name=$(grep "name=" /run/.containerenv | cut -d'=' -f2- | tr -d '"')
-else
-	# fallback to a more simple way but error prone
+fi
+# If one of the previous methods didn't work
+# let's fallback to a more simple way but error prone
+if [ -z "${container_name}" ]; then
 	container_name=$(uname -n | cut -d'.' -f1)
 fi
 
