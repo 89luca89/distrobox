@@ -41,7 +41,6 @@ non_interactive=0
 rootful=0
 verbose=0
 rm_home=0
-rm_home_local=0
 distrobox_sudo_program="sudo"
 version="1.4.1"
 
@@ -249,7 +248,7 @@ for container_name in ${container_name_list}; do
 		response="yes"
 	fi
 
-	container_home=$(${container_manager} inspect ${container_name} --format '{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}')
+	container_home=$(${container_manager} inspect "${container_name}" --format '{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}')
 	# Prompt for confirmation
 	if [ "${non_interactive}" -eq 0 ] && [ "${container_home}" != "${HOME}" ] && [ "${rm_home}" -eq 0 ]; then
 		printf "Do you want to remove custom home of container %s (%s)? [Y/n]: " "${container_name}" "${container_home}"
@@ -294,8 +293,8 @@ for container_name in ${container_name_list}; do
 
 			# Remove custom home
 			if [ "${rm_home_local}" -eq 1 ]; then
-				rm -r ${container_home}
-				printf "Successfully removed %s\n" ${container_home}
+				rm -r "${container_home}"
+				printf "Successfully removed %s\n" "${container_home}"
 			fi
 			;;
 		n | N | No | no | NO)
