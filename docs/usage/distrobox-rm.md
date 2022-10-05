@@ -14,6 +14,7 @@ distrobox-rm delete one of the available distroboxes.
 
 	--name/-n:		name for the distrobox
 	--force/-f:		force deletion
+	--rm-home:		remove the mounted home if it differs from the host user's one
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
