@@ -240,14 +240,14 @@ fi
 # Arguments:
 #	none it will use the ones set up globally
 # Outputs:
-#   print generated script.
+#	print generated script.
 generate_script() {
 	cat << EOF
 #!/bin/sh
 # distrobox_binary
 # name: ${container_name}
 if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
-    command="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
+	command="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
 ${is_sudo} ${exported_bin} ${extra_flags} "
 
 	for arg in "\$@"; do
@@ -259,14 +259,14 @@ ${is_sudo} ${exported_bin} ${extra_flags} "
 				sed "s|'|\\\\\'|g" |
 				sed 's|"|\\\\\"|g')"
 		elif echo "\${arg}" | grep -q "'"; then
-			command="\${command}  \"\${arg}\""
+			command="\${command} \"\${arg}\""
 		else
-			command="\${command}  '\${arg}'"
+			command="\${command} '\${arg}'"
 		fi
 	done
 	exec \${command}
 else
-    ${exported_bin} "\$@"
+	${exported_bin} "\$@"
 fi
 EOF
 	return $?

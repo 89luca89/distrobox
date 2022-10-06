@@ -185,9 +185,9 @@ while :; do
 						sed "s|'|\\\'|g" |
 						sed 's|"|\\\"|g')"
 				elif echo "${arg}" | grep -q "'"; then
-					container_command="${container_command}  \"${arg}\""
+					container_command="${container_command} \"${arg}\""
 				else
-					container_command="${container_command}  '${arg}'"
+					container_command="${container_command} '${arg}'"
 				fi
 			done
 			break
