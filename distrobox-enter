@@ -181,6 +181,7 @@ while :; do
 					container_command="${container_command} \
 						$(echo "${arg}" | sed 's|\\|\\\\|g' |
 						sed 's| |\\ |g' |
+						sed 's|\$|\\\$|g' |
 						sed "s|'|\\\'|g" |
 						sed 's|"|\\\"|g')"
 				elif echo "${arg}" | grep -q '"'; then

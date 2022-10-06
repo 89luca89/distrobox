@@ -255,6 +255,7 @@ ${is_sudo} ${exported_bin} ${extra_flags} "
 			command="\${command} \\
 				\$(echo "\${arg}" | sed 's|\\\|\\\\\\\|g' |
 				sed 's| |\\\ |g' |
+				sed 's|\\$|\\\\\\$|g' |
 				sed "s|'|\\\\\'|g" |
 				sed 's|"|\\\\\"|g')"
 		elif echo "\${arg}" | grep -q '"'; then
