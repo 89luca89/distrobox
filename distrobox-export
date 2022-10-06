@@ -258,13 +258,13 @@ ${is_sudo} ${exported_bin} ${extra_flags} "
 				sed 's|\\$|\\\\\\$|g' |
 				sed "s|'|\\\\\'|g" |
 				sed 's|"|\\\\\"|g')"
-		elif echo "\${arg}" | grep -q '"'; then
-			command="\${command}  '\${arg}'"
-		else
+		elif echo "\${arg}" | grep -q "'"; then
 			command="\${command}  \"\${arg}\""
+		else
+			command="\${command}  '\${arg}'"
 		fi
 	done
-	eval "\${command}"
+	exec \${command}
 else
     ${exported_bin} "\$@"
 fi
