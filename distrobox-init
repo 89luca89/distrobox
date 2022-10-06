@@ -379,10 +379,20 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		fi
 
 	elif command -v emerge; then
+		# Check if the container we are using has a ::gentoo repo defined,
+		# if it is defined and it is empty, then synchroznize it.
+		gentoo_repo="$(portageq get_repo_path / gentoo)"
+		if [ -n "${gentoo_repo}" ] && [ ! -e "${gentoo_repo}" ] ; then
+			emerge-webrsync
+		fi
+		# If we need to upgrade, do it and exit, no further action required.
+		if [ "${upgrade}" -ne 0 ] ; then
+			emerge --sync
+			exit
+		fi
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		emerge --sync --quiet
 		if ! emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
