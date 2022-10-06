@@ -251,7 +251,13 @@ if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
 ${is_sudo} ${exported_bin} ${extra_flags} "
 
 	for arg in "\$@"; do
-		if echo "\${arg}" | grep -q '"'; then
+		if echo "\${arg}" | grep -Eq "'|\""; then
+			command="\${command} \\
+				\$(echo "\${arg}" | sed 's|\\\|\\\\\\\|g' |
+				sed 's| |\\\ |g' |
+				sed "s|'|\\\\\'|g" |
+				sed 's|"|\\\\\"|g')"
+		elif echo "\${arg}" | grep -q '"'; then
 			command="\${command}  '\${arg}'"
 		else
 			command="\${command}  \"\${arg}\""
