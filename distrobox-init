@@ -919,7 +919,10 @@ fi
 printf "distrobox: Setting up users...\n"
 
 # Setup kerberos integration with the host
-if [ -d "/etc/krb5.conf.d" ] && [ ! -e "/etc/krb5.conf.d/kcm_default_ccache" ]; then
+if [ -d "/run/host/var/kerberos" ] &&
+	[ -d "/etc/krb5.conf.d" ] &&
+	[ ! -e "/etc/krb5.conf.d/kcm_default_ccache" ]; then
+
 	cat << EOF > "/etc/krb5.conf.d/kcm_default_ccache"
 # # To disable the KCM credential cache, comment out the following lines.
 [libdefaults]
