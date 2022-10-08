@@ -471,6 +471,7 @@ export_service() {
 	# find the service file in the common
 	service_file=$(find \
 		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ \
+		/lib/systemd/user/ /usr/lib/systemd/user/ \
 		"${host_home}"/.config/systemd/user/ \
 		-type f -name "${exported_service}*" 2> /dev/null | tail -1)
 
