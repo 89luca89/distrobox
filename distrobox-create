@@ -327,7 +327,7 @@ fi
 if [ -z "${container_network}" ]; then
 	container_network="${container_network_default}"
 elif [ "${container_network}" != "${container_network_default}" ]; then
-	printf "\--network does not work without --init. Enabling"
+	printf "The --network option does not work without --init. Enabling\n\n"
 	init=1
 fi
 
