@@ -325,6 +325,9 @@ fi
 
 if [ -z "${container_network}" ]; then
 	container_network="${container_network_default}"
+else
+	printf "\--network does not work without --init. Enabling"
+	init=1
 fi
 
 # We depend on a container manager let's be sure we have it
