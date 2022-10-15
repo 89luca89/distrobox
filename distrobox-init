@@ -31,6 +31,7 @@ init=0
 init_hook=""
 upgrade=0
 pre_init_hook=""
+custom_networking=0
 verbose=0
 version="1.4.1"
 # Print usage to stdout.
@@ -55,6 +56,7 @@ Options:
 	--help/-h:		show this message
 	--init/-I:		whether to use or not init
 	--pre-init-hooks:	commands to execute prior to init
+	--network:		use custom networking
 	--upgrade/-U:		run init in upgrade mode
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -120,6 +122,13 @@ while :; do
 		--pre-init-hooks)
 			if [ -n "$2" ]; then
 				pre_init_hook="$2"
+				shift
+				shift
+			fi
+			;;
+		--network)
+			if [ -n "$2" ]; then
+				custom_networking="$2"
 				shift
 				shift
 			fi
@@ -1006,11 +1015,14 @@ eval ${init_hook}
 if [ "${init}" -eq 0 ]; then
 	printf "container_setup_done\n"
 	# Keepalive loop
-	HOST_WATCH="
-		/etc/hosts
-		/etc/localtime
-		/etc/resolv.conf
-	"
+	HOST_WATCH="/etc/localtime"
+	if [ "${custom_networking}" -eq 0 ]; then
+		HOST_WATCH="
+			${HOST_WATCH}
+			/etc/hosts
+			/etc/resolv.conf
+		"
+	fi
 	# disable verbose logging for this phase.
 	set +x
 	while true; do

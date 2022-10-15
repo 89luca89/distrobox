@@ -58,6 +58,7 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
+container_custom_networking=0
 container_network=""
 container_network_default="host"
 distrobox_sudo_program="sudo"
@@ -146,7 +147,7 @@ Options:
 	--home/-H:		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
 	--volume:		additional volumes to add to the container
 	--network		(EXPERIMENTAL) select a custom network for the container, as accepted by
-				podman or docker's --network option. Useful for per-container split tunneling of VPNs (implies --init)	default: host
+				podman or docker's --network option. Useful for per-container split tunneling of VPNs	default: host
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--init-hooks:		additional commands to execute during container initialization
 	--pre-init-hooks:	additional commands to execute prior to container initialization
@@ -266,6 +267,7 @@ while :; do
 			if [ -n "$2" ]; then
 				printf "Warning: --network is currently experimental and may not work in some configurations\n\n"
 				container_network="${2}"
+				container_custom_networking=1
 				shift
 				shift
 			fi
@@ -327,9 +329,6 @@ fi
 
 if [ -z "${container_network}" ]; then
 	container_network="${container_network_default}"
-elif [ "${container_network}" != "${container_network_default}" ]; then
-	printf "The --network option does not work without --init. Enabling\n\n"
-	init=1
 fi
 
 # We depend on a container manager let's be sure we have it
@@ -590,6 +589,7 @@ generate_command() {
 		--group ${container_user_gid}
 		--home \"${container_user_custom_home:-"${container_user_home}"}\"
 		--init \"${init}\"
+		--network \"${container_custom_networking}\"
 		${container_pre_init_hook}
 		-- '${container_init_hook}'
 		"

@@ -28,7 +28,7 @@ graphical apps (X11/Wayland), and audio.
 	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
 	--volume		additional volumes to add to the container
 	--network		(EXPERIMENTAL) select a custom network for the container, as accepted by
-				podman or docker's --network option. Useful for per-container split tunneling of VPNs (implies --init)	default: host
+				podman or docker's --network option. Useful for per-container split tunneling of VPNs	default: host
 
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--init-hooks		additional commands to execute during container initialization
