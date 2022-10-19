@@ -1,5 +1,4 @@
 - [Distrobox](README.md)
-  - [Execute complex commands directly from distrobox enter](#execute-complex-commands-directly-from-distrobox-enter)
   - [Create a distrobox with a custom HOME directory](#create-a-distrobox-with-a-custom-home-directory)
   - [Mount additional volumes in a distrobox](#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](#use-a-different-shell-than-the-host)
@@ -36,20 +35,6 @@ For containers generated with older versions, you can use:
 To delete it:
 
 `distrobox generate-entry you-container-name --delete`
-
-## Execute complex commands directly from distrobox enter
-
-Sometimes it is necessary to execure complex commands from a distrobox enter,
-like multiple concatenated commands using variables declared **inside** the container.
-
-For example:
-
-`distrobox enter test -- bash -l -c '"echo \$HOME && whoami"'`
-
-Note the use of **single quotes around double quotes**, this is necessary so that
-quotes are preserved inside the arguments. Also note the **dollar escaping** needed
-so that $HOME is not evaluated at the time of the command launch, but directly
-inside the container.
 
 ## Create a distrobox with a custom HOME directory
 

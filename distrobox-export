@@ -231,7 +231,7 @@ if [ -z "${container_name}" ]; then
 fi
 
 # Prefix to add to an existing command to work throught the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- '${is_sudo} "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${is_sudo} "
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
 fi
@@ -240,17 +240,33 @@ fi
 # Arguments:
 #	none it will use the ones set up globally
 # Outputs:
-#   print generated script.
+#	print generated script.
 generate_script() {
 	cat << EOF
 #!/bin/sh
 # distrobox_binary
 # name: ${container_name}
 if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
-    ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
-${is_sudo} ${exported_bin} ${extra_flags} "\$@"
+	command="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
+${is_sudo} ${exported_bin} ${extra_flags} "
+
+	for arg in "\$@"; do
+		if echo "\${arg}" | grep -Eq "'|\""; then
+			command="\${command} \\
+				\$(echo "\${arg}" | sed 's|\\\|\\\\\\\|g' |
+				sed 's| |\\\ |g' |
+				sed 's|\\$|\\\\\\$|g' |
+				sed "s|'|\\\\\'|g" |
+				sed 's|"|\\\\\"|g')"
+		elif echo "\${arg}" | grep -q "'"; then
+			command="\${command} \"\${arg}\""
+		else
+			command="\${command} '\${arg}'"
+		fi
+	done
+	eval \${command}
 else
-    ${exported_bin} "\$@"
+	${exported_bin} "\$@"
 fi
 EOF
 	return $?
@@ -419,7 +435,6 @@ export_application() {
 		# throught the container separation
 		sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
 			sed "s|\(%.*\)|${extra_flags} \1|g" |
-			sed "s|^Exec=.*|&'|g" |
 			sed "/^TryExec=.*/d" |
 			sed "/^DBusActivatable=true/d" |
 			sed "s|Name.*|& ${exported_app_label}|g" \
@@ -519,8 +534,7 @@ export_service() {
 			# Add extra flags
 			# Add closing quote
 			sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" "${temp_file}" |
-				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" |
-				sed "s|^${exec_cmd}=.*|&'|g" > "${exported_service_fullpath}"
+				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" > "${exported_service_fullpath}"
 			# in the end we add the final quote we've opened in the "container_command_prefix"
 		fi
 	done
