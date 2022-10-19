@@ -161,7 +161,6 @@ exit_command_delay = 10
 # can be runc, crun
 runtime = "crun"
 stop_timeout = 5
-cni_plugin_dirs = [ "${dest_path}/lib/cni" ]
 conmon_path=[ "${dest_path}/lib/podman/conmon" ]
 helper_binaries_dir = [ "${dest_path}/lib/podman" ]
 static_dir = "${dest_path}/share/podman/libpod"
@@ -169,6 +168,8 @@ volume_path = "${dest_path}/share/podman/volume"
 [engine.runtimes]
 crun = [ "${dest_path}/bin/crun" ]
 runc = [ "${dest_path}/bin/runc" ]
+[network]
+cni_plugin_dirs = [ "${dest_path}/lib/cni" ]
 EOF
 
 # Same for mouning programs
