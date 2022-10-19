@@ -64,11 +64,15 @@ Supported environment variables:
 
 	DBX_CONTAINER_ALWAYS_PULL
 	DBX_CONTAINER_CUSTOM_HOME
+	DBX_CONTAINER_HOME_PREFIX
 	DBX_CONTAINER_IMAGE
 	DBX_CONTAINER_MANAGER
 	DBX_CONTAINER_NAME
 	DBX_NON_INTERACTIVE
 	DBX_SUDO_PROGRAM
+
+DBX_CONTAINER_HOME_PREFIX defines where containers' home directories will be located.
+If you define it as ~/dbx then all future containers' home directories will be ~/dbx/$container_name
 
 The `--additional-flags` or `-a` is useful to modify defaults in the container creations.
 For example:

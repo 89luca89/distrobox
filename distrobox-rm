@@ -22,6 +22,7 @@
 # Optional env variables:
 #	DBX_CONTAINER_MANAGER
 #   DBX_CONTAINER_NAME
+#	DBX_CONTAINER_RM_CUSTOM_HOME
 #   DBX_NON_INTERACTIVE
 #	DBX_SUDO_PROGRAM
 
@@ -39,6 +40,7 @@ force=0
 non_interactive=0
 rootful=0
 verbose=0
+rm_home=0
 distrobox_sudo_program="sudo"
 version="1.4.1"
 
@@ -63,6 +65,7 @@ done
 [ "${non_interactive}" = "false" ] && non_interactive=0
 
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
+[ -n "${DBX_CONTAINER_RM_CUSTOM_HOME}" ] && rm_home="${DBX_CONTAINER_RM_CUSTOM_HOME}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 [ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
@@ -86,6 +89,7 @@ Usage:
 Options:
 
 	--name/-n:		name for the distrobox
+	--rm-home:		remove the mounted home if it differs from the host user's one
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
@@ -106,6 +110,10 @@ while :; do
 		-r | --root)
 			shift
 			rootful=1
+			;;
+		--rm-home)
+			shift
+			rm_home=1
 			;;
 		-v | --verbose)
 			verbose=1
@@ -230,8 +238,9 @@ for container_name in ${container_name_list}; do
 			exit 1
 		fi
 	fi
+
+	# Prompt for confirmation
 	if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
-		# Prompt to download it.
 		printf "Do you really want to delete %s? [Y/n]: " "${container_name}"
 		read -r response
 		response="${response:-"Y"}"
@@ -239,16 +248,54 @@ for container_name in ${container_name_list}; do
 		response="yes"
 	fi
 
+	container_home=$(${container_manager} inspect "${container_name}" --format '{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}')
+	# Prompt for confirmation
+	if [ "${non_interactive}" -eq 0 ] && [ "${container_home}" != "${HOME}" ] && [ "${rm_home}" -eq 0 ]; then
+		printf "Do you want to remove custom home of container %s (%s)? [Y/n]: " "${container_name}" "${container_home}"
+		read -r response_rm_home
+		response_rm_home="${response_rm_home:-"Y"}"
+	elif [ "${container_home}" != "${HOME}" ]; then
+		if [ "${rm_home}" -eq 0 ]; then
+			response_rm_home="N"
+		else
+			response_rm_home="Y"
+		fi
+	else
+		response_rm_home="N"
+	fi
+
+	# Validate home response
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response_rm_home}" in
+		y | Y | Yes | yes | YES)
+			rm_home_local=1
+			;;
+		n | N | No | no | NO)
+			rm_home_local=0
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			exit 1
+			;;
+	esac
+
 	# Accept only y,Y,Yes,yes,n,N,No,no.
 	case "${response}" in
 		y | Y | Yes | yes | YES)
-			# We're going to deleted the box, let's also delete the entry
+			# We're going to delete the box, let's also delete the entry
 			if [ "${rootful}" -eq 0 ]; then
 				"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete
 			fi
 
 			# Remove the container
 			${container_manager} rm "${container_name}"
+
+			# Remove custom home
+			if [ "${rm_home_local}" -eq 1 ]; then
+				rm -r "${container_home}"
+				printf "Successfully removed %s\n" "${container_home}"
+			fi
 			;;
 		n | N | No | no | NO)
 			printf "Aborted.\n"
