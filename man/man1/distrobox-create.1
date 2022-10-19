@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -101,6 +101,7 @@ Supported environment variables:
 \f[C]
 DBX_CONTAINER_ALWAYS_PULL
 DBX_CONTAINER_CUSTOM_HOME
+DBX_CONTAINER_HOME_PREFIX
 DBX_CONTAINER_IMAGE
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
@@ -108,6 +109,11 @@ DBX_NON_INTERACTIVE
 DBX_SUDO_PROGRAM
 \f[R]
 .fi
+.PP
+DBX_CONTAINER_HOME_PREFIX defines where containers\[cq] home directories
+will be located.
+If you define it as \[ti]/dbx then all future containers\[cq] home
+directories will be \[ti]/dbx/$container_name
 .PP
 The \f[V]--additional-flags\f[R] or \f[V]-a\f[R] is useful to modify
 defaults in the container creations.

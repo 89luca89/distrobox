@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH COMPATIBILITY
 .PP
@@ -323,7 +323,7 @@ dependencies are met.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -410,6 +410,7 @@ Supported environment variables:
 \f[C]
 DBX_CONTAINER_ALWAYS_PULL
 DBX_CONTAINER_CUSTOM_HOME
+DBX_CONTAINER_HOME_PREFIX
 DBX_CONTAINER_IMAGE
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
@@ -417,6 +418,11 @@ DBX_NON_INTERACTIVE
 DBX_SUDO_PROGRAM
 \f[R]
 .fi
+.PP
+DBX_CONTAINER_HOME_PREFIX defines where containers\[cq] home directories
+will be located.
+If you define it as \[ti]/dbx then all future containers\[cq] home
+directories will be \[ti]/dbx/$container_name
 .PP
 The \f[V]--additional-flags\f[R] or \f[V]-a\f[R] is useful to modify
 defaults in the container creations.
@@ -519,7 +525,7 @@ will also generate an entry in the applications list.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ENTER" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-ENTER" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -645,7 +651,7 @@ run distrobox commands involving rootful containers using `doas'.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EPHEMERAL" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-EPHEMERAL" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -726,7 +732,7 @@ a list of supported environment variables to use.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EXPORT" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-EXPORT" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -981,7 +987,7 @@ option to provide a series of flags, for example:
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-GENERATE-ENTRY" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-GENERATE-ENTRY" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1032,7 +1038,7 @@ distrobox-generate-entry container-name [--delete] [--icon [auto,/path/to/icon]]
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-HOST-EXEC" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-HOST-EXEC" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1104,7 +1110,7 @@ distrobox-host-exec podman ps -a
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-INIT" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-INIT" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1170,7 +1176,7 @@ distrobox-init --upgrade
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-LIST" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-LIST" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1243,7 +1249,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-RM" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-RM" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1264,6 +1270,7 @@ distrobox-rm delete one of the available distroboxes.
 \f[C]
 --name/-n:      name for the distrobox
 --force/-f:     force deletion
+--rm-home:      remove the mounted home if it differs from the host user\[aq]s one
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
@@ -1316,7 +1323,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-STOP" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-STOP" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1393,7 +1400,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-UPGRADE" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-UPGRADE" "1" "Oct 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
