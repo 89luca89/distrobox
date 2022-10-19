@@ -82,7 +82,7 @@ command_not_found_handle() {
   
   distrobox-host-exec "${@}"
 }
-if [ -n "${ZSH_VERSION-}${BASH_VERSION-}" ]; then
+if [ -n "${ZSH_VERSION-}" ]; then
   command_not_found_handler() {
     command_not_found_handle "$@"
  }
