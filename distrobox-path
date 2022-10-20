@@ -1,0 +1,178 @@
+#!/usr/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2022 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+self="$(basename "${0}")"
+user=$(whoami)
+sudo="apt dnf"
+
+# Dont' run this command as sudo.
+if [ "$(id -u)" -eq 0 ]; then
+    printf >&2 "Running %s as sudo is not supported.\n " "${self}"
+    printf >&2 " try instead running:\n"
+    printf >&2 "    %s --root %s\n" "${self}" "$*"
+    exit 1
+fi
+
+# Defaults
+version="1.4.1"
+container_name=""
+bash_completion=0
+
+# Container binaries paths
+bin_paths="
+    /bin
+    /usr/bin
+    /usr/local/bin
+"
+# Container completion paths
+bash_completion_helper_paths="
+    /usr/share/bash-completion/helpers
+    /usr/local/share/bash-completion/helpers
+"
+
+bash_completion_paths="
+    /usr/share/bash-completion/completions
+    /usr/local/share/bash-completion/completions
+"
+
+show_help() {
+    cat << EOF
+distrobox version: ${version}
+
+Export container commands to host
+
+Usage:
+
+    distrobox-path --name container-name
+
+Options:
+
+    --name/-n:              name for the distrobox
+    --bash-completion/-b:   override ~/.bash_completion with container one
+    --help/-h:              show this message
+    --version/-V:           show version
+EOF
+}
+
+# Parse arguments
+if [ "${self}" = "distrobox-path" ]; then
+    while :; do
+        case $1 in
+            -h | --help)
+                # Call a "show_help" function to display a synopsis, then exit.
+                show_help
+                exit 0
+                ;;
+            -n | --name)
+                if [ -n "$2" ]; then
+                    container_name="$2"
+                    shift
+                    shift
+                fi
+                ;;
+            -b | --bash-completion)
+                bash_completion=1
+                shift
+                ;;
+            -V | --version)
+                printf "distrobox: %s\n" "${version}"
+                exit 0
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+fi
+
+bash_completion_get() {
+    for path in ${bash_completion_paths}; do
+        podman exec --user="${user}" "${container_name}" ls -1 "${path}" 2>/dev/null
+    done
+}
+
+bash_completion_for() {
+    for path in ${bash_completion_paths}; do
+        podman exec --user="${user}" "${container_name}" cat "${path}/$1" 2>/dev/null
+    done
+}
+
+bash_completion_helpers() {
+    for path in ${bash_completion_helper_paths}; do
+        podman exec --user="${user}" "${container_name}" ls "${path}" 2>/dev/null | while read -r file; do
+            podman exec --user="${user}" "${container_name}" cat "${path}/${file}" 2>/dev/null
+        done
+    done
+}
+
+bash_completion() {
+    [ "${bash_completion}" = "0" ] && return
+    bash_completion_helpers > ~/.bash_completion
+    available_completions="$(bash_completion_get)"
+    for file in ls "${export_path}"/*; do
+        command="$(basename "${file}")"
+        case "${available_completions}" in
+            *"${command}"*)
+                printf "\r%bExporting completion for %s" "\033[2K" "${command}"
+                bash_completion_for "${command}" >> ~/.bash_completion    
+                ;;
+            *)
+                ;;
+        esac
+    done
+}
+
+if [ -z "${container_name}" ] ; then
+    if [ "${self}" != "distrobox-path" ]; then
+        container_name="$(echo "$0" | awk -F '/' '{ print $(NF-1) }')"
+        # Escape args
+        args="$(printf "${1+ %q}" "$@")"
+        case "${sudo}" in
+          "${self} "*)
+            distrobox-enter -n "${container_name}" -e sudo "${self}" "${args}"
+            ;;
+          *)
+            distrobox-enter -n "${container_name}" -e "${self}" "${args}"
+            ;;
+        esac
+    else
+        show_help
+    fi
+else
+    # Export path
+    export_path=~/.cache/distrobox/"${container_name}"
+    mkdir -p "${export_path}"
+
+    commands=""
+    for path in ${bin_paths}; do
+        podman exec --user="${user}" "${container_name}" ls -1 "${path}" | while read -r command; do
+            if ! command -v "${command}" >/dev/null 2>&1; then
+                printf "\r%bLinking %s" "\033[2K" "${command}"
+                ln -sf "$(readlink -f "${0}")" "${export_path}/${command}"
+                commands="${command} ${commands}"
+            fi
+        done
+    done
+
+    bash_completion
+
+    printf '\rAdd this to your PATH: ~/.cache/distrobox/debian\n'
+
+fi
