@@ -994,7 +994,7 @@ mkdir -p /etc/profile.d
 printf "test -z \"\$USER\" && USER=\"\$(id -un 2> /dev/null)\"\n" > /etc/profile.d/distrobox_profile.sh
 printf "test -z \"\$UID\"  && readonly  UID=\"\$(id -ur 2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
 printf "test -z \"\$EUID\" && readonly EUID=\"\$(id -u  2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
-if [ -n "${DISTROBOX_HOST_HOME}" ] && [ -d "/etc/skel" ]; then
+if [ -n "${DISTROBOX_HOST_HOME:-}" ] && [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
 		if [ ! -f "${container_user_home}/$(basename "${skel_file}")" ] &&

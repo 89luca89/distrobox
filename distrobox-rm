@@ -248,7 +248,10 @@ for container_name in ${container_name_list}; do
 		response="yes"
 	fi
 
-	container_home=$(${container_manager} inspect "${container_name}" --format '{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}')
+	# Retrieve container's HOME, and check if it's different from host's one. In
+	# this case we prompt for deletion of the custom home.
+	container_home=$(${container_manager} inspect "${container_name}" --format \
+		'{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}')
 	# Prompt for confirmation
 	if [ "${non_interactive}" -eq 0 ] && [ "${container_home}" != "${HOME}" ] && [ "${rm_home}" -eq 0 ]; then
 		printf "Do you want to remove custom home of container %s (%s)? [Y/n]: " "${container_name}" "${container_home}"
