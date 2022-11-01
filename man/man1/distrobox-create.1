@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Oct 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Nov 2022" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -54,6 +54,7 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --pre-init-hooks    additional commands to execute prior to container initialization
 --init/-I       use init system (like systemd) inside the container.
             this will make host\[aq]s processes not visible from within the container.
+--compatibility/-C: show list of compatible images
 --help/-h:      show this message
 --no-entry:             do not generate a container entry in the application list
 --dry-run/-d:       only print the container manager command generated
@@ -197,6 +198,11 @@ integration\f[R].
 From within the container you will not be able to see and manage
 host\[cq]s processes.
 This is needed because \f[V]/sbin/init\f[R] must be pid 1.
+.PP
+The \f[V]--home\f[R] flag let\[cq]s you specify a custom HOME for the
+container.
+Note that this will NOT prevent the mount of the host\[cq]s home
+directory, but will ensure that configs and dotfiles will not litter it.
 .PP
 From version 1.4.0 of distrobox, when you create a new container, it
 will also generate an entry in the applications list.
