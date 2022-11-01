@@ -18,6 +18,11 @@ _generate_from_help() {
 		return 0
 	fi
 
+	if [[ ${prev} == "--image" ]] || [[ ${prev} == "-i" ]]; then
+		COMPREPLY+=($(compgen -W "$(distrobox-create --compatibility)" -- ${cur} ))
+		return 0
+	fi
+
 	if [[ ${cur} == -* ]]; then
 		COMPREPLY+=($(compgen -W "${opts}" -- ${cur}))
 		return 0

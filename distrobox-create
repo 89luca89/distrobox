@@ -151,6 +151,7 @@ Options:
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
+	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
 	--dry-run/-d:		only print the container manager command generated
@@ -161,8 +162,40 @@ Compatibility:
 
 	for a list of compatible images and container managers, please consult the man page:
 		man distrobox-compatibility
+	or run
+		distrobox create --compatibility
 	or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md
 EOF
+}
+
+# Print list of compatible images to stdou, caching locally in a file.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_compatibility() {
+	if [ ! -e "${HOME}/.cache/distrobox-compatibility-${version}" ]; then
+		mkdir -p "${HOME}/.cache"
+
+		# If we don't have a cache file, we need connectivity. Ensure we have
+		# one and return error if not.
+		if ! curl -s "https://github.com" > /dev/null; then
+			printf >&2 "ERROR: no cache file and no connectivity found, cannot retrieve compatibility list.\n"
+			exit 1
+		fi
+		# We want to download the correspondent version of the compatibility table and extract a list from it.
+		# Always use the docs as source of truth for this.
+		curl -s \
+			"https://raw.githubusercontent.com/89luca89/distrobox/${version}/docs/compatibility.md" |
+			grep -A200 "^## Containers Distros" |
+			grep '|' |
+			cut -d '|' -f 4 |
+			sed 's|<br>|\n|g' |
+			tr -d ' ' |
+			sort -u |
+			tail -n+4 > "${HOME}/.cache/distrobox-compatibility-${version}"
+	fi
+	cat "${HOME}/.cache/distrobox-compatibility-${version}"
 }
 
 # Parse arguments
@@ -196,6 +229,10 @@ while :; do
 		-I | --init)
 			shift
 			init=1
+			;;
+		-C | --compatibility)
+			show_compatibility
+			exit 0
 			;;
 		-i | --image)
 			if [ -n "$2" ]; then
