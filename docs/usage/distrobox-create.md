@@ -32,6 +32,7 @@ graphical apps (X11/Wayland), and audio.
 	--pre-init-hooks	additional commands to execute prior to container initialization
 	--init/-I		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
+	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:             do not generate a container entry in the application list
 	--dry-run/-d:		only print the container manager command generated
@@ -123,6 +124,10 @@ Inside the container we will be able to use normal systemd units:
 Note that enabling `--init` **will disable host's process integration**.
 From within the container you will not be able to see and manage host's processes.
 This is needed because `/sbin/init` must be pid 1.
+
+The `--home` flag let's you specify a custom HOME for the container.
+Note that this will NOT prevent the mount of the host's home directory,
+but will ensure that configs and dotfiles will not litter it.
 
 From version 1.4.0 of distrobox, when you create a new container, it will also generate
 an entry in the applications list.
