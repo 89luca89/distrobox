@@ -618,10 +618,24 @@ if [ "${dryrun}" -ne 0 ]; then
 fi
 
 # Check if a given --network actually exists.
-if ! ${container_manager} network exists "${container_network}"; then
-	printf "Network \"%s\" does not exist.\nFor a list of networks, run:\n\n%s network ls\n\n" "${container_network}" "${container_manager}"
-	exit 0
-fi
+# Special cases for "host" and friends.
+# TODO: Check if the specified ns:, container:, or slirp4netns: actually exist
+case "${container_network}" in
+	host) ;;
+	bridge) ;;
+	private) ;;
+	slirp4netns*) ;;
+	none) ;;
+	ns:*) ;;
+	container:*) ;;
+
+	*)
+		if ! ${container_manager} network exists "${container_network}"; then
+			printf "Network \"%s\" does not exist.\nFor a list of networks, run:\n\n%s network ls\n\n" "${container_network}" "${container_manager}"
+			exit 0
+		fi
+		;;
+esac
 
 # Check if the container already exists.
 # If it does, notify the user and exit.
