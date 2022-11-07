@@ -1067,8 +1067,8 @@ for host_mount in  ${HOST_MOUNTS_RO_INIT}; do
 done
 if command -v systemctl 2> /dev/null; then
 	# Cleanup systemd to not interfere with the host
+	# /etc/systemd/system/*.wants/
 	UNIT_TARGETS="
-		/etc/systemd/system/*.wants/*
 		/usr/lib/systemd/system/basic.target.wants/*
 		/usr/lib/systemd/system/local-fs.target.wants/*
 		/usr/lib/systemd/system/multi-user.target.wants/*
@@ -1076,9 +1076,15 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/sockets.target.wants/*initctl*
 		/usr/lib/systemd/system/sockets.target.wants/*udev*
 		/usr/lib/systemd/system/sysinit.target.wants/*
+		/usr/lib/systemd/system/systemd-tmpfiles*
 		/usr/lib/systemd/system/systemd-update-utmp*
+		/usr/lib/systemd/system/NetworkManager-wait-online.service
+		/usr/lib/systemd/system/auditd.service
+		/usr/lib/systemd/system/libstoragemgmt.service
+		/usr/lib/systemd/system/mcelog.service
 	"
-	for unit in $(find "${UNIT_TARGETS}" 2> /dev/null | grep -v systemd-tmpfiles-setup); do
+	# shellcheck disable=SC2086,SC2044
+	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
 		systemctl mask "$(basename "${unit}")"
 	done
 fi
