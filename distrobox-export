@@ -25,8 +25,6 @@
 #	DISTROBOX_ENTER_PATH
 #	DISTROBOX_HOST_HOME
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
-
 # Defaults
 dest_path=""
 export_action=""

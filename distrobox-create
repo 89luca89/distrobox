@@ -33,8 +33,6 @@
 #	DBX_NON_INTERACTIVE
 #	DBX_SUDO_PROGRAM
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
-
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
 	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"

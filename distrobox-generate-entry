@@ -19,7 +19,6 @@
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
 # POSIX
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 all=0
 container_manager="autodetect"

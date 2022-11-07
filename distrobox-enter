@@ -28,7 +28,7 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f $HOME/.cache/.*.fifo $HOME/.cache/.*.status' EXIT
+trap 'rm -f $HOME/.cache/.*.fifo $HOME/.cache/.*.status' EXIT
 
 # Dont' run this command as sudo.
 if [ "$(id -u)" -eq 0 ]; then
