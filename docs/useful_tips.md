@@ -396,7 +396,7 @@ podman ps --no-trunc --format "{{.Names}}  {{.ID}}  {{.Labels}}" | grep distrobo
 To check your container status with `systemctl`:
 
 ```bash
-systemctl --user status libpod-$ID.scope
+systemctl --user status libpod-$UUID.scope
 ```
 
 - Replace `$UUID` with your container's real full ID
@@ -451,7 +451,7 @@ Changes are transient, meaning you lose the resource limitation properties when 
 To make certain changes persistent, first check the currently active properties:
 
 ```bash
-systemctl --user status libpod-$ID.scope
+systemctl --user status libpod-$UUID.scope
 ```
 
 Look for the `Drop-In` lines. Something like this should be shown:
