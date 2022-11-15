@@ -390,7 +390,7 @@ Nontheless you can still apply resource limitation using SystemD's resource cont
 To list all distroboxes and their full IDs:
 
 ```bash
-podman ps --no-trunc --format "{{.Names}}  {{.ID}}  {{.Labels}}" | grep distrobox
+podman ps --all --no-trunc --format "{{.Names}} {{.ID}} {{.Labels}}" | grep "manager:distrobox" | cut -d " " -f1,2 | column -t
 ```
 
 To check your container status with `systemctl`:
