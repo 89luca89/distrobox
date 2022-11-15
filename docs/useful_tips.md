@@ -393,12 +393,15 @@ To list all distroboxes and their full IDs:
 podman ps --all --no-trunc --format "{{.Names}} {{.ID}} {{.Labels}}" | grep "manager:distrobox" | cut -d " " -f1,2 | column -t
 ```
 
+- Removing `--all` flag will cause the output to only contain currently running distroboxes
+
 To check your container status with `systemctl`:
 
 ```bash
 systemctl --user status libpod-$UUID.scope
 ```
 
+- Your distrobox needs to be running for its scope to present (e.g. `distrobox enter` before running this command)
 - Replace `$UUID` with your container's real full ID
 - To make things easier when tweaking properties, optionally set a environment variable for the current shell:
 
