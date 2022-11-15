@@ -421,13 +421,13 @@ To limit your distrobox's maximum amount of memory:
 systemctl --user set-property libpod-$ID.scope MemoryMax=2G
 ```
 
-To give your distrobox less IO bandwidth:
+To give your distrobox less IO bandwidth when IO is overloaded:
 
 ```bash
 systemctl --user set-property libpod-$ID.scope IOWeight=1
 ```
 
-- `IOWeight` accepts value from `1` to `10000`.
+- `IOWeight` accepts value from `1` to `10000`, higher means more bandwidth.
 
 To see all applicable properties:
 
