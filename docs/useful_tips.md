@@ -387,7 +387,7 @@ Podman has `--cpuset-cpus` and `--memory` flags to apply limitation on how much 
 
 Nontheless you can still apply resource limitation using SystemD's resource control functionality. It's not recommended to pass resource limitation arguments (e.g. `--cpuset-cpus` and `--memory`) to `distrobox create --additional-flags` as SystemD already provides much more flexible resource control functionality.
 
-To list all distroboxes and its full IDs:
+To list all distroboxes and their full IDs:
 
 ```bash
 podman ps --no-trunc --format "{{.Names}}  {{.ID}}  {{.Labels}}" | grep distrobox
@@ -402,6 +402,12 @@ systemctl --user status libpod-$ID.scope
 - Replace `$ID` with your container's real full ID
 
 Everything provided by `systemd.resource-control` could be applied to your distrobox. For example:
+
+To make your distrobox only run on CPU0 and CPU1:
+
+```bash
+systemctl --user set-property libpod-$ID.scope AllowedCPUs=0,1
+```
 
 To hard throttle your distrobox to not use above 20% of CPU:
 
