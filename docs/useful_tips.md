@@ -454,7 +454,7 @@ Move the transient overrides to persistent overrides:
 
 ```bash
 mkdir -p ~/.config/systemd/user/libpod-$ID.scope.d
-mv --target-directory= ~/.config/systemd/user/libpod-$ID.scope.d \
+mv --target-directory=~/.config/systemd/user/libpod-$ID.scope.d \
   /run/user/$(id -u)/systemd/transient/libpod-$ID.scope.d/50-AllowedCPUs.conf
 ```
 
