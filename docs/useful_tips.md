@@ -379,3 +379,38 @@ distrobox create -i docker.io/library/almalinux:9 -n alma9 --pre-init-hooks "dnf
 ```shell
 distrobox create -i quay.io/centos/centos:stream9 c9s --pre-init-hooks "dnf -y install dnf-plugins-core && dnf config-manager --enable crb && dnf -y install epel-next-release"
 ```
+
+## Apply resource limitation on the fly
+
+Podman has `--cpuset-cpus` and `--memory` flags to apply limitation on how much resources a container can use. However, these flags only work during container creation (`podman create` / `podman run`) and not after it's created (`podman exec`, which is used by Distrobox to execute commands inside of container).
+
+Nontheless you can still apply resource limitation using SystemD's resource control functionality.
+
+To list all distroboxes and its full IDs:
+
+```bash
+podman ps --no-trunc --format "{{.Names}}  {{.ID}}  {{.Labels}}" | grep distrobox
+```
+
+To check your container status with `systemctl`:
+
+```bash
+systemctl --user status libpod-$ID.scope
+```
+
+- Replace `$ID` with your container's real full ID
+
+Everything in `man systemd.resource-control` could be applied to your distrobox. For example:
+
+To hard throttle your distrobox to not use above 20% of CPU:
+
+```bash
+systemctl --user set-property libpod-$ID.scope CPUQuota=20%
+```
+
+To limit your distrobox's maximum amount of memory:
+
+```bash
+systemctl --user set-property libpod-$ID.scope MemoryMax=2G
+```
+
