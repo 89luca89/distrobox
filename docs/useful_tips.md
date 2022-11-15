@@ -434,3 +434,36 @@ To see all applicable properties:
 ```bash
 man systemd.resource-control
 ```
+
+Changes are transient, meaning you lose the resource limitation properties when distrobox is stopped and restarted.
+
+To make certain changes persistent, first check the currently active properties:
+
+```bash
+systemctl --user status libpod-$ID.scope
+```
+
+Look for the `Drop-In` lines. Something like this should be shown:
+
+```
+    Drop-In: /run/user/1000/systemd/transient/libpod-45ae38d61c9a636230b2ba89ea07792d662e01cd9ee38d04feb0a994b039a271.scope.d
+             └─50-AllowedCPUs.conf
+```
+
+Move the transient overrides to persistent overrides:
+
+```bash
+mkdir -p ~/.config/systemd/user/libpod-$ID.scope.d
+mv --target-directory= ~/.config/systemd/user/libpod-$ID.scope.d \
+  /run/user/$(id -u)/systemd/transient/libpod-$ID.scope.d/50-AllowedCPUs.conf
+```
+
+- Replace `$(id -u)` with your real user id if it did not get expanded properly.
+- `50-AllowedCPUs.conf` is only an example. Replace it with something you want to keep persistently.
+
+Then reload SystemD daemon to apply the changes:
+
+```bash
+systemctl --user daemon-reload
+```
+
