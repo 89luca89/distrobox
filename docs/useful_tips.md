@@ -415,7 +415,7 @@ To limit your distrobox's maximum amount of memory:
 systemctl --user set-property libpod-$ID.scope MemoryMax=2G
 ```
 
-To give your distrobox less bandwidth:
+To give your distrobox less IO bandwidth:
 
 ```bash
 systemctl --user set-property libpod-$ID.scope IOWeight=1
