@@ -399,32 +399,43 @@ To check your container status with `systemctl`:
 systemctl --user status libpod-$ID.scope
 ```
 
-- Replace `$ID` with your container's real full ID
+- Replace `$UUID` with your container's real full ID
+- To make things easier when tweaking properties, optionally set a environment variable for the current shell:
+
+  bash/zsh:
+  ```bash
+  UUID=XXXXXXXXX
+  ```
+  
+  fish:
+  ```fish
+  set UUID XXXXXXXXX
+  ```
 
 Everything provided by `systemd.resource-control` could be applied to your distrobox. For example:
 
 To make your distrobox only run on CPU0 and CPU1:
 
 ```bash
-systemctl --user set-property libpod-$ID.scope AllowedCPUs=0,1
+systemctl --user set-property libpod-$UUID.scope AllowedCPUs=0,1
 ```
 
 To hard throttle your distrobox to not use above 20% of CPU:
 
 ```bash
-systemctl --user set-property libpod-$ID.scope CPUQuota=20%
+systemctl --user set-property libpod-$UUID.scope CPUQuota=20%
 ```
 
 To limit your distrobox's maximum amount of memory:
 
 ```bash
-systemctl --user set-property libpod-$ID.scope MemoryMax=2G
+systemctl --user set-property libpod-$UUID.scope MemoryMax=2G
 ```
 
 To give your distrobox less IO bandwidth when IO is overloaded:
 
 ```bash
-systemctl --user set-property libpod-$ID.scope IOWeight=1
+systemctl --user set-property libpod-$UUID.scope IOWeight=1
 ```
 
 - `IOWeight` accepts value from `1` to `10000`, higher means more bandwidth.
@@ -453,9 +464,9 @@ Look for the `Drop-In` lines. Something like this should be shown:
 Move the transient overrides to persistent overrides:
 
 ```bash
-mkdir -p ~/.config/systemd/user/libpod-$ID.scope.d
-mv --target-directory="$HOME/.config/systemd/user/libpod-$ID.scope.d" \
-  "/run/user/$(id -u)/systemd/transient/libpod-$ID.scope.d/50-AllowedCPUs.conf"
+mkdir -p ~/.config/systemd/user/libpod-$UUID.scope.d
+mv --target-directory="$HOME/.config/systemd/user/libpod-$UUID.scope.d" \
+  "/run/user/$(id -u)/systemd/transient/libpod-$UUID.scope.d/50-AllowedCPUs.conf"
 ```
 
 - Replace `$(id -u)` with your real user id if it did not get expanded properly.
