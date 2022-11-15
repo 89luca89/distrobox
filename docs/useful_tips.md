@@ -20,6 +20,7 @@
   - [Pre-installing additional package repositories](#pre-installing-additional-package-repositories)
   - [Build a Gentoo distrobox container](distrobox_gentoo.md)
   - [Build a Dedicated distrobox container](distrobox_custom.md)
+  - [Apply resource limitation on the fly](#apply-resource-limitation-on-the-fly)
 
 ---
 
@@ -382,9 +383,9 @@ distrobox create -i quay.io/centos/centos:stream9 c9s --pre-init-hooks "dnf -y i
 
 ## Apply resource limitation on the fly
 
-Podman has `--cpuset-cpus` and `--memory` flags to apply limitation on how much resources a container can use. However, these flags only work during container creation (`podman create` / `podman run`) and not after it's created (`podman exec`, which is used by Distrobox to execute commands inside of container).
+Podman has `--cpuset-cpus` and `--memory` flags to apply limitation on how much resources a container can use. However, these flags only work during container creation (`podman create` / `podman run`) and not after it's created (`podman exec`, which is used by Distrobox to execute commands inside of container), which means changing resource limitation requires recreation of a container.
 
-Nontheless you can still apply resource limitation using SystemD's resource control functionality.
+Nontheless you can still apply resource limitation using SystemD's resource control functionality. It's not recommended to pass resource limitation arguments (e.g. `--cpuset-cpus` and `--memory`) to `distrobox create --additional-flags` as SystemD already provides much more flexible resource control functionality.
 
 To list all distroboxes and its full IDs:
 
@@ -400,7 +401,7 @@ systemctl --user status libpod-$ID.scope
 
 - Replace `$ID` with your container's real full ID
 
-Everything in `man systemd.resource-control` could be applied to your distrobox. For example:
+Everything provided by `systemd.resource-control` could be applied to your distrobox. For example:
 
 To hard throttle your distrobox to not use above 20% of CPU:
 
@@ -414,3 +415,16 @@ To limit your distrobox's maximum amount of memory:
 systemctl --user set-property libpod-$ID.scope MemoryMax=2G
 ```
 
+To give your distrobox less bandwidth:
+
+```bash
+systemctl --user set-property libpod-$ID.scope IOWeight=1
+```
+
+- `IOWeight` accepts value from `1` to `10000`.
+
+To see all applicable properties:
+
+```bash
+man systemd.resource-control
+```
