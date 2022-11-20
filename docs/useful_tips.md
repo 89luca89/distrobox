@@ -385,7 +385,7 @@ distrobox create -i quay.io/centos/centos:stream9 c9s --pre-init-hooks "dnf -y i
 
 Podman has `--cpuset-cpus` and `--memory` flags to apply limitation on how much resources a container can use. However, these flags only work during container creation (`podman create` / `podman run`) and not after it's created (`podman exec`, which is used by Distrobox to execute commands inside of container), which means changing resource limitation requires recreation of a container.
 
-Nontheless you can still apply resource limitation using SystemD's resource control functionality. It's not recommended to pass resource limitation arguments (e.g. `--cpuset-cpus` and `--memory`) to `distrobox create --additional-flags` as SystemD already provides much more flexible resource control functionality.
+Nontheless you can still apply resource limitation using systemd's resource control functionality. It's not recommended to pass resource limitation arguments (e.g. `--cpuset-cpus` and `--memory`) to `distrobox create --additional-flags` as systemd already provides much more flexible resource control functionality.
 
 To list all distroboxes and their full IDs:
 
@@ -475,7 +475,7 @@ mv --target-directory="$HOME/.config/systemd/user/libpod-$UUID.scope.d" \
 - Replace `$(id -u)` with your real user id if it did not get expanded properly.
 - `50-AllowedCPUs.conf` is only an example. Replace it with something you want to keep persistently.
 
-Then reload SystemD daemon to apply the changes:
+Then reload systemd daemon to apply the changes:
 
 ```bash
 systemctl --user daemon-reload
