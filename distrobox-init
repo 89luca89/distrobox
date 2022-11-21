@@ -663,7 +663,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			systemd \
 			time \
 			wget \
-			util-linux
+			util-linux \
+			util-linux-systemd
 
 		# These are graphics drivers for 3d applications
 		zypper install -y \
