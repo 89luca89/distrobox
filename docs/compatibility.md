@@ -169,7 +169,7 @@ Distrobox guests tested successfully with the following container images:
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64  <br>  ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
 
 Note however that if you use a non-toolbox preconfigured image (e.g.
-images pre-baked to work with <https://github.com/containers/toolbox),>
+images pre-baked to work with <https://github.com/containers/toolbox>),
 the **first** `distrobox-enter` you'll perform
 can take a while as it will download and install the missing dependencies.
 
