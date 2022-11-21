@@ -20,6 +20,7 @@
   - [Pre-installing additional package repositories](#pre-installing-additional-package-repositories)
   - [Build a Gentoo distrobox container](distrobox_gentoo.md)
   - [Build a Dedicated distrobox container](distrobox_custom.md)
+  - [Apply resource limitation on the fly](#apply-resource-limitation-on-the-fly)
 
 ---
 
@@ -378,4 +379,111 @@ distrobox create -i docker.io/library/almalinux:9 -n alma9 --pre-init-hooks "dnf
 
 ```shell
 distrobox create -i quay.io/centos/centos:stream9 c9s --pre-init-hooks "dnf -y install dnf-plugins-core && dnf config-manager --enable crb && dnf -y install epel-next-release"
+```
+
+## Apply resource limitation on the fly
+
+Podman has `--cpuset-cpus` and `--memory` flags to apply limitation on how much resources a container can use. However,
+these flags only work during container creation (`podman create` / `podman run`) and not after it's created
+(`podman exec`, which is used by Distrobox to execute commands inside of container), which means changing resource
+limitation requires recreation of a container.
+
+Nontheless you can still apply resource limitation using systemd's resource control functionality. It's not recommended
+to pass resource limitation arguments (e.g. `--cpuset-cpus` and `--memory`) to `distrobox create --additional-flags`
+as systemd already provides much more flexible resource control functionality.
+
+To list all distroboxes and their full IDs:
+
+```bash
+podman ps --all --no-trunc --format "{{.Names}} {{.ID}} {{.Labels}}" | grep "manager:distrobox" | cut -d " " -f1,2 | column -t
+```
+
+- Removing `--all` flag will cause the output to only contain currently running distroboxes
+
+To check your container status with `systemctl`:
+
+```bash
+systemctl --user status libpod-$UUID.scope
+```
+
+- Your distrobox needs to be running for its scope to present (e.g. `distrobox enter` before running this command)
+- Replace `$UUID` with your container's real full ID
+- To make things easier when tweaking properties, optionally set a environment variable for the current shell:
+
+  bash/zsh:
+
+  ```bash
+  UUID=XXXXXXXXX
+  ```
+  
+  fish:
+
+  ```fish
+  set UUID XXXXXXXXX
+  ```
+
+Everything provided by `systemd.resource-control` could be applied to your distrobox. For example:
+
+To make your distrobox only run on CPU0 and CPU1:
+
+```bash
+systemctl --user set-property libpod-$UUID.scope AllowedCPUs=0,1
+```
+
+To hard throttle your distrobox to not use above 20% of CPU:
+
+```bash
+systemctl --user set-property libpod-$UUID.scope CPUQuota=20%
+```
+
+To limit your distrobox's maximum amount of memory:
+
+```bash
+systemctl --user set-property libpod-$UUID.scope MemoryMax=2G
+```
+
+To give your distrobox less IO bandwidth when IO is overloaded:
+
+```bash
+systemctl --user set-property libpod-$UUID.scope IOWeight=1
+```
+
+- `IOWeight` accepts value from `1` to `10000`, higher means more bandwidth.
+
+To see all applicable properties:
+
+```bash
+man systemd.resource-control
+```
+
+Changes are transient, meaning you lose the resource limitation properties when distrobox is stopped and restarted.
+
+To make certain changes persistent, first check the currently active properties:
+
+```bash
+systemctl --user status libpod-$UUID.scope
+```
+
+Look for the `Drop-In` lines. Something like this should be shown:
+
+```console
+    Drop-In: /run/user/1000/systemd/transient/libpod-45ae38d61c9a636230b2ba89ea07792d662e01cd9ee38d04feb0a994b039a271.scope.d
+             └─50-AllowedCPUs.conf
+```
+
+Move the transient overrides to persistent overrides:
+
+```bash
+mkdir -p ~/.config/systemd/user/libpod-$UUID.scope.d
+mv --target-directory="$HOME/.config/systemd/user/libpod-$UUID.scope.d" \
+  "/run/user/$(id -u)/systemd/transient/libpod-$UUID.scope.d/50-AllowedCPUs.conf"
+```
+
+- Replace `$(id -u)` with your real user id if it did not get expanded properly.
+- `50-AllowedCPUs.conf` is only an example. Replace it with something you want to keep persistently.
+
+Then reload systemd daemon to apply the changes:
+
+```bash
+systemctl --user daemon-reload
 ```
