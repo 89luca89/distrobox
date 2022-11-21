@@ -383,9 +383,14 @@ distrobox create -i quay.io/centos/centos:stream9 c9s --pre-init-hooks "dnf -y i
 
 ## Apply resource limitation on the fly
 
-Podman has `--cpuset-cpus` and `--memory` flags to apply limitation on how much resources a container can use. However, these flags only work during container creation (`podman create` / `podman run`) and not after it's created (`podman exec`, which is used by Distrobox to execute commands inside of container), which means changing resource limitation requires recreation of a container.
+Podman has `--cpuset-cpus` and `--memory` flags to apply limitation on how much resources a container can use. However,
+these flags only work during container creation (`podman create` / `podman run`) and not after it's created
+(`podman exec`, which is used by Distrobox to execute commands inside of container), which means changing resource
+limitation requires recreation of a container.
 
-Nontheless you can still apply resource limitation using systemd's resource control functionality. It's not recommended to pass resource limitation arguments (e.g. `--cpuset-cpus` and `--memory`) to `distrobox create --additional-flags` as systemd already provides much more flexible resource control functionality.
+Nontheless you can still apply resource limitation using systemd's resource control functionality. It's not recommended
+to pass resource limitation arguments (e.g. `--cpuset-cpus` and `--memory`) to `distrobox create --additional-flags`
+as systemd already provides much more flexible resource control functionality.
 
 To list all distroboxes and their full IDs:
 
@@ -406,11 +411,13 @@ systemctl --user status libpod-$UUID.scope
 - To make things easier when tweaking properties, optionally set a environment variable for the current shell:
 
   bash/zsh:
+
   ```bash
   UUID=XXXXXXXXX
   ```
   
   fish:
+
   ```fish
   set UUID XXXXXXXXX
   ```
@@ -459,7 +466,7 @@ systemctl --user status libpod-$UUID.scope
 
 Look for the `Drop-In` lines. Something like this should be shown:
 
-```
+```console
     Drop-In: /run/user/1000/systemd/transient/libpod-45ae38d61c9a636230b2ba89ea07792d662e01cd9ee38d04feb0a994b039a271.scope.d
              └─50-AllowedCPUs.conf
 ```
@@ -480,4 +487,3 @@ Then reload systemd daemon to apply the changes:
 ```bash
 systemctl --user daemon-reload
 ```
-
