@@ -190,15 +190,33 @@ This will ensure SSH X-Forwarding will work when SSH-ing inside the distrobox:
 
 ## Use distrobox to install different flatpaks from the host
 
-By default distrobox will integrate with host's flatpak directory if present:
-`/var/lib/flatpak` and obviously with the $HOME one.
+By default distrobox will integrate with host's flatpak directory and session bus if present:
+- `/var/lib/flatpak`
+- `$HOME` and by implication `$HOME/.local/share/flatpak` / `$HOME/.var/app`
+- `$XDG_RUNTIME_DIR`
 
 If you want to have a separate system remote between host and container,
-you can create your distrobox with the followint init-hook:
+and to make sure container's `xdg-desktop-portal` does not conflict with host's one,
+you can create your distrobox with the following command:
 
 ```sh
 distrobox create --name test --image your-chosen-image:tag \
-                        --init-hooks 'umount /var/lib/flatpak'`
+                        --home "/your/custom/home" \
+                        --init \
+                        --separate-runtime-dir \
+                        --init-hooks 'umount /var/lib/flatpak'
+                        ...
+```
+
+- Specifically `--separate-runtime-dir` and `init-hooks` are required
+- `--home` can be used to separate host user's flatpak directory from container one
+- `--init` is required to create session bus socket, you may skip it if you have alternate solution to `systemd-user-runtime-dir`
+
+If you chose to use `systemd-user-runtime-dir` (already chosen if you use systemd),
+you need to start user session bus within container manually by executing:
+
+```bash
+sudo systemctl start "user@$(id -u).service"
 ```
 
 After that you'll be able to have separate flatpaks between host and distrobox.

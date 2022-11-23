@@ -60,6 +60,7 @@ generate_create_command() {
 	distrobox_hostexec_path="${14}"
 	init="${15}"
 	rootful="${16}"
+	separate_runtime_dir="${17}"
 
 	# Set the container hostname the same as the container name.
 	result_command="${container_manager} create"
@@ -173,9 +174,14 @@ generate_create_command() {
 	fi
 
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
-	if [ -d "/run/user/${container_user_uid}" ]; then
-		result_command="${result_command}
-			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}:rslave"
+	if [ "${separate_runtime_dir}" -eq 0 ]; then
+		if [ -d "/run/user/${container_user_uid}" ]; then
+			result_command="${result_command}
+				--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}:rslave"
+		fi
+	else
+			result_command="${result_command}
+				--tmpfs /run/user"
 	fi
 
 	# These are dynamic configs needed by the container to function properly
