@@ -172,10 +172,15 @@ generate_create_command() {
 			--volume \"/var/home/${container_user_name}\":\"/var/home/${container_user_name}\":rslave"
 	fi
 
-	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
-	if [ -d "/run/user/${container_user_uid}" ]; then
+	if [ "${init}" -eq 0 ]; then
+		# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
+		if [ -d "/run/user/${container_user_uid}" ]; then
+			result_command="${result_command}
+				--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}:rslave"
+		fi
+	else
 		result_command="${result_command}
-			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}:rslave"
+				--tmpfs /run/user"
 	fi
 
 	# These are dynamic configs needed by the container to function properly
