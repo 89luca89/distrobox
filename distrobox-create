@@ -67,6 +67,7 @@ container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
 init=0
+separate_runtime_dir=0
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
 # "realpath" would break situations like Nix or similar symlink based package
@@ -100,9 +101,7 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 show_help() {
 	cat << EOF
 distrobox version: ${version}
-
 Usage:
-
 	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
 	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
 	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
@@ -111,11 +110,8 @@ Usage:
 	distrobox create --image alpine my-alpine-container
 	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
-
 	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
-
 Options:
-
 	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:36
 	--name/-n:		name for the distrobox		default: my-distrobox
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
@@ -133,14 +129,13 @@ Options:
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
+	--separate-runtime-dir:	do not mount host user's XDG_RUNTIME_DIR into the container.
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
-
 Compatibility:
-
 	for a list of compatible images and container managers, please consult the man page:
 		man distrobox-compatibility
 	or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md
@@ -179,12 +174,13 @@ while :; do
 			shift
 			init=1
 			;;
-		-i | --image)
-			if [ -n "$2" ]; then
-				container_image="$2"
-				shift
-				shift
-			fi
+		-R | --init)
+			shift
+			init=1
+			;;
+		--separate-runtime-dir)
+			shift
+			separate_runtime_dir=1
 			;;
 		-n | --name)
 			if [ -n "$2" ]; then
@@ -335,7 +331,9 @@ if [ "${dryrun}" -ne 0 ]; then
 		"${distrobox_export_path}" \
 		"${distrobox_hostexec_path}" \
 		"${init}" \
-		"${rootful}")"
+		"${rootful}" \
+		"${separate_runtime_dir}" \
+		)"
 
 	cmd="$(echo "${cmd}" | tr '[:blank:]\n' ' ' | tr -s ' ')"
 	printf "%s\n" "${cmd}"
@@ -413,7 +411,9 @@ cmd="$( generate_create_command \
 	"${distrobox_export_path}" \
 	"${distrobox_hostexec_path}" \
 	"${init}" \
-	"${rootful}")"
+	"${rootful}" \
+	"${separate_runtime_dir}" \
+	)"
 
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
