@@ -313,11 +313,28 @@ export_binary() {
 #	or error code.
 export_application() {
 	canon_dirs=""
-	[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
-	[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
-	[ -d /var/lib/flatpak/exports/share/applications ] &&
-		canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
-	[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
+        if [ test "${XDG_DATA_HOME}" = "" ]; then
+        # As per freedesktop specs
+        # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+        # If $XDG_DATA_HOME is either not set or empty, a default equal to $HOME/.local/share should be used. 
+            [ -d "$HOME/.local/share/applications" ] && canon_dirs="${canon_dirs} $HOME/.local/share/applications"
+        else
+            for xdg_data_home in $(echo ${XDG_DATA_HOME} | sed 's/:/\n/g'); do
+                [ -d "${xdg_data_home}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_home}/applications"
+            done
+        fi
+
+        if [ test "${XDG_DATA_DIRS}" = "" ]; then
+        # As per freedesktop specs
+        # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+        # If $XDG_DATA_DIRS is either not set or empty, a value equal to /usr/local/share/:/usr/share/ should be used. 
+            [ -d "/usr/local/share/applications" ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
+            [ -d "/usr/share/applications" ] && canon_dirs="${canon_dirs} /usr/share/applications"
+        else
+            for xdg_data_dir in $(echo ${XDG_DATA_DIRS} | sed 's/:/\n/g'); do
+                [ -d "${xdg_data_dir}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_dir}/applications"
+            done
+        fi
 
 	# In this phase we search for applications to export.
 	# First find command will grep throught all files in the canonical directories
