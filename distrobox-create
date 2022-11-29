@@ -622,8 +622,11 @@ generate_command() {
 	# inside the container is moved to distrobox-enter, in the start phase.
 	# This is done to make init, export and host-exec location independent from
 	# the host, and easier to upgrade.
-	result_command="${result_command} ${container_image}
-		/usr/bin/entrypoint -v --name \"${container_user_name}\"
+  #
+  # We set the entrypoint _before_ running the container image so that 
+  # we can override any user provided entrypoint if need be
+	result_command="${result_command} --entrypoint /usr/bin/entrypoint 
+    ${container_image} -v --name \"${container_user_name}\"
 		--user ${container_user_uid}
 		--group ${container_user_gid}
 		--home \"${container_user_custom_home:-"${container_user_home}"}\"
