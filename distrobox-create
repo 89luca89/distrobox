@@ -617,7 +617,7 @@ generate_command() {
 	result_command="${result_command} ${container_manager_additional_flags}"
 
 	container_pre_init_hook_command_line=""
-	if [ -n "${container_pre_init_hook}" ] ; then
+	if [ -n "${container_pre_init_hook}" ]; then
 		container_pre_init_hook_command_line="--pre-init-hooks \"${container_pre_init_hook}\""
 	fi
 
