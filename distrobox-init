@@ -775,6 +775,8 @@ host_sockets="$(find /run/host/run -name 'user' \
 	-prune -o -name 'system_bus_socket' \
 	-prune -o -type s -print \
 	2> /dev/null || :)"
+
+docker_socket=""
 # we're excluding system dbus socket and nscd socket here. Including them will
 # create many problems with package managers thinking they have access to
 # system dbus or user auth cache misused.
@@ -787,9 +789,45 @@ for host_socket in ${host_sockets}; do
 		mkdir -p "$(dirname "${container_socket}")"
 		if ! ln -s "${host_socket}" "${container_socket}"; then
 			printf "Warning: Cannot link socket %s to %s\n" "${host_socket}" "${container_socket}"
+		elif [ "$(basename "${host_socket}")" == "docker.sock" ]; then
+			# if symlink successfully created, and it was for "docker.sock", capture the full host_socket path
+			docker_socket="${host_socket}"
 		fi
 	fi
 done
+###############################################################################
+
+###############################################################################
+# If there was a docker socket found during host socket mapping, ensure
+# the docker group from the host is mapped into the container using the same GID as well.
+# If this isn't done before the docker tool is (optionally, manually) installed,
+# a new container-limited group named "docker" will be created during install but will
+# have a different GID and the container user won't have permissions to the host-mapped
+# docker socket.
+if [ -n "${docker_socket}" ]; then
+	printf "distrobox: Confirming docker socket group access mapping...\n"
+	# get the group name and GID for the docker socket
+	socket_group=$(stat -c '%G' -t "${docker_socket}")
+	socket_gid=$(stat -c '%g' -t "${docker_socket}")
+
+	# is there already a known group permission on the socket?
+	if [ -z "${socket_group}" ]; then
+		# if `stat` isn't present, we'll end up here
+		printf "Warning: Unable to get permissions assigned to Docker socket"
+	elif [ "${socket_group}" == "docker" ]; then
+		printf "Docker socket group already mapped."
+	elif [ "${socket_group}" != "UNKNOWN" ]; then
+		printf "Warning: Docker socket already has incorrect known group %s\n" "${socket_group}"
+	elif [ -z "${socket_gid}" ]; then
+		echo "Warning: Unable to get GID of Docker socket group"
+	else
+		# Docker socket group isn't known by the system, map the GID to the 'docker' name
+		if ! groupadd --gid ${socket_gid} docker; then
+			# `groupadd` isn't present, so add it manually
+			printf "%s:x:%s:" "docker" "${socket_gid}" >> /etc/group
+		fi
+	fi
+fi
 ###############################################################################
 
 ###############################################################################

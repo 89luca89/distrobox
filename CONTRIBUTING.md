@@ -85,13 +85,15 @@ done
 - use `shellcheck` to check for posix compliance and bashisms using:
   - install from: [HERE](https://github.com/koalaman/shellcheck)
     following [this](https://github.com/koalaman/shellcheck#installing)
-  - `shellcheck -s sh -a -o all -Sstyle -Calways -x -e SC2310,SC2311,SC2312`
+  - `shellcheck -s sh -a -o all -Sstyle -Calways -x -e SC2310,SC2311,SC2312 {changed_files}`
 - use `shfmt` to style the code using:
   - install from [HERE](https://github.com/mvdan/sh) using `go install mvdan.cc/sh/v3/cmd/shfmt@latest`
-  - `shfmt -d -s -ci -sr -kp`
+    - `shfmt -d -s -ci -sr -kp {changed_files}`
+  - or via Docker/Podman without installation:
+    - `docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/mnt" -w /mnt mvdan/shfmt:latest -d -s -ci -sr -kp {changed_files}`
 - use `bashate` to check the code:
   - install using `pip3 install bashate`
-  - `bashate -i E002,E003,E010,E011 --max-line-length 12`
+  - `bashate -i E002,E003,E010,E011 --max-line-length 120 {changed_files}`
 - use `markdownlint`
   - install using `npm -i -g markdownlint-cli`
   - run `markdownlint $(find . -name '*.md' | grep -vF './.git')`
