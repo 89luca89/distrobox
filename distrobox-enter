@@ -270,6 +270,7 @@ generate_command() {
 	result_command="${container_manager} exec"
 	result_command="${result_command}
 		--interactive
+		--detach-keys=\"\"
 		--user=\"${USER}\""
 
 	# For some usage, like use in service, or launched by non-terminal
