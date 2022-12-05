@@ -268,7 +268,7 @@ Example configuration file:
 
 ```conf
 container_always_pull="1"
-container_user_custom_home="/home/.local/share/container-home-test"
+container_user_custom_home="$HOME/.local/share/container-home-test"
 container_image="registry.opensuse.org/opensuse/toolbox:latest"
 container_manager="docker"
 container_name="test-name-1"
