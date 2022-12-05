@@ -21,7 +21,7 @@ jobs:
       distrobox_changed: ${{ steps.check_file_changed.outputs.distrobox_changed }}
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           # Checkout as many commits as needed for the diff
           fetch-depth: 2
@@ -42,7 +42,7 @@ jobs:
     if: needs.check_changes.outputs.distrobox_changed == 'True'
     steps:
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.PAT }}
 
