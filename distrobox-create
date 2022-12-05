@@ -616,11 +616,6 @@ generate_command() {
 	# Add additional flags
 	result_command="${result_command} ${container_manager_additional_flags}"
 
-	container_pre_init_hook_command_line=""
-	if [ -n "${container_pre_init_hook}" ]; then
-		container_pre_init_hook_command_line="--pre-init-hooks \"${container_pre_init_hook}\""
-	fi
-
 	# Now execute the entrypoint, refer to `distrobox-init -h` for instructions
 	#
 	# Be aware that entrypoint corresponds to distrobox-init, the copying of it
@@ -633,7 +628,7 @@ generate_command() {
 		--group ${container_user_gid}
 		--home \"${container_user_custom_home:-"${container_user_home}"}\"
 		--init \"${init}\"
-		${container_pre_init_hook_command_line}
+		--pre-init-hooks \"${container_pre_init_hook}\"
 		-- '${container_init_hook}'
 		"
 	# use container_user_custom_home if defined, else fallback to normal home.
