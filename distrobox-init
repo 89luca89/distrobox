@@ -399,7 +399,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		emerge --ask=n --autounmask-continue --noreplace --quiet-build \
 			"${shell_pkg}" \
 			app-crypt/gnupg \
-			bc \
+			sys-devel/bc  \
 			diffutils \
 			findutils \
 			less \
