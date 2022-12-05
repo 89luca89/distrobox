@@ -399,7 +399,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		emerge --ask=n --autounmask-continue --noreplace --quiet-build \
 			"${shell_pkg}" \
 			app-crypt/gnupg \
-			sys-devel/bc  \
+			sys-devel/bc \
 			diffutils \
 			findutils \
 			less \
@@ -770,11 +770,13 @@ printf "distrobox: Setting up host's sockets integration...\n"
 # for example using `podman --remote` to control the host's podman from inside
 # the container or accessing docker and libvirt sockets.
 host_sockets="$(find /run/host/run -name 'user' \
+	-prune -o -path /run/host/run/media \
 	-prune -o -name 'nscd' \
 	-prune -o -name 'bees' \
 	-prune -o -name 'system_bus_socket' \
 	-prune -o -type s -print \
 	2> /dev/null || :)"
+
 # we're excluding system dbus socket and nscd socket here. Including them will
 # create many problems with package managers thinking they have access to
 # system dbus or user auth cache misused.
