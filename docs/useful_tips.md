@@ -9,8 +9,7 @@
   - [Execute commands on the host](#execute-commands-on-the-host)
   - [Enable SSH X-Forwarding when SSH-ing in a distrobox](#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
   - [Use distrobox to install different flatpaks from the host](#use-distrobox-to-install-different-flatpaks-from-the-host)
-  - [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
-  - [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
+  - [Using podman or docker inside a distrobox](#using-podman-or-docker-inside-a-distrobox)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
   - [Using a different architecture](#using-a-different-architecture)
@@ -189,27 +188,23 @@ distrobox create --name test --image your-chosen-image:tag \
 After that you'll be able to have separate flatpaks between host and distrobox.
 You can procede to export them using `distrobox-export` (for distrobox 1.2.14+)
 
-## Using podman inside a distrobox
+## Using podman or docker inside a distrobox
 
-If `distrobox` is using `podman` as the container engine, you can use
-`podman socket` to control host's podman from inside a `distrobox`, just use:
+You can easily control host's instance of docker or podman, using `distrobox-host-exec`
+You can use:
 
-`podman --remote`
+```console
+sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
+```
 
-inside the `distrobox` to use it.
+or
 
-It may be necessary to enable the socket on your host system by using:
+```console
+sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/docker
+```
 
-`systemctl --user enable --now podman.socket`
-
-## Using docker inside a distrobox
-
-You can use `docker` to control host's podman from inside a `distrobox`,
-by default if `distrobox` is using docker as a container engine, it will mount the
-docker.sock into the container.
-
-So in the container just install `docker`, add yourself to the `docker` group, and
-you should be good to go.
+This will create a `podman` or `docker` command inside the distrobox that will
+trasparently execute the command on the host.
 
 ## Using init system inside a distrobox
 
