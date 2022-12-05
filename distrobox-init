@@ -122,6 +122,8 @@ while :; do
 				pre_init_hook="$2"
 				shift
 				shift
+			else
+				shift
 			fi
 			;;
 		--)

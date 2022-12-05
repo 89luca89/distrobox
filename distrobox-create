@@ -291,7 +291,7 @@ while :; do
 			;;
 		--pre-init-hooks)
 			if [ -n "$2" ]; then
-				container_pre_init_hook="--pre-init-hooks \"${2}\""
+				container_pre_init_hook="${2}"
 				shift
 				shift
 			fi
@@ -631,7 +631,7 @@ generate_command() {
 		--group ${container_user_gid}
 		--home \"${container_user_custom_home:-"${container_user_home}"}\"
 		--init \"${init}\"
-		${container_pre_init_hook}
+		--pre-init-hooks \"${container_pre_init_hook}\"
 		-- '${container_init_hook}'
 		"
 	# use container_user_custom_home if defined, else fallback to normal home.

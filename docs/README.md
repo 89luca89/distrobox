@@ -273,6 +273,8 @@ container_image="registry.opensuse.org/opensuse/toolbox:latest"
 container_manager="docker"
 container_name="test-name-1"
 container_entry=0
+container_init_hook="~/.local/distrobox/a_custom_default_init_hook.sh"
+container_pre_init_hook="~/a_custom_default_pre_init_hook.sh"
 non_interactive="1"
 skip_workdir="0"
 ```
