@@ -975,7 +975,6 @@ else
 	# entry though as per user's active preferences.
 	if ! usermod \
 		--home "${container_user_home}" \
-		--shell "${SHELL:-"/bin/bash"}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
 		"${container_user_name}"; then
