@@ -969,18 +969,22 @@ if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/pass
 			"${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
 		printf "%s::1::::::" "${container_user_name}" >> /etc/shadow
 	fi
-else
+# Ensure we're not using the specified SHELL. Run it only once, so that future
+# user's preferences are not overwritten at each start.
+elif [ ! -e /etc/passwd.done ]; then
 	# This situation is presented when podman or docker already creates the user
 	# for us inside container. We should modify the user's prepopulated shadowfile
 	# entry though as per user's active preferences.
 	if ! usermod \
 		--home "${container_user_home}" \
+		--shell "${SHELL:-"/bin/bash"}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
 		"${container_user_name}"; then
 
 		printf "Warning: there was a problem setting up the user\n"
 	fi
+	touch /etc/passwd.done
 fi
 
 # We generate a random password to initialize the entry for the user and root.
