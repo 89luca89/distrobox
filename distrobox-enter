@@ -42,8 +42,9 @@ fi
 container_command=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
 container_manager="autodetect"
-container_name_default="my-distrobox"
 container_manager_additional_flags=""
+container_name=""
+container_name_default="my-distrobox"
 non_interactive=0
 distrobox_sudo_program="sudo"
 
