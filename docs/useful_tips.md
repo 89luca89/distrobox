@@ -1,4 +1,5 @@
 - [Distrobox](README.md)
+  - [Launch a distrobox from you applications list](#launch-a-distrobox-from-you-applications-list)
   - [Create a distrobox with a custom HOME directory](#create-a-distrobox-with-a-custom-home-directory)
   - [Mount additional volumes in a distrobox](#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](#use-a-different-shell-than-the-host)
@@ -17,8 +18,6 @@
   - [Container save and restore](#container-save-and-restore)
   - [Check used resources](#check-used-resources)
   - [Pre-installing additional package repositories](#pre-installing-additional-package-repositories)
-  - [Build a Gentoo distrobox container](distrobox_gentoo.md)
-  - [Build a Dedicated distrobox container](distrobox_custom.md)
   - [Apply resource limitation on the fly](#apply-resource-limitation-on-the-fly)
 
 ---
@@ -214,6 +213,9 @@ Example of such images are:
 - docker.io/almalinux/8-init
 - registry.access.redhat.com/ubi7/ubi-init
 - registry.access.redhat.com/ubi8/ubi-init
+- registry.access.redhat.com/ubi9/ubi-init
+- registry.opensuse.org/opensuse/leap:latest
+- registry.opensuse.org/opensuse/tumbleweed:latest
 
 You can use such feature using:
 
