@@ -120,11 +120,9 @@ while :; do
 		--pre-init-hooks)
 			if [ -n "$2" ]; then
 				pre_init_hook="$2"
-				shift
-				shift
-			else
-				shift
 			fi
+			shift
+			shift
 			;;
 		--)
 			shift
