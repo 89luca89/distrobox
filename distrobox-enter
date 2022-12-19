@@ -58,7 +58,7 @@ headless=0
 rootful=0
 skip_workdir=0
 verbose=0
-version="1.4.1"
+version="1.4.2"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults

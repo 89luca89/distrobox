@@ -32,7 +32,7 @@ init_hook=""
 upgrade=0
 pre_init_hook=""
 verbose=0
-version="1.4.1"
+version="1.4.2"
 # Print usage to stdout.
 # Arguments:
 #   None
