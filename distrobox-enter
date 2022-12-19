@@ -40,10 +40,9 @@ fi
 
 # Defaults
 container_command=""
-container_image=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
 container_manager="autodetect"
-container_name="my-distrobox"
+container_name_default="my-distrobox"
 container_manager_additional_flags=""
 non_interactive=0
 distrobox_sudo_program="sudo"
@@ -80,7 +79,6 @@ done
 [ "${non_interactive}" = "true" ] && non_interactive=1
 [ "${non_interactive}" = "false" ] && non_interactive=0
 
-[ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_SKIP_WORKDIR}" ] && skip_workdir="${DBX_SKIP_WORKDIR}"
@@ -215,6 +213,10 @@ set -o nounset
 # set verbosity
 if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
+fi
+
+if [ -z "${container_name}" ]; then
+	container_name="${container_name_default}"
 fi
 
 # We depend on a container manager let's be sure we have it
@@ -402,14 +404,11 @@ eval "$(${container_manager} inspect --type container "${container_name}" --form
 if [ "${container_status}" = "unknown" ]; then
 	# If not, prompt to create it first
 	printf >&2 "Cannot find container %s\n" "${container_name}"
-	if [ -z "${container_image}" ]; then
-		container_image="${container_image_default}"
-	fi
 	# If we're not-interactive, just don't ask questions
 	if [ "${non_interactive}" -eq 1 ]; then
 		response="yes"
 	else
-		printf >&2 "Create it now, out of image %s? [Y/n]: " "${container_image}"
+		printf >&2 "Create it now, out of image %s? [Y/n]: " "${container_image_default}"
 		read -r response
 		response="${response:-"Y"}"
 	fi
@@ -422,7 +421,7 @@ if [ "${container_status}" = "unknown" ]; then
 			if [ "${rootful}" -ne 0 ]; then
 				create_command="${create_command} --root"
 			fi
-			create_command="${create_command} -i ${container_image} -n ${container_name}"
+			create_command="${create_command} -i ${container_image_default} -n ${container_name}"
 			printf >&2 "Creating the container with command:\n"
 			printf >&2 "  %s\n" "${create_command}"
 			if [ "${dryrun}" -ne 1 ]; then

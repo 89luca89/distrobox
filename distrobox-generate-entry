@@ -22,7 +22,7 @@
 
 all=0
 container_manager="autodetect"
-container_name="my-distrobox"
+container_name_default="my-distrobox"
 delete=0
 icon="auto"
 icon_default="${HOME}/.local/share/icons/terminal-distrobox-icon.png"
@@ -71,11 +71,6 @@ Options:
 	--version/-V:		show version
 EOF
 }
-
-if [ $# -eq 0 ]; then
-	show_help
-	exit
-fi
 
 # Parse arguments
 while :; do
@@ -138,8 +133,7 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 if [ -z "${container_name}" ]; then
-	printf >&2 "Please specify the name of the container.\n"
-	exit 1
+	container_name="${container_name_default}"
 fi
 
 if [ "${all}" -ne 0 ]; then

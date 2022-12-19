@@ -47,6 +47,7 @@ container_clone=""
 container_home_prefix=""
 container_image=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
+container_name_default="my-distrobox"
 container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
@@ -132,8 +133,8 @@ Usage:
 
 Options:
 
-	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:36
-	--name/-n:		name for the distrobox		default: my-distrobox
+	--image/-i:		image to use for the container	default: ${container_image_default}
+	--name/-n:		name for the distrobox		default: ${container_name_default}
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -336,7 +337,7 @@ fi
 # toolbx one. This will avoid problems when using both toolbx and distrobox on
 # the same system.
 if [ -z "${container_name}" ] && [ "${container_image}" = "${container_image_default}" ]; then
-	container_name="my-distrobox"
+	container_name="${container_name_default}"
 fi
 
 # If no container_name is declared, we build our container name starting from the

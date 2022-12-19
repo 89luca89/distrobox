@@ -35,7 +35,7 @@ fi
 
 # Defaults
 container_manager="autodetect"
-container_name="my-distrobox"
+container_name_default="my-distrobox"
 non_interactive=0
 rootful=0
 verbose=0
@@ -152,6 +152,10 @@ set -o nounset
 # set verbosity
 if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
+fi
+
+if [ -z "${container_name}" ]; then
+	container_name="${container_name_default}"
 fi
 
 # We depend on a container manager let's be sure we have it
