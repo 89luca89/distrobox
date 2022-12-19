@@ -41,7 +41,6 @@ graphical apps (X11/Wayland), and audio.
   - [Alternative methods](#alternative-methods)
     - [Curl](#curl)
     - [Git](#git)
-    - [Flatpak](#flatpak)
   - [Dependencies](#dependencies)
     - [Install Podman without root](compatibility.md#install-podman-in-a-static-manner)
   - [Uninstallation](#uninstallation)
@@ -351,32 +350,6 @@ such as `./install --prefix ~/.distrobox`.
 
 Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas
 the manpages get installed to `${prefix}/share/man`.
-
-### Flatpak
-
-⚠️ ⚠️ ⚠️  This is experimental! ⚠️ ⚠️ ⚠️
-
-You can find flatpak builds of distrobox here:
-[io.github.luca.distrobox](https://github.com/89luca89/io.github.luca.distrobox/releases)  
-Download the latest release flatpak and run
-
-```sh
-flatpak install io.github.luca.distrobox.flatpak
-```
-
-You can then run distrobox with:
-
-```sh
-flatpak run io.github.luca.distrobox create ...
-flatpak run io.github.luca.distrobox enter ...
-flatpak run io.github.luca.distrobox list ...
-[...]
-```
-
-It will  be handy to add an `alias distrobox="flatpak run io.github.luca.distrobox"` to your shell,
-so that you can run distrobox commands normally.
-
-Being experimental, please if you encounter problems, report them!
 
 ---
 
