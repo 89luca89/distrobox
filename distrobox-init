@@ -1001,25 +1001,26 @@ printf "test -z \"\$USER\" && USER=\"\$(id -un 2> /dev/null)\"\n" > /etc/profile
 printf "test -z \"\$UID\"  && readonly  UID=\"\$(id -ur 2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
 printf "test -z \"\$EUID\" && readonly EUID=\"\$(id -u  2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
 if [ -n "${DISTROBOX_HOST_HOME:-}" ] && [ -d "/etc/skel" ]; then
-	skel_files="$(find /etc/skel/ -type f || :)"
-	for skel_file in ${skel_files}; do
-	        base_file_name=$(basename $skel_file)
-	        skel_file_path=${skel_file%$base_file_name}
-	        file_path_for_home=${skel_file_path#/etc/skel/}
+        skel_files="$(find /etc/skel/ -type f || :)"
+        for skel_file in ${skel_files}; do
+                base_file_name=$(basename $skel_file)
+                skel_file_path=${skel_file%$base_file_name}
+                file_path_for_home=${skel_file_path#/etc/skel/}
 
-	        if [ ! -z $file_path_for_home ] && 
-			[ ! -d "${container_user_home}/${file_path_for_home:+$file_path_for_home}" ]; then
-                		mkdir -p "${container_user_home}/${file_path_for_home:+$file_path_for_home/}"
-        	fi
+                if [ ! -z $file_path_for_home ] && 
+                        [ ! -d "${container_user_home}/${file_path_for_home:+$file_path_for_home}" ]; then
+                                mkdir -p "${container_user_home}/${file_path_for_home:+$file_path_for_home/}"
+                fi
 
-		if [ ! -f "${container_user_home}/${file_path_for_home:+$file_path_for_home/}${file_name}" ] &&
-			[ ! -L "${container_user_home}/${file_path_for_home:+$file_path_for_home/}${file_name}" ]; then
-				cp "${skel_file}" "${container_user_home}/${file_path_for_home:+$file_path_for_home/}${file_name}"
-				chown "${container_user_uid}":"${container_user_gid}" \
-					"${container_user_home}/${file_path_for_home:+$file_path_for_home/}${file_name}"
-		fi
-	done
+                if [ ! -f "${container_user_home}/${file_path_for_home:+$file_path_for_home/}${base_file_name}" ] &&
+                        [ ! -L "${container_user_home}/${file_path_for_home:+$file_path_for_home/}${base_file_name}" ]; then
+                                cp "${skel_file}" "${container_user_home}/${file_path_for_home:+$file_path_for_home/}${base_file_name}"
+                                chown "${container_user_uid}":"${container_user_gid}" \
+                                        "${container_user_home}/${file_path_for_home:+$file_path_for_home/}${base_file_name}"
+                fi
+        done
 fi
+
 
 printf "distrobox: Executing init hooks...\n"
 # execute eventual init hooks if specified
