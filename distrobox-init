@@ -467,11 +467,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		yay --noconfirm -Syyu
-		if ! yay -Sy --noconfirm "${shell_pkg}"; then
+		# Use Pacman instead of AUR helper for container init.
+		pacman --noconfirm -Syyu
+		if ! pacman -Sy --noconfirm "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		yay -Sy --noconfirm \
+		pacman -Sy --noconfirm \
 			"${shell_pkg}" \
 			bc \
 			curl \
@@ -491,7 +492,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vte-common
 
 		# These are graphics drivers for 3d applications
-		yay -Sy --noconfirm \
+		pacman -Sy --noconfirm \
 			mesa \
 			opengl-driver \
 			vulkan-intel \
@@ -512,11 +513,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		paru --noconfirm -Syyu
-		if ! paru -Sy --noconfirm "${shell_pkg}"; then
+		# Use Pacman instead of AUR helper for container init.
+		pacman --noconfirm -Syyu
+		if ! pacman -Sy --noconfirm "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		paru -Sy --noconfirm \
+		pacman -Sy --noconfirm \
 			"${shell_pkg}" \
 			bc \
 			curl \
@@ -536,7 +538,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vte-common
 
 		# These are graphics drivers for 3d applications
-		paru -Sy --noconfirm \
+		pacman -Sy --noconfirm \
 			mesa \
 			opengl-driver \
 			vulkan-intel \
