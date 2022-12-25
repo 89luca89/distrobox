@@ -214,9 +214,21 @@ for container in ${container_name}; do
 		# shellcheck disable=SC2086
 		"${distrobox_path}"/distrobox-enter --root ${container} -- sudo /usr/bin/entrypoint --upgrade
 	elif [ "${rootful}" -ne 0 ] && [ "${aur}" -ne 0 ]; then
-		"${distrobox_path}"/distrobox-enter --root ${container} -- /usr/bin/entrypoint --upgrade
+		if [ $("${distrobox_path}"/distrobox-enter --root ${container} -- ls /usr/bin | grep -ow "yay") ]; then
+			"${distrobox_path}"/distrobox-enter --root ${container} -- /usr/bin/entrypoint --upgrade
+		elif [ $("${distrobox_path}"/distrobox-enter --root ${container} -- ls /usr/bin | grep -ow "paru") ]; then
+			"${distrobox_path}"/distrobox-enter --root ${container} -- /usr/bin/entrypoint --upgrade
+		else
+			"${distrobox_path}"/distrobox-enter --root ${container} -- sudo /usr/bin/entrypoint --upgrade
+		fi
 	elif [ "${aur}" -ne 0 ]; then
-		"${distrobox_path}"/distrobox-enter ${container} -- /usr/bin/entrypoint --upgrade
+		if [ $("${distrobox_path}"/distrobox-enter ${container} -- ls /usr/bin | grep -ow "yay") ]; then
+			"${distrobox_path}"/distrobox-enter ${container} -- /usr/bin/entrypoint --upgrade
+		elif [ $("${distrobox_path}"/distrobox-enter ${container} -- ls /usr/bin | grep -ow "paru") ]; then
+			"${distrobox_path}"/distrobox-enter ${container} -- /usr/bin/entrypoint --upgrade
+		else
+			"${distrobox_path}"/distrobox-enter ${container} -- sudo /usr/bin/entrypoint --upgrade
+		fi
 	else
 		# shellcheck disable=SC2086
 		"${distrobox_path}"/distrobox-enter ${container} -- sudo /usr/bin/entrypoint --upgrade
