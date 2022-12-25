@@ -212,7 +212,7 @@ for container in ${container_name}; do
 	if [ "${rootful}" -ne 0 ]; then
 		# shellcheck disable=SC2086
 		"${distrobox_path}"/distrobox-enter --root ${container} -- sudo /usr/bin/entrypoint --upgrade
-	elif [ "${rootful}" -ne 0 && "${aur}" -ne 0 ]; then
+	elif [ "${rootful}" -ne 0 ] && [ "${aur}" -ne 0 ]; then
 		"${distrobox_path}"/distrobox-enter --root ${container} -- /usr/bin/entrypoint --upgrade
 	elif [ "${aur}" -ne 0 ]; then
 		"${distrobox_path}"/distrobox-enter ${container} -- /usr/bin/entrypoint --upgrade
