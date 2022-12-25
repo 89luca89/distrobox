@@ -80,6 +80,7 @@ Options:
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
+	--aur/-u:		Needed to run yay and paru with distrobox-upgrade
 EOF
 }
 
@@ -111,6 +112,10 @@ while :; do
 		-r | --root)
 			shift
 			rootful=1
+			;;
+		-u | --aur)
+			shift
+			aur=1
 			;;
 		--) # End of all options.
 			shift
@@ -207,6 +212,10 @@ for container in ${container_name}; do
 	if [ "${rootful}" -ne 0 ]; then
 		# shellcheck disable=SC2086
 		"${distrobox_path}"/distrobox-enter --root ${container} -- sudo /usr/bin/entrypoint --upgrade
+	elif [ "${rootful}" -ne 0 && "${aur}" -ne 0 ]; then
+		"${distrobox_path}"/distrobox-enter --root ${container} -- /usr/bin/entrypoint --upgrade
+	elif [ "${aur}" -ne 0 ]; then
+		"${distrobox_path}"/distrobox-enter ${container} -- /usr/bin/entrypoint --upgrade
 	else
 		# shellcheck disable=SC2086
 		"${distrobox_path}"/distrobox-enter ${container} -- sudo /usr/bin/entrypoint --upgrade
