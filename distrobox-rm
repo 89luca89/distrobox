@@ -26,7 +26,7 @@
 #   DBX_NON_INTERACTIVE
 #	DBX_SUDO_PROGRAM
 
-# Dont' run this command as sudo.
+# Don't run this command as root.
 if [ "$(id -u)" -eq 0 ]; then
 	printf >&2 "Running %s as root is not supported.\n" "$(basename "${0}")"
 	printf >&2 " try instead running:\n"
