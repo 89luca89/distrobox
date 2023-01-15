@@ -274,7 +274,7 @@ cat << EOF > "${HOME}/.local/share/applications/${container_name}.desktop"
 Name=${entry_name}
 GenericName=Terminal entering ${entry_name}
 Comment=Terminal entering ${entry_name}
-Category=Distrobox;System;Utility"
+Categories=Distrobox;System;Utility
 Exec=${distrobox_path}/distrobox enter ${container_name}
 Icon=${icon}
 Keywords=distrobox;
