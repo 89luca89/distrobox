@@ -1000,16 +1000,23 @@ mkdir -p /etc/profile.d
 printf "test -z \"\$USER\" && USER=\"\$(id -un 2> /dev/null)\"\n" > /etc/profile.d/distrobox_profile.sh
 printf "test -z \"\$UID\"  && readonly  UID=\"\$(id -ur 2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
 printf "test -z \"\$EUID\" && readonly EUID=\"\$(id -u  2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
-if [ -n "${DISTROBOX_HOST_HOME:-}" ] && [ -d "/etc/skel" ]; then
+if [ -n "${DISTROBOX_HOST_HOME-}"  ] && [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
-		if [ ! -f "${container_user_home}/$(basename "${skel_file}")" ] &&
-			[ ! -L "${container_user_home}/$(basename "${skel_file}")" ]; then
+		base_file_name=$(basename "${skel_file}")
+		skel_file_path=$(dirname "${skel_file}")
+		file_path_for_home=${skel_file_path#/etc/skel}
 
-			cp "${skel_file}" "${container_user_home}"
+		if [ -n "${file_path_for_home}" ] &&
+			[ ! -d "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"}" ]; then
+			mkdir -p "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}"
+		fi
+
+		if [ ! -f "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}" ] &&
+			[ ! -L "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}" ]; then
+			cp "${skel_file}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}"
 			chown "${container_user_uid}":"${container_user_gid}" \
-				"${container_user_home}/$(basename "${skel_file}")"
-
+				"${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}"
 		fi
 	done
 fi
