@@ -18,19 +18,21 @@
 # You should have received a copy of the GNU General Public License
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
-# POSIX
-# Dont' run this command as sudo.
-if [ "$(id -u)" -eq 0 ]; then
-	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
-	printf >&2 " try instead running:\n"
-	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
+# Despite of running this script via SUDO/DOAS being not supported (the
+# script itself will call the appropriate tool when necessary), we still want
+# to allow people to run it as root, logged in in a shell, and create rootful
+# containers.
+#
+# SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
+if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
+	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
 fi
 
 all=0
 container_manager="autodetect"
 distrobox_path="$(dirname "$(realpath "${0}")")"
-distrobox_sudo_program="sudo"
 rootful=0
 verbose=0
 version="1.4.2.1"
@@ -51,8 +53,16 @@ for config_file in ${config_files}; do
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
+# If we're running this script as root - as in logged in in the shell as root
+# user, and not via SUDO/DOAS -, we don't need to set distrobox_sudo_program
+# as it's meaningless for this use case.
+if [ "$(id -ru)" -ne 0 ]; then
+	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
+	# user, use its value instead of "sudo". But only if not runnig the script
+	# as root (UID 0).
+	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
+fi
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
-[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
 # Declare it AFTER config sourcing because we do not want a default name set.
 container_name=""

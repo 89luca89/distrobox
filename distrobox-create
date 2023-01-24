@@ -33,11 +33,15 @@
 #	DBX_NON_INTERACTIVE
 #	DBX_SUDO_PROGRAM
 
-# Dont' run this command as sudo.
-if [ "$(id -u)" -eq 0 ]; then
-	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
-	printf >&2 " try instead running:\n"
-	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
+# Despite of running this script via SUDO/DOAS being not supported (the
+# script itself will call the appropriate tool when necessary), we still want
+# to allow people to run it as root, logged in in a shell, and create rootful
+# containers.
+#
+# SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
+if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
+	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
 fi
 
@@ -59,7 +63,6 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
-distrobox_sudo_program="sudo"
 dryrun=0
 init=0
 non_interactive=0
@@ -75,7 +78,9 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 [ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(command -v distrobox-init)"
 [ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(command -v distrobox-export)"
 [ ! -e "${distrobox_hostexec_path}" ] && distrobox_hostexec_path="$(command -v distrobox-hostexec)"
-rootful=0
+# If the user runs this script as root in a login shell, set rootful=1.
+# There's no need for them to pass the --root flag option in such cases.
+[ "${container_user_uid}" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
 version="1.4.2.1"
 
@@ -95,6 +100,15 @@ for config_file in ${config_files}; do
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
+# If we're running this script as root -- as in logged in in the shell as root
+# user, and not via SUDO/DOAS --, we don't need to set distrobox_sudo_program
+# as it's meaningless for this use case.
+if [ "${container_user_uid}" -ne 0 ]; then
+	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
+	# user, use its value instead of "sudo". But only if not runnig the script
+	# as root (UID 0).
+	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
+fi
 # Fixup non_interactive=[true|false], in case we find it in the config file(s)
 [ "${non_interactive}" = "true" ] && non_interactive=1
 [ "${non_interactive}" = "false" ] && non_interactive=0
@@ -107,7 +121,6 @@ done
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_container_generate_entry}" ] && container_generate_entry="${DBX_container_generate_entry}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
-[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
 # Print usage to stdout.
 # Arguments:
@@ -392,7 +405,7 @@ fi
 
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-	container_manager="${distrobox_sudo_program} ${container_manager}"
+	container_manager="${distrobox_sudo_program:-} ${container_manager}"
 fi
 
 # Clone a container as a snapshot.
@@ -664,10 +677,12 @@ fi
 if ${container_manager} inspect --type container "${container_name}" > /dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n\n"
-	if [ "${rootful}" -ne 0 ]; then
-		printf "distrobox-enter --root %s\n\n" "${container_name}"
-	else
-		printf "distrobox-enter %s\n\n" "${container_name}"
+	# If it's a rootful container AND user is not logged as root.
+	if [ "${rootful}" -eq 1 ] && [ "${container_user_uid}" -ne 0 ]; then
+		printf "distrobox enter --root %s\n\n" "${container_name}"
+	# If user is logged as root OR it's a rootless container.
+	elif [ "${container_user_uid}" -eq 0 ] || [ "${rootful}" -eq 0 ]; then
+		printf "distrobox enter %s\n\n" "${container_name}"
 	fi
 	exit 0
 fi
@@ -720,9 +735,11 @@ cmd="$(generate_command)"
 if eval ${cmd} > /dev/null; then
 	printf >&2 "\033[32m [ OK ]\n\033[0mDistrobox '%s' successfully created.\n" "${container_name}"
 	printf >&2 "To enter, run:\n\n"
-	if [ "${rootful}" -ne 0 ]; then
+	# If it's a rootful container AND user is not logged as root.
+	if [ "${rootful}" -eq 1 ] && [ "${container_user_uid}" -ne 0 ]; then
 		printf "distrobox enter --root %s\n\n" "${container_name}"
-	else
+	# If user is logged as root OR it's a rootless container.
+	elif [ "${container_user_uid}" -eq 0 ] || [ "${rootful}" -eq 0 ]; then
 		printf "distrobox enter %s\n\n" "${container_name}"
 	fi
 

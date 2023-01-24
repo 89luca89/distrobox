@@ -82,6 +82,22 @@ with your `$USER`.
 
 `distrobox create --name test --image your-chosen-image:tag --root`
 
+Another use case, what if you want or need to run distrobox with the root user, in a login
+shell?
+
+Before the 1.4.3 release, it wasn't possible. We couldn't make a distinction between someone
+running distrobox vi `sudo` from someone logged in as the root user in a shell. Now things are
+as easy as it would be if you were creating a rootless container:
+
+`# distrobox create --name your-container --pull --image your-chosen-image:tag`
+
+And:
+
+`# distrobox enter your-container`
+
+We trust you already know the implications of running distrobox, as well as anything else,
+with the root user and that with great power comes great responsibilities.
+
 ## Using a command other than sudo to run a rootful container
 
 When using the `--root` option with Distrobox, internally, it uses `sudo` to be able to

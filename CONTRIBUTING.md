@@ -73,6 +73,7 @@ for file in $(find . -type f -not -path "*.git*"); do
       echo "### Checking file $file..."
       dash -n $file
       result=$(( result + $? ))
+      echo "Result: $result"
     fi
 done
 ```
