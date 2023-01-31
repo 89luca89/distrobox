@@ -473,11 +473,11 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		fi
 
 		# Install reflector(1) and make it sort the 40 most recently
-        # synchronized http/https mirrors by speed and overwrite the mirrorlist
-        # This greatly increases the download speed of installed packages
-        if ! pacman -Sy --noconfirm reflector; then
+        	# synchronized http/https mirrors by speed and overwrite the mirrorlist
+        	# This greatly increases the download speed of installed packages
+        	if ! pacman -Sy --noconfirm reflector; then
 			pacman -Sy --noconfirm reflector
-	        reflector --latest 40 --protocol http,https --sort rate --save /etc/pacman.d/mirrorlist
+	        	reflector --latest 40 --protocol http,https --sort rate --save /etc/pacman.d/mirrorlist
 		fi
 
 
