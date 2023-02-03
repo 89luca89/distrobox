@@ -171,6 +171,8 @@ Options:
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--unshare-netns:        do not share the net namespace with host
+	--unshare-ipc:          do not share ipc namemspace with host
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
@@ -249,6 +251,14 @@ while :; do
 		-I | --init)
 			shift
 			init=1
+			;;
+		--unshare-netns)
+			shift
+			unshare_netns=1
+			;;
+		--unshare-ipc)
+			shift
+			unshare_ipc=1
 			;;
 		-C | --compatibility)
 			show_compatibility
@@ -479,12 +489,20 @@ generate_command() {
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
 		--hostname \"${container_name}.$(uname -n)\"
-		--ipc host
 		--name \"${container_name}\"
-		--network host
 		--privileged
 		--security-opt label=disable
 		--user root:root"
+
+	if  ! [ -v unshare_ipc ]; then
+		result_command="${result_command}
+			--ipc host"
+	fi
+
+	if  ! [ -v unshare_netns ]; then
+		result_command="${result_command}
+			--network host"
+	fi
 
 	if [ "${init}" -eq 0 ]; then
 		result_command="${result_command}
