@@ -83,11 +83,11 @@ icon_dest_path="${prefix}/share/icons"
 completion_dest_path="${prefix}/share/bash-completion/completions/"
 
 install_command() {
-  if [ "$(uname)" == "Darwin" ]; then
-    ginstall $@
-  else
-    install $@
-  fi
+	if [ "$(uname)" == "Darwin" ]; then
+		ginstall $@
+	else
+		install $@
+	fi
 }
 
 set -o errexit
