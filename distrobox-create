@@ -459,6 +459,14 @@ generate_command() {
 		result_command="${result_command}
 			--pid host"
 	fi
+
+	# Set a label so we can track the container and set
+	# environment variables for $SHELL and $HOME
+	result_command="${result_command}
+		--label \"manager=distrobox\"
+		--env \"SHELL=${SHELL:-"/bin/bash"}\"
+		--env \"HOME=${container_user_home}\""
+
 	# Mount useful stuff inside the container.
 	# We also mount host's root filesystem to /run/host, to be able to syphon
 	# dynamic configurations from the host.
@@ -469,18 +477,26 @@ generate_command() {
 	# Mount also the distrobox-init utility as the container entrypoint.
 	# Also mount in the container the distrobox-export and distrobox-host-exec
 	# utilities.
-	result_command="${result_command}
-		--label \"manager=distrobox\"
-		--env \"SHELL=${SHELL:-"/bin/bash"}\"
-		--env \"HOME=${container_user_home}\"
-		--volume /:/run/host:rslave
-		--volume /dev:/dev:rslave
-		--volume /sys:/sys:rslave
-		--volume /tmp:/tmp:rslave
-		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
-		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
-		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
-		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+	if [ "$(uname)" == "Darwin" ]; then
+		# Docker Desktop doesnt allow bind-propagation so we cant do rslave
+		# on mounts. Instead skip mounting /, /dev, /sys and /tmp and do a shared
+		# mount on the user's home directory
+		result_command="${result_command}
+      --volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
+      --volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
+      --volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
+      --volume \"${container_user_home}\":\"${container_user_home}\""
+	else
+		result_command="${result_command}
+      --volume /:/run/host:rslave
+      --volume /dev:/dev:rslave
+      --volume /sys:/sys:rslave
+      --volume /tmp:/tmp:rslave
+      --volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
+      --volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
+      --volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
+      --volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+	fi
 
 	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
 	# will be mounted inside the rootless container.
