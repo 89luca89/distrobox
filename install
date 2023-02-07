@@ -82,6 +82,14 @@ man_dest_path="${prefix}/share/man/man1"
 icon_dest_path="${prefix}/share/icons"
 completion_dest_path="${prefix}/share/bash-completion/completions/"
 
+install_command() {
+  if [ "$(uname)" == "Darwin" ]; then
+    ginstall $@
+  else
+    install $@
+  fi
+}
+
 set -o errexit
 set -o nounset
 # set verbosity
@@ -97,23 +105,23 @@ cd "${curr_dir}" || exit 1
 # else download targz and uncompress it
 if [ -e "${curr_dir}/distrobox-enter" ]; then
 	for file in distrobox*; do
-		if ! install -D -m 0755 -t "${dest_path}" "${file}"; then
+		if ! install_command -D -m 0755 -t "${dest_path}" "${file}"; then
 			printf >&2 "Do you have permission to write to %s?\n" "${dest_path}"
 			exit 1
 		fi
 	done
 	if [ -e "man" ]; then
 		for file in man/man1/*; do
-			install -D -m 0644 -t "${man_dest_path}" "${file}"
+			install_command -D -m 0644 -t "${man_dest_path}" "${file}"
 		done
 	fi
 	if [ -e "completions" ]; then
 		for file in completions/*; do
-			install -D -m 0644 -t "${completion_dest_path}" "${file}"
+			install_command -D -m 0644 -t "${completion_dest_path}" "${file}"
 		done
 	fi
 	if [ -e terminal-distrobox-icon.png ]; then
-		install -D -m 0644 -t "${icon_dest_path}" terminal-distrobox-icon.png
+		install_command -D -m 0644 -t "${icon_dest_path}" terminal-distrobox-icon.png
 	fi
 else
 	printf >&2 "\033[1;31m Checking dependencies...\n\033[0m"
@@ -152,23 +160,23 @@ else
 	fi
 	# deploy our files
 	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox*; do
-		if ! install -D -m 0755 -t "${dest_path}" "${file}"; then
+		if ! install_command -D -m 0755 -t "${dest_path}" "${file}"; then
 			printf >&2 "Do you have permission to write to %s?\n" "${dest_path}"
 			exit 1
 		fi
 	done
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/man/" ]; then
 		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/man/man1/*; do
-			install -D -m 0644 -t "${man_dest_path}" "${file}"
+			install_command -D -m 0644 -t "${man_dest_path}" "${file}"
 		done
 	fi
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/completions/" ]; then
 		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/completions/*; do
-			install -D -m 0644 -t "${completion_dest_path}" "${file}"
+			install_command -D -m 0644 -t "${completion_dest_path}" "${file}"
 		done
 	fi
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.png ]; then
-		install -D -m 0644 -t "${icon_dest_path}" \
+		install_command -D -m 0644 -t "${icon_dest_path}" \
 			"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.png
 	fi
 
