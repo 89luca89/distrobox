@@ -911,15 +911,19 @@ EOF
 fi
 ###############################################################################
 
-printf "distrobox: Setting up sudo...\n"
-mkdir -p /etc/sudoers.d
-# Do not check fqdn when doing sudo, it will not work anyways
-if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
-	printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
-fi
-# Ensure passwordless sudo is set up for user
-if ! grep -q "\"${container_user_name}\" ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
-	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
+# If we're running this script as root in a login shell (sudoless), we don't
+# have to bother setting up sudo.
+if [ "${container_user_uid}" -ne 0 ]; then
+	printf "distrobox: Setting up sudo...\n"
+	mkdir -p /etc/sudoers.d
+	# Do not check fqdn when doing sudo, it will not work anyways
+	if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
+		printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
+	fi
+	# Ensure passwordless sudo is set up for user
+	if ! grep -q "\"${container_user_name}\" ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
+		printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
+	fi
 fi
 
 printf "distrobox: Setting up groups...\n"

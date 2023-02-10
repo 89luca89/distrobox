@@ -23,21 +23,26 @@
 #	DBX_CONTAINER_MANAGER
 #	DBX_SUDO_PROGRAM
 
-# Dont' run this command as sudo.
-if [ "$(id -u)" -eq 0 ]; then
-	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
-	printf >&2 " try instead running:\n"
-	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
+# Despite of running this script via SUDO/DOAS being not supported (the
+# script itself will call the appropriate tool when necessary), we still want
+# to allow people to run it as root, logged in in a shell, and create rootful
+# containers.
+#
+# SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
+if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
+	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
 fi
 
 # Defaults
 no_color=0
-rootful=0
+# If the user runs this script as root in a login shell, set rootful=1.
+# There's no need for them to pass the --root flag option in such cases.
+[ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
 version="1.4.2.1"
 container_manager="autodetect"
-distrobox_sudo_program="sudo"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
@@ -55,8 +60,16 @@ for config_file in ${config_files}; do
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
+# If we're running this script as root -- as in logged in in the shell as root
+# user, and not via SUDO/DOAS --, we don't need to set distrobox_sudo_program
+# as it's meaningless for this use case.
+if [ "$(id -ru)" -ne 0 ]; then
+	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
+	# user, use its value instead of "sudo". But only if not runnig the script
+	# as root (UID 0).
+	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
+fi
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
-[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
 # Print usage to stdout.
 # Arguments:
@@ -168,7 +181,7 @@ fi
 
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-	container_manager="${distrobox_sudo_program} ${container_manager}"
+	container_manager="${distrobox_sudo_program:-} ${container_manager}"
 fi
 
 # List containers using custom format that inclused MOUNTS
