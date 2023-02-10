@@ -76,11 +76,13 @@ the same privileges as your normal `$USER`.
 
 But what if you really really need those `root` privileges even inside the container?
 
-Instead of running `sudo distrobox` to do stuff, it is better to simply use normal
+Running `sudo distrobox` is not supported, instead, it is better to simply use normal
 command with the `--root` or `-r` flag, so that distrobox can still integrate better
 with your `$USER`.
 
-`distrobox create --name test --image your-chosen-image:tag --root`
+```console
+:~$ distrobox create --name test --image your-chosen-image:tag --root
+```
 
 Another use case, what if you want or need to run distrobox with the root user, in a login
 shell?
@@ -89,11 +91,15 @@ Before the 1.4.3 release, it wasn't possible. We couldn't make a distinction bet
 running distrobox vi `sudo` from someone logged in as the root user in a shell. Now things are
 as easy as it would be if you were creating a rootless container:
 
-`# distrobox create --name your-container --pull --image your-chosen-image:tag`
+```console
+:~# distrobox create --name your-container --pull --image your-chosen-image:tag`
+```
 
 And:
 
-`# distrobox enter your-container`
+```console
+:~# distrobox enter your-container`
+```
 
 We trust you already know the implications of running distrobox, as well as anything else,
 with the root user and that with great power comes great responsibilities.
