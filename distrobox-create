@@ -598,7 +598,7 @@ generate_command() {
 
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
-	if [ -z "${container_manager#*podman*}" ]; then
+	if echo "${container_manager}" | grep -q "podman"; then
 		result_command="${result_command}
 			--ulimit host
 			--annotation run.oci.keep_original_groups=1
