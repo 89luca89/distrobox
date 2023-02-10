@@ -858,10 +858,10 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 		printf "distrobox: Setting up apt hooks...\n"
 		printf "" > /etc/apt/apt.conf.d/00_distrobox
 		for init_mount in ${HOST_MOUNTS_RO_INIT}; do
-			printf 'DPkg::Pre-Invoke {"if findmnt %s >/dev/null; then umount %s; fi";};\n' \
+			printf 'DPkg::Pre-Invoke {"if findmnt %s >/dev/null; then umount -l %s; fi";};\n' \
 				"${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
-			printf 'DPkg::Post-Invoke {"if [ -e /run/host/%s ]; then mount --rbind /run/host/%s %s; fi";};\n' \
-				"${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
+							printf 'DPkg::Post-Invoke {"if [ -e /run/host/%s ] || [ -e /run/host/$(readlink -fm /run/host/%s) ]; then mount --rbind $(readlink -fm /run/host/%s) %s 2>/dev/null || mount --rbind /run/host/$(readlink -fm /run/host/%s) %s; fi";};\n' \
+				"${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
 		done
 	fi
 fi
