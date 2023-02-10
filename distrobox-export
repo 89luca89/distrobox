@@ -523,6 +523,7 @@ export_service() {
 
 	# Replace all Exec occurrencies
 	cp -f "${service_file}" "${exported_service_fullpath}"
+	chmod 0644 "${exported_service_fullpath}"
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
 		# Save to temp file
 		cp -f "${exported_service_fullpath}" "${temp_file}"
