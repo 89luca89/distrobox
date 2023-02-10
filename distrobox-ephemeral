@@ -52,7 +52,7 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-ephemeral --name container-name [--force]
+	distrobox-ephemeral [--root/-r]
 
 Options:
 
