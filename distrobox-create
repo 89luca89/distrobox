@@ -547,7 +547,7 @@ generate_command() {
 		fi
 		result_command="${result_command}
 			--env \"HOME=${container_home_prefix}/${container_name}\"
-			--env \"DISTROBOX_HOST_HOME=${container_user_home}/${container_name}\"
+			--env \"DISTROBOX_HOST_HOME=${container_user_home}\"
 			--volume ${container_home_prefix}/${container_name}:${container_home_prefix}/${container_name}:rslave"
 	fi
 
