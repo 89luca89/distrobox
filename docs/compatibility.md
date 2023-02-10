@@ -55,7 +55,7 @@ Distrobox has been successfully tested on:
 | Debian | 11 <br> Testing <br> Unstable | `distrobox` is available in default repos in `testing` and `unstable` (thanks [michel-slm!](https://github.com/michel-slm!)!) |
 | EndlessOS | 4.0.0 | |
 | Fedora Silverblue/Kinoite | 35 <br> 36 <br> Rawhide | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
-| Fedora | 35 <br> 36 <br> Rawhide | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
+| Fedora | 35 <br> 36 <br> 37 <br> 38 <br> Rawhide | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
 | Gentoo | | To setup rootless podman, look [HERE](https://wiki.gentoo.org/wiki/Podman) |
 | Manjaro | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | NixOS | 21.11 | Make sure to mind your executable paths. Sometimes a container will not have nix paths, and sometimes it will not have its own paths.  <br>  Distrobox is available in Nixpkg collection (thanks [AtilaSaraiva](https://github.com/AtilaSaraiva)!)< <br> To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker)  <br> To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
@@ -153,7 +153,7 @@ Distrobox guests tested successfully with the following container images:
 | Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 | docker.io/debian/eol:wheezy <br> docker.io/debian/eol:jessie <br> docker.io/library/debian:9 <br> docker.io/library/debian:10 <br> docker.io/library/debian:stable <br> docker.io/library/debian:stable-backports    |
 | Debian | Testing    | docker.io/library/debian:testing  <br>  docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
-| Fedora | 35 <br> 36 <br> 37 <br> 38 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox:37 <br> quay.io/fedora/fedora:35 <br> quay.io/fedora/fedora:36 <br> registry.fedoraproject.org/fedora:37 <br> quay.io/fedora/fedora:38    |
+| Fedora | 36 <br> 37 <br> 38 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox:37 <br> quay.io/fedora/fedora:36 <br> registry.fedoraproject.org/fedora:37 <br> quay.io/fedora/fedora:38    |
 | Gentoo Linux | rolling | docker.io/gentoo/stage3:latest |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Mageia | 8 | docker.io/library/mageia |
