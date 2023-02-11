@@ -490,7 +490,7 @@ if [ "${container_status}" != "running" ]; then
 		# after to let logs command minimize possible holes
 		log_timestamp_new="$(date +%FT%T.%N%:z)"
 		${container_manager} logs \
-			--since "${log_timestamp}" "${container_name}" 2> /dev/null > "${HOME}/.cache/.${container_name}.fifo"
+			--since "${log_timestamp}" "${container_name}" &> "${HOME}/.cache/.${container_name}.fifo"
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
 			case "${line}" in
