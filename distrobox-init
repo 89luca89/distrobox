@@ -163,6 +163,33 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
+# Print mount flags considered "locked".
+# Arguments:
+# 	source_dir
+# Outputs:
+# 	Comma-separated list of locked mount flags
+get_locked_mount_flags() (
+	source_dir="$1"
+
+	! [ -d "${source_dir}" ] && return 0
+
+	# Get mount flags of given directory, using nearest mountpoint
+	flags="$(findmnt --noheadings --output OPTIONS --target "${source_dir}")"
+
+	locked_flags=""
+	for flag in nodev noexec nosuid; do
+		case ",${flags}," in
+			*,${flag},*)
+				# Locked flag found, append to list while avoiding leading/trailing commas
+				locked_flags="${locked_flags:+${locked_flags},}${flag}"
+				;;
+			*) : ;;
+		esac
+	done
+
+	echo "${locked_flags}"
+)
+
 # Bind mount or error.
 # Arguments:
 #   source_dir
@@ -711,7 +738,10 @@ HOST_MOUNTS_RO="
 	/var/lib/systemd/coredump
 	/var/log/journal"
 for host_mount_ro in ${HOST_MOUNTS_RO}; do
-	mount_bind /run/host"${host_mount_ro}" "${host_mount_ro}" ro
+	# Mounting read-only in a user namespace will trigger a check to see if certain
+	# "locked" flags are changed. This ensures we explicitly reuse those flags.
+	locked_flags="$(get_locked_mount_flags /run/host"${host_mount_ro}")"
+	mount_bind /run/host"${host_mount_ro}" "${host_mount_ro}" ro"${locked_flags:+,${locked_flags}}"
 done
 ###############################################################################
 
