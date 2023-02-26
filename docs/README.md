@@ -154,7 +154,7 @@ Please check [the usage docs here](usage/usage.md) and [see some handy tips on h
 
 Thanks to [castrojo](https://github.com/castrojo), you can see Distrobox in
 action in this explanatory video on his setup with Distrobox, Toolbx,
-Fedora Silverblue on his project [ublue](https://github.com/castrojo/ublue)
+Fedora Silverblue for the [uBlue](https://github.com/ublue-os) project
 (check it out!)
 
 [![Video](https://user-images.githubusercontent.com/598882/153680522-f5903607-2854-4cfb-a186-cba7403745bd.png)](https://www.youtube.com/watch?v=Q2PrISAOtbY)
