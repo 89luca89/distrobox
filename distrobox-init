@@ -170,13 +170,21 @@ fi
 # 	Comma-separated list of locked mount flags
 get_locked_mount_flags() (
 	source_dir="$1"
+	prev_dir=""
+	locked_flags=""
 
 	! [ -d "${source_dir}" ] && return 0
 
-	# Get mount flags of given directory, using nearest mountpoint
-	flags="$(findmnt --noheadings --output OPTIONS --target "${source_dir}")"
+	# Get mount flags of given directory, using nearest mountpoint.
+	# Earlier versions of findmnt did not check parents until it found a mountpoint,
+	# so we use a workaround with dirname.
+	while true; do
+		flags="$(findmnt --noheadings --output OPTIONS --target "${source_dir}")" && break
+		prev_dir="${source_dir}"
+		source_dir="$(dirname "${source_dir}")"
+		[ "${source_dir}" = "${prev_dir}" ] && return 1
+	done
 
-	locked_flags=""
 	for flag in nodev noexec nosuid; do
 		case ",${flags}," in
 			*,${flag},*)
