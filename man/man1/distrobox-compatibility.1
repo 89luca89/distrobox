@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Feb 2023" "Distrobox" "User Manual"
 .hy
 .SH COMPATIBILITY
 .PP
@@ -134,7 +134,7 @@ Debian
 T}@T{
 7 8 9 10 11
 T}@T{
-docker.io/debian/eol:wheezy docker.io/library/debian:8
+docker.io/debian/eol:wheezy docker.io/debian/eol:jessie
 docker.io/library/debian:9 docker.io/library/debian:10
 docker.io/library/debian:stable
 docker.io/library/debian:stable-backports
@@ -157,18 +157,17 @@ T}
 T{
 Fedora
 T}@T{
-35 36 37 Rawhide
+36 37 38 Rawhide
 T}@T{
-registry.fedoraproject.org/fedora-toolbox:35 quay.io/fedora/fedora:35
-quay.io/fedora/fedora:36 registry.fedoraproject.org/fedora:37
-quay.io/fedora/fedora:rawhide
+registry.fedoraproject.org/fedora-toolbox:37 quay.io/fedora/fedora:36
+registry.fedoraproject.org/fedora:37 quay.io/fedora/fedora:38
 T}
 T{
 Gentoo Linux
 T}@T{
 rolling
 T}@T{
-You will have to Build your own to have a complete Gentoo docker image
+docker.io/gentoo/stage3:latest
 T}
 T{
 Kali Linux
@@ -273,7 +272,7 @@ T}
 .TE
 .PP
 Note however that if you use a non-toolbox preconfigured image (e.g.
-images pre-baked to work with <https://github.com/containers/toolbox),>
+images pre-baked to work with <https://github.com/containers/toolbox>),
 the \f[B]first\f[R] \f[V]distrobox-enter\f[R] you\[cq]ll perform can
 take a while as it will download and install the missing dependencies.
 .PP

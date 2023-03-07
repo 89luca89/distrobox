@@ -33,7 +33,7 @@ upgrade=0
 pre_init_hook=""
 custom_networking=0
 verbose=0
-version="1.4.1"
+version="1.4.2.1"
 # Print usage to stdout.
 # Arguments:
 #   None
@@ -122,9 +122,9 @@ while :; do
 		--pre-init-hooks)
 			if [ -n "$2" ]; then
 				pre_init_hook="$2"
-				shift
-				shift
 			fi
+			shift
+			shift
 			;;
 		--network)
 			if [ -n "$2" ]; then
@@ -388,6 +388,17 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		fi
 
 	elif command -v emerge; then
+		# Check if the container we are using has a ::gentoo repo defined,
+		# if it is defined and it is empty, then synchroznize it.
+		gentoo_repo="$(portageq get_repo_path / gentoo)"
+		if [ -n "${gentoo_repo}" ] && [ ! -e "${gentoo_repo}" ]; then
+			emerge-webrsync
+		fi
+		# If we need to upgrade, do it and exit, no further action required.
+		if [ "${upgrade}" -ne 0 ]; then
+			emerge --sync
+			exit
+		fi
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
@@ -396,19 +407,20 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		fi
 		emerge --ask=n --autounmask-continue --noreplace --quiet-build \
 			"${shell_pkg}" \
-			bc \
-			net-misc/curl \
+			app-crypt/gnupg \
+			sys-devel/bc \
 			diffutils \
 			findutils \
 			less \
 			ncurses \
+			net-misc/curl \
 			pinentry \
 			procps \
 			shadow \
 			sudo \
+			sys-process/lsof \
 			util-linux \
-			wget \
-			x11-libs/vte
+			wget
 
 	elif command -v microdnf; then
 		# If we need to upgrade, do it and exit, no further action required.
@@ -660,7 +672,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			systemd \
 			time \
 			wget \
-			util-linux
+			util-linux \
+			util-linux-systemd
 
 		# These are graphics drivers for 3d applications
 		zypper install -y \
@@ -766,11 +779,13 @@ printf "distrobox: Setting up host's sockets integration...\n"
 # for example using `podman --remote` to control the host's podman from inside
 # the container or accessing docker and libvirt sockets.
 host_sockets="$(find /run/host/run -name 'user' \
+	-prune -o -path /run/host/run/media \
 	-prune -o -name 'nscd' \
 	-prune -o -name 'bees' \
 	-prune -o -name 'system_bus_socket' \
 	-prune -o -type s -print \
 	2> /dev/null || :)"
+
 # we're excluding system dbus socket and nscd socket here. Including them will
 # create many problems with package managers thinking they have access to
 # system dbus or user auth cache misused.
@@ -852,10 +867,11 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 		printf "distrobox: Setting up apt hooks...\n"
 		printf "" > /etc/apt/apt.conf.d/00_distrobox
 		for init_mount in ${HOST_MOUNTS_RO_INIT}; do
-			printf 'DPkg::Pre-Invoke {"if findmnt %s >/dev/null; then umount %s; fi";};\n' \
+			printf 'DPkg::Pre-Invoke {"if findmnt %s >/dev/null; then umount -l %s; fi";};\n' \
 				"${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
-			printf 'DPkg::Post-Invoke {"if [ -e /run/host/%s ]; then mount --rbind /run/host/%s %s; fi";};\n' \
-				"${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
+			# shellcheck disable=SC2016
+			printf 'DPkg::Post-Invoke {"if [ -e /run/host/%s ] || [ -e /run/host/$(readlink -fm /run/host/%s) ]; then mount --rbind $(readlink -fm /run/host/%s) %s 2>/dev/null || mount --rbind /run/host/$(readlink -fm /run/host/%s) %s; fi";};\n' \
+				"${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
 		done
 	fi
 fi
@@ -904,15 +920,19 @@ EOF
 fi
 ###############################################################################
 
-printf "distrobox: Setting up sudo...\n"
-mkdir -p /etc/sudoers.d
-# Do not check fqdn when doing sudo, it will not work anyways
-if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
-	printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
-fi
-# Ensure passwordless sudo is set up for user
-if ! grep -q "${container_user_name} ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
-	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
+# If we're running this script as root in a login shell (sudoless), we don't
+# have to bother setting up sudo.
+if [ "${container_user_uid}" -ne 0 ]; then
+	printf "distrobox: Setting up sudo...\n"
+	mkdir -p /etc/sudoers.d
+	# Do not check fqdn when doing sudo, it will not work anyways
+	if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
+		printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
+	fi
+	# Ensure passwordless sudo is set up for user
+	if ! grep -q "\"${container_user_name}\" ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
+		printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
+	fi
 fi
 
 printf "distrobox: Setting up groups...\n"
@@ -961,7 +981,9 @@ if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/pass
 			"${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
 		printf "%s::1::::::" "${container_user_name}" >> /etc/shadow
 	fi
-else
+# Ensure we're not using the specified SHELL. Run it only once, so that future
+# user's preferences are not overwritten at each start.
+elif [ ! -e /etc/passwd.done ]; then
 	# This situation is presented when podman or docker already creates the user
 	# for us inside container. We should modify the user's prepopulated shadowfile
 	# entry though as per user's active preferences.
@@ -974,6 +996,7 @@ else
 
 		printf "Warning: there was a problem setting up the user\n"
 	fi
+	touch /etc/passwd.done
 fi
 
 # We generate a random password to initialize the entry for the user and root.
@@ -991,16 +1014,23 @@ mkdir -p /etc/profile.d
 printf "test -z \"\$USER\" && USER=\"\$(id -un 2> /dev/null)\"\n" > /etc/profile.d/distrobox_profile.sh
 printf "test -z \"\$UID\"  && readonly  UID=\"\$(id -ur 2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
 printf "test -z \"\$EUID\" && readonly EUID=\"\$(id -u  2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
-if [ -d "/etc/skel" ]; then
+if [ -n "${DISTROBOX_HOST_HOME-}"  ] && [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
-		if [ ! -f "${container_user_home}/$(basename "${skel_file}")" ] &&
-			[ ! -L "${container_user_home}/$(basename "${skel_file}")" ]; then
+		base_file_name=$(basename "${skel_file}")
+		skel_file_path=$(dirname "${skel_file}")
+		file_path_for_home=${skel_file_path#/etc/skel}
 
-			cp "${skel_file}" "${container_user_home}"
+		if [ -n "${file_path_for_home}" ] &&
+			[ ! -d "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"}" ]; then
+			mkdir -p "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}"
+		fi
+
+		if [ ! -f "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}" ] &&
+			[ ! -L "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}" ]; then
+			cp "${skel_file}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}"
 			chown "${container_user_uid}":"${container_user_gid}" \
-				"${container_user_home}/$(basename "${skel_file}")"
-
+				"${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}"
 		fi
 	done
 fi
@@ -1067,8 +1097,8 @@ for host_mount in  ${HOST_MOUNTS_RO_INIT}; do
 done
 if command -v systemctl 2> /dev/null; then
 	# Cleanup systemd to not interfere with the host
+	# /etc/systemd/system/*.wants/
 	UNIT_TARGETS="
-		/etc/systemd/system/*.wants/*
 		/usr/lib/systemd/system/basic.target.wants/*
 		/usr/lib/systemd/system/local-fs.target.wants/*
 		/usr/lib/systemd/system/multi-user.target.wants/*
@@ -1076,9 +1106,15 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/sockets.target.wants/*initctl*
 		/usr/lib/systemd/system/sockets.target.wants/*udev*
 		/usr/lib/systemd/system/sysinit.target.wants/*
+		/usr/lib/systemd/system/systemd-tmpfiles*
 		/usr/lib/systemd/system/systemd-update-utmp*
+		/usr/lib/systemd/system/NetworkManager-wait-online.service
+		/usr/lib/systemd/system/auditd.service
+		/usr/lib/systemd/system/libstoragemgmt.service
+		/usr/lib/systemd/system/mcelog.service
 	"
-	for unit in $(find "${UNIT_TARGETS}" 2> /dev/null | grep -v systemd-tmpfiles-setup); do
+	# shellcheck disable=SC2086,SC2044
+	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
 		systemctl mask "$(basename "${unit}")"
 	done
 fi

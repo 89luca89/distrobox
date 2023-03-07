@@ -25,32 +25,37 @@
 # Optional env variables:
 #	DBX_CONTAINER_ALWAYS_PULL
 #	DBX_CONTAINER_CUSTOM_HOME
+#	DBX_CONTAINER_HOME_PREFIX
 #	DBX_CONTAINER_IMAGE
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
-#	DBX_CONTAINER_ENTRY
+#	DBX_CONTAINER_GENERATE_ENTRY
 #	DBX_NON_INTERACTIVE
 #	DBX_SUDO_PROGRAM
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
-
-# Dont' run this command as sudo.
-if [ "$(id -u)" -eq 0 ]; then
-	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
-	printf >&2 " try instead running:\n"
-	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
+# Despite of running this script via SUDO/DOAS being not supported (the
+# script itself will call the appropriate tool when necessary), we still want
+# to allow people to run it as root, logged in in a shell, and create rootful
+# containers.
+#
+# SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
+if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
+	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
 fi
 
 # Defaults
 container_always_pull=0
 container_clone=""
+container_home_prefix=""
 container_image=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
+container_name_default="my-distrobox"
 container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
-container_entry=1
+container_generate_entry=1
 container_name=""
 container_pre_init_hook=""
 container_user_custom_home=""
@@ -61,7 +66,6 @@ container_user_uid="$(id -ru)"
 container_custom_networking=0
 container_network=""
 container_network_default="host"
-distrobox_sudo_program="sudo"
 dryrun=0
 init=0
 non_interactive=0
@@ -77,9 +81,11 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 [ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(command -v distrobox-init)"
 [ ! -e "${distrobox_export_path}" ] && distrobox_export_path="$(command -v distrobox-export)"
 [ ! -e "${distrobox_hostexec_path}" ] && distrobox_hostexec_path="$(command -v distrobox-hostexec)"
-rootful=0
+# If the user runs this script as root in a login shell, set rootful=1.
+# There's no need for them to pass the --root flag option in such cases.
+[ "${container_user_uid}" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
-version="1.4.1"
+version="1.4.2.1"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
@@ -97,18 +103,27 @@ for config_file in ${config_files}; do
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
+# If we're running this script as root -- as in logged in in the shell as root
+# user, and not via SUDO/DOAS --, we don't need to set distrobox_sudo_program
+# as it's meaningless for this use case.
+if [ "${container_user_uid}" -ne 0 ]; then
+	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
+	# user, use its value instead of "sudo". But only if not runnig the script
+	# as root (UID 0).
+	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
+fi
 # Fixup non_interactive=[true|false], in case we find it in the config file(s)
 [ "${non_interactive}" = "true" ] && non_interactive=1
 [ "${non_interactive}" = "false" ] && non_interactive=0
 
 [ -n "${DBX_CONTAINER_ALWAYS_PULL}" ] && container_always_pull="${DBX_CONTAINER_ALWAYS_PULL}"
 [ -n "${DBX_CONTAINER_CUSTOM_HOME}" ] && container_user_custom_home="${DBX_CONTAINER_CUSTOM_HOME}"
+[ -n "${DBX_CONTAINER_HOME_PREFIX}" ] && container_home_prefix="${DBX_CONTAINER_HOME_PREFIX}"
 [ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
-[ -n "${DBX_CONTAINER_ENTRY}" ] && container_entry="${DBX_CONTAINER_ENTRY}"
+[ -n "${DBX_container_generate_entry}" ] && container_generate_entry="${DBX_container_generate_entry}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
-[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
 # Print usage to stdout.
 # Arguments:
@@ -134,8 +149,8 @@ Usage:
 
 Options:
 
-	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:36
-	--name/-n:		name for the distrobox		default: my-distrobox
+	--image/-i:		image to use for the container	default: ${container_image_default}
+	--name/-n:		name for the distrobox		default: ${container_name_default}
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -153,6 +168,7 @@ Options:
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
+	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
 	--dry-run/-d:		only print the container manager command generated
@@ -163,8 +179,40 @@ Compatibility:
 
 	for a list of compatible images and container managers, please consult the man page:
 		man distrobox-compatibility
+	or run
+		distrobox create --compatibility
 	or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md
 EOF
+}
+
+# Print list of compatible images to stdou, caching locally in a file.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_compatibility() {
+	if [ ! -e "${HOME}/.cache/distrobox-compatibility-${version}" ]; then
+		mkdir -p "${HOME}/.cache"
+
+		# If we don't have a cache file, we need connectivity. Ensure we have
+		# one and return error if not.
+		if ! curl -s "https://github.com" > /dev/null; then
+			printf >&2 "ERROR: no cache file and no connectivity found, cannot retrieve compatibility list.\n"
+			exit 1
+		fi
+		# We want to download the correspondent version of the compatibility table and extract a list from it.
+		# Always use the docs as source of truth for this.
+		curl -s \
+			"https://raw.githubusercontent.com/89luca89/distrobox/${version}/docs/compatibility.md" |
+			grep -A200 "^## Containers Distros" |
+			grep '|' |
+			cut -d '|' -f 4 |
+			sed 's|<br>|\n|g' |
+			tr -d ' ' |
+			sort -u |
+			tail -n+4 > "${HOME}/.cache/distrobox-compatibility-${version}"
+	fi
+	cat "${HOME}/.cache/distrobox-compatibility-${version}"
 }
 
 # Parse arguments
@@ -185,7 +233,7 @@ while :; do
 			;;
 		--no-entry)
 			shift
-			container_entry=0
+			container_generate_entry=0
 			;;
 		-d | --dry-run)
 			shift
@@ -198,6 +246,10 @@ while :; do
 		-I | --init)
 			shift
 			init=1
+			;;
+		-C | --compatibility)
+			show_compatibility
+			exit 0
 			;;
 		-i | --image)
 			if [ -n "$2" ]; then
@@ -258,7 +310,7 @@ while :; do
 			;;
 		--pre-init-hooks)
 			if [ -n "$2" ]; then
-				container_pre_init_hook="--pre-init-hooks \"${2}\""
+				container_pre_init_hook="${2}"
 				shift
 				shift
 			fi
@@ -312,7 +364,7 @@ fi
 # toolbx one. This will avoid problems when using both toolbx and distrobox on
 # the same system.
 if [ -z "${container_name}" ] && [ "${container_image}" = "${container_image_default}" ]; then
-	container_name="my-distrobox"
+	container_name="${container_name_default}"
 fi
 
 # If no container_name is declared, we build our container name starting from the
@@ -371,7 +423,7 @@ fi
 
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-	container_manager="${distrobox_sudo_program} ${container_manager}"
+	container_manager="${distrobox_sudo_program:-} ${container_manager}"
 fi
 
 # Clone a container as a snapshot.
@@ -513,11 +565,34 @@ generate_command() {
 		fi
 	done
 
+	# If we have a home prefix to use,
+	#	1- override the HOME env variable
+	#	2- export the DISTROBOX_HOST_HOME env variable pointing to original HOME
+	# 	3- mount the home inside the container.
+	if [ -n "${container_home_prefix}" ] && [ -z "${container_user_custom_home}" ]; then
+		if [ ! -d "${container_home_prefix}/${container_name}" ]; then
+			if ! mkdir -p "${container_home_prefix}/${container_name}"; then
+				printf >&2 "Do you have permission to write to %s?\n" "${container_home_prefix}"
+				exit 1
+			fi
+		fi
+		result_command="${result_command}
+			--env \"HOME=${container_home_prefix}/${container_name}\"
+			--env \"DISTROBOX_HOST_HOME=${container_user_home}\"
+			--volume ${container_home_prefix}/${container_name}:${container_home_prefix}/${container_name}:rslave"
+	fi
+
 	# If we have a custom home to use,
 	#	1- override the HOME env variable
-	#	2- expor the DISTROBOX_HOST_HOME env variable pointing to original HOME
+	#	2- export the DISTROBOX_HOST_HOME env variable pointing to original HOME
 	# 	3- mount the custom home inside the container.
 	if [ -n "${container_user_custom_home}" ]; then
+		if [ ! -d "${container_user_custom_home}" ]; then
+			if ! mkdir -p "${container_user_custom_home}"; then
+				printf >&2 "Do you have permission to write to %s?\n" "${container_user_custom_home}"
+				exit 1
+			fi
+		fi
 		result_command="${result_command}
 			--env \"HOME=${container_user_custom_home}\"
 			--env \"DISTROBOX_HOST_HOME=${container_user_home}\"
@@ -558,7 +633,7 @@ generate_command() {
 
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
-	if [ -z "${container_manager#*podman*}" ]; then
+	if echo "${container_manager}" | grep -q "podman"; then
 		result_command="${result_command}
 			--ulimit host
 			--annotation run.oci.keep_original_groups=1
@@ -583,14 +658,17 @@ generate_command() {
 	# inside the container is moved to distrobox-enter, in the start phase.
 	# This is done to make init, export and host-exec location independent from
 	# the host, and easier to upgrade.
-	result_command="${result_command} ${container_image}
-		/usr/bin/entrypoint -v --name \"${container_user_name}\"
+	#
+	# We set the entrypoint _before_ running the container image so that
+	# we can override any user provided entrypoint if need be
+	result_command="${result_command} --entrypoint /usr/bin/entrypoint
+	${container_image} -v --name \"${container_user_name}\"
 		--user ${container_user_uid}
 		--group ${container_user_gid}
 		--home \"${container_user_custom_home:-"${container_user_home}"}\"
 		--init \"${init}\"
 		--network \"${container_custom_networking}\"
-		${container_pre_init_hook}
+		--pre-init-hooks \"${container_pre_init_hook}\"
 		-- '${container_init_hook}'
 		"
 	# use container_user_custom_home if defined, else fallback to normal home.
@@ -642,10 +720,12 @@ esac
 if ${container_manager} inspect --type container "${container_name}" > /dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n\n"
-	if [ "${rootful}" -ne 0 ]; then
-		printf "distrobox-enter --root %s\n\n" "${container_name}"
-	else
-		printf "distrobox-enter %s\n\n" "${container_name}"
+	# If it's a rootful container AND user is not logged as root.
+	if [ "${rootful}" -eq 1 ] && [ "${container_user_uid}" -ne 0 ]; then
+		printf "distrobox enter --root %s\n\n" "${container_name}"
+	# If user is logged as root OR it's a rootless container.
+	elif [ "${container_user_uid}" -eq 0 ] || [ "${rootful}" -eq 0 ]; then
+		printf "distrobox enter %s\n\n" "${container_name}"
 	fi
 	exit 0
 fi
@@ -698,15 +778,17 @@ cmd="$(generate_command)"
 if eval ${cmd} > /dev/null; then
 	printf >&2 "\033[32m [ OK ]\n\033[0mDistrobox '%s' successfully created.\n" "${container_name}"
 	printf >&2 "To enter, run:\n\n"
-	if [ "${rootful}" -ne 0 ]; then
+	# If it's a rootful container AND user is not logged as root.
+	if [ "${rootful}" -eq 1 ] && [ "${container_user_uid}" -ne 0 ]; then
 		printf "distrobox enter --root %s\n\n" "${container_name}"
-	else
+	# If user is logged as root OR it's a rootless container.
+	elif [ "${container_user_uid}" -eq 0 ] || [ "${rootful}" -eq 0 ]; then
 		printf "distrobox enter %s\n\n" "${container_name}"
 	fi
 
 	# We've created the box, let's also create the entry
 	if [ "${rootful}" -eq 0 ]; then
-		if [ "${container_entry}" -ne 0 ]; then
+		if [ "${container_generate_entry}" -ne 0 ]; then
 			"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}"
 		fi
 	fi

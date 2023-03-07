@@ -89,6 +89,8 @@ if [ -n "${ZSH_VERSION-}" ]; then
 fi
 ```
 
+And then, run `source ~/.profile` to reload `.profile` in the current session.
+
 ## fish
 
 Place this snippet in a new fish function file (`~/.config/fish/functions/fish_command_not_found.fish`):

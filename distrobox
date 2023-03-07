@@ -22,9 +22,7 @@
 set -o errexit
 set -o nounset
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
-
-version="1.4.1"
+version="1.4.2.1"
 
 # Print usage to stdout.
 # Arguments:

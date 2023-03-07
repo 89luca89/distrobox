@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Sep 2022" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Feb 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -56,6 +56,7 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --pre-init-hooks    additional commands to execute prior to container initialization
 --init/-I       use init system (like systemd) inside the container.
             this will make host\[aq]s processes not visible from within the container.
+--compatibility/-C: show list of compatible images
 --help/-h:      show this message
 --no-entry:             do not generate a container entry in the application list
 --dry-run/-d:       only print the container manager command generated
@@ -103,6 +104,7 @@ Supported environment variables:
 \f[C]
 DBX_CONTAINER_ALWAYS_PULL
 DBX_CONTAINER_CUSTOM_HOME
+DBX_CONTAINER_HOME_PREFIX
 DBX_CONTAINER_IMAGE
 DBX_CONTAINER_MANAGER
 DBX_CONTAINER_NAME
@@ -110,6 +112,11 @@ DBX_NON_INTERACTIVE
 DBX_SUDO_PROGRAM
 \f[R]
 .fi
+.PP
+DBX_CONTAINER_HOME_PREFIX defines where containers\[cq] home directories
+will be located.
+If you define it as \[ti]/dbx then all future containers\[cq] home
+directories will be \[ti]/dbx/$container_name
 .PP
 The \f[V]--additional-flags\f[R] or \f[V]-a\f[R] is useful to modify
 defaults in the container creations.
@@ -193,6 +200,11 @@ integration\f[R].
 From within the container you will not be able to see and manage
 host\[cq]s processes.
 This is needed because \f[V]/sbin/init\f[R] must be pid 1.
+.PP
+The \f[V]--home\f[R] flag let\[cq]s you specify a custom HOME for the
+container.
+Note that this will NOT prevent the mount of the host\[cq]s home
+directory, but will ensure that configs and dotfiles will not litter it.
 .PP
 From version 1.4.0 of distrobox, when you create a new container, it
 will also generate an entry in the applications list.

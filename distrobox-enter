@@ -28,25 +28,28 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n" && rm -f $HOME/.cache/.*.fifo $HOME/.cache/.*.status' EXIT
+trap 'rm -f ${HOME}/.cache/.*.fifo ${HOME}/.cache/.*.status' EXIT
 
-# Dont' run this command as sudo.
-if [ "$(id -u)" -eq 0 ]; then
-	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
-	printf >&2 " try instead running:\n"
-	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
+# Despite of running this script via SUDO/DOAS being not supported (the
+# script itself will call the appropriate tool when necessary), we still want
+# to allow people to run it as root, logged in in a shell, and create rootful
+# containers.
+#
+# SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
+if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
+	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
 fi
 
 # Defaults
 container_command=""
-container_image=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
 container_manager="autodetect"
-container_name="my-distrobox"
 container_manager_additional_flags=""
+container_name=""
+container_name_default="my-distrobox"
 non_interactive=0
-distrobox_sudo_program="sudo"
 
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
@@ -55,10 +58,12 @@ distrobox_sudo_program="sudo"
 distrobox_enter_path="$(cd "$(dirname "$0")" && pwd)/distrobox-enter"
 dryrun=0
 headless=0
-rootful=0
+# If the user runs this script as root in a login shell, set rootful=1.
+# There's no need for them to pass the --root flag option in such cases.
+[ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 skip_workdir=0
 verbose=0
-version="1.4.1"
+version="1.4.2.1"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
@@ -76,16 +81,23 @@ for config_file in ${config_files}; do
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
+# If we're running this script as root -- as in, logged in in the shell as root
+# user, and not via SUDO/DOAS --, we don't need to set distrobox_sudo_program
+# as it's meaningless for thi use case.
+if [ "$(id -ru)" -ne 0 ]; then
+	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
+	# user, use its value instead of "sudo". But only if not runnig the script
+	# as root (UID 0).
+	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
+fi
 # Fixup non_interactive=[true|false], in case we find it in the config file(s)
 [ "${non_interactive}" = "true" ] && non_interactive=1
 [ "${non_interactive}" = "false" ] && non_interactive=0
 
-[ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_SKIP_WORKDIR}" ] && skip_workdir="${DBX_SKIP_WORKDIR}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
-[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
 
 # Print usage to stdout.
 # Arguments:
@@ -173,7 +185,23 @@ while :; do
 			;;
 		-e | --exec | --)
 			shift
-			container_command=$*
+			# container_command=$*
+			container_command="$1"
+			shift
+			for arg in "$@"; do
+				if echo "${arg}" | grep -Eq "'|\""; then
+					container_command="${container_command} \
+						$(echo "${arg}" | sed 's|\\|\\\\|g' |
+						sed 's| |\\ |g' |
+						sed 's|\$|\\\$|g' |
+						sed "s|'|\\\'|g" |
+						sed 's|"|\\\"|g')"
+				elif echo "${arg}" | grep -q "'"; then
+					container_command="${container_command} \"${arg}\""
+				else
+					container_command="${container_command} '${arg}'"
+				fi
+			done
 			break
 			;;
 		-*) # Invalid options.
@@ -199,6 +227,10 @@ set -o nounset
 # set verbosity
 if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
+fi
+
+if [ -z "${container_name}" ]; then
+	container_name="${container_name_default}"
 fi
 
 # We depend on a container manager let's be sure we have it
@@ -242,7 +274,7 @@ fi
 
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-	container_manager="${distrobox_sudo_program} ${container_manager}"
+	container_manager="${distrobox_sudo_program:-} ${container_manager}"
 fi
 
 # Generate Podman or Docker command to execute.
@@ -254,6 +286,7 @@ generate_command() {
 	result_command="${container_manager} exec"
 	result_command="${result_command}
 		--interactive
+		--detach-keys=\"\"
 		--user=\"${USER}\""
 
 	# For some usage, like use in service, or launched by non-terminal
@@ -286,14 +319,14 @@ generate_command() {
 	fi
 	result_command="${result_command}
 		--workdir=\"${workdir}\"
-		--env \"CONTAINER_ID=${container_id}\"
+		--env \"CONTAINER_ID=${container_name}\"
 		--env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
 	# disable logging fot this snippet, or it will be too talkative.
 	for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
-		grep -Ev '^(HOST|HOSTNAME|HOME|PATH|SHELL|XDG_.*_DIRS|^_)'); do
+		grep -Ev '^(HOST|HOSTNAME|HOME|LANG|LC_CTYPE|PATH|SHELL|XDG_.*_DIRS|^_)'); do
 		# We filter the environment so that we do not have strange variables,
 		# multiline or containing spaces.
 		# We also NEED to ignore the HOME variable, as this is set at create time
@@ -375,11 +408,9 @@ if [ "${dryrun}" -ne 0 ]; then
 fi
 
 # Now inspect the container we're working with.
-container_id="unknown"
 container_status="unknown"
 eval "$(${container_manager} inspect --type container "${container_name}" --format \
-	'container_id={{.Id}};
-	container_status={{.State.Status}};
+	'container_status={{.State.Status}};
 	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
 	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
 
@@ -387,14 +418,11 @@ eval "$(${container_manager} inspect --type container "${container_name}" --form
 if [ "${container_status}" = "unknown" ]; then
 	# If not, prompt to create it first
 	printf >&2 "Cannot find container %s\n" "${container_name}"
-	if [ -z "${container_image}" ]; then
-		container_image="${container_image_default}"
-	fi
 	# If we're not-interactive, just don't ask questions
 	if [ "${non_interactive}" -eq 1 ]; then
 		response="yes"
 	else
-		printf >&2 "Create it now, out of image %s? [Y/n]: " "${container_image}"
+		printf >&2 "Create it now, out of image %s? [Y/n]: " "${container_image_default}"
 		read -r response
 		response="${response:-"Y"}"
 	fi
@@ -407,7 +435,7 @@ if [ "${container_status}" = "unknown" ]; then
 			if [ "${rootful}" -ne 0 ]; then
 				create_command="${create_command} --root"
 			fi
-			create_command="${create_command} -i ${container_image} -n ${container_name}"
+			create_command="${create_command} -i ${container_image_default} -n ${container_name}"
 			printf >&2 "Creating the container with command:\n"
 			printf >&2 "  %s\n" "${create_command}"
 			if [ "${dryrun}" -ne 1 ]; then

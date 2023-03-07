@@ -73,6 +73,7 @@ for file in $(find . -type f -not -path "*.git*"); do
       echo "### Checking file $file..."
       dash -n $file
       result=$(( result + $? ))
+      echo "Result: $result"
     fi
 done
 ```
@@ -91,7 +92,7 @@ done
   - `shfmt -d -s -ci -sr -kp`
 - use `bashate` to check the code:
   - install using `pip3 install bashate`
-  - `bashate -i E002,E003,E010,E011 --max-line-length 12`
+  - `bashate -i E002,E003,E010,E011 --max-line-length 120`
 - use `markdownlint`
   - install using `npm -i -g markdownlint-cli`
   - run `markdownlint $(find . -name '*.md' | grep -vF './.git')`

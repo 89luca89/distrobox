@@ -19,16 +19,15 @@
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
 # POSIX
-trap '[ "$?" -ne 0 ] && printf "\nAn error occurred\n"' EXIT
 
 all=0
 container_manager="autodetect"
-container_name="my-distrobox"
+container_name_default="my-distrobox"
 delete=0
 icon="auto"
 icon_default="${HOME}/.local/share/icons/terminal-distrobox-icon.png"
 verbose=0
-version="1.4.1"
+version="1.4.2.1"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
@@ -72,11 +71,6 @@ Options:
 	--version/-V:		show version
 EOF
 }
-
-if [ $# -eq 0 ]; then
-	show_help
-	exit
-fi
 
 # Parse arguments
 while :; do
@@ -139,8 +133,7 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 if [ -z "${container_name}" ]; then
-	printf >&2 "Please specify the name of the container.\n"
-	exit 1
+	container_name="${container_name_default}"
 fi
 
 if [ "${all}" -ne 0 ]; then
@@ -281,7 +274,7 @@ cat << EOF > "${HOME}/.local/share/applications/${container_name}.desktop"
 Name=${entry_name}
 GenericName=Terminal entering ${entry_name}
 Comment=Terminal entering ${entry_name}
-Category=Distrobox;System;Utility"
+Categories=Distrobox;System;Utility
 Exec=${distrobox_path}/distrobox enter ${container_name}
 Icon=${icon}
 Keywords=distrobox;

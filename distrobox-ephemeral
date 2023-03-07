@@ -25,11 +25,15 @@
 #   DBX_NON_INTERACTIVE
 #	DBX_SUDO_PROGRAM
 
-# Dont' run this command as sudo.
-if [ "$(id -u)" -eq 0 ]; then
-	printf >&2 "Running %s as sudo is not supported.\n" "$(basename "${0}")"
-	printf >&2 " try instead running:\n"
-	printf >&2 "	%s --root %s\n" "$(basename "${0}")" "$*"
+# Despite of running this script via SUDO/DOAS being not supported (the
+# script itself will call the appropriate tool when necessary), we still want
+# to allow people to run it as root, logged in in a shell, and create rootful
+# containers.
+#
+# SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
+if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
+	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
 fi
 
@@ -37,9 +41,11 @@ container_command=""
 create_flags=""
 distrobox_path="$(dirname "${0}")"
 extra_flags=""
-rootful=0
+# If the user runs this script as root in a login shell, set rootful=1.
+# There's no need for them to pass the --root flag option in such cases.
+[ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
-version="1.4.1"
+version="1.4.2.1"
 
 # Print usage to stdout.
 # Arguments:
@@ -52,7 +58,7 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-ephemeral --name container-name [--force]
+	distrobox-ephemeral [--root/-r]
 
 Options:
 

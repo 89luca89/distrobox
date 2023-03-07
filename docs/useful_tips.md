@@ -1,5 +1,5 @@
 - [Distrobox](README.md)
-  - [Execute complex commands directly from distrobox enter](#execute-complex-commands-directly-from-distrobox-enter)
+  - [Launch a distrobox from you applications list](#launch-a-distrobox-from-you-applications-list)
   - [Create a distrobox with a custom HOME directory](#create-a-distrobox-with-a-custom-home-directory)
   - [Mount additional volumes in a distrobox](#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](#use-a-different-shell-than-the-host)
@@ -10,8 +10,7 @@
   - [Execute commands on the host](#execute-commands-on-the-host)
   - [Enable SSH X-Forwarding when SSH-ing in a distrobox](#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
   - [Use distrobox to install different flatpaks from the host](#use-distrobox-to-install-different-flatpaks-from-the-host)
-  - [Using podman inside a distrobox](#using-podman-inside-a-distrobox)
-  - [Using docker inside a distrobox](#using-docker-inside-a-distrobox)
+  - [Using podman or docker inside a distrobox](#using-podman-or-docker-inside-a-distrobox)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
   - [Using a different architecture](#using-a-different-architecture)
@@ -19,8 +18,7 @@
   - [Container save and restore](#container-save-and-restore)
   - [Check used resources](#check-used-resources)
   - [Pre-installing additional package repositories](#pre-installing-additional-package-repositories)
-  - [Build a Gentoo distrobox container](distrobox_gentoo.md)
-  - [Build a Dedicated distrobox container](distrobox_custom.md)
+  - [Apply resource limitation on the fly](#apply-resource-limitation-on-the-fly)
 
 ---
 
@@ -36,20 +34,6 @@ For containers generated with older versions, you can use:
 To delete it:
 
 `distrobox generate-entry you-container-name --delete`
-
-## Execute complex commands directly from distrobox enter
-
-Sometimes it is necessary to execure complex commands from a distrobox enter,
-like multiple concatenated commands using variables declared **inside** the container.
-
-For example:
-
-`distrobox enter test -- bash -l -c '"echo \$HOME && whoami"'`
-
-Note the use of **single quotes around double quotes**, this is necessary so that
-quotes are preserved inside the arguments. Also note the **dollar escaping** needed
-so that $HOME is not evaluated at the time of the command launch, but directly
-inside the container.
 
 ## Create a distrobox with a custom HOME directory
 
@@ -92,11 +76,33 @@ the same privileges as your normal `$USER`.
 
 But what if you really really need those `root` privileges even inside the container?
 
-Instead of running `sudo distrobox` to do stuff, it is better to simply use normal
+Running `sudo distrobox` is not supported, instead, it is better to simply use normal
 command with the `--root` or `-r` flag, so that distrobox can still integrate better
 with your `$USER`.
 
-`distrobox create --name test --image your-chosen-image:tag --root`
+```console
+:~$ distrobox create --name test --image your-chosen-image:tag --root
+```
+
+Another use case, what if you want or need to run distrobox with the root user, in a login
+shell?
+
+Before the 1.4.3 release, it wasn't possible. We couldn't make a distinction between someone
+running distrobox vi `sudo` from someone logged in as the root user in a shell. Now things are
+as easy as it would be if you were creating a rootless container:
+
+```console
+:~# distrobox create --name your-container --pull --image your-chosen-image:tag`
+```
+
+And:
+
+```console
+:~# distrobox enter your-container`
+```
+
+We trust you already know the implications of running distrobox, as well as anything else,
+with the root user and that with great power comes great responsibilities.
 
 ## Using a command other than sudo to run a rootful container
 
@@ -203,27 +209,23 @@ distrobox create --name test --image your-chosen-image:tag \
 After that you'll be able to have separate flatpaks between host and distrobox.
 You can procede to export them using `distrobox-export` (for distrobox 1.2.14+)
 
-## Using podman inside a distrobox
+## Using podman or docker inside a distrobox
 
-If `distrobox` is using `podman` as the container engine, you can use
-`podman socket` to control host's podman from inside a `distrobox`, just use:
+You can easily control host's instance of docker or podman, using `distrobox-host-exec`
+You can use:
 
-`podman --remote`
+```console
+sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
+```
 
-inside the `distrobox` to use it.
+or
 
-It may be necessary to enable the socket on your host system by using:
+```console
+sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/docker
+```
 
-`systemctl --user enable --now podman.socket`
-
-## Using docker inside a distrobox
-
-You can use `docker` to control host's podman from inside a `distrobox`,
-by default if `distrobox` is using docker as a container engine, it will mount the
-docker.sock into the container.
-
-So in the container just install `docker`, add yourself to the `docker` group, and
-you should be good to go.
+This will create a `podman` or `docker` command inside the distrobox that will
+trasparently execute the command on the host.
 
 ## Using init system inside a distrobox
 
@@ -233,6 +235,9 @@ Example of such images are:
 - docker.io/almalinux/8-init
 - registry.access.redhat.com/ubi7/ubi-init
 - registry.access.redhat.com/ubi8/ubi-init
+- registry.access.redhat.com/ubi9/ubi-init
+- registry.opensuse.org/opensuse/leap:latest
+- registry.opensuse.org/opensuse/tumbleweed:latest
 
 You can use such feature using:
 
@@ -393,4 +398,111 @@ distrobox create -i docker.io/library/almalinux:9 -n alma9 --pre-init-hooks "dnf
 
 ```shell
 distrobox create -i quay.io/centos/centos:stream9 c9s --pre-init-hooks "dnf -y install dnf-plugins-core && dnf config-manager --enable crb && dnf -y install epel-next-release"
+```
+
+## Apply resource limitation on the fly
+
+Podman has `--cpuset-cpus` and `--memory` flags to apply limitation on how much resources a container can use. However,
+these flags only work during container creation (`podman create` / `podman run`) and not after it's created
+(`podman exec`, which is used by Distrobox to execute commands inside of container), which means changing resource
+limitation requires recreation of a container.
+
+Nontheless you can still apply resource limitation using systemd's resource control functionality. It's not recommended
+to pass resource limitation arguments (e.g. `--cpuset-cpus` and `--memory`) to `distrobox create --additional-flags`
+as systemd already provides much more flexible resource control functionality.
+
+To list all distroboxes and their full IDs:
+
+```bash
+podman ps --all --no-trunc --format "{{.Names}} {{.ID}} {{.Labels}}" | grep "manager:distrobox" | cut -d " " -f1,2 | column -t
+```
+
+- Removing `--all` flag will cause the output to only contain currently running distroboxes
+
+To check your container status with `systemctl`:
+
+```bash
+systemctl --user status libpod-$UUID.scope
+```
+
+- Your distrobox needs to be running for its scope to present (e.g. `distrobox enter` before running this command)
+- Replace `$UUID` with your container's real full ID
+- To make things easier when tweaking properties, optionally set a environment variable for the current shell:
+
+  bash/zsh:
+
+  ```bash
+  UUID=XXXXXXXXX
+  ```
+  
+  fish:
+
+  ```fish
+  set UUID XXXXXXXXX
+  ```
+
+Everything provided by `systemd.resource-control` could be applied to your distrobox. For example:
+
+To make your distrobox only run on CPU0 and CPU1:
+
+```bash
+systemctl --user set-property libpod-$UUID.scope AllowedCPUs=0,1
+```
+
+To hard throttle your distrobox to not use above 20% of CPU:
+
+```bash
+systemctl --user set-property libpod-$UUID.scope CPUQuota=20%
+```
+
+To limit your distrobox's maximum amount of memory:
+
+```bash
+systemctl --user set-property libpod-$UUID.scope MemoryMax=2G
+```
+
+To give your distrobox less IO bandwidth when IO is overloaded:
+
+```bash
+systemctl --user set-property libpod-$UUID.scope IOWeight=1
+```
+
+- `IOWeight` accepts value from `1` to `10000`, higher means more bandwidth.
+
+To see all applicable properties:
+
+```bash
+man systemd.resource-control
+```
+
+Changes are transient, meaning you lose the resource limitation properties when distrobox is stopped and restarted.
+
+To make certain changes persistent, first check the currently active properties:
+
+```bash
+systemctl --user status libpod-$UUID.scope
+```
+
+Look for the `Drop-In` lines. Something like this should be shown:
+
+```console
+    Drop-In: /run/user/1000/systemd/transient/libpod-45ae38d61c9a636230b2ba89ea07792d662e01cd9ee38d04feb0a994b039a271.scope.d
+             └─50-AllowedCPUs.conf
+```
+
+Move the transient overrides to persistent overrides:
+
+```bash
+mkdir -p ~/.config/systemd/user/libpod-$UUID.scope.d
+mv --target-directory="$HOME/.config/systemd/user/libpod-$UUID.scope.d" \
+  "/run/user/$(id -u)/systemd/transient/libpod-$UUID.scope.d/50-AllowedCPUs.conf"
+```
+
+- Replace `$(id -u)` with your real user id if it did not get expanded properly.
+- `50-AllowedCPUs.conf` is only an example. Replace it with something you want to keep persistently.
+
+Then reload systemd daemon to apply the changes:
+
+```bash
+systemctl --user daemon-reload
 ```

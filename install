@@ -21,7 +21,7 @@
 
 next=0
 verbose=0
-version=1.4.1
+version=1.4.2.1
 
 # Print usage to stdout.
 # Arguments:
@@ -133,7 +133,7 @@ else
 	printf >&2 "\033[1;31m Downloading...\n\033[0m"
 	if [ "${next}" -eq 0 ]; then
 		release_ver="89luca89/distrobox/archive/refs/tags/${version}.tar.gz"
-		release_name=$(echo "${release_ver}" | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$')
+		release_name=$(basename "${release_ver}")
 	else
 		release_ver="89luca89/distrobox/archive/refs/heads/main.tar.gz"
 		release_name="main"

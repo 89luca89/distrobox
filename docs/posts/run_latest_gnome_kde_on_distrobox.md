@@ -12,6 +12,8 @@
 
 ---
 
+⚠️ **BE CAREFUL**:⚠️  THIS IS EXPERIMENTAL, JUST FOOD FOR TOUGHTS
+
 # Using a stable-release distribution
 
 Lots of people prefer to run a distribution following a stable-LTS release cycle
@@ -49,6 +51,8 @@ user@fedora-rawhide:~$ sudo ln -s /run/host/run/systemd/system /run/systemd
 user@fedora-rawhide:~$ sudo ln -s /run/host/run/dbus/system_bus_socket /run/dbus/
 ```
 
+If you get an error message, you might have to manually create the folders `/run/systemd` and `/run/dbus` with `sudo mkdir`.
+
 Then we can proceed to install GNOME in the container:
 
 ```shell
@@ -70,7 +74,7 @@ container so we need to change the ownership from `root` to `$USER` each time.
 Let's add:
 
 ```shell
-chown -R $USER:$USER /tmp/.X11-unix
+chown -f -R $USER:$USER /tmp/.X11-unix
 ```
 
 to `/etc/profile.d/fix_tmp.sh` file.
@@ -78,7 +82,7 @@ to `/etc/profile.d/fix_tmp.sh` file.
 This is needed for the XWayland session to work properly which right now is
 necessary to run gnome-shell even on wayland.
 
-Then we need to add a desktop file for the session on the host's file system,
+Then we need to add a desktop file for the session on the **host's** file system,
 so that it appears on your login manager (Be it SSDM or GDM)
 
 ```shell
@@ -92,6 +96,7 @@ X-GDM-SessionRegisters=true
 ```
 
 This file should be placed under `/usr/local/share/wayland-sessions/distrobox-gnome.desktop`
+(If it doesn't show up, you can place it under `/usr/share/xsessions/distrobox-gnome.desktop`)
 
 Let's log out and voilá!
 
@@ -123,7 +128,7 @@ user@fedora-rawhide:~$ sudo dnf groupinstall KDE
 
 ### Generate session file - Plasma
 
-We need to add a desktop file for the session on the host's file system,
+We need to add a desktop file for the session on the **host's** file system,
 so that it appears on your login manager (Be it SSDM or GDM)
 
 ```shell
@@ -135,6 +140,7 @@ X-KDE-PluginInfo-Version=5.23.3
 ```
 
 This file should be placed under `/usr/local/share/wayland-sessions/distrobox-plasma.desktop`
+(If it doesn't show up, you can place it under `/usr/share/xsessions/distrobox-plasma.desktop`)
 
 ### Add a couple of fixes
 
@@ -148,7 +154,7 @@ container so we need to change the ownership from `root` to `$USER` each time.
 Let's add:
 
 ```shell
-chown -R $USER:$USER /tmp/.X11-unix
+chown -f -R $USER:$USER /tmp/.X11-unix
 ```
 
 to `/etc/profile.d/fix_tmp.sh` file.

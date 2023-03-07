@@ -99,6 +99,8 @@ else
 fi
 ```
 
+and make it executable: `chmod +x ~/.local/bin/podman-host`.
+
 Open VSCode settings (Ctrl+,) and head to `Remote>Containers>Docker Path` and
 set it to the path of `podman-exec`, like in the example
 
