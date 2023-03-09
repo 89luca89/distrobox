@@ -28,6 +28,7 @@ graphical apps (X11/Wayland), and audio.
 	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
 	--volume		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
+	--additional-packages/-ap:	additional packages to install during initial container setup
 	--init-hooks		additional commands to execute during container initialization
 	--pre-init-hooks	additional commands to execute prior to container initialization
 	--init/-I		use init system (like systemd) inside the container.
@@ -56,6 +57,7 @@ graphical apps (X11/Wayland), and audio.
 	distrobox create --image alpine my-alpine-container
 	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
+	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim"
 
 You can also use environment variables to specify container name, image and container manager:
 

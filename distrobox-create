@@ -142,6 +142,7 @@ Usage:
 	distrobox create --image alpine my-alpine-container
 	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
+	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim"
 
 	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
