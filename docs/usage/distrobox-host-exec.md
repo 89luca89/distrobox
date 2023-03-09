@@ -7,7 +7,7 @@
 
 distrobox-host-exec lets one execute command on the host, while inside of a container.
 
-Under the hood, distrobox-host-exec uses `host-spawn` a project that let's us
+Under the hood, distrobox-host-exec uses `host-spawn` a project that lets us
 execute commands back on the host.
 If the tool is not found the user will be prompted to install it.
 
