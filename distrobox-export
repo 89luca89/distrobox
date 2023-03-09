@@ -127,10 +127,10 @@ while :; do
 				shift
 			fi
 			;;
-        -l | --login)
-            is_login=1
-            shift
-            ;;
+		-l |     --login)
+			is_login=1
+			shift
+			;;
 		-S | --sudo)
 			is_sudo=1
 			shift
@@ -237,11 +237,11 @@ fi
 
 #
 if [ $is_login -ne 0 ] && [ $is_sudo -ne 0 ]; then
-    start_shell="sudo -i"
+	start_shell="sudo -i"
 elif [ $is_login -ne 0 ]; then
-    start_shell="sh -l -c"
+	start_shell="sh -l -c"
 else
-    start_shell=""
+	start_shell=""
 fi
 
 # Prefix to add to an existing command to work throught the container

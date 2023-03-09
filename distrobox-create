@@ -405,7 +405,7 @@ fi
 
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
-	container_manager="${distrobox_sudo_program:-} ${container_manager}"
+	container_manager="${distrobox_sudo_program-} ${container_manager}"
 fi
 
 # Clone a container as a snapshot.
