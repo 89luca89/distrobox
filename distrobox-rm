@@ -267,9 +267,9 @@ for container_name in ${container_name_list}; do
 		'{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}')
 	# Prompt for confirmation
 	if [ "${non_interactive}" -eq 0 ] && [ "${container_home}" != "${HOME}" ] && [ "${rm_home}" -eq 0 ]; then
-		printf "Do you want to remove custom home of container %s (%s)? [Y/n]: " "${container_name}" "${container_home}"
+		printf "Do you want to remove custom home of container %s (%s)? [y/N]: " "${container_name}" "${container_home}"
 		read -r response_rm_home
-		response_rm_home="${response_rm_home:-"Y"}"
+		response_rm_home="${response_rm_home:-"N"}"
 	elif [ "${container_home}" != "${HOME}" ]; then
 		if [ "${rm_home}" -eq 0 ]; then
 			response_rm_home="N"
