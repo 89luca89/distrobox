@@ -358,6 +358,7 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --home/-H       select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
 --volume        additional volumes to add to the container
 --additional-flags/-a:  additional flags to pass to the container manager command
+--additional-packages/-ap:  additional packages to install during initial container setup
 --init-hooks        additional commands to execute during container initialization
 --pre-init-hooks    additional commands to execute prior to container initialization
 --init/-I       use init system (like systemd) inside the container.
@@ -392,6 +393,7 @@ distrobox create --clone fedora-35 --name fedora-35-copy
 distrobox create --image alpine my-alpine-container
 distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 distrobox create --pull --image centos:stream9 --home \[ti]/distrobox/centos9
+distrobox create --image alpine:latest --name test2 --additional-packages \[dq]git tmux vim\[dq]
 \f[R]
 .fi
 .PP
@@ -1156,6 +1158,7 @@ ensure the tight integration.
 --group/-g:     gid of the user
 --home/-d:      path/to/home of the user
 --help/-h:      show this message
+--additional-packages:  packages to install in addition
 --init/-I:      whether to use or not init
 --pre-init-hooks:   commands to execute prior to init
 --upgrade/-U:       run init in upgrade mode
