@@ -769,6 +769,7 @@ will automatically be launched from the container it is exported from.
             Defaults to (on \[rs]$container_name)
 --export-path/-ep:  path where to export the binary
 --extra-flags/-ef:  extra flags to add to the command
+--login/-l      run the exported item in a login shell
 --sudo/-S:      specify if the exported item should be run as sudo
 --help/-h:      show this message
 --verbose/-v:       show more verbosity
@@ -887,6 +888,12 @@ distrobox-export --service nginx --delete
 .PP
 The option \[lq]\[en]sudo\[rq] will launch the exported item as root
 inside the distrobox.
+.PP
+\f[B]Run inside a login shell\f[R]
+.PP
+The option \[lq]\[en]login\[rq] will launch the exported item inside a
+login shell, allowing access to variables sourced at login in the
+container (e.g: /etc/profile).
 .PP
 \f[B]Exporting apps from rootful containers\f[R]
 .PP
