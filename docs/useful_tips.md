@@ -4,6 +4,7 @@
   - [Mount additional volumes in a distrobox](#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](#use-a-different-shell-than-the-host)
   - [Run the container with real root](#run-the-container-with-real-root)
+  - [Run Debian/Ubuntu container behind proxy](#run-debianubuntu-container-behind-proxy)
   - [Using a command other than sudo to run a rootful container](#using-a-command-other-than-sudo-to-run-a-rootful-container)
   - [Duplicate an existing distrobox](#duplicate-an-existing-distrobox)
   - [Export to the host](#export-to-the-host)
@@ -103,6 +104,19 @@ And:
 
 We trust you already know the implications of running distrobox, as well as anything else,
 with the root user and that with great power comes great responsibilities.
+
+## Run Debian/Ubuntu container behind proxy
+
+It might be that you're trying to set-up your distrobox, but you're stuck behind a proxy.
+A simple solution can be crafted using `pre-init-hooks`
+
+```console
+proxy=http://my_proxy.domain.example:3128
+t="echo 'Acquire::http::Proxy \\\""${proxy}"\\\";' > /etc/apt/apt.conf.d/proxy.conf; echo 'Acquire::https::Proxy \\\""${proxy}"\\\";' >> /etc/apt/apt.conf.d/proxy.conf;"
+http_proxy="${proxy}" distrobox create --image debian --name deb --pre-init-hooks "${t}"
+```
+
+This way, we're configuring `apt` before using it.
 
 ## Using a command other than sudo to run a rootful container
 
