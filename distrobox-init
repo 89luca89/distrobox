@@ -793,7 +793,7 @@ HOST_MOUNTS_RO_INIT="
 # On some ostree systems, home is in /var/home, but most of the software expects
 # it to be in /home. In the hosts systems this is fixed by using a symlink.
 # Do something similar here with a bind mount.
-if [ -e "/var/home/${container_user_name}" ] && [ ! -e "/home/${container_user_name}" ]; then
+if [ -e "/var/home/${container_user_name}" ]; then
 	if ! mount_bind "/run/host/var/home/${container_user_name}" "/home/${container_user_name}" rw; then
 		printf "Warning: Cannot bind mount %s to /run/host%s\n" "/var/home" "/home"
 	fi
