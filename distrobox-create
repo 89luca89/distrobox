@@ -55,6 +55,7 @@ container_name_default="my-distrobox"
 container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
+container_additional_packages=""
 container_generate_entry=1
 container_name=""
 container_pre_init_hook=""
@@ -159,6 +160,7 @@ Options:
 	--home/-H:		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
 	--volume:		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
+	--additional-packages/-ap:	additional packages to install during initial container setup
 	--init-hooks:		additional commands to execute during container initialization
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
@@ -292,6 +294,13 @@ while :; do
 		-a | --additional-flags)
 			if [ -n "$2" ]; then
 				container_manager_additional_flags="${container_manager_additional_flags} ${2}"
+				shift
+				shift
+			fi
+			;;
+		-ap | --additional-packages)
+			if [ -n "$2" ]; then
+				container_additional_packages="${container_additional_packages} ${2}"
 				shift
 				shift
 			fi
@@ -646,6 +655,7 @@ generate_command() {
 		--home \"${container_user_custom_home:-"${container_user_home}"}\"
 		--init \"${init}\"
 		--pre-init-hooks \"${container_pre_init_hook}\"
+		--additional-packages \"${container_additional_packages}\"
 		-- '${container_init_hook}'
 		"
 	# use container_user_custom_home if defined, else fallback to normal home.
