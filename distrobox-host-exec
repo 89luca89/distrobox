@@ -26,7 +26,7 @@ if [ ! -t 1 ]; then
 	non_interactive=1
 fi
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
-host_spawn_version="1.2.1"
+host_spawn_version="1.4.1"
 verbose=0
 version="1.4.2.1"
 
@@ -124,7 +124,8 @@ fi
 
 # Setup host-spawn as a way to execute commands back on the host
 if  ! command -v host-spawn > /dev/null ||
-	[ "$(host-spawn --version)" != "${host_spawn_version}" ]; then
+	[ "$(printf "%s\n%s\n" "${host_spawn_version}" "$(host-spawn --version)" |
+		sort -V | head -n 1)" != "${host_spawn_version}" ]; then
 
 	# if non-interactive flag flag hasn't been set
 	if [ "${non_interactive}" -eq 0 ]; then
