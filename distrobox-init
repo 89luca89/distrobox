@@ -31,6 +31,7 @@ init=0
 init_hook=""
 upgrade=0
 pre_init_hook=""
+container_additional_packages=""
 verbose=0
 version="1.4.2.1"
 # Print usage to stdout.
@@ -124,6 +125,13 @@ while :; do
 			shift
 			shift
 			;;
+		--additional-packages)
+			if [ -n "$2" ]; then
+				container_additional_packages="$2"
+			fi
+			shift
+			shift
+			;;
 		--)
 			shift
 			init_hook=$*
@@ -151,7 +159,7 @@ fi
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
 if [ "${upgrade}" -eq 0 ]; then
-	[ -z "${container_user_gid}" ] && printf "Error: Invalid arguments, missing user gud\n" && exit 2
+	[ -z "${container_user_gid}" ] && printf "Error: Invalid arguments, missing user gid\n" && exit 2
 	[ -z "${container_user_home}" ] && printf "Error: Invalid argument, missing user home\n" && exit 2
 	[ -z "${container_user_name}" ] && printf "Error: Invalid arguments, missing username\n" && exit 2
 	[ -z "${container_user_uid}" ] && printf "Error: Invalid arguments, missing user uid\n" && exit 2
@@ -313,6 +321,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			$(apk search -q mesa-vulkan) \
 			vulkan-loader
 
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			apk add ${container_additional_packages}
+		fi
+
 	elif command -v apt-get; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
@@ -367,6 +381,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 				mesa-vulkan-drivers
 		fi
 
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			apt-get install -y ${container_additional_packages}
+		fi
+
 	elif command -v dnf; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
@@ -413,6 +433,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 				vulkan
 		fi
 
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			dnf install -y ${container_additional_packages}
+		fi
+
 	elif command -v emerge; then
 		# Check if the container we are using has a ::gentoo repo defined,
 		# if it is defined and it is empty, then synchroznize it.
@@ -447,6 +473,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			sys-process/lsof \
 			util-linux \
 			wget
+
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			emerge --ask=n --autounmask-continue --noreplace --quiet-build \
+				${container_additional_packages}
+		fi
 
 	elif command -v microdnf; then
 		# If we need to upgrade, do it and exit, no further action required.
@@ -486,6 +519,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			mesa-dri-drivers \
 			mesa-vulkan-drivers \
 			vulkan || :
+
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			microdnf install -y ${container_additional_packages}
+		fi
 
 	elif command -v pacman; then
 		# If we need to upgrade, do it and exit, no further action required.
@@ -532,6 +571,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vulkan-intel \
 			vulkan-radeon
 
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			pacman -Sy --noconfirm ${container_additional_packages}
+		fi
+
 	elif command -v slackpkg; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
@@ -568,6 +613,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		yes | slackpkg install -default_answer=yes -batch=yes \
 			mesa
 
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			yes | slackpkg install -default_answer=yes -batch=yes \
+				${container_additional_packages}
+		fi
+
 	elif command -v swupd; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
@@ -589,6 +641,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		swupd bundle-add \
 			lib-opengl \
 			devpkg-Vulkan-Loader
+
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			swupd bundle-add ${container_additional_packages}
+		fi
 
 	elif command -v xbps-install; then
 		# If we need to upgrade, do it and exit, no further action required.
@@ -626,6 +684,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 
 		# These are graphics drivers for 3d applications
 		xbps-install -Sy mesa-dri
+
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			xbps-install -Sy ${container_additional_packages}
+		fi
 
 	elif command -v yum; then
 		# If we need to upgrade, do it and exit, no further action required.
@@ -669,6 +733,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if yum list mesa-dri-drivers > /dev/null; then
 			yum install -y \
 				mesa-dri-drivers
+		fi
+
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			yum install -y ${container_additional_packages}
 		fi
 
 	elif command -v zypper; then
@@ -722,6 +792,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
+
+		# Install additional packages passed at distrbox-create time
+		if [ -n "${container_additional_packages}" ]; then
+			# shellcheck disable=SC2086
+			zypper install -y ${container_additional_packages}
+		fi
 	else
 		printf "Error: could not find a supported package manager.\n"
 		printf "Error: could not set up base dependencies.\n"
