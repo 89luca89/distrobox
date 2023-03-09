@@ -124,8 +124,8 @@ fi
 
 # Setup host-spawn as a way to execute commands back on the host
 if  ! command -v host-spawn > /dev/null ||
-	[ "$(printf "%s\n%s\n" "${host_spawn_version}" "$(host-spawn --version)" \
-		| sort -V | head -n 1)" != "${host_spawn_version}" ]; then
+	[ "$(printf "%s\n%s\n" "${host_spawn_version}" "$(host-spawn --version)" |
+		sort -V | head -n 1)" != "${host_spawn_version}" ]; then
 
 	# if non-interactive flag flag hasn't been set
 	if [ "${non_interactive}" -eq 0 ]; then
