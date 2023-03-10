@@ -28,7 +28,7 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
-trap 'rm -f ${HOME}/.cache/.*.fifo ${HOME}/.cache/.*.status' EXIT
+trap 'rm -f ${HOME}/.cache/.${container_name}.fifo ${HOME}/.cache/.${container_name}.status' EXIT
 
 # Despite of running this script via SUDO/DOAS being not supported (the
 # script itself will call the appropriate tool when necessary), we still want
