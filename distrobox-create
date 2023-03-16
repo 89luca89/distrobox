@@ -457,7 +457,6 @@ clone_container() {
 	# Return the image tag to use for the new container creation.
 	printf "%s" "${container_commit_tag}"
 	return 0
-
 }
 
 # Generate Podman or Docker command to execute.

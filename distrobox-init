@@ -237,6 +237,10 @@ mount_bind() (
 	# if instead it's a file, create it with touch
 	elif [ -f "${source_dir}" ]; then
 		# exit if not successful
+		if   ! mkdir -p "$(dirname "${source_dir}")"; then
+			printf "Warning: cannot create mount target directory: %s\n" "${target_dir}"
+			return 1
+		fi
 		if ! touch "${target_dir}"; then
 			printf "Warning: cannot create mount target file: %s\n" "${target_dir}"
 			return 1
@@ -858,14 +862,14 @@ for host_mount in ${HOST_MOUNTS}; do
 done
 
 HOST_MOUNTS_RO_INIT="
-		/etc/localtime
-		/run/systemd/journal
-		/run/systemd/resolve
-		/run/systemd/seats
-		/run/systemd/sessions
-		/run/systemd/users
-		/var/lib/systemd/coredump
-		/var/log/journal"
+	/etc/localtime
+	/run/systemd/journal
+	/run/systemd/resolve
+	/run/systemd/seats
+	/run/systemd/sessions
+	/run/systemd/users
+	/var/lib/systemd/coredump
+	/var/log/journal"
 
 # On some ostree systems, home is in /var/home, but most of the software expects
 # it to be in /home. In the hosts systems this is fixed by using a symlink.
