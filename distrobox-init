@@ -1032,6 +1032,7 @@ fi
 ###############################################################################
 
 ###############################################################################
+printf "distrobox: Setting up host's nvidia drivers integration...\n"
 # In case of an DEB distro, we can specify that our bind_mount directories
 # have to be ignored. This prevents conflicts during package installations.
 if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
