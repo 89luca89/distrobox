@@ -246,7 +246,7 @@ mount_bind() (
 	# if instead it's a file, create it with touch
 	elif [ -f "${source_dir}" ]; then
 		# exit if not successful
-		if ! mkdir -p "$(dirname "${source_dir}")"; then
+		if ! mkdir -p "$(dirname "${target_dir}")"; then
 			printf "Warning: cannot create mount target directory: %s\n" "${target_dir}"
 			return 1
 		fi
@@ -956,12 +956,14 @@ if [ "${nvidia}" -eq 1 ]; then
 	#	- confs
 	#	- icd files
 	#	- egl files
-	NVIDIA_FILES="$(find /run/host/usr/ -type f -iname "*nvidia*" \
-		-a -not -path "/run/host/usr/lib*" \
-		-a -not -path "/run/host/usr/lib*/modules*" \
-		-a -not -path "/run/host/usr/share/doc*" \
-		-a -not -path "/run/host/usr/share/man*" \
-		-a -not -path "/run/host/usr/src*")"
+	NVIDIA_FILES="$(find /run/host/usr/ \
+		-path "/run/host/usr/share/doc*" -prune -o \
+		-path "/run/host/usr/src*" -prune -o \
+		-path "/run/host/usr/lib*/modules*" -prune -o \
+		-path "/run/host/usr/share/man*" -prune -o \
+		-path "/run/host/usr/lib*" -prune -o \
+		-path "/run/host/usr/share/polkit*" -prune -o \
+		-type f -iname "*nvidia*" -print)"
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
 		mount_bind "${nvidia_file}" "${dest_file}" ro
