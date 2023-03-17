@@ -269,32 +269,6 @@ mount_bind() (
 	return 0
 )
 
-# Extract soft path from full host library path
-# Arguments:
-#   source_dir
-# Outputs:
-#   Path in the guest container where to put the lib
-get_nvidia_lib_path() {
-	source_dir="$1"
-
-	# Some Debian based systems use this type of path
-	if [ -e "/run/host/usr/lib/x86_64-linux-gnu/" ]; then
-		dest_dir="$(printf "%s" "${source_dir}" | sed 's|/run/host/usr/lib/x86_64-linux-gnu||g')"
-		echo "${dest_dir}"
-		return
-	# /usr/lib64 is quite popular on rpm based distros
-	elif [ -e "/run/host/usr/lib64" ]; then
-		dest_dir="$(printf "%s" "${source_dir}" | sed 's|/run/host/usr/lib64||g')"
-		echo "${dest_dir}"
-		return
-	# Fallback to /usr/lib if none of the previous are present
-	else
-		dest_dir="$(printf "%s" "${source_dir}" | sed 's|/run/host/usr/lib||g')"
-		echo "${dest_dir}"
-		return
-	fi
-}
-
 if [ -n "${pre_init_hook}" ]; then
 	printf "distrobox: Executing pre-init hooks...\n"
 	# execute pre-init hooks if specified
@@ -970,20 +944,25 @@ if [ "${nvidia}" -eq 1 ]; then
 	done
 
 	# Then we find all the ".so" libraries, there are searched separately
-	# because we need to use get_nvidia_lib_path to mount them in the
+	# because we need to extract the relative path to mount them in the
 	# correct path based on the guest's setup
 	NVIDIA_LIBS="$(find /run/host/usr/lib* -type f -iname "*nvidia*.so*")"
 	for nvidia_lib in ${NVIDIA_LIBS}; do
+		dest_file="$(printf "%s" "${nvidia_lib}" |
+			sed 's|/run/host/usr/lib/x86_64-linux-gnu/||g' |
+			sed 's|/run/host/usr/lib64/||g' |
+			sed 's|/run/host/usr/lib/||g')"
+
 		# In the guest we need to adjust the destination path, so if we're on
 		# debian based containers, we need to target /usr/lib/x86_64-linux-gnu/
 		if [ -e "/usr/lib/x86_64-linux-gnu/" ]; then
-			mount_bind "${nvidia_lib}" "/usr/lib/x86_64-linux-gnu/$(get_nvidia_lib_path "${nvidia_lib}")" ro
-		# /usr/lib64 is common in rpm based distros
+			mount_bind "${nvidia_lib}" "/usr/lib/x86_64-linux-gnu/${dest_file}" ro
+			# /usr/lib64 is common in rpm based distros
 		elif [ -e "/usr/lib64" ]; then
-			mount_bind "${nvidia_lib}" "/usr/lib64/$(get_nvidia_lib_path "${nvidia_lib}")" ro
-		# fallback to /usr/lib if none of the previous
+			mount_bind "${nvidia_lib}" "/usr/lib64/${dest_file}" ro
+			# fallback to /usr/lib if none of the previous
 		else
-			mount_bind "${nvidia_lib}" "/usr/lib/$(get_nvidia_lib_path "${nvidia_lib}")" ro
+			mount_bind "${nvidia_lib}" "/usr/lib/${dest_file}" ro
 		fi
 	done
 fi
