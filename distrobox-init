@@ -27,11 +27,12 @@
 trap '[ "$?" -ne 0 ] && printf "Error: An error occurred\n"' EXIT
 
 # Defaults
+container_additional_packages=""
 init=0
 init_hook=""
-upgrade=0
+nvidia=0
 pre_init_hook=""
-container_additional_packages=""
+upgrade=0
 verbose=0
 version="1.4.2.1"
 # Print usage to stdout.
@@ -57,6 +58,7 @@ Options:
 	--additional-packages:	packages to install in addition
 	--init/-I:		whether to use or not init
 	--pre-init-hooks:	commands to execute prior to init
+	--nvidia:		try to integrate host's nVidia drivers in the guest
 	--upgrade/-U:		run init in upgrade mode
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -132,6 +134,13 @@ while :; do
 			fi
 			shift
 			shift
+			;;
+		--nvidia)
+			if [ -n "$2" ]; then
+				nvidia="$2"
+				shift
+				shift
+			fi
 			;;
 		--)
 			shift
@@ -259,6 +268,32 @@ mount_bind() (
 
 	return 0
 )
+
+# Extract soft path from full host library path
+# Arguments:
+#   source_dir
+# Outputs:
+#   Path in the guest container where to put the lib
+get_nvidia_lib_path() {
+	source_dir="$1"
+
+	# Some Debian based systems use this type of path
+	if [ -e "/run/host/usr/lib/x86_64-linux-gnu/" ]; then
+		dest_dir="$(printf "%s" "${source_dir}" | sed 's|/run/host/usr/lib/x86_64-linux-gnu||g')"
+		echo "${dest_dir}"
+		return
+	# /usr/lib64 is quite popular on rpm based distros
+	elif [ -e "/run/host/usr/lib64" ]; then
+		dest_dir="$(printf "%s" "${source_dir}" | sed 's|/run/host/usr/lib64||g')"
+		echo "${dest_dir}"
+		return
+	# Fallback to /usr/lib if none of the previous are present
+	else
+		dest_dir="$(printf "%s" "${source_dir}" | sed 's|/run/host/usr/lib||g')"
+		echo "${dest_dir}"
+		return
+	fi
+}
 
 if [ -n "${pre_init_hook}" ]; then
 	printf "distrobox: Executing pre-init hooks...\n"
@@ -913,6 +948,43 @@ for host_socket in ${host_sockets}; do
 done
 ###############################################################################
 
+# If --nvidia, we try to integrate host's nvidia drivers in to the guest
+if [ "${nvidia}" -eq 1 ]; then
+	# First we find all non-lib files we need, this includes
+	#	- binaries
+	#	- confs
+	#	- icd files
+	#	- egl files
+	NVIDIA_FILES="$(find /run/host/usr/ -type f -iname "*nvidia*" \
+		-a -not -path "/run/host/usr/lib*" \
+		-a -not -path "/run/host/usr/lib*/modules*" \
+		-a -not -path "/run/host/usr/share/doc*" \
+		-a -not -path "/run/host/usr/share/man*" \
+		-a -not -path "/run/host/usr/src*")"
+	for nvidia_file in ${NVIDIA_FILES}; do
+		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
+		mount_bind "${nvidia_file}" "${dest_file}"
+	done
+
+	# Then we find all the ".so" libraries, there are searched separately
+	# because we need to use get_nvidia_lib_path to mount them in the
+	# correct path based on the guest's setup
+	NVIDIA_LIBS="$(find /run/host/usr/lib* -type f -iname "*nvidia*.so*")"
+	for nvidia_lib in ${NVIDIA_LIBS}; do
+		# In the guest we need to adjust the destination path, so if we're on
+		# debian based containers, we need to target /usr/lib/x86_64-linux-gnu/
+		if [ -e "/usr/lib/x86_64-linux-gnu/" ]; then
+			mount_bind "${nvidia_lib}" "/usr/lib/x86_64-linux-gnu/$(get_nvidia_lib_path "${nvidia_lib}")" ro
+		# /usr/lib64 is common in rpm based distros
+		elif [ -e "/usr/lib64" ]; then
+			mount_bind "${nvidia_lib}" "/usr/lib64/$(get_nvidia_lib_path "${nvidia_lib}")" ro
+		# fallback to /usr/lib if none of the previous
+		else
+			mount_bind "${nvidia_lib}" "/usr/lib/$(get_nvidia_lib_path "${nvidia_lib}")" ro
+		fi
+	done
+fi
+
 ###############################################################################
 printf "distrobox: Integrating host's themes, icons, fonts...\n"
 # Themes and icons integration works using a bind mount inside the container
@@ -1145,6 +1217,8 @@ if [ -n "${DISTROBOX_HOST_HOME-}"  ] && [ -d "/etc/skel" ]; then
 	done
 fi
 
+###############################################################################
+
 printf "distrobox: Executing init hooks...\n"
 # execute eventual init hooks if specified
 # shellcheck disable=SC2086
@@ -1193,6 +1267,8 @@ if [ "${init}" -eq 0 ]; then
 		sleep 15
 	done
 fi
+
+###############################################################################
 
 # If we're here, the init support has been enabled.
 printf  "distrobox: Setting up init system...\n"

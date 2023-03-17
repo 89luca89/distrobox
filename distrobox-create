@@ -64,6 +64,7 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
+nvidia=0
 dryrun=0
 init=0
 non_interactive=0
@@ -166,6 +167,7 @@ Options:
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
+	--nvidia:		try to integrate host's nVidia drivers in the guest
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
@@ -280,6 +282,10 @@ while :; do
 		-p | --pull)
 			container_always_pull=1
 			shift
+			;;
+		--nvidia)
+			shift
+			nvidia=1
 			;;
 		-Y | --yes)
 			non_interactive=1
@@ -660,6 +666,7 @@ generate_command() {
 		--group ${container_user_gid}
 		--home \"${container_user_custom_home:-"${container_user_home}"}\"
 		--init \"${init}\"
+		--nvidia \"${nvidia}\"
 		--pre-init-hooks \"${container_pre_init_hook}\"
 		--additional-packages \"${container_additional_packages}\"
 		-- '${container_init_hook}'
