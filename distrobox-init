@@ -947,6 +947,7 @@ for host_socket in ${host_sockets}; do
 	fi
 done
 ###############################################################################
+printf "distrobox: Setting up host's nvidia drivers integration...\n"
 
 # If --nvidia, we try to integrate host's nvidia drivers in to the guest
 if [ "${nvidia}" -eq 1 ]; then
@@ -963,7 +964,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		-a -not -path "/run/host/usr/src*")"
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
-		mount_bind "${nvidia_file}" "${dest_file}"
+		mount_bind "${nvidia_file}" "${dest_file}" ro
 	done
 
 	# Then we find all the ".so" libraries, there are searched separately
@@ -1032,7 +1033,6 @@ fi
 ###############################################################################
 
 ###############################################################################
-printf "distrobox: Setting up host's nvidia drivers integration...\n"
 # In case of an DEB distro, we can specify that our bind_mount directories
 # have to be ignored. This prevents conflicts during package installations.
 if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
