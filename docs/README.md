@@ -400,4 +400,6 @@ you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
 ![distro-box](./assets/distro-box.png)
 
----
+###### This artwork uses _[Cardboard Box](https://skfb.ly/6Wq6q)_ model by _J0Y_ licensed under [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0).
+
+###### This artwork uses [GTK+ Loop Animation](https://github.com/gnome-design-team/gnome-mockups/blob/master/gtk/loop6.blend) by _GNOME Project_ licensed under [Creative Commons Attribution-ShareAlike 3.0](http://creativecommons.org/licenses/by-sa/3.0) as a starting point.
