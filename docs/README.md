@@ -403,4 +403,4 @@ you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
 ###### This artwork uses [Cardboard Box](https://skfb.ly/6Wq6q) model by [J0Y](https://sketchfab.com/lloydrostek) licensed under [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0).
 
-###### This artwork uses [GTK Loop Animation](https://github.com/gnome-design-team/gnome-mockups/blob/master/gtk/loop6.blend) by [GNOME Project](https://www.gnome.org) licensed under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0) as a starting point.
+###### This artwork uses [GTK Loop Animation](https://github.com/gnome-design-team/gnome-mockups/blob/master/gtk/loop6.blend) by [GNOME Project](https://www.gnome.org) licensed under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0) as a pre-configured scene.
