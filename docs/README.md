@@ -1,5 +1,7 @@
-![distrobox-logo](https://user-images.githubusercontent.com/598882/157771834-7423cf9b-8311-4e90-8a79-cd0eff6bd632.png)
-<sub>logo credits [j4ckr3d](https://github.com/j4ckr3d)<sub>
+![distrobox-logo](./assets/page-logo-dark.svg#gh-dark-mode-only)
+![distrobox-logo](./assets/page-logo-light.svg#gh-light-mode-only)
+###### previous logo credits: [j4ckr3d](https://github.com/j4ckr3d)
+###### curent logo credits: [David Lapshin](https://github.com/daudix-UFO)
 
 # Distrobox
 
@@ -396,6 +398,6 @@ you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
 ---
 
-![distrobox-box](https://user-images.githubusercontent.com/598882/144294113-ab3c62b0-4ff0-488f-8e85-dfecc308e561.png)
+![distro-box](./assets/distro-box.png)
 
 ---
