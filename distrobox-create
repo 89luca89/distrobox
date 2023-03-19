@@ -613,10 +613,16 @@ generate_command() {
 	# relative paths.
 	# This is the bare minimum to ensure connectivity inside the container.
 	# These files, will then be kept updated by the main loop every 15 seconds.
-	result_command="${result_command}
-		--volume /etc/hosts:/etc/hosts:ro
-		--volume /etc/localtime:/etc/localtime:ro
-		--volume /etc/resolv.conf:/etc/resolv.conf:ro"
+	HOST_FILES="
+		/etc/hosts
+		/etc/localtime
+		/etc/resolv.conf
+	"
+	for host_file in ${HOST_FILES}; do
+		if [ -e "${host_file}" ]; then
+			result_command="${result_command} --volume ${host_file}:${host_file}:ro"
+		fi
+	done
 
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
