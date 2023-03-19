@@ -12,7 +12,7 @@
 
 ---
 
-⚠️ **BE CAREFUL**:⚠️  THIS IS EXPERIMENTAL, JUST FOOD FOR TOUGHTS
+⚠️ **BE CAREFUL**:⚠️  THIS IS EXPERIMENTAL, JUST FOOD FOR THOUGHTS
 
 # Using a stable-release distribution
 

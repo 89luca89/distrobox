@@ -58,7 +58,7 @@ done
 # as it's meaningless for this use case.
 if [ "$(id -ru)" -ne 0 ]; then
 	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
-	# user, use its value instead of "sudo". But only if not runnig the script
+	# user, use its value instead of "sudo". But only if not running the script
 	# as root (UID 0).
 	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
 fi

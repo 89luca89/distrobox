@@ -247,7 +247,7 @@ mount_bind() (
 		fi
 	fi
 
-	# Add mountflags if needed, if no are specificed, use rslave as default.
+	# Add mountflags if needed, if no are specified, use rslave as default.
 	if [ "${mount_flags}" = "" ]; then
 		mount_flags="rslave"
 	fi
@@ -901,7 +901,7 @@ host_sockets="$(find /run/host/run -name 'user' \
 # system dbus or user auth cache misused.
 for host_socket in ${host_sockets}; do
 	container_socket="$(printf "%s" "${host_socket}" | sed 's|/run/host||g')"
-	# Check if the socket already exists or the symlink already esists
+	# Check if the socket already exists or the symlink already exists
 	if [ ! -S "${container_socket}" ] && [ ! -L "${container_socket}" ]; then
 		# link it.
 		rm -f "${container_socket}"

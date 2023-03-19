@@ -36,7 +36,7 @@ Options:
 EOF
 }
 
-# First thing first, chekc if we have all the dependencies.
+# First thing first, check if we have all the dependencies.
 printf >&2 "\033[1;31m Checking dependencies...\n\033[0m"
 if [ ! -e /etc/subuid ] || [ ! -e /etc/subgid ]; then
 	if ! command -v newuidmap > /dev/null; then
@@ -127,7 +127,7 @@ chmod +x /tmp/crun
 
 PODMAN_VERSION="4.2.1"
 printf >&2 "\033[1;31m Fetching podman %s...\n\033[0m" "${PODMAN_VERSION}"
-# Using static podman bulds semplifies our lifes! Thanks to the wonderful project
+# Using static podman builds semplifies our lives! Thanks to the wonderful project
 #   https://github.com/mgoltzsche/podman-static
 # All credits to @mgoltzsche for the builds.
 # Download and unpack the tar in /tmp

@@ -171,7 +171,7 @@ Fedora Silverblue for the [uBlue](https://github.com/ublue-os) project
 - Leverage high abundance of curated distro images for docker/podman to
   manage multiple environments
 
-Refer to the compatiblity list for an overview of supported host's distro
+Refer to the compatibility list for an overview of supported host's distro
 [HERE](compatibility.md#host-distros) and container's distro [HERE](compatibility.md#containers-distros).
 
 ### Aims
