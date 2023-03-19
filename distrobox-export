@@ -202,7 +202,7 @@ if [ -z "${exported_app}" ] &&
 	printf >&2 "Error: Invalid arguments.\n"
 	printf >&2 "Error: missing export target. Run\n"
 	printf >&2 "\tdistrobox-export --help\n"
-	printf >&2 "for more informations.\n"
+	printf >&2 "for more information.\n"
 	exit 2
 fi
 # Ensure we're not receiving more than one action at time.
@@ -244,7 +244,7 @@ else
 	start_shell=""
 fi
 
-# Prefix to add to an existing command to work throught the container
+# Prefix to add to an existing command to work through the container
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${start_shell} "
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
@@ -354,7 +354,7 @@ export_application() {
 	[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
 
 	# In this phase we search for applications to export.
-	# First find command will grep throught all files in the canonical directories
+	# First find command will grep through all files in the canonical directories
 	# and only list files that contain the $exported_app, excluding those that
 	# already contains a distrobox-enter command. So skipping already exported apps.
 	# Second find will list all files that contain the name specified, so that
@@ -442,11 +442,11 @@ export_application() {
 			continue
 		fi
 
-		# Add commmand_prefix
+		# Add command_prefix
 		# Add extra flags
 		# Add closing quote
 		# If a TryExec is present, we have to fake it as it will not work
-		# throught the container separation
+		# through the container separation
 		sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
 			sed "s|\(%.*\)|${extra_flags} \1|g" |
 			sed "/^TryExec=.*/d" |
@@ -537,7 +537,7 @@ export_service() {
 	temp_file="$(mktemp -u)"
 	mkdir -p "/run/host${host_home}/.config/systemd/user/"
 
-	# Replace all Exec occurrencies
+	# Replace all Exec occurrences
 	cp -f "${service_file}" "${exported_service_fullpath}"
 	chmod 0644 "${exported_service_fullpath}"
 	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
@@ -545,7 +545,7 @@ export_service() {
 		cp -f "${exported_service_fullpath}" "${temp_file}"
 		# Add prefix only if not present
 		if ! grep "${exec_cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
-			# Add commmand_prefix
+			# Add command_prefix
 			# Add extra flags
 			# Add closing quote
 			sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" "${temp_file}" |

@@ -22,7 +22,7 @@ We will use in this example AlmaLinux 8:
 :~> distrobox enter --root libvirtd-container
 ```
 
-Let it initalize, then we can install all the packages we need:
+Let it initialize, then we can install all the packages we need:
 
 ```console
 :~> distrobox enter --root libvirtd-container
