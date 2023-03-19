@@ -237,7 +237,7 @@ mount_bind() (
 	# if instead it's a file, create it with touch
 	elif [ -f "${source_dir}" ]; then
 		# exit if not successful
-		if   ! mkdir -p "$(dirname "${source_dir}")"; then
+		if ! mkdir -p "$(dirname "${source_dir}")"; then
 			printf "Warning: cannot create mount target directory: %s\n" "${target_dir}"
 			return 1
 		fi
