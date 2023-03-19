@@ -239,7 +239,7 @@ fi
 if [ "${is_login}" -ne 0 ] && [ "${is_sudo}" -ne 0 ]; then
 	start_shell="sudo -i"
 elif [ "${is_login}" -ne 0 ]; then
-	start_shell="sh -l -c"
+	start_shell="sudo -u ${USER} -i"
 else
 	start_shell=""
 fi
