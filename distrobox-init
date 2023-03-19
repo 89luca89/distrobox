@@ -921,10 +921,11 @@ for host_socket in ${host_sockets}; do
 	fi
 done
 ###############################################################################
-printf "distrobox: Setting up host's nvidia drivers integration...\n"
 
 # If --nvidia, we try to integrate host's nvidia drivers in to the guest
 if [ "${nvidia}" -eq 1 ]; then
+	printf "distrobox: Setting up host's nvidia drivers integration...\n"
+
 	# First we find all non-lib files we need, this includes
 	#	- binaries
 	#	- confs
