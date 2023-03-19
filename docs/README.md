@@ -39,7 +39,7 @@ graphical apps (X11/Wayland), and audio.
     - [Aims](#aims)
 - [Installation](#installation)
   - [Alternative methods](#alternative-methods)
-    - [Curl](#curl)
+    - [Curl or Wget](#curl-or-wget)
     - [Git](#git)
   - [Dependencies](#dependencies)
     - [Install Podman without root](compatibility.md#install-podman-in-a-static-manner)
