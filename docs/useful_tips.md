@@ -213,7 +213,7 @@ By default distrobox will integrate with host's flatpak directory if present:
 `/var/lib/flatpak` and obviously with the $HOME one.
 
 If you want to have a separate system remote between host and container,
-you can create your distrobox with the followint init-hook:
+you can create your distrobox with the following init-hook:
 
 ```sh
 distrobox create --name test --image your-chosen-image:tag \
@@ -221,7 +221,7 @@ distrobox create --name test --image your-chosen-image:tag \
 ```
 
 After that you'll be able to have separate flatpaks between host and distrobox.
-You can procede to export them using `distrobox-export` (for distrobox 1.2.14+)
+You can proceed to export them using `distrobox-export` (for distrobox 1.2.14+)
 
 ## Using podman or docker inside a distrobox
 
@@ -239,7 +239,7 @@ sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/docker
 ```
 
 This will create a `podman` or `docker` command inside the distrobox that will
-trasparently execute the command on the host.
+transparently execute the command on the host.
 
 ## Using init system inside a distrobox
 
@@ -421,7 +421,7 @@ these flags only work during container creation (`podman create` / `podman run`)
 (`podman exec`, which is used by Distrobox to execute commands inside of container), which means changing resource
 limitation requires recreation of a container.
 
-Nontheless you can still apply resource limitation using systemd's resource control functionality. It's not recommended
+Nonetheless you can still apply resource limitation using systemd's resource control functionality. It's not recommended
 to pass resource limitation arguments (e.g. `--cpuset-cpus` and `--memory`) to `distrobox create --additional-flags`
 as systemd already provides much more flexible resource control functionality.
 

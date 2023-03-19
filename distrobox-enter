@@ -83,10 +83,10 @@ for config_file in ${config_files}; do
 done
 # If we're running this script as root -- as in, logged in in the shell as root
 # user, and not via SUDO/DOAS --, we don't need to set distrobox_sudo_program
-# as it's meaningless for thi use case.
+# as it's meaningless for this use case.
 if [ "$(id -ru)" -ne 0 ]; then
 	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
-	# user, use its value instead of "sudo". But only if not runnig the script
+	# user, use its value instead of "sudo". But only if not running the script
 	# as root (UID 0).
 	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
 fi
@@ -324,7 +324,7 @@ generate_command() {
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
-	# disable logging fot this snippet, or it will be too talkative.
+	# disable logging for this snippet, or it will be too talkative.
 	for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
 		grep -Ev '^(HOST|HOSTNAME|HOME|LANG|LC_CTYPE|PATH|SHELL|XDG_.*_DIRS|^_)'); do
 		# We filter the environment so that we do not have strange variables,

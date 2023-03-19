@@ -42,7 +42,7 @@ graphical apps (X11/Wayland), and audio.
     - [Aims](#aims)
 - [Installation](#installation)
   - [Alternative methods](#alternative-methods)
-    - [Curl](#curl)
+    - [Curl or Wget](#curl-or-wget)
     - [Git](#git)
   - [Dependencies](#dependencies)
     - [Install Podman without root](compatibility.md#install-podman-in-a-static-manner)
@@ -174,7 +174,7 @@ Fedora Silverblue for the [uBlue](https://github.com/ublue-os) project
 - Leverage high abundance of curated distro images for docker/podman to
   manage multiple environments
 
-Refer to the compatiblity list for an overview of supported host's distro
+Refer to the compatibility list for an overview of supported host's distro
 [HERE](compatibility.md#host-distros) and container's distro [HERE](compatibility.md#containers-distros).
 
 ### Aims
@@ -314,31 +314,39 @@ You can also [follow the guide to install in a rootless manner](posts/install_ro
 
 Here is a list of alternative ways to install distrobox
 
-### Curl
+### Curl or Wget
 
 If you like to live your life dangerously, or you want the latest release,
 you can trust me and simply run this in your terminal:
 
 ```sh
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
+# or using wget
+wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
 ```
 
 or if you want to select a custom directory to install without sudo:
 
 ```sh
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
+# or using wget
+wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
 ```
 
 If you want to install the last development version, directly from last commit on git, you can use:
 
 ```sh
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --next
+# or using wget
+wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --next
 ```
 
 or:
 
 ```sh
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
+# or using wget
+wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
 ```
 
 > **Warning**

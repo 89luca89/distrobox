@@ -225,7 +225,7 @@ entry_name="$(echo "${container_name}" | cut -c1 | tr "[:lower:]" "[:upper:]")$(
 if [ "${icon}" = "auto" ]; then
 	# Set icon to the generic terminal as a fallback.
 	icon="${icon_default}"
-	# This is a NON comprehensive list of logos of the most popular distirbutions. If you find logos for
+	# This is a NON comprehensive list of logos of the most popular distributions. If you find logos for
 	# other supported distros, add it here.
 	DISTRO_ICON_MAP="
 		alma:https://upload.wikimedia.org/wikipedia/commons/e/ec/AlmaLinux_Icon_Logo.png
