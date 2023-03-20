@@ -937,10 +937,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		-path "/run/host/usr/lib*/modules*" -prune -o \
 		-path "/run/host/usr/share/man*" -prune -o \
 		-path "/run/host/usr/lib*" -prune -o \
-		-path "/run/host/usr/share/polkit*" -prune -o \
-		-path "/run/host/usr/etc/skel*" -prune -o \
-		-path "/run/host/usr/etc/keys*" -prune -o \
-		-type f -iname "*nvidia*" -print)"
+		-type f -iname "*nvidia*" -print || :)"
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
 		mount_bind "${nvidia_file}" "${dest_file}" ro
