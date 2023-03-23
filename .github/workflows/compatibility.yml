@@ -76,22 +76,38 @@ jobs:
       max-parallel: 8
       matrix:
         distribution: ${{fromJSON(needs.setup.outputs.targets)}}
-        container_manager: ["podman", "docker"]
+        container_manager: ["podman", "podman-rootless", "docker"]
     env:
       DBX_CONTAINER_MANAGER: ${{ matrix.container_manager }}
+      ELEVATE: eval
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
+      # - name: Use Docker in rootless mode.
+      #   uses: ScribeMD/rootless-docker@0.2.2
+      #   if: ${{ matrix.rootless }} == "yes" && ${{ matrix.container_manager }} == "docker"
+
+      - name: Podman rootless
+        if: ${{ matrix.container_manager }} == "podman-rootless"
+        run: |
+          echo "DBX_CONTAINER_MANAGER=podman" >> $GITHUB_ENV
+          echo "ELEVATE=\"sudo su -s /bin/bash -c\" >> $GITHUB_ENV
+
+          USERNAME=actions
+          groupadd $USERNAME
+          useradd -m $USERNAME
+
       # Ensure distrobox create works:
       - name: Distrobox create
         shell: 'script -q -e -c "bash {0}"'
+        
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ${DBX_CONTAINER_MANAGER} pull "${image}"
-          ./distrobox create --yes -i "${image}" --name "${container_name}"
+          $ELEVATE "${DBX_CONTAINER_MANAGER} pull \"${image}\""
+          $ELEVATE "./distrobox create --yes -i \"${image}\" --name \"${container_name}\""
           #case "${container_name}" in
           #  *init*)
           #    echo "SYSTEMD DETECTED: creating container with --init..."
@@ -108,7 +124,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox enter --name "${container_name}" -- whoami
+          $ELEVATE "./distrobox enter --name \"${container_name}\" -- whoami"
           # Temporary disable systemd init on github runners, it seems to be incompatible
           # with runner services:
           #   Failed to create /system.slice/runner-provisioner.service/init.scope control group: Permission denied
@@ -131,7 +147,7 @@ jobs:
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(./distrobox enter --name "${container_name}" -- whoami | tr -d '\r' | tr -d '^@')"
+          command_output="$($ELEVATE "./distrobox enter --name \"${container_name}\" -- whoami | tr -d '\r' | tr -d '^@'")"
           expected_output="$(whoami)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
@@ -145,7 +161,7 @@ jobs:
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           # Assert that distrobox exported binary indeed works
           set -x
-          command_output="$(./distrobox enter --name "${container_name}" -- uname -n | tr -d '\r' | tr -d '^@')"
+          command_output="$($ELEVATE "./distrobox enter --name \"${container_name}\" -- uname -n | tr -d '\r' | tr -d '^@'")"
           expected_output="${container_name}.$(uname -n)"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
@@ -157,7 +173,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox enter "${container_name}" -- distrobox-export --bin /bin/uname --export-path ${HOME}/
+          $ELEVATE "./distrobox enter \"${container_name}\" -- distrobox-export --bin /bin/uname --export-path ${HOME}/"
           # Assert that distrobox exported binary indeed works
           set -x
           command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
@@ -172,7 +188,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox enter "${container_name}" -- distrobox-export --sudo --bin /bin/uname --export-path ${HOME}/
+          $ELEVATE "./distrobox enter \"${container_name}\" -- distrobox-export --sudo --bin /bin/uname --export-path ${HOME}/"
           # Assert that distrobox exported binary indeed works
           set -x
           command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
@@ -186,14 +202,14 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox list | grep "${container_name}" | grep "${image}" | grep -E "Up|running"
+          $ELEVATE "./distrobox list" | grep "${container_name}" | grep "${image}" | grep -E "Up|running"
 
       # Ensure distrobox stop works:
       - name: Distrobox stop
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox stop --yes "${container_name}"
+          $ELEVATE "./distrobox stop --yes \"${container_name}\""
 
       # Ensure distrobox rm works:
       - name: Distrobox logs on failure
@@ -201,7 +217,7 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          $DBX_CONTAINER_MANAGER logs "${container_name}"
+          $ELEVATE "$DBX_CONTAINER_MANAGER logs \"${container_name}\""
 
       # Ensure distrobox rm works:
       - name: Distrobox rm
@@ -209,4 +225,4 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox rm --force "${container_name}"
+          $ELEVATE "./distrobox rm --force \"${container_name}\""
