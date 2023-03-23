@@ -96,7 +96,7 @@ jobs:
         run: |
           USERNAME=rootless
           echo "DBX_CONTAINER_MANAGER=podman" >> $GITHUB_ENV
-          echo "ELEVATE=\"su -s /bin/bash $USERNAME -c\"" >> $GITHUB_ENV
+          echo "ELEVATE=su -s /bin/bash $USERNAME -c" >> $GITHUB_ENV
 
           sudo useradd -m $USERNAME
 
