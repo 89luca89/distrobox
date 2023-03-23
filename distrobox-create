@@ -67,6 +67,7 @@ container_user_uid="$(id -ru)"
 dryrun=0
 init=0
 non_interactive=0
+use_shm=1
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
 # "realpath" would break situations like Nix or similar symlink based package
@@ -152,6 +153,7 @@ Options:
 	--name/-n:		name for the distrobox		default: ${container_name_default}
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
+	--no-shm:		Do not use SHM, even if it is available
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
@@ -283,6 +285,10 @@ while :; do
 			;;
 		-Y | --yes)
 			non_interactive=1
+			shift
+			;;
+		--no-shm)
+			use_shm=0
 			shift
 			;;
 		--volume)
@@ -459,6 +465,21 @@ clone_container() {
 	return 0
 }
 
+is_shared_or_slave() {
+	local mount="$1"
+
+	propagation="$(findmnt -o PROPAGATION "$mount" | head -2 | tail -1)"
+	case "$propagation" in 
+		*slave*)
+			return 0
+			;;
+		*shared*)
+			return 0
+			;;
+	esac
+	return 1
+}
+
 # Generate Podman or Docker command to execute.
 # Arguments:
 #   None
@@ -481,6 +502,32 @@ generate_command() {
 		result_command="${result_command}
 			--pid host"
 	fi
+
+	dev_mode=""
+	sys_mode=""
+	tmp_mode=""
+	home_mode=""
+	root_dir_mode=""
+	if is_shared_or_slave /sys; then
+		sys_mode=":rslave"
+	fi
+
+	if is_shared_or_slave /dev; then
+		dev_mode=":rslave"
+	fi
+
+	if is_shared_or_slave /tmp; then
+		tmp_mode=":rslave"
+	fi
+
+	if is_shared_or_slave "${container_user_home}"; then
+		home_mode=":rslave"
+	fi
+
+	if is_shared_or_slave "/"; then
+		root_dir_mode=":rslave"
+	fi
+
 	# Mount useful stuff inside the container.
 	# We also mount host's root filesystem to /run/host, to be able to syphon
 	# dynamic configurations from the host.
@@ -495,14 +542,15 @@ generate_command() {
 		--label \"manager=distrobox\"
 		--env \"SHELL=${SHELL:-"/bin/bash"}\"
 		--env \"HOME=${container_user_home}\"
-		--volume /:/run/host:rslave
-		--volume /dev:/dev:rslave
-		--volume /sys:/sys:rslave
-		--volume /tmp:/tmp:rslave
+		--volume /:/run/host${root_dir_mode}
+		--volume /dev:/dev${dev_mode}
+		--volume /sys:/sys${sys_mode}
+		--volume /tmp:/tmp${tmp_mode}
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
 		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
-		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+		--volume \"${container_user_home}\":\"${container_user_home}\"${home_mode}"
+
 
 	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
 	# will be mounted inside the rootless container.
@@ -535,7 +583,7 @@ generate_command() {
 	# to /run/shm, instead of the other way around.
 	# Resolve this detecting if /dev/shm is a symlink and mount original
 	# source also in the container.
-	if [ -L "/dev/shm" ]; then
+	if [ -L "/dev/shm" ] && [ "$use_shm" = "1" ]; then
 		result_command="${result_command}
 			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
 	fi
