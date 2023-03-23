@@ -99,8 +99,8 @@ jobs:
           echo "ELEVATE=su -s /bin/bash $USERNAME -c" >> $GITHUB_ENV
 
           # some variant of useradd need a password, otherwise you get prompted to enter one
-          timeout 10 useradd -p '' -m $USERNAME
-          passwd -d $USERNAME
+          timeout 10 sudo useradd -p '' -m $USERNAME
+          sudo passwd -d $USERNAME
 
       # Ensure distrobox create works:
       - name: Distrobox create
