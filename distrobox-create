@@ -466,18 +466,20 @@ clone_container() {
 }
 
 is_shared_or_slave() {
-	local mount="$1"
+	mount="$1"
 
-	propagation="$(findmnt -o PROPAGATION "$mount" | head -2 | tail -1)"
-	case "$propagation" in 
-		*slave*)
+	propagation="$(findmnt -o PROPAGATION "${mount}" | head -2 | tail -1)"
+	case "${propagation}" in
+		"*slave*")
 			return 0
 			;;
-		*shared*)
+		"*shared*")
 			return 0
+			;;
+		*)
+			return 1
 			;;
 	esac
-	return 1
 }
 
 # Generate Podman or Docker command to execute.
@@ -551,7 +553,6 @@ generate_command() {
 		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
 		--volume \"${container_user_home}\":\"${container_user_home}\"${home_mode}"
 
-
 	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
 	# will be mounted inside the rootless container.
 	#
@@ -583,7 +584,7 @@ generate_command() {
 	# to /run/shm, instead of the other way around.
 	# Resolve this detecting if /dev/shm is a symlink and mount original
 	# source also in the container.
-	if [ -L "/dev/shm" ] && [ "$use_shm" = "1" ]; then
+	if [ -L "/dev/shm" ] && [ "${use_shm}" = "1" ]; then
 		result_command="${result_command}
 			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
 	fi
