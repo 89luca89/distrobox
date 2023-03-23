@@ -94,11 +94,10 @@ jobs:
       - name: Podman rootless
         if: ${{ matrix.container_manager == 'podman-rootless' }}
         run: |
-          USERNAME=actions
+          USERNAME=rootless
           echo "DBX_CONTAINER_MANAGER=podman" >> $GITHUB_ENV
           echo "ELEVATE=\"sudo su -s /bin/bash $USERNAME -c\"" >> $GITHUB_ENV
 
-          sudo groupadd $USERNAME
           sudo useradd -m $USERNAME
 
       # Ensure distrobox create works:
