@@ -98,7 +98,9 @@ jobs:
           echo "DBX_CONTAINER_MANAGER=podman" >> $GITHUB_ENV
           echo "ELEVATE=su -s /bin/bash $USERNAME -c" >> $GITHUB_ENV
 
-          useradd -m $USERNAME
+          # some variant of useradd need a password, otherwise you get prompted to enter one
+          timeout 10 useradd -p '' -m $USERNAME
+          passwd -d $USERNAME
 
       # Ensure distrobox create works:
       - name: Distrobox create
