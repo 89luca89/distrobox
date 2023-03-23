@@ -98,8 +98,8 @@ jobs:
           echo "DBX_CONTAINER_MANAGER=podman" >> $GITHUB_ENV
           echo "ELEVATE=\"sudo su -s /bin/bash $USERNAME -c\"" >> $GITHUB_ENV
 
-          groupadd $USERNAME
-          useradd -m $USERNAME
+          sudo groupadd $USERNAME
+          sudo useradd -m $USERNAME
 
       # Ensure distrobox create works:
       - name: Distrobox create
