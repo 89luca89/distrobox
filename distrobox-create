@@ -459,6 +459,14 @@ clone_container() {
 	return 0
 }
 
+is_container_manager_podman_rootless() {
+	if [ "${container_manager}" = 'podman' ] && [ "$(podman info -f '{{json .Host.Security.Rootless}}')" = 'true' ]; then
+		return 0
+	fi
+	return 1
+}
+
+
 # Generate Podman or Docker command to execute.
 # Arguments:
 #   None
