@@ -38,10 +38,11 @@ jobs:
       # Fetch from compatibility table all the distros supported
       - id: check_file_changed
         run: |
+          # @see https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
           if git diff --name-only HEAD^ HEAD | grep -Ev "host-exec|generate-entry|ephemeral|upgrade" | grep -E "^distrobox|compatibility.md"; then
-            echo "::set-output name=distrobox_changed::True"
+            echo "distrobox_changed=True" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=distrobox_changed::False"
+            echo "distrobox_changed=False" >> $GITHUB_OUTPUT
           fi
 
   # Prepare distros matrix
@@ -60,12 +61,13 @@ jobs:
       # Fetch from compatibility table all the distros supported
       - id: set-matrix
         run: |
-            echo "::set-output name=targets::$(grep -E 'docker.io|quay.io|ghcr|registry.|ecr.' docs/compatibility.md |
+            # @see https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
+            echo "targets=$(grep -E 'docker.io|quay.io|ghcr|registry.|ecr.' docs/compatibility.md |
               cut -d'|' -f 4 |
               sed 's/<br>/\n/g' |
               tr -d ' ' |
               tail -n +2 |
-              jq -R -s -c 'split("\n")[:-1]')"
+              jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   run:
 
@@ -90,7 +92,7 @@ jobs:
       #   if: ${{ matrix.rootless }} == "yes" && ${{ matrix.container_manager }} == "docker"
 
       - name: Podman rootless
-        if: ${{ matrix.container_manager }} == "podman-rootless"
+        if: ${{ matrix.container_manager == "podman-rootless" }}
         run: |
           echo "DBX_CONTAINER_MANAGER=podman" >> $GITHUB_ENV
           echo "ELEVATE=\"sudo su -s /bin/bash -c\" >> $GITHUB_ENV
