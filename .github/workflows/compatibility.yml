@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     strategy:
-      fail-fast: false
+      fail-fast: ${{ github.ref != 'refs/heads/main' }}
       max-parallel: 8
       matrix:
         distribution: ${{fromJSON(needs.setup.outputs.targets)}}
