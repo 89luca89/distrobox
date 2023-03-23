@@ -92,7 +92,7 @@ jobs:
       #   if: ${{ matrix.rootless }} == "yes" && ${{ matrix.container_manager }} == "docker"
 
       - name: Podman rootless
-        if: ${{ matrix.container_manager == "podman-rootless" }}
+        if: ${{ matrix.container_manager == 'podman-rootless' }}
         run: |
           echo "DBX_CONTAINER_MANAGER=podman" >> $GITHUB_ENV
           echo "ELEVATE=\"sudo su -s /bin/bash -c\" >> $GITHUB_ENV
