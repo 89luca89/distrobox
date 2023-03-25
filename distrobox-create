@@ -66,6 +66,7 @@ container_user_name="${USER}"
 container_user_uid="$(id -ru)"
 dryrun=0
 init=0
+nvidia_container_toolkit=0
 non_interactive=0
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
@@ -166,6 +167,7 @@ Options:
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
+	--nvidia-container-toolkit      share the host nvidia driver with nvidia-container-toolkit
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
@@ -244,6 +246,10 @@ while :; do
 		-I | --init)
 			shift
 			init=1
+			;;
+		-nvc | --nvidia-container-toolkit)
+			shift
+			nvidia_container_toolkit=1
 			;;
 		-C | --compatibility)
 			show_compatibility
@@ -634,6 +640,14 @@ generate_command() {
 			result_command="${result_command}
 				--userns keep-id"
 		fi
+	fi
+
+	# Use nvidia-container-toolkit to mount the host nvidia drivers
+	if [ "${nvidia_container_toolkit}" -ne 0 ]; then
+		result_command="${result_command}
+			-e NVIDIA_VISIBLE_DEVICES=all \
+			-e NVIDIA_DRIVER_CAPABILITIES=all \
+			"
 	fi
 
 	# Add additional flags
