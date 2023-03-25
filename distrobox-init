@@ -950,8 +950,8 @@ if [ "${nvidia}" -eq 1 ]; then
 		-iname "*nvidia*.so*" \
 		-o -iname "libcuda*.so*" \
 		-o -iname "libnvcuvid*.so*" \
-		-o -iname "libnvoptix*.so*" \
-		|| :)"
+		-o -iname "libnvoptix*.so*" ||
+		:)"
 	for nvidia_lib in ${NVIDIA_LIBS}; do
 		dest_file="$(printf "%s" "${nvidia_lib}" |
 			sed 's|/run/host/usr/lib/x86_64-linux-gnu/||g' |
