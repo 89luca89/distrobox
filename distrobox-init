@@ -946,7 +946,8 @@ if [ "${nvidia}" -eq 1 ]; then
 	# Then we find all the ".so" libraries, there are searched separately
 	# because we need to extract the relative path to mount them in the
 	# correct path based on the guest's setup
-	NVIDIA_LIBS="$(find /run/host/usr/lib* -iname "*nvidia*.so*")"
+	NVIDIA_LIBS="$(find /run/host/usr/lib* \
+		-iname "*nvidia*.so*" -o -iname "libcuda*.so*" || :)"
 	for nvidia_lib in ${NVIDIA_LIBS}; do
 		dest_file="$(printf "%s" "${nvidia_lib}" |
 			sed 's|/run/host/usr/lib/x86_64-linux-gnu/||g' |
