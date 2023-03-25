@@ -970,6 +970,11 @@ if [ "${nvidia}" -eq 1 ]; then
 			mount_bind "${nvidia_lib}" "/usr/lib/${dest_file}" ro
 		fi
 	done
+
+	# Refresh ldconfig cache, also detect if there are empty files remaining
+	# and clean them.
+	# This could happen when upgrading drivers and changing versions.
+	ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2 | xargs rm
 fi
 
 ###############################################################################
