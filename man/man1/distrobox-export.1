@@ -25,10 +25,10 @@ distrobox-export
 .fi
 .SH DESCRIPTION
 .PP
-\f[B]Application and service exporting\f[R]
+\f[B]Application and binary exporting\f[R]
 .PP
-distrobox-export takes care of exporting an app a binary or a service
-from the container to the host.
+distrobox-export takes care of exporting an app or a binary from the
+container to the host.
 .PP
 The exported app will be easily available in your normal launcher and it
 will automatically be launched from the container it is exported from.
@@ -40,8 +40,7 @@ will automatically be launched from the container it is exported from.
 \f[C]
 --app/-a:       name of the application to export
 --bin/-b:       absolute path of the binary to export
---service/-s:       name of the service to export
---delete/-d:        delete exported application or service
+--delete/-d:        delete exported application or binary
 --export-label/-el: label to add to exported application name.
             Defaults to (on \[rs]$container_name)
 --export-path/-ep:  path where to export the binary
@@ -54,7 +53,7 @@ will automatically be launched from the container it is exported from.
 \f[R]
 .fi
 .PP
-You may want to install graphical applications or user services in your
+You may want to install graphical applications or CLI tools in your
 distrobox.
 Using \f[V]distrobox-export\f[R] from \f[B]inside\f[R] the container
 will let you use them from the host itself.
@@ -63,7 +62,6 @@ will let you use them from the host itself.
 .nf
 \f[C]
 distrobox-export --app mpv [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
-distrobox-export --service syncthing [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
 distrobox-export --bin /path/to/bin --export-path \[ti]/.local/bin [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
 \f[R]
 .fi
@@ -81,31 +79,6 @@ with needed icons, add the prefix
 \f[V]/usr/local/bin/distrobox-enter -n distrobox_name -e ...\f[R] to the
 commands to run, and save them in your home to be used directly from the
 host as a normal app.
-.PP
-\f[B]Service export example\f[R]
-.IP
-.nf
-\f[C]
-distrobox-export --service syncthing --extra-flags \[dq]--allow-newer-config\[dq]
-distrobox-export --service nginx --sudo
-\f[R]
-.fi
-.PP
-For services, it will similarly export the systemd unit inside the
-container to a \f[V]systemctl --user\f[R] service, prefixing the various
-\f[V]ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost\f[R]
-with the \f[V]distrobox-enter\f[R] command prefix.
-.PP
-The exported services will be available in the host\[cq]s user\[cq]s
-systemd session, so
-.IP
-.nf
-\f[C]
-systemctl --user status exported_service_name
-\f[R]
-.fi
-.PP
-will show the status of the service exported.
 .PP
 \f[B]Binary export example\f[R]
 .IP
@@ -138,26 +111,21 @@ you want to export an electron app, you could add the
 \f[C]
 distrobox-export --app atom --extra-flags \[dq]--foreground\[dq]
 distrobox-export --bin /usr/bin/vim --export-path \[ti]/.local/bin --extra-flags \[dq]-p\[dq]
-distrobox-export --service syncthing --extra-flags \[dq]-allow-newer-config\[dq]
 \f[R]
 .fi
 .PP
-This works for services, binaries, and apps.
-Extra flags are only used then the exported app, binary, or service is
-used from the host, using them inside the container will not include
-them.
+This works for binaries and apps.
+Extra flags are only used then the exported app or binary is used from
+the host, using them inside the container will not include them.
 .PP
 \f[B]Unexport\f[R]
 .PP
-The option \[lq]\[en]delete\[rq] will un-export an app, binary, or
-service.
+The option \[lq]\[en]delete\[rq] will un-export an app or binary
 .IP
 .nf
 \f[C]
 distrobox-export --app atom --delete
 distrobox-export --bin /usr/bin/vim --export-path \[ti]/.local/bin --delete
-distrobox-export --service syncthing --delete
-distrobox-export --service nginx --delete
 \f[R]
 .fi
 .PP
@@ -243,17 +211,9 @@ before launching (instead of not opening, if that was the case before).
 .PP
 \f[B]Notes\f[R]
 .PP
-Note you can use \[en]app OR \[en]bin OR \[en]service but not together.
-.IP
-.nf
-\f[C]
-distrobox-export --service nginx --sudo
-\f[R]
-.fi
+Note you can use \[en]app OR \[en]bin but not together.
 .PP
 [IMAGE: app-export (https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)]
-.PP
-[IMAGE: service-export (https://user-images.githubusercontent.com/598882/144294314-29a8921f-4511-453d-bf8e-d0d1e336db91.png)]
 .PP
 NOTE: some electron apps such as vscode and atom need additional flags
 to work from inside the container, use the \f[V]--extra-flags\f[R]
