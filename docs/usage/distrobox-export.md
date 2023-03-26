@@ -6,9 +6,9 @@
 
 # DESCRIPTION
 
-**Application and service exporting**
+**Application and binary exporting**
 
-distrobox-export takes care of exporting an app a binary or a service from the container
+distrobox-export takes care of exporting an app or a binary from the container
 to the host.
 
 The exported app will be easily available in your normal launcher and it will
@@ -20,8 +20,7 @@ automatically be launched from the container it is exported from.
 
 	--app/-a:		name of the application to export
 	--bin/-b:		absolute path of the binary to export
-	--service/-s:		name of the service to export
-	--delete/-d:		delete exported application or service
+	--delete/-d:		delete exported application or binary
 	--export-label/-el:	label to add to exported application name.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
@@ -32,13 +31,12 @@ automatically be launched from the container it is exported from.
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-You may want to install graphical applications or user services in your distrobox.
+You may want to install graphical applications or CLI tools in your distrobox.
 Using `distrobox-export` from **inside** the container will let you use them from the host itself.
 
 # EXAMPLES
 
 	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --service syncthing [--extra-flags "flags"] [--delete] [--sudo]
 	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
 
 **App export example**
@@ -48,22 +46,6 @@ Using `distrobox-export` from **inside** the container will let you use them fro
 This tool will simply copy the original `.desktop` files along with needed icons,
 add the prefix `/usr/local/bin/distrobox-enter -n distrobox_name -e ...` to the commands to run, and
 save them in your home to be used directly from the host as a normal app.
-
-**Service export example**
-
-	distrobox-export --service syncthing --extra-flags "--allow-newer-config"
-	distrobox-export --service nginx --sudo
-
-For services, it will similarly export the systemd unit inside the container to a
-`systemctl --user` service, prefixing the various
-`ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost` with the
-`distrobox-enter` command prefix.
-
-The exported services will be available in the host's user's systemd session, so
-
-	systemctl --user status exported_service_name
-
-will show the status of the service exported.
 
 **Binary export example**
 
@@ -86,20 +68,17 @@ to export an electron app, you could add the "--foreground" flag to the command:
 
 	distrobox-export --app atom --extra-flags "--foreground"
 	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --extra-flags "-p"
-	distrobox-export --service syncthing --extra-flags "-allow-newer-config"
 
-This works for services, binaries, and apps.
-Extra flags are only used then the exported app, binary, or service is used from
+This works for binaries and apps.
+Extra flags are only used then the exported app or binary is used from
 the host, using them inside the container will not include them.
 
 **Unexport**
 
-The option "--delete" will un-export an app, binary, or service.
+The option "--delete" will un-export an app or binary
 
 	distrobox-export --app atom --delete
 	distrobox-export --bin /usr/bin/vim --export-path ~/.local/bin --delete
-	distrobox-export --service syncthing --delete
-	distrobox-export --service nginx --delete
 
 **Run as root in the container**
 
@@ -159,13 +138,9 @@ was the case before).
 
 **Notes**
 
-Note you can use --app OR --bin OR --service but not together.
-
-	distrobox-export --service nginx --sudo
+Note you can use --app OR --bin but not together.
 
 ![app-export](https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png)
-
-![service-export](https://user-images.githubusercontent.com/598882/144294314-29a8921f-4511-453d-bf8e-d0d1e336db91.png)
 
 NOTE: some electron apps such as vscode and atom need additional flags to work from inside the
 container, use the `--extra-flags` option to provide a series of flags, for example:

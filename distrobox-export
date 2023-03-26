@@ -32,7 +32,6 @@ exported_app=""
 exported_app_label=""
 exported_bin=""
 exported_delete=0
-exported_service=""
 extra_flags=""
 # Use DBX_HOST_HOME if defined, else fallback to HOME
 #	DBX_HOST_HOME is set in case container is created
@@ -66,15 +65,13 @@ distrobox version: ${version}
 Usage:
 
 	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --service syncthing.service [--extra-flags "flags"] [--delete] [--sudo]
 	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
 
 Options:
 
 	--app/-a:		name of the application to export
 	--bin/-b:		absolute path of the binary to export
-	--service/-s:		name of the service to export
-	--delete/-d:		delete exported application or service
+	--delete/-d:		delete exported application or binary
 	--export-label/-el:	label to add to exported application name.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
@@ -115,14 +112,6 @@ while :; do
 			if [ -n "$2" ]; then
 				export_action="bin"
 				exported_bin="$2"
-				shift
-				shift
-			fi
-			;;
-		-s | --service)
-			if [ -n "$2" ]; then
-				export_action="service"
-				exported_service="$2"
 				shift
 				shift
 			fi
@@ -197,8 +186,7 @@ fi
 # Ensure the foundamental variables are set and not empty, we will not proceed
 # if they are not all set.
 if [ -z "${exported_app}" ] &&
-	[ -z "${exported_bin}" ] &&
-	[ -z "${exported_service}" ]; then
+	[ -z "${exported_bin}" ]; then
 	printf >&2 "Error: Invalid arguments.\n"
 	printf >&2 "Error: missing export target. Run\n"
 	printf >&2 "\tdistrobox-export --help\n"
@@ -206,9 +194,7 @@ if [ -z "${exported_app}" ] &&
 	exit 2
 fi
 # Ensure we're not receiving more than one action at time.
-if [ -n "${exported_app}" ] && [ -n "${exported_bin}" ] ||
-	[ -n "${exported_app}" ] && [ -n "${exported_service}" ] ||
-	[ -n "${exported_bin}" ] && [ -n "${exported_service}" ]; then
+if [ -n "${exported_app}" ] && [ -n "${exported_bin}" ]; then
 	printf >&2 "Error: Invalid arguments, choose only one action below.\n"
 	printf >&2 "Error: You can only export one thing at time.\n"
 	exit 2
@@ -486,85 +472,6 @@ export_application() {
 
 }
 
-# Export systemd service to the host.
-# the following function will export a selected systemd unit from the distrobox
-# to the host. It will modify the original unit to include the container_command_prefix.
-#
-# Arguments:
-#	none it will use the ones set up globally
-# Outputs:
-#	new systemd unit in /run/host/$host_home/.config/systemd/user/
-#	or error code.
-export_service() {
-
-	# find the service file in the common
-	service_file=$(find \
-		/etc/systemd/system/ /lib/systemd/system/ /usr/lib/systemd/system/ \
-		/lib/systemd/user/ /usr/lib/systemd/user/ \
-		"${host_home}"/.config/systemd/user/ \
-		-type f -name "${exported_service}*" 2> /dev/null | tail -1)
-
-	# Check that we found some service files first.
-	if [ -z "${service_file}" ]; then
-		printf >&2 "Error: cannot find any service file for %s.\n" "${exported_service}"
-		printf >&2 "Error: trying to export a non-installed service.\n"
-		return 127
-	fi
-
-	# this is the output file we will produce.
-	exported_service_file="${container_name}-$(basename "${service_file}")"
-	exported_service_fullpath="/run/host${host_home}/.config/systemd/user/${exported_service_file}"
-
-	# If we're deleting it, just do it and exit
-	if [ "${exported_delete}" -ne 0 ]; then
-		rm -f "${exported_service_fullpath}"
-		printf "Service %s successfully removed.\nOK!\n" "${exported_service_file}"
-		return 0
-	fi
-
-	# Check if it is already exported
-	if [ -f "${exported_service_fullpath}" ] &&
-		grep -q "${container_command_prefix}" "${exported_service_fullpath}"; then
-
-		printf "Service %s is already exported.\n\n" "${exported_service_file}"
-		printf "\nTo check the status, run:\n\tsystemctl --user status %s \n" "${exported_service_file}"
-		printf "\nTo start it, run:\n\tsystemctl --user start %s \n" "${exported_service_file}"
-		printf "\nTo start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service_file}"
-		return 0
-	fi
-
-	# Create temp file with random name
-	temp_file="$(mktemp -u)"
-	mkdir -p "/run/host${host_home}/.config/systemd/user/"
-
-	# Replace all Exec occurrences
-	cp -f "${service_file}" "${exported_service_fullpath}"
-	chmod 0644 "${exported_service_fullpath}"
-	for exec_cmd in ExecStart ExecStartPre ExecStartPost ExecReload ExecStop ExecStopPost; do
-		# Save to temp file
-		cp -f "${exported_service_fullpath}" "${temp_file}"
-		# Add prefix only if not present
-		if ! grep "${exec_cmd}" "${temp_file}" | grep -q "${container_command_prefix}"; then
-			# Add command_prefix
-			# Add extra flags
-			# Add closing quote
-			sed "s|^${exec_cmd}=|${exec_cmd}=${container_command_prefix}|g" "${temp_file}" |
-				sed "s|^${exec_cmd}=.*|& ${extra_flags}|g" > "${exported_service_fullpath}"
-			# in the end we add the final quote we've opened in the "container_command_prefix"
-		fi
-	done
-	# Cleanup
-	rm -f "${temp_file}"
-
-	printf "Service %s successfully exported.\nOK\n" "${exported_service_file}"
-	printf "%s will appear in your services list in a few seconds.\n\n" "${exported_service_file}"
-	printf "\nTo check the status, run:\n\tsystemctl --user status %s \n" "${exported_service_file}"
-	printf "\nTo start it, run:\n\tsystemctl --user start %s \n" "${exported_service_file}"
-	printf "\nTo start it at login, run:\n\tsystemctl --user enable %s \n" "${exported_service_file}"
-
-	return 0
-}
-
 # Main routine
 case "${export_action}" in
 	app)
@@ -572,9 +479,6 @@ case "${export_action}" in
 		;;
 	bin)
 		export_binary
-		;;
-	service)
-		export_service
 		;;
 	*)
 		printf >&2 "Invalid arguments, choose an action below.\n"
