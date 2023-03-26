@@ -2,6 +2,7 @@
 ![distrobox-logo](./assets/page-logo-light.svg#gh-light-mode-only)
 
 ###### previous logo credits: [j4ckr3d](https://github.com/j4ckr3d)
+
 ###### curent logo credits: [David Lapshin](https://github.com/daudix-UFO)
 
 # Distrobox
@@ -409,6 +410,6 @@ you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
 ![distro-box](./assets/distro-box.png)
 
-###### This artwork uses [Cardboard Box](https://skfb.ly/6Wq6q) model by [J0Y](https://sketchfab.com/lloydrostek) licensed under [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0).
+### This artwork uses [Cardboard Box](https://skfb.ly/6Wq6q) model by [J0Y](https://sketchfab.com/lloydrostek) licensed under [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0)
 
-###### This artwork uses [GTK Loop Animation](https://github.com/gnome-design-team/gnome-mockups/blob/master/gtk/loop6.blend) by [GNOME Project](https://www.gnome.org) licensed under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0) as a pre-configured scene.
+### This artwork uses [GTK Loop Animation](https://github.com/gnome-design-team/gnome-mockups/blob/master/gtk/loop6.blend) by [GNOME Project](https://www.gnome.org) licensed under [Creative Commons Attribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0) as a pre-configured scene
