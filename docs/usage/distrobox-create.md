@@ -143,7 +143,7 @@ them with the guests by using the `--nvidia` flag:
 
 `distrobox create --nvidia --image ubuntu:latest --name ubuntu-nvidia`
 
-Be aware that **this is not compatible with non-glibc systems** and **nees newer
+Be aware that **this is not compatible with non-glibc systems** and **needs somewhat newer
 distributions to work**.
 
 This feature was tested working on:
