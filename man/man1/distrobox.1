@@ -306,6 +306,16 @@ bootloader of the host.
 Keep also in mind that mirrors could be down for such old releases, so
 you will need to build a custom distrobox image to ensure basic
 dependencies are met.
+.SS GPU ACCELERATION SUPPORT
+.PP
+For Intel and AMD Gpus, the support is baked in, as the containers will
+install their latest available mesa/dri drivers.
+.PP
+For NVidia, you can use the \f[V]--nvidia\f[R] flag during create, see
+distrobox-create documentation to discover how to use it.
+.PP
+Alternatively, you can use the nvidia-container-toolkit utility to set
+up the integration independently from the distrobox\[cq]s own flag.
 .\
 .\"
 .\" Define V font for inline verbatim, using C font in formats
@@ -345,9 +355,9 @@ usb devices and graphical apps (X11/Wayland), and audio.
 .IP
 .nf
 \f[C]
---image/-i:     image to use for the container  default: registry.fedoraproject.org/fedora-toolbox:36
---name/-n:      name for the distrobox      default: my-distrobox
---pull/-p:      pull latest image unconditionally without asking
+--image/-i:     image to use for the container
+--name/-n:      name for the distrobox
+--pull/-p:      pull the image even if it exists locally (implies --yes)
 --yes/-Y:       non-interactive, pull images without asking
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
@@ -355,17 +365,18 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --clone/-c:     name of the distrobox container to use as base for a new container
             this will be useful to either rename an existing distrobox or have multiple copies
             of the same environment.
---home/-H       select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
---volume        additional volumes to add to the container
+--home/-H:      select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
+--volume:       additional volumes to add to the container
 --additional-flags/-a:  additional flags to pass to the container manager command
 --additional-packages/-ap:  additional packages to install during initial container setup
---init-hooks        additional commands to execute during container initialization
---pre-init-hooks    additional commands to execute prior to container initialization
---init/-I       use init system (like systemd) inside the container.
+--init-hooks:       additional commands to execute during container initialization
+--pre-init-hooks:   additional commands to execute prior to container initialization
+--init/-I:      use init system (like systemd) inside the container.
             this will make host\[aq]s processes not visible from within the container.
+--nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
 --compatibility/-C: show list of compatible images
 --help/-h:      show this message
---no-entry:             do not generate a container entry in the application list
+--no-entry:     do not generate a container entry in the application list
 --dry-run/-d:       only print the container manager command generated
 --verbose/-v:       show more verbosity
 --version/-V:       show version
@@ -394,6 +405,7 @@ distrobox create --image alpine my-alpine-container
 distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 distrobox create --pull --image centos:stream9 --home \[ti]/distrobox/centos9
 distrobox create --image alpine:latest --name test2 --additional-packages \[dq]git tmux vim\[dq]
+distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
 \f[R]
 .fi
 .PP
@@ -516,6 +528,37 @@ directory, but will ensure that configs and dotfiles will not litter it.
 .PP
 From version 1.4.0 of distrobox, when you create a new container, it
 will also generate an entry in the applications list.
+.SS NVidia integration
+.PP
+If your host has an NVidia gpu, with installed proprietary drivers, you
+can integrate them with the guests by using the \f[V]--nvidia\f[R] flag:
+.PP
+\f[V]distrobox create --nvidia --image ubuntu:latest --name ubuntu-nvidia\f[R]
+.PP
+Be aware that \f[B]this is not compatible with non-glibc systems\f[R]
+and \f[B]needs somewhat newer distributions to work\f[R].
+.PP
+This feature was tested working on:
+.IP \[bu] 2
+Almalinux
+.IP \[bu] 2
+Archlinux
+.IP \[bu] 2
+Centos 7 and newer
+.IP \[bu] 2
+Clearlinux
+.IP \[bu] 2
+Debian 10 and newer
+.IP \[bu] 2
+OpenSUSE Leap
+.IP \[bu] 2
+OpenSUSE Tumbleweed
+.IP \[bu] 2
+Rockylinux
+.IP \[bu] 2
+Ubuntu 18.04 and newer
+.IP \[bu] 2
+Void Linux (glibc)
 .\
 .\"
 .\" Define V font for inline verbatim, using C font in formats
@@ -1161,6 +1204,7 @@ ensure the tight integration.
 --additional-packages:  packages to install in addition
 --init/-I:      whether to use or not init
 --pre-init-hooks:   commands to execute prior to init
+--nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
 --upgrade/-U:       run init in upgrade mode
 --verbose/-v:       show more verbosity
 --version/-V:       show version
