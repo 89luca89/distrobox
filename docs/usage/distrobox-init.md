@@ -30,6 +30,7 @@ integration.
 	--additional-packages:	packages to install in addition
 	--init/-I:		whether to use or not init
 	--pre-init-hooks:	commands to execute prior to init
+	--nvidia:		try to integrate host's nVidia drivers in the guest
 	--upgrade/-U:		run init in upgrade mode
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version

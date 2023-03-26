@@ -199,3 +199,14 @@ host.
 
 Keep also in mind that mirrors could be down for such old releases, so you will
 need to build a [custom distrobox image to ensure basic dependencies are met](./distrobox_custom.md).
+
+### GPU Acceleration support
+
+For Intel and AMD Gpus, the support is baked in, as the containers will install
+their latest available mesa/dri drivers.
+
+For NVidia, you can use the `--nvidia` flag during create, see [distrobox-create](./usage/distrobox-create.md)
+documentation to discover how to use it.
+
+Alternatively, you can use the [nvidia-container-toolkit](./useful_tips.md#using-nvidia-container-toolkit)
+utility to set up the integration independently from the distrobox's own flag.

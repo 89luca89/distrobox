@@ -15,9 +15,9 @@ graphical apps (X11/Wayland), and audio.
 
 **distrobox create**
 
-	--image/-i:		image to use for the container	default: registry.fedoraproject.org/fedora-toolbox:36
-	--name/-n:		name for the distrobox		default: my-distrobox
-	--pull/-p:		pull latest image unconditionally without asking
+	--image/-i:		image to use for the container
+	--name/-n:		name for the distrobox
+	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
@@ -25,17 +25,18 @@ graphical apps (X11/Wayland), and audio.
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
-	--home/-H		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
-	--volume		additional volumes to add to the container
+	--home/-H:		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
+	--volume:		additional volumes to add to the container
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--additional-packages/-ap:	additional packages to install during initial container setup
-	--init-hooks		additional commands to execute during container initialization
-	--pre-init-hooks	additional commands to execute prior to container initialization
-	--init/-I		use init system (like systemd) inside the container.
+	--init-hooks:		additional commands to execute during container initialization
+	--pre-init-hooks:	additional commands to execute prior to container initialization
+	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
+	--nvidia:		try to integrate host's nVidia drivers in the guest
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
-	--no-entry:             do not generate a container entry in the application list
+	--no-entry:		do not generate a container entry in the application list
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -58,6 +59,7 @@ graphical apps (X11/Wayland), and audio.
 	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
 	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim"
+	distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
 
 You can also use environment variables to specify container name, image and container manager:
 
@@ -133,3 +135,26 @@ but will ensure that configs and dotfiles will not litter it.
 
 From version 1.4.0 of distrobox, when you create a new container, it will also generate
 an entry in the applications list.
+
+## NVidia integration
+
+If your host has an NVidia gpu, with installed proprietary drivers, you can integrate
+them with the guests by using the `--nvidia` flag:
+
+`distrobox create --nvidia --image ubuntu:latest --name ubuntu-nvidia`
+
+Be aware that **this is not compatible with non-glibc systems** and **needs somewhat newer
+distributions to work**.
+
+This feature was tested working on:
+
+- Almalinux
+- Archlinux
+- Centos 7 and newer
+- Clearlinux
+- Debian 10 and newer
+- OpenSUSE Leap
+- OpenSUSE Tumbleweed
+- Rockylinux
+- Ubuntu 18.04 and newer
+- Void Linux (glibc)
