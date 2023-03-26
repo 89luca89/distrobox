@@ -15,6 +15,7 @@
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
   - [Using a different architecture](#using-a-different-architecture)
+  - [Using the GPU inside the container](#using-the-gpu-inside-the-container)
   - [Slow creation on podman and image size getting bigger with distrobox create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](#container-save-and-restore)
   - [Check used resources](#check-used-resources)
@@ -313,6 +314,28 @@ aarch64
 ```
 
 ![image](https://user-images.githubusercontent.com/598882/170837120-9170a9fa-6153-4684-a435-d60a0136b563.png)
+
+## Using the GPU inside the container
+
+For Intel and AMD Gpus, the support is backed in, as the containers will install
+their latest available mesa/dri drivers.
+
+For NVidia, you can use the `--nvidia` flag during create, see [distrobox-create](./usage/distrobox-create.md)
+documentation to discover how to use it.
+
+```console
+~$ distrobox create --nvidia --name ubuntu-nvidia --image ubuntu:latest
+```
+
+### Using nvidia-container-toolkit
+
+Alternatively from the `--nvidia` flag, you can use NVidia's own [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html).
+After following the [official guide to set nck up](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html)
+you can use it from distrobox doing:
+
+```console
+distrobox create --name example-nvidia-toolkit --additional-flags "--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=2,3 -e NVIDIA_DRIVER_CAPABILITIES=compute,utility" --image nvidia/cuda
+```
 
 ## Slow creation on podman and image size getting bigger with distrobox create
 
