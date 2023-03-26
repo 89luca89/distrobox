@@ -95,6 +95,7 @@ curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/extras/install
 
 > **Warning**
 > Remember to add ~/.local/podman/bin to your PATH, to make it work.
+> Remember to add ~/.local/podman/bin to your ~/.distroboxrc also.
 
 #### Compatibility notes
 

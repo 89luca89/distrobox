@@ -18,12 +18,13 @@ The easiest way is to use the script to install it in HOME, so it will survive f
    - [INSTALL](../compatibility.md#install-podman-in-a-static-manner)
 2. Add the Path you've chosen to install to your PATH (by default it's `$HOME/.local/podman/bin`.
    - [See here how to do it](https://www.howtogeek.com/658904/how-to-add-a-directory-to-your-path-in-linux/)
+3. Add the Path you've chosen to install to your `~/.distroboxrc` also.
 
 ## Step 3
 
 On some systems, you might have to enable this command in order to have graphical applications working: [SEE THESE NOTES](../compatibility.md#compatibility-notes)
 
-To resolve add this line to your `~/.bashrc` or `~/.profile` or `~/.xinitrc`
+To resolve add this line to your `~/.distroboxrc`:
 
   `xhost +si:localuser:$USER`
 
