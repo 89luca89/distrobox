@@ -974,7 +974,11 @@ if [ "${nvidia}" -eq 1 ]; then
 	# Refresh ldconfig cache, also detect if there are empty files remaining
 	# and clean them.
 	# This could happen when upgrading drivers and changing versions.
-	ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2 | xargs rm
+	empty_libs="$(ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2)"
+	if [ -n "${empty_libs}" ]; then
+		# shellcheck disable=SC2086
+		rm -f ${empty_libs}
+	fi
 fi
 
 ###############################################################################
