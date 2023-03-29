@@ -345,11 +345,11 @@ generate_command() {
 		fi
 	done
 	# Ensure the $PATH entries from the host are appended as well
-	while read -d ':' standard_path; do
+	container_paths=$(echo "${PATH}" | (while IFS=: read -r standard_path; do
 		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
 			container_paths="${container_paths}:${standard_path}"
 		fi
-	done <<< "$PATH:"
+	done && echo "${container_paths}"))
 	result_command="${result_command} --env \"PATH=${container_paths}\""
 
 	# Ensure the standard FHS program paths are in XDG_DATA_DIRS environment
