@@ -133,10 +133,12 @@ but in a simplified way using POSIX sh and aiming at broader compatibility.
 
 All the props go to them as they had the great idea to implement this stuff.
 
-It is divided into 10 commands:
+It is divided into 12 commands:
 
+- `distrobox-assemble` - creates and destroy containers based on a config file
 - `distrobox-create` - creates the container
 - `distrobox-enter`  - to enter the container
+- `distrobox-ephemeral`  - create a temporal container, destroy it when exiting the shell
 - `distrobox-list` - to list containers created with distrobox
 - `distrobox-rm` - to delete a container created with distrobox
 - `distrobox-stop` - to stop a running container created with distrobox
@@ -229,7 +231,7 @@ Create a new distrobox:
 Enter created distrobox:
 
 `distrobox enter test`
-  
+
 Add [various](https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#host-distros)
 distroboxes, eg Ubuntu 20.04:
 
@@ -257,6 +259,59 @@ Remove a distrobox
 
 You can check [HERE for more advanced usage](usage/usage.md)
 and check a [comprehensive list of useful tips HERE](useful_tips.md)
+
+# Assemble Distrobox
+
+Manifest files can be used to declare a set of distroboxes and use
+`distrobox-assemble` to create/destroy them in batch.
+
+Take this example `distrobox-example.ini` file:
+
+```ini
+
+[alpine3]
+additional_packages=git vim tmux nodejs
+home=/tmp/home
+image=alpine:latest
+
+[debian5]
+additional_packages=git vim tmux nodejs
+home=/tmp/home
+image=debian:latest
+init=true
+init_hooks="touch /init-normal"
+
+[ubuntu7]
+additional_packages=git vim tmux nodejs
+home=/tmp/home
+image=ubuntu:latest
+init=true
+init_hooks="touch /init-normal"
+pre_init_hooks="touch /pre-init"
+pull=true
+```
+
+Using the following command:
+
+```console
+distrobox-assemble create -f ./distrobox-example.ini
+```
+
+We can create all the distroboxes at once, configured as declared in the manifest file.
+We can also recreate them from scratch using:
+
+```console
+distrobox-assemble create --replace -f ./distrobox-example.ini
+```
+
+And finally destroy all of them at once with
+
+```console
+distrobox-assemble rm -f ./distrobox-example.ini
+```
+
+Head over the [usage docs of distrobox-assemble](usage/distrobox-assemble.md)
+for a more detailed guide.
 
 # Configure Distrobox
 

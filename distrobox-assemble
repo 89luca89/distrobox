@@ -1,0 +1,367 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+#
+default_input_file="./distrobox.ini"
+delete=-1
+distrobox_path="$(dirname "${0}")"
+dryrun=0
+input_file=""
+replace=0
+# tmpfile will be used as a little buffer to pass variables without messing up
+# quoting and escaping
+tmpfile="$(mktemp -u)"
+verbose=0
+version="1.4.2.1"
+# initializing block of variables used in the manifest
+additional_flags=""
+additional_packages=""
+entry=""
+home=""
+image=""
+init=""
+init_hooks=""
+pre_init_hooks=""
+pull=""
+root=""
+volume=""
+
+# Cleanup tmpfiles on exit
+trap 'rm -f ${tmpfile}' EXIT
+
+# Despite of running this script via SUDO/DOAS being not supported (the
+# script itself will call the appropriate tool when necessary), we still want
+# to allow people to run it as root, logged in in a shell, and create rootful
+# containers.
+#
+# SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
+if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+	printf >&2 "Running %s via SUDO/DOAS is not supported." "$(basename "${0}")"
+	printf >&2 "Instead, please try using root=true property in the distrobox.ini file.\n"
+	exit 1
+fi
+
+# Print usage to stdout.
+# Arguments:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help() {
+	cat << EOF
+distrobox version: ${version}
+
+Usage:
+
+	distrobox assemble create
+	distrobox assemble rm
+	distrobox assemble create -f /path/to/file.ini
+	distrobox assemble rm -f /path/to/file.ini
+	distrobox assemble create --replace -f /path/to/file.ini
+
+Options:
+
+	--file/-f:		path to the distrobox manifest/ini file
+	--replace/-R:		replace already existing distroboxes with matching names
+	--dry-run/-d:		only print the container manager command generated
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+EOF
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+		create)
+			delete=0
+			shift
+			;;
+		rm)
+			delete=1
+			shift
+			;;
+		-f | --file)
+			# Call a "show_help" function to display a synopsis, then exit.
+			if [ -n "$2" ]; then
+				input_file="${2}"
+				shift
+				shift
+			fi
+			;;
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-d | --dry-run)
+			shift
+			dryrun=1
+			;;
+		-v | --verbose)
+			verbose=1
+			shift
+			;;
+		-R | --replace)
+			replace=1
+			shift
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		--) # End of all options.
+			shift
+			break
+			;;
+		-*) # Invalid options.
+			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+			show_help
+			exit 1
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			# If we have a flagless option and container_name is not specified
+			# then let's accept argument as container_name
+			if [ -n "$1" ]; then
+				input_file="$1"
+				shift
+			else
+				break
+			fi
+			;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# check if we're getting the right inputs
+if [ "${delete}" -eq -1 ]; then
+	printf >&2 "Please specify create or rm.\n"
+	show_help
+	exit 1
+fi
+
+# Fallback to distrobox.ini if no file is passed
+if [ -z "${input_file}" ]; then
+	input_file="${default_input_file}"
+fi
+
+# Check if file effectively exists
+if [ ! -e "${input_file}" ]; then
+	printf >&2 "File %s does not exist.\n" "${input_file}"
+	exit 1
+fi
+
+# Create distrobox with parameters parsed from ini file.
+# Arguments:
+#   name of the distrobox.
+# Outputs:
+#   execution of the proper distrobox-create command.
+run_distrobox() (
+	name="${1}"
+
+	# Source the current block variables
+	if [ -e "${tmpfile}" ]; then
+		# shellcheck disable=SC1090
+		. "${tmpfile}" && rm -f "${tmpfile}"
+	fi
+
+	# We're going to delete, not create!
+	if [ "${delete}" -ne 0 ] || [ "${replace}" -ne 0 ]; then
+		printf " - Deleting %s... \n" "${name}"
+
+		# Execute the distrobox-create command
+		if [ "${dryrun}" -ne 0 ]; then
+			echo "${distrobox_path}/distrobox-rm" -f "${name}"
+		else
+			"${distrobox_path}"/distrobox rm -f "${name}" > /dev/null || :
+		fi
+
+		# In case we're just deleting, return
+		if [ "${delete}" -ne 0 ]; then
+			return
+		fi
+	fi
+
+	# We're going to create!
+	printf " - Creating %s... \n" "${name}"
+
+	# If distrobox already exist, and we have replace enabled, destroy the container
+	# we have to recreate it.
+	if "${distrobox_path}"/distrobox-list | grep -qw "${name}"; then
+		printf >&2 "%s already exists\n" "${name}"
+		return 0
+	fi
+
+	# Now we dinamically generate the distrobox-create command based on the
+	# declared flags.
+	result_command="${distrobox_path}/distrobox-create --yes"
+	if [ "${verbose}" -ne 0 ]; then
+		result_command="${result_command} -v"
+	fi
+	if [ -n "${name}" ]; then
+		result_command="${result_command} --name $(sanitize_variable "${name}")"
+	fi
+	if [ -n "${image}" ]; then
+		result_command="${result_command} --image $(sanitize_variable "${image}")"
+	fi
+	if [ -n "${init}" ] && [ "${init}" -eq 1 ]; then
+		result_command="${result_command} --init"
+	fi
+	if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
+		result_command="${result_command} --root"
+	fi
+	if [ -n "${pull}" ] && [ "${pull}" -eq 1 ]; then
+		result_command="${result_command} --pull"
+	fi
+	if [ -n "${entry}" ] && [ "${entry}" -eq 0 ]; then
+		result_command="${result_command} --no-entry"
+	fi
+	if [ -n "${home}" ]; then
+		result_command="${result_command} --home $(sanitize_variable "${home}")"
+	fi
+	if [ -n "${init_hooks}" ]; then
+		IFS="|"
+		args=":"
+		for arg in ${init_hooks}; do
+			args="${args} && ${arg}"
+		done
+		result_command="${result_command} --init-hooks $(sanitize_variable "${args}")"
+	fi
+	# Replicable flags
+	if [ -n "${pre_init_hooks}" ]; then
+		IFS="|"
+		args=":"
+		for arg in ${pre_init_hooks}; do
+			args="${args} && ${arg}"
+		done
+		result_command="${result_command} --pre-init-hooks $(sanitize_variable "${args}")"
+	fi
+	if [ -n "${additional_packages}" ]; then
+		IFS="|"
+		for packages in ${additional_packages}; do
+			result_command="${result_command} --additional-packages $(sanitize_variable "${packages}")"
+		done
+	fi
+	if [ -n "${volume}" ]; then
+		IFS="|"
+		for vol in ${volume}; do
+			result_command="${result_command} --volume $(sanitize_variable "${vol}")"
+		done
+	fi
+	if [ -n "${additional_flags}" ]; then
+		IFS="|"
+		for flag in ${additional_flags}; do
+			result_command="${result_command} --additional-flags $(sanitize_variable "${flag}")"
+		done
+	fi
+
+	# Execute the distrobox-create command
+	if [ "${dryrun}" -ne 0 ]; then
+		echo "${result_command}"
+		return
+	fi
+	eval "${result_command}"
+)
+
+# Sanitize an input, add single/double quotes and escapes
+# Arguments:
+#   a value string
+# Outputs:
+#   a value string sanitized
+sanitize_variable() (
+	variable="${1}"
+
+	# If there are spaces but no quotes, let's add them
+	if echo "${variable}" | grep -q " " &&
+		! echo "${variable}" | grep -Eq "^'|^\""; then
+
+		variable="\"${variable}\""
+	fi
+
+	# Return
+	echo "${variable}"
+)
+
+# Parse input file and call distrobox-create accordingly
+# Arguments:
+#   path of the manifest file to parse
+# Outputs:
+#   None
+parse_file() (
+	file="${1}"
+	name=""
+
+	IFS='
+	'
+	# shellcheck disable=SC2013
+	for line in $(cat "${file}"); do
+		if [ -z "${line}" ]; then
+			# blank line, skip
+			continue
+		fi
+		# Remove comments and trailing spaces
+		line="$(echo "${line}" | sed 's/#.*//g' | sed 's/\s*$//g')"
+
+		# Detect start of new section
+		if [ "$(echo "${line}" | cut -c 1)" = '[' ]; then
+			# We're starting a new section
+			if [ -n "${name}" ]; then
+				# We've finished the previous section, so this is the time to
+				# perform the distrobox command, before going to the new section.
+				run_distrobox "${name}"
+			fi
+
+			# Remove brackets and spaces
+			name="$(echo "${line}" | tr -d '][ ')"
+			continue
+		fi
+
+		# Get key-values from the file
+		key="$(echo "${line}" | cut -d'=' -f1 | tr -d ' ')"
+		value="$(echo "${line}" | cut -d'=' -f2-)"
+
+		# Normalize true|false to 0|1
+		[ "${value}" = "true" ] && value=1
+		[ "${value}" = "false" ] && value=0
+
+		# Sanitize value, by whitespaces, quotes and escapes
+		value="$(sanitize_variable "${value}")"
+
+		# Save options to tempfile, to source it later
+		touch "${tmpfile}"
+		if [ -n "${key}" ] && [ -n "${value}" ]; then
+			if grep -q "${key}" "${tmpfile}"; then
+				echo "${key}+=\|${value}" >> "${tmpfile}"
+				continue
+			fi
+			echo "${key}=${value}" >> "${tmpfile}"
+		fi
+	done
+	#	# Execute now one last time for the last block
+	run_distrobox "${name}"
+)
+
+# Exec
+parse_file "${input_file}"

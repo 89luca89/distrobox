@@ -1,6 +1,7 @@
 <!-- markdownlint-disable MD010 MD051 -->
 - [Distrobox](../README.md)
   - [Outside the distrobox](#outside-the-distrobox)
+    - [distrobox-assemble](distrobox-assemble.md)
     - [distrobox-create](distrobox-create.md)
     - [distrobox-enter](distrobox-enter.md)
     - [distrobox-ephemeral](distrobox-ephemeral.md)
