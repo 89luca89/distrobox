@@ -53,6 +53,7 @@ graphical apps (X11/Wayland), and audio.
   - [Containers Distros](compatibility.md#containers-distros)
 - [Usage](usage/usage.md)
   - [Outside the distrobox](usage/usage.md#outside-the-distrobox)
+    - [distrobox-assemble](usage/distrobox-assemble.md)
     - [distrobox-create](usage/distrobox-create.md)
     - [distrobox-enter](usage/distrobox-enter.md)
     - [distrobox-ephemeral](usage/distrobox-ephemeral.md)
@@ -278,13 +279,13 @@ image=alpine:latest
 additional_packages=git vim tmux nodejs
 home=/tmp/home
 image=debian:latest
-init=true
+init=false
 init_hooks="touch /init-normal"
 
-[ubuntu7]
+[opensuse]
 additional_packages=git vim tmux nodejs
 home=/tmp/home
-image=ubuntu:latest
+image==opensuse/tumbleweed:latest
 init=true
 init_hooks="touch /init-normal"
 pre_init_hooks="touch /pre-init"
