@@ -50,22 +50,51 @@ graphical apps (X11/Wayland), and audio.
 
 # EXAMPLES
 
-	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
-	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
-	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
-	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
-	distrobox create --clone fedora-35 --name fedora-35-copy
+Create a distrobox with image alpine, called my-alpine container
+
 	distrobox create --image alpine my-alpine-container
+
+Create a distrobox from fedora-toolbox:35 image
+
 	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
+
+Clone an existing distrobox container
+
+	distrobox create --clone fedora-35 --name fedora-35-copy
+
+Always pull for the new image when creating a distrobox
+
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
+
+Add additional environment variables to the container
+
+	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
+
+Add additional volumes to the container
+
+	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
+
+Add additional packages to the container
+
 	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim"
+
+Use init-hooks to perform an action during container startup
+
+	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
+
+Use pre-init-hooks to perform an action at the beginning of the container startup (before any package manager starts)
+
+	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
+
+Use host's NVidia drivers integration
+
 	distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
 
-You can also use environment variables to specify container name, image and container manager:
+Use environment variables to specify container name, image and container manager:
 
 	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
-Supported environment variables:
+# ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_ALWAYS_PULL
 	DBX_CONTAINER_CUSTOM_HOME
@@ -78,6 +107,8 @@ Supported environment variables:
 
 DBX_CONTAINER_HOME_PREFIX defines where containers' home directories will be located.
 If you define it as ~/dbx then all future containers' home directories will be ~/dbx/$container_name
+
+# EXTRA
 
 The `--additional-flags` or `-a` is useful to modify defaults in the container creations.
 For example:

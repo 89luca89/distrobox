@@ -31,9 +31,21 @@ If using it inside a script, an application, or a service, you can specify the
 
 # EXAMPLES
 
+Enter a distrobox named "example"
+
+	distrobox-enter eample
+
+Enter a distrobox specifying a command
+
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 	distrobox-enter my-alpine-container -- sh -l
+
+Use additional podman/docker flags while entering a distrobox
+
 	distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
+
+Specify additional environment variables while entering a distrobox
+
 	distrobox-enter --additional-flags "--env MY_VAR=value" --name test -- bash -l
 	MY_VAR=value distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
 
@@ -41,14 +53,16 @@ You can also use environment variables to specify container manager and containe
 
 	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-enter
 
-Supported environment variables:
+# ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_NAME
 	DBX_CONTAINER_MANAGER
 	DBX_SKIP_WORKDIR
 	DBX_SUDO_PROGRAM
 
-This is used to enter the distrobox itself. Personally, I just create multiple profiles in
+# EXTRA
+
+This command is used to enter the distrobox itself. Personally, I just create multiple profiles in
 my `gnome-terminal` to have multiple distros accessible.
 
 The `--additional-flags` or `-a` is useful to modify default command when executing in the container.

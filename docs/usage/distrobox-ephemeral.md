@@ -28,15 +28,12 @@ when the command is terminated.
 
 You can also use [flags from **distrobox-create**](distrobox-create.md) to customize the ephemeral container to run.
 
-Refer to
+# SEE ALSO
 
 	man distrobox-create
-
-or
-
 	distrobox-create --help
 
-Supported environment variables:
+# ENVIRONMENT VARIABLES
 
 	distrobox-ephemeral calls distrobox-create, SEE ALSO distrobox-create(1) for
 	a list of supported environment variables to use.

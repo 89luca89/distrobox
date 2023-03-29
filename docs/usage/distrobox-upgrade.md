@@ -19,6 +19,14 @@ an upgrade using the container's package manager.
 
 # EXAMPLES
 
+Upgrade all distroboxes
+
 	distrobox-upgrade --all
+
+Upgrade a specific distrobox
+
+	distrobox-upgrade alpine-linux 
+
+Upgrade a list of distroboxes
+
 	distrobox-upgrade alpine-linux ubuntu22 my-distrobox123
-	distrobox upgrade CONTAINER_NAME [CONTAINER_NAME1 CONTAINER_NAME2 ...]

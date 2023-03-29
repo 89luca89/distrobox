@@ -21,4 +21,18 @@ This will be then deleted when you remove the matching distrobox.
 
 # EXAMPLES
 
-	distrobox-generate-entry container-name [--delete] [--icon [auto,/path/to/icon]]
+Generate an entry for a container
+
+	distrobox generate-entry my-container-name
+
+Specify a custom icon for the entry
+
+	distrobox generate-entry my-container-name --icon /path/to/icon.png
+
+Generate an entry for all distroboxes
+
+	distrobox generate-entry --all
+
+Delete an entry
+
+	distrobox generate-entry container-name --delete

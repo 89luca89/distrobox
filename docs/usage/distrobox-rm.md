@@ -31,7 +31,7 @@ You can also use environment variables to specify container manager and name:
 
 	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-rm
 
-Supported environment variables:
+# ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_MANAGER
 	DBX_CONTAINER_NAME
