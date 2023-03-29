@@ -1,0 +1,138 @@
+.\
+.\"
+.\" Define V font for inline verbatim, using C font in formats
+.\" that render this, and otherwise B font.
+.ie "\f[CB]x\f[]"x" \{\
+. ftr V B
+. ftr VI BI
+. ftr VB B
+. ftr VBI BI
+.\}
+.el \{\
+. ftr V CR
+. ftr VI CI
+. ftr VB CB
+. ftr VBI CBI
+.\}
+.TH "DISTROBOX-ASSEMBLE" "1" "Mar 2023" "Distrobox" "User Manual"
+.hy
+.SH NAME
+.IP
+.nf
+\f[C]
+distrobox assemble
+distrobox-assemble
+\f[R]
+.fi
+.SH DESCRIPTION
+.PP
+distrobox-assemble takes care of creating or destroying containers in
+batches, based on a manifest file.
+The manifest file by default is \f[V]./distrobox.ini\f[R], but can be
+specified using the \f[V]--file\f[R] flag.
+.SH SYNOPSIS
+.PP
+\f[B]distrobox assemble\f[R]
+.IP
+.nf
+\f[C]
+--file/-f:      path to the distrobox manifest/ini file
+--replace/-R:       replace already existing distroboxes with matching names
+--dry-run/-d:       only print the container manager command generated
+--verbose/-v:       show more verbosity
+--version/-V:       show version
+\f[R]
+.fi
+.SH EXAMPLES
+.PP
+This is an example manifest file to create two containers:
+.IP
+.nf
+\f[C]
+[ubuntu]
+additional_packages=git vim tmux nodejs
+image=ubuntu:latest
+init=false
+nvidia=false
+pull=true
+root=false
+replace=true
+
+[arch]
+additional_packages=git vim tmux nodejs
+home=/tmp/home
+image=archlinux:latest
+init=false
+init_hooks=\[dq]touch /init-normal\[dq]
+nvidia=true
+pre_init_hooks=\[dq]touch /pre-init\[dq]
+pull=true
+root=false
+replace=false
+volume=/tmp/test:/run/a /tmp/test:/run/b
+\f[R]
+.fi
+.PP
+\f[B]Create\f[R]
+.PP
+We can bring them up simply using
+.IP
+.nf
+\f[C]
+distrobox assemble create
+\f[R]
+.fi
+.PP
+If the file is called \f[V]distrobox.ini\f[R] and is in the same
+directory you\[cq]re launching the command, no further arguments are
+needed.
+You can specify a custom path for the file using
+.IP
+.nf
+\f[C]
+distrobox assemble create -f /my/custom/path.ini
+\f[R]
+.fi
+.PP
+\f[B]Replace\f[R]
+.PP
+By default, \f[V]distrobox assemble\f[R] will replace a container only
+if \f[V]replace=true\f[R] is specified in the manifest file.
+.PP
+In the example of the manifest above, the ubuntu container will always
+be replaced when running \f[V]distrobox assemble create\f[R], while the
+arch container will not.
+.PP
+To force a replace for all containers in a manifest use the
+\f[V]--replace\f[R] flag
+.IP
+.nf
+\f[C]
+distrobox assemble create --replace [-f my/custom/path.ini]
+\f[R]
+.fi
+.PP
+\f[B]Remove\f[R]
+.PP
+We can bring down all the containers in a manifest file by simply doing
+.IP
+.nf
+\f[C]
+distrobox assemble rm
+\f[R]
+.fi
+.PP
+Or using a custom path for the ini file
+.IP
+.nf
+\f[C]
+distrobox assemble rm --file my/custom/path.ini
+\f[R]
+.fi
+.PP
+\f[B]Test\f[R]
+.PP
+You can alway test what distrobox \f[B]would do\f[R] by using the
+\f[V]--dry-run\f[R] flag.
+This command will only print what commands distrobox would do without
+actually running them.
