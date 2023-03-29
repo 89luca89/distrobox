@@ -75,32 +75,97 @@ or consult the documentation page on: https://github.com/89luca89/distrobox/blob
 \f[R]
 .fi
 .SH EXAMPLES
+.PP
+Create a distrobox with image alpine, called my-alpine container
+.IP
+.nf
+\f[C]
+distrobox create --image alpine my-alpine-container
+\f[R]
+.fi
+.PP
+Create a distrobox from fedora-toolbox:35 image
+.IP
+.nf
+\f[C]
+distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
+\f[R]
+.fi
+.PP
+Clone an existing distrobox container
+.IP
+.nf
+\f[C]
+distrobox create --clone fedora-35 --name fedora-35-copy
+\f[R]
+.fi
+.PP
+Always pull for the new image when creating a distrobox
+.IP
+.nf
+\f[C]
+distrobox create --pull --image centos:stream9 --home \[ti]/distrobox/centos9
+\f[R]
+.fi
+.PP
+Add additional environment variables to the container
+.IP
+.nf
+\f[C]
+distrobox create --image fedora:35 --name test --additional-flags \[dq]--env MY_VAR-value\[dq]
+\f[R]
+.fi
+.PP
+Add additional volumes to the container
+.IP
+.nf
+\f[C]
+distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags \[dq]--pids-limit -1\[dq]
+\f[R]
+.fi
+.PP
+Add additional packages to the container
+.IP
+.nf
+\f[C]
+distrobox create --image alpine:latest --name test2 --additional-packages \[dq]git tmux vim\[dq]
+\f[R]
+.fi
+.PP
+Use init-hooks to perform an action during container startup
 .IP
 .nf
 \f[C]
 distrobox create --image alpine:latest --name test --init-hooks \[dq]touch /var/tmp/test1 && touch /var/tmp/test2\[dq]
-distrobox create --image fedora:35 --name test --additional-flags \[dq]--env MY_VAR-value\[dq]
-distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags \[dq]--pids-limit -1\[dq]
+\f[R]
+.fi
+.PP
+Use pre-init-hooks to perform an action at the beginning of the
+container startup (before any package manager starts)
+.IP
+.nf
+\f[C]
 distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks \[dq]dnf config-manager --enable powertools && dnf -y install epel-release\[dq]
-distrobox create --clone fedora-35 --name fedora-35-copy
-distrobox create --image alpine my-alpine-container
-distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
-distrobox create --pull --image centos:stream9 --home \[ti]/distrobox/centos9
-distrobox create --image alpine:latest --name test2 --additional-packages \[dq]git tmux vim\[dq]
+\f[R]
+.fi
+.PP
+Use host\[cq]s NVidia drivers integration
+.IP
+.nf
+\f[C]
 distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
 \f[R]
 .fi
 .PP
-You can also use environment variables to specify container name, image
-and container manager:
+Use environment variables to specify container name, image and container
+manager:
 .IP
 .nf
 \f[C]
 DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 \f[R]
 .fi
-.PP
-Supported environment variables:
+.SH ENVIRONMENT VARIABLES
 .IP
 .nf
 \f[C]
@@ -119,6 +184,7 @@ DBX_CONTAINER_HOME_PREFIX defines where containers\[cq] home directories
 will be located.
 If you define it as \[ti]/dbx then all future containers\[cq] home
 directories will be \[ti]/dbx/$container_name
+.SH EXTRA
 .PP
 The \f[V]--additional-flags\f[R] or \f[V]-a\f[R] is useful to modify
 defaults in the container creations.

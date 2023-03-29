@@ -43,9 +43,35 @@ This will be then deleted when you remove the matching distrobox.
 \f[R]
 .fi
 .SH EXAMPLES
+.PP
+Generate an entry for a container
 .IP
 .nf
 \f[C]
-distrobox-generate-entry container-name [--delete] [--icon [auto,/path/to/icon]]
+distrobox generate-entry my-container-name
+\f[R]
+.fi
+.PP
+Specify a custom icon for the entry
+.IP
+.nf
+\f[C]
+distrobox generate-entry my-container-name --icon /path/to/icon.png
+\f[R]
+.fi
+.PP
+Generate an entry for all distroboxes
+.IP
+.nf
+\f[C]
+distrobox generate-entry --all
+\f[R]
+.fi
+.PP
+Delete an entry
+.IP
+.nf
+\f[C]
+distrobox generate-entry container-name --delete
 \f[R]
 .fi

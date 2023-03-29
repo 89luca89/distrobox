@@ -393,32 +393,97 @@ or consult the documentation page on: https://github.com/89luca89/distrobox/blob
 \f[R]
 .fi
 .SH EXAMPLES
+.PP
+Create a distrobox with image alpine, called my-alpine container
+.IP
+.nf
+\f[C]
+distrobox create --image alpine my-alpine-container
+\f[R]
+.fi
+.PP
+Create a distrobox from fedora-toolbox:35 image
+.IP
+.nf
+\f[C]
+distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
+\f[R]
+.fi
+.PP
+Clone an existing distrobox container
+.IP
+.nf
+\f[C]
+distrobox create --clone fedora-35 --name fedora-35-copy
+\f[R]
+.fi
+.PP
+Always pull for the new image when creating a distrobox
+.IP
+.nf
+\f[C]
+distrobox create --pull --image centos:stream9 --home \[ti]/distrobox/centos9
+\f[R]
+.fi
+.PP
+Add additional environment variables to the container
+.IP
+.nf
+\f[C]
+distrobox create --image fedora:35 --name test --additional-flags \[dq]--env MY_VAR-value\[dq]
+\f[R]
+.fi
+.PP
+Add additional volumes to the container
+.IP
+.nf
+\f[C]
+distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags \[dq]--pids-limit -1\[dq]
+\f[R]
+.fi
+.PP
+Add additional packages to the container
+.IP
+.nf
+\f[C]
+distrobox create --image alpine:latest --name test2 --additional-packages \[dq]git tmux vim\[dq]
+\f[R]
+.fi
+.PP
+Use init-hooks to perform an action during container startup
 .IP
 .nf
 \f[C]
 distrobox create --image alpine:latest --name test --init-hooks \[dq]touch /var/tmp/test1 && touch /var/tmp/test2\[dq]
-distrobox create --image fedora:35 --name test --additional-flags \[dq]--env MY_VAR-value\[dq]
-distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags \[dq]--pids-limit -1\[dq]
+\f[R]
+.fi
+.PP
+Use pre-init-hooks to perform an action at the beginning of the
+container startup (before any package manager starts)
+.IP
+.nf
+\f[C]
 distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks \[dq]dnf config-manager --enable powertools && dnf -y install epel-release\[dq]
-distrobox create --clone fedora-35 --name fedora-35-copy
-distrobox create --image alpine my-alpine-container
-distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
-distrobox create --pull --image centos:stream9 --home \[ti]/distrobox/centos9
-distrobox create --image alpine:latest --name test2 --additional-packages \[dq]git tmux vim\[dq]
+\f[R]
+.fi
+.PP
+Use host\[cq]s NVidia drivers integration
+.IP
+.nf
+\f[C]
 distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
 \f[R]
 .fi
 .PP
-You can also use environment variables to specify container name, image
-and container manager:
+Use environment variables to specify container name, image and container
+manager:
 .IP
 .nf
 \f[C]
 DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 \f[R]
 .fi
-.PP
-Supported environment variables:
+.SH ENVIRONMENT VARIABLES
 .IP
 .nf
 \f[C]
@@ -437,6 +502,7 @@ DBX_CONTAINER_HOME_PREFIX defines where containers\[cq] home directories
 will be located.
 If you define it as \[ti]/dbx then all future containers\[cq] home
 directories will be \[ti]/dbx/$container_name
+.SH EXTRA
 .PP
 The \f[V]--additional-flags\f[R] or \f[V]-a\f[R] is useful to modify
 defaults in the container creations.
@@ -614,12 +680,36 @@ specify the \[en]headless mode to disable tty and interactivity.
 \f[R]
 .fi
 .SH EXAMPLES
+.PP
+Enter a distrobox named \[lq]example\[rq]
+.IP
+.nf
+\f[C]
+distrobox-enter eample
+\f[R]
+.fi
+.PP
+Enter a distrobox specifying a command
 .IP
 .nf
 \f[C]
 distrobox-enter --name fedora-toolbox-35 -- bash -l
 distrobox-enter my-alpine-container -- sh -l
+\f[R]
+.fi
+.PP
+Use additional podman/docker flags while entering a distrobox
+.IP
+.nf
+\f[C]
 distrobox-enter --additional-flags \[dq]--preserve-fds\[dq] --name test -- bash -l
+\f[R]
+.fi
+.PP
+Specify additional environment variables while entering a distrobox
+.IP
+.nf
+\f[C]
 distrobox-enter --additional-flags \[dq]--env MY_VAR=value\[dq] --name test -- bash -l
 MY_VAR=value distrobox-enter --additional-flags \[dq]--preserve-fds\[dq] --name test -- bash -l
 \f[R]
@@ -633,8 +723,7 @@ container name:
 DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test-alpine distrobox-enter
 \f[R]
 .fi
-.PP
-Supported environment variables:
+.SH ENVIRONMENT VARIABLES
 .IP
 .nf
 \f[C]
@@ -644,8 +733,9 @@ DBX_SKIP_WORKDIR
 DBX_SUDO_PROGRAM
 \f[R]
 .fi
+.SH EXTRA
 .PP
-This is used to enter the distrobox itself.
+This command is used to enter the distrobox itself.
 Personally, I just create multiple profiles in my
 \f[V]gnome-terminal\f[R] to have multiple distros accessible.
 .PP
@@ -741,24 +831,15 @@ distrobox-ephemeral --root --verbose --image alpine:latest --volume /opt:/opt
 .PP
 You can also use flags from \f[B]distrobox-create\f[R] to customize the
 ephemeral container to run.
-.PP
-Refer to
+.SH SEE ALSO
 .IP
 .nf
 \f[C]
 man distrobox-create
-\f[R]
-.fi
-.PP
-or
-.IP
-.nf
-\f[C]
 distrobox-create --help
 \f[R]
 .fi
-.PP
-Supported environment variables:
+.SH ENVIRONMENT VARIABLES
 .IP
 .nf
 \f[C]
@@ -1033,10 +1114,36 @@ This will be then deleted when you remove the matching distrobox.
 \f[R]
 .fi
 .SH EXAMPLES
+.PP
+Generate an entry for a container
 .IP
 .nf
 \f[C]
-distrobox-generate-entry container-name [--delete] [--icon [auto,/path/to/icon]]
+distrobox generate-entry my-container-name
+\f[R]
+.fi
+.PP
+Specify a custom icon for the entry
+.IP
+.nf
+\f[C]
+distrobox generate-entry my-container-name --icon /path/to/icon.png
+\f[R]
+.fi
+.PP
+Generate an entry for all distroboxes
+.IP
+.nf
+\f[C]
+distrobox generate-entry --all
+\f[R]
+.fi
+.PP
+Delete an entry
+.IP
+.nf
+\f[C]
+distrobox generate-entry container-name --delete
 \f[R]
 .fi
 .\
@@ -1241,8 +1348,7 @@ You can also use environment variables to specify container manager
 DBX_CONTAINER_MANAGER=\[dq]docker\[dq] distrobox-list
 \f[R]
 .fi
-.PP
-Supported environment variables:
+.SH ENVIRONMENT VARIABLES
 .IP
 .nf
 \f[C]
@@ -1315,8 +1421,7 @@ name:
 DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test-alpine distrobox-rm
 \f[R]
 .fi
-.PP
-Supported environment variables:
+.SH ENVIRONMENT VARIABLES
 .IP
 .nf
 \f[C]
@@ -1392,8 +1497,7 @@ name:
 DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test-alpine distrobox-stop
 \f[R]
 .fi
-.PP
-Supported environment variables:
+.SH ENVIRONMENT VARIABLES
 .IP
 .nf
 \f[C]
@@ -1445,11 +1549,27 @@ perform an upgrade using the container\[cq]s package manager.
 \f[R]
 .fi
 .SH EXAMPLES
+.PP
+Upgrade all distroboxes
 .IP
 .nf
 \f[C]
 distrobox-upgrade --all
+\f[R]
+.fi
+.PP
+Upgrade a specific distrobox
+.IP
+.nf
+\f[C]
+distrobox-upgrade alpine-linux 
+\f[R]
+.fi
+.PP
+Upgrade a list of distroboxes
+.IP
+.nf
+\f[C]
 distrobox-upgrade alpine-linux ubuntu22 my-distrobox123
-distrobox upgrade CONTAINER_NAME [CONTAINER_NAME1 CONTAINER_NAME2 ...]
 \f[R]
 .fi

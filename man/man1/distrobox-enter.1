@@ -53,12 +53,36 @@ specify the \[en]headless mode to disable tty and interactivity.
 \f[R]
 .fi
 .SH EXAMPLES
+.PP
+Enter a distrobox named \[lq]example\[rq]
+.IP
+.nf
+\f[C]
+distrobox-enter eample
+\f[R]
+.fi
+.PP
+Enter a distrobox specifying a command
 .IP
 .nf
 \f[C]
 distrobox-enter --name fedora-toolbox-35 -- bash -l
 distrobox-enter my-alpine-container -- sh -l
+\f[R]
+.fi
+.PP
+Use additional podman/docker flags while entering a distrobox
+.IP
+.nf
+\f[C]
 distrobox-enter --additional-flags \[dq]--preserve-fds\[dq] --name test -- bash -l
+\f[R]
+.fi
+.PP
+Specify additional environment variables while entering a distrobox
+.IP
+.nf
+\f[C]
 distrobox-enter --additional-flags \[dq]--env MY_VAR=value\[dq] --name test -- bash -l
 MY_VAR=value distrobox-enter --additional-flags \[dq]--preserve-fds\[dq] --name test -- bash -l
 \f[R]
@@ -72,8 +96,7 @@ container name:
 DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test-alpine distrobox-enter
 \f[R]
 .fi
-.PP
-Supported environment variables:
+.SH ENVIRONMENT VARIABLES
 .IP
 .nf
 \f[C]
@@ -83,8 +106,9 @@ DBX_SKIP_WORKDIR
 DBX_SUDO_PROGRAM
 \f[R]
 .fi
+.SH EXTRA
 .PP
-This is used to enter the distrobox itself.
+This command is used to enter the distrobox itself.
 Personally, I just create multiple profiles in my
 \f[V]gnome-terminal\f[R] to have multiple distros accessible.
 .PP

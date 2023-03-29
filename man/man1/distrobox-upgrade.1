@@ -40,11 +40,27 @@ perform an upgrade using the container\[cq]s package manager.
 \f[R]
 .fi
 .SH EXAMPLES
+.PP
+Upgrade all distroboxes
 .IP
 .nf
 \f[C]
 distrobox-upgrade --all
+\f[R]
+.fi
+.PP
+Upgrade a specific distrobox
+.IP
+.nf
+\f[C]
+distrobox-upgrade alpine-linux 
+\f[R]
+.fi
+.PP
+Upgrade a list of distroboxes
+.IP
+.nf
+\f[C]
 distrobox-upgrade alpine-linux ubuntu22 my-distrobox123
-distrobox upgrade CONTAINER_NAME [CONTAINER_NAME1 CONTAINER_NAME2 ...]
 \f[R]
 .fi
