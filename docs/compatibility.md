@@ -168,6 +168,7 @@ Distrobox guests tested successfully with the following container images:
 | Slackware | 14.2 | docker.io/vbatts/slackware:14.2    |
 | Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 22.10 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04    |
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64  <br>  ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
+| Crystal Linux | | registry.getcryst.al/crystal/misc/docker:latest |
 
 Note however that if you use a non-toolbox preconfigured image (e.g.
 images pre-baked to work with <https://github.com/containers/toolbox>),
