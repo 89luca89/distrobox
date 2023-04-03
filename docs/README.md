@@ -1,7 +1,7 @@
 ![distrobox-logo](./assets/page-logo-dark.svg#gh-dark-mode-only)
 ![distrobox-logo](./assets/page-logo-light.svg#gh-light-mode-only)
 
-<sub>previouslogo credits [j4ckr3d](https://github.com/j4ckr3d)  
+<sub>previous logo credits [j4ckr3d](https://github.com/j4ckr3d)  
 current logo credits [David Lapshin](https://github.com/daudix-UFO)<sub>
 
 # Distrobox
