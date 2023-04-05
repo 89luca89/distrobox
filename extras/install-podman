@@ -113,7 +113,7 @@ fi
 
 ## Get crun ###################################################################
 
-CRUN_VERSION="1.6"
+CRUN_VERSION="1.8.3"
 printf >&2 "\033[1;31m Fetching crun %s...\n\033[0m" "${CRUN_VERSION}"
 # Download the binary to /tmp
 curl -L \
@@ -125,7 +125,7 @@ chmod +x /tmp/crun
 
 ## Get podman ###################################################################
 
-PODMAN_VERSION="4.2.1"
+PODMAN_VERSION="4.4.3"
 printf >&2 "\033[1;31m Fetching podman %s...\n\033[0m" "${PODMAN_VERSION}"
 # Using static podman builds semplifies our lives! Thanks to the wonderful project
 #   https://github.com/mgoltzsche/podman-static
