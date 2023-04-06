@@ -78,13 +78,11 @@ jobs:
           exit $result
 
   differential-shellcheck:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
       security-events: write
-      pull-requests: write
 
     steps:
       - uses: actions/checkout@v3
@@ -92,7 +90,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Differential ShellCheck
-        uses: redhat-plumbers-in-action/differential-shellcheck@v3
+        uses: redhat-plumbers-in-action/differential-shellcheck@v4
         with:
           severity: style
           token: ${{ secrets.GITHUB_TOKEN }}
