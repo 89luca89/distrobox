@@ -292,7 +292,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 	! command -v sudo || ! command -v useradd || ! command -v diff ||
 	! command -v pinentry || ! command -v wget || ! command -v curl ||
 	! command -v less || ! command -v bc || ! command -v time || ! command -v lsof ||
-	! command -v "${shell_pkg}"; then
+	! command -v "${shell_pkg}" ||
+	[ -n "${container_additional_packages}" ]; then
 
 	# Detect the available package manager
 	# install minimal dependencies needed to bootstrap the container:
