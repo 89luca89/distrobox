@@ -64,8 +64,10 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
-nvidia=0
 dryrun=0
+nvidia=0
+unshare_ipc=0
+unshare_netns=0
 init=0
 non_interactive=0
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
@@ -171,6 +173,8 @@ Options:
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--unshare-netns:        do not share the net namespace with host
+	--unshare-ipc:          do not share ipc namemspace with host
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
@@ -249,6 +253,14 @@ while :; do
 		-I | --init)
 			shift
 			init=1
+			;;
+		--unshare-netns)
+			shift
+			unshare_netns=1
+			;;
+		--unshare-ipc)
+			shift
+			unshare_ipc=1
 			;;
 		-C | --compatibility)
 			show_compatibility
@@ -479,12 +491,20 @@ generate_command() {
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
 		--hostname \"${container_name}.$(uname -n)\"
-		--ipc host
 		--name \"${container_name}\"
-		--network host
 		--privileged
 		--security-opt label=disable
 		--user root:root"
+
+	if [ "${unshare_ipc}" -ne 0 ]; then
+		result_command="${result_command}
+			--ipc host"
+	fi
+
+	if [ "${unshare_netns}" -ne 0 ]; then
+		result_command="${result_command}
+			--network host"
+	fi
 
 	if [ "${init}" -eq 0 ]; then
 		result_command="${result_command}
