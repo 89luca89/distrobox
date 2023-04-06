@@ -34,6 +34,8 @@ graphical apps (X11/Wayland), and audio.
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container.
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--unshare-netns:        do not share the net namespace with host
+	--unshare-ipc:          do not share ipc namemspace with host
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
@@ -93,6 +95,10 @@ Use host's NVidia drivers integration
 Use environment variables to specify container name, image and container manager:
 
 	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
+
+Do not use host's IP inside the container:
+
+	distrobox create --image ubuntu:latest --name test --unshare-netns
 
 # ENVIRONMENT VARIABLES
 
