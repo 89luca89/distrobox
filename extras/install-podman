@@ -153,6 +153,7 @@ printf >&2 "\033[1;31m Configuring...\n\033[0m"
 cat << EOF > "${conf_path}/containers/containers.conf"
 # See https://github.com/containers/common/blob/master/pkg/config/containers.conf
 [engine]
+infra_image="k8s.gcr.io/pause:3.8"
 # can be croupfs, systemd
 cgroup_manager = "systemd"
 # can be file, journald
