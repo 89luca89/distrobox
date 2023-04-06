@@ -64,8 +64,10 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
-nvidia=0
 dryrun=0
+nvidia=0
+unshare_ipc=0
+unshare_netns=0
 init=0
 non_interactive=0
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
@@ -494,12 +496,12 @@ generate_command() {
 		--security-opt label=disable
 		--user root:root"
 
-	if  ! [ -v unshare_ipc ]; then
+	if [ "${unshare_ipc}" -ne 0 ]; then
 		result_command="${result_command}
 			--ipc host"
 	fi
 
-	if  ! [ -v unshare_netns ]; then
+	if [ "${unshare_netns}" -ne 0 ]; then
 		result_command="${result_command}
 			--network host"
 	fi
