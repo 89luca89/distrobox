@@ -33,7 +33,7 @@ If using it inside a script, an application, or a service, you can specify the
 
 Enter a distrobox named "example"
 
-	distrobox-enter eample
+	distrobox-enter example
 
 Enter a distrobox specifying a command
 

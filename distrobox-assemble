@@ -216,7 +216,7 @@ run_distrobox() (
 		return 0
 	fi
 
-	# Now we dinamically generate the distrobox-create command based on the
+	# Now we dynamically generate the distrobox-create command based on the
 	# declared flags.
 	result_command="${distrobox_path}/distrobox-create --yes"
 	if [ "${verbose}" -ne 0 ]; then

@@ -83,6 +83,6 @@ Or using a custom path for the ini file
 
 **Test**
 
-You can alway test what distrobox **would do** by using the `--dry-run` flag.
+You can always test what distrobox **would do** by using the `--dry-run` flag.
 This command will only print what commands distrobox would do without actually
 running them.
