@@ -43,6 +43,8 @@ pre_init_hooks=""
 pull=""
 root=""
 volume=""
+unshare_netns=""
+unshare_ipc=""
 
 # Cleanup tmpfiles on exit
 trap 'rm -f ${tmpfile}' EXIT
@@ -237,6 +239,12 @@ run_distrobox() (
 	fi
 	if [ -n "${entry}" ] && [ "${entry}" -eq 0 ]; then
 		result_command="${result_command} --no-entry"
+	fi
+	if [ -n "${unshare_netns}" ] && [ "${unshare_netns}" -eq 1 ]; then
+		result_command="${result_command} --unshare-netns"
+	fi
+	if [ -n "${unshare_ipc}" ] && [ "${unshare_ipc}" -eq 1 ]; then
+		result_command="${result_command} --unshare-ipc"
 	fi
 	if [ -n "${home}" ]; then
 		result_command="${result_command} --home $(sanitize_variable "${home}")"

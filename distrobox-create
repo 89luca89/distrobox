@@ -496,12 +496,12 @@ generate_command() {
 		--security-opt label=disable
 		--user root:root"
 
-	if [ "${unshare_ipc}" -ne 0 ]; then
+	if [ "${unshare_ipc}" -eq 0 ]; then
 		result_command="${result_command}
 			--ipc host"
 	fi
 
-	if [ "${unshare_netns}" -ne 0 ]; then
+	if [ "${unshare_netns}" -eq 0 ]; then
 		result_command="${result_command}
 			--network host"
 	fi
