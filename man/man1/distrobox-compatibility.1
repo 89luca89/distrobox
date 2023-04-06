@@ -125,6 +125,7 @@ T{
 Opensuse (Toolbox)
 T}@T{
 T}@T{
+registry.opensuse.org/opensuse/distrobox:latest
 quay.io/toolbx-images/opensuse-toolbox:latest
 T}
 T{
@@ -362,10 +363,11 @@ ghcr.io/void-linux/void-linux:latest-full-x86_64-musl
 T}
 .TE
 .PP
-Note however that if you use a non-toolbox preconfigured image (e.g.
-images pre-baked to work with <https://github.com/containers/toolbox>),
-the \f[B]first\f[R] \f[V]distrobox-enter\f[R] you\[cq]ll perform can
-take a while as it will download and install the missing dependencies.
+Images marked with \f[B]Toolbox\f[R] are tailored images, so they are
+more indicated for desktop use, and first setup will take less time.
+Note however that if you use a non-toolbox preconfigured image, the
+\f[B]first\f[R] \f[V]distrobox-enter\f[R] you\[cq]ll perform can take a
+while as it will download and install the missing dependencies.
 .PP
 A small time tax to pay for the ability to use any type of image.
 This will \f[B]not\f[R] occur after the first time, \f[B]subsequent
