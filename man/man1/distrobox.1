@@ -132,7 +132,7 @@ distrobox assemble rm --file my/custom/path.ini
 .PP
 \f[B]Test\f[R]
 .PP
-You can alway test what distrobox \f[B]would do\f[R] by using the
+You can always test what distrobox \f[B]would do\f[R] by using the
 \f[V]--dry-run\f[R] flag.
 This command will only print what commands distrobox would do without
 actually running them.
@@ -210,6 +210,83 @@ Images
 T}
 _
 T{
+AlmaLinux (Toolbox)
+T}@T{
+8 9
+T}@T{
+quay.io/toolbx-images/almalinux-toolbox:8
+quay.io/toolbx-images/almalinux-toolbox:9
+T}
+T{
+Alpine (Toolbox)
+T}@T{
+3.16 3.17 edge
+T}@T{
+quay.io/toolbx-images/alpine-toolbox:3.16
+quay.io/toolbx-images/alpine-toolbox:3.17
+quay.io/toolbx-images/alpine-toolbox:edge
+T}
+T{
+Archlinux (Toolbox)
+T}@T{
+T}@T{
+quay.io/toolbx-images/archlinux-toolbox
+T}
+T{
+Centos (Toolbox)
+T}@T{
+stream8 stream9
+T}@T{
+quay.io/toolbx-images/centos-toolbox:stream8
+quay.io/toolbx-images/centos-toolbox:stream9
+T}
+T{
+Debian (Toolbox)
+T}@T{
+10 11 testing unstable
+T}@T{
+quay.io/toolbx-images/debian-toolbox:10
+quay.io/toolbx-images/debian-toolbox:11
+quay.io/toolbx-images/debian-toolbox:testing
+quay.io/toolbx-images/debian-toolbox:unstable
+T}
+T{
+Opensuse (Toolbox)
+T}@T{
+T}@T{
+quay.io/toolbx-images/opensuse-toolbox:latest
+T}
+T{
+RedHat (Toolbox)
+T}@T{
+8 9
+T}@T{
+registry.access.redhat.com/ubi8/toolbox
+registry.access.redhat.com/ubi9/toolbox
+T}
+T{
+Rocky Linux (Toolbox)
+T}@T{
+8 9
+T}@T{
+quay.io/toolbx-images/rockylinux-toolbox:8
+quay.io/toolbx-images/rockylinux-toolbox:9
+T}
+T{
+Ubuntu (Toolbox)
+T}@T{
+16.04 18.04 20.04 22.04
+T}@T{
+quay.io/toolbx-images/ubuntu-toolbox:16.04
+quay.io/toolbx-images/ubuntu-toolbox:18.04
+quay.io/toolbx-images/ubuntu-toolbox:20.04
+quay.io/toolbx-images/ubuntu-toolbox:22.04
+T}
+T{
+T}@T{
+T}@T{
+T}
+T{
 AlmaLinux (UBI)
 T}@T{
 8
@@ -268,9 +345,15 @@ T}@T{
 docker.io/library/clearlinux:latest docker.io/library/clearlinux:base
 T}
 T{
+Crystal Linux
+T}@T{
+T}@T{
+registry.getcryst.al/crystal/misc/docker:latest
+T}
+T{
 Debian
 T}@T{
-7 9 10 11
+7 8 9 10 11
 T}@T{
 docker.io/debian/eol:wheezy docker.io/library/debian:9
 docker.io/library/debian:10 docker.io/library/debian:stable
@@ -294,10 +377,11 @@ T}
 T{
 Fedora
 T}@T{
-36 37 38 Rawhide
+36 37 38 39 Rawhide
 T}@T{
 registry.fedoraproject.org/fedora-toolbox:37 quay.io/fedora/fedora:36
 registry.fedoraproject.org/fedora:37 quay.io/fedora/fedora:38
+quay.io/fedora/fedora:39
 T}
 T{
 Gentoo Linux
@@ -405,12 +489,6 @@ T}@T{
 T}@T{
 ghcr.io/void-linux/void-linux:latest-full-x86_64
 ghcr.io/void-linux/void-linux:latest-full-x86_64-musl
-T}
-T{
-Crystal Linux
-T}@T{
-T}@T{
-registry.getcryst.al/crystal/misc/docker:latest
 T}
 .TE
 .PP
@@ -838,7 +916,7 @@ Enter a distrobox named \[lq]example\[rq]
 .IP
 .nf
 \f[C]
-distrobox-enter eample
+distrobox-enter example
 \f[R]
 .fi
 .PP
