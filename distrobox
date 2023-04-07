@@ -34,6 +34,7 @@ show_help() {
 distrobox version: ${version}
 
 Choose one of the available commands:
+	assemble
 	create
 	enter
 	list
@@ -58,6 +59,9 @@ shift
 # Simple wrapper to the distrobox utilities.
 # We just detect the 1st argument and launch the matching distrobox utility.
 case "${distrobox_command}" in
+	assemble)
+		"${distrobox_path}"/distrobox-assemble "$@"
+		;;
 	create)
 		"${distrobox_path}"/distrobox-create "$@"
 		;;
