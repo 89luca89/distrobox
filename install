@@ -187,5 +187,5 @@ printf >&2 "\033[0m Shell scripts are located in \033[1;31m%s\n\033[0m" "${dest_
 printf >&2 "\033[0m Manpages are located in \033[1;31m%s\n\033[0m" "${man_dest_path}"
 
 if ! echo "${PATH}" | grep -q "${dest_path}"; then
-    printf >&2 "\033[1;31m Be sure that %s is in your \$PATH environment variable to be able to use distrobox without specifying the full path.\n\033[0m" "${dest_path}"
+	printf  >&2 "\033[1;31m Be sure that %s is in your \$PATH environment variable to be able to use distrobox without specifying the full path.\n\033[0m" "${dest_path}"
 fi
