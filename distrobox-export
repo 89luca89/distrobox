@@ -247,26 +247,10 @@ generate_script() {
 # distrobox_binary
 # name: ${container_name}
 if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
-	command="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
-${start_shell} ${exported_bin} ${extra_flags} "
-
-	for arg in "\$@"; do
-		if echo "\${arg}" | grep -Eq "'|\""; then
-			command="\${command} \\
-				\$(echo "\${arg}" | sed 's|\\\|\\\\\\\|g' |
-				sed 's| |\\\ |g' |
-				sed 's|\\$|\\\\\\$|g' |
-				sed "s|'|\\\\\'|g" |
-				sed 's|"|\\\\\"|g')"
-		elif echo "\${arg}" | grep -q "'"; then
-			command="\${command} \"\${arg}\""
-		else
-			command="\${command} '\${arg}'"
-		fi
-	done
-	eval \${command}
+	exec ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
+		${start_shell} ${exported_bin} ${extra_flags} "\$@"
 else
-	${exported_bin} "\$@"
+	exec ${exported_bin} "\$@"
 fi
 EOF
 	return $?
