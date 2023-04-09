@@ -103,4 +103,6 @@ done
 [  -e "${icon_dest_path}"/terminal-distrobox-icon.png ] && rm "${icon_dest_path}"/terminal-distrobox-icon.png
 [  -e "${icon_dest_path}"/distrobox ] && rm -rf "${icon_dest_path}"/distrobox
 
-printf >&2 "\033[1;31m Thank you for using Distrobox. Uninstall complete.\n\033[0m"
+printf >&2 "\033[1;32m Thank you for using Distrobox. Uninstall complete.\n\033[0m"
+printf >&2 "\033[0m Removed shell scripts located in \033[1;31m%s\n\033[0m" "${dest_path}"
+printf >&2 "\033[0m Removed manpages located in \033[1;31m%s\n\033[0m" "${man_dest_path}"
