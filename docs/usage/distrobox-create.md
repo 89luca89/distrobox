@@ -70,7 +70,7 @@ Always pull for the new image when creating a distrobox
 
 Add additional environment variables to the container
 
-	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
+	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR=value"
 
 Add additional volumes to the container
 
@@ -138,7 +138,7 @@ same standard as `docker` and `podman` to specify the mount point so `--volume S
 During container creation, it is possible to specify (using the additional-flags) some
 environment variables that will persist in the container and be independent from your environment:
 
-	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
+	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR=value"
 
 The `--init-hooks` is useful to add commands to the entrypoint (init) of the container.
 This could be useful to create containers with a set of programs already installed, add users, groups.
