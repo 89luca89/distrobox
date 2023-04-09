@@ -189,7 +189,9 @@ while :; do
 			container_command="$1"
 			shift
 			for arg in "$@"; do
-				container_command="${container_command} '$(echo "${arg}" | sed 's|'\''|'\'\\\\\'\''|g')'"
+				arg="$(echo "${arg}x" | sed 's|'\''|'\'\\\\\'\''|g')"
+				arg="${arg%x}"
+				container_command="${container_command} '$arg'"
 			done
 			break
 			;;
