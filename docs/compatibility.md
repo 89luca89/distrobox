@@ -192,7 +192,7 @@ This will **not** occur after the first time, **subsequent enters will be much f
 
 NixOS is not a supported container distro, and there are currently no plans to
 bring support to it. If you are looking for unprivlaged NixOS environments,
-we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html).
+we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html) or [nix portable](https://github.com/DavHau/nix-portable)
 
 ### New Distro support
 
