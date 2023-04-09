@@ -275,9 +275,9 @@ fi
 #   prints the podman or docker command to enter the distrobox container
 generate_command() {
 	result_command="${container_manager} exec"
-	result_command="${result_command}
-		--interactive
-		--detach-keys=\"\"
+	result_command="${result_command} \\
+		--interactive \\
+		--detach-keys=\"\" \\
 		--user=\"${USER}\""
 
 	# For some usage, like use in service, or launched by non-terminal
@@ -287,7 +287,7 @@ generate_command() {
 	# work in tty-less situations.
 	# Disable tty also if we're NOT in a tty (test -t 0).
 	if [ "${headless}" -eq 0 ] && [ -t 0 ]; then
-		result_command="${result_command}
+		result_command="${result_command} \\
 			--tty"
 	fi
 
@@ -308,9 +308,9 @@ generate_command() {
 		# Skipping workdir we just enter $HOME of the container.
 		workdir="${container_home}"
 	fi
-	result_command="${result_command}
-		--workdir=\"${workdir}\"
-		--env \"CONTAINER_ID=${container_name}\"
+	result_command="${result_command} \\
+		--workdir=\"${workdir}\" \\
+		--env \"CONTAINER_ID=${container_name}\" \\
 		--env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
 	# Loop through all the environment vars
 	# and export them to the container.
@@ -522,5 +522,4 @@ fi
 
 # Generate the exec command and run it
 cmd="$(generate_command)"
-# shellcheck disable=SC2086
-eval ${cmd}
+eval "${cmd}"
