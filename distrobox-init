@@ -443,7 +443,11 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# These are graphics drivers for 3d applications
 		if dnf list mesa-dri-drivers > /dev/null; then
 			dnf install -y \
-				mesa-dri-drivers \
+				mesa-dri-drivers
+		fi
+
+		if dnf list mesa-vulkan-drivers > /dev/null; then
+			dnf install -y \
 				mesa-vulkan-drivers \
 				vulkan
 		fi
