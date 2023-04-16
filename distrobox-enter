@@ -44,7 +44,7 @@ fi
 
 # Defaults
 container_command=""
-container_image_default="registry.fedoraproject.org/fedora-toolbox:36"
+container_image_default="registry.fedoraproject.org/fedora-toolbox:37"
 container_manager="autodetect"
 container_manager_additional_flags=""
 container_name=""
