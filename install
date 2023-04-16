@@ -182,5 +182,10 @@ fi
 [ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
 [ ! -w "${man_dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${man_dest_path}" && exit 1
 
-printf >&2 "\033[1;31m Successfully installed to %s.\n\033[0m" "${dest_path}"
-printf >&2 "\033[1;31m Be sure that %s is in your \$PATH environment variable for it to work.\n\033[0m" "${dest_path}"
+printf >&2 "\033[1;32m Installation successful!\n\033[0m"
+printf >&2 "\033[0m Shell scripts are located in \033[1;31m%s\n\033[0m" "${dest_path}"
+printf >&2 "\033[0m Manpages are located in \033[1;31m%s\n\033[0m" "${man_dest_path}"
+
+if ! echo "${PATH}" | grep -q "${dest_path}"; then
+	printf >&2 "\033[0m Be sure that \033[1;31m%s\033[0m is in your \033[1;31m\$PATH\033[0m environment variable to be able to use distrobox without specifying the full path.\n\033[0m" "${dest_path}"
+fi
