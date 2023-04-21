@@ -44,7 +44,7 @@ fi
 
 # Defaults
 container_command=""
-container_image_default="registry.fedoraproject.org/fedora-toolbox:37"
+container_image_default="registry.fedoraproject.org/fedora-toolbox:38"
 container_manager="autodetect"
 container_manager_additional_flags=""
 container_name=""
@@ -110,7 +110,7 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-enter --name fedora-35 -- bash -l
+	distrobox-enter --name fedora-38 -- bash -l
 	distrobox-enter my-alpine-container -- sh -l
 	distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
 	distrobox-enter --additional-flags "--env MY_VAR=value" --name test -- bash -l
