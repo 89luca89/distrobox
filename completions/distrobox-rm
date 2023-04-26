@@ -3,6 +3,9 @@
 if [ -e /usr/share/bash-completion/completions/distrobox ]; then
 	source /usr/share/bash-completion/completions/distrobox
 fi
+if [ -e /usr/local/share/bash-completion/completions/distrobox ]; then
+	source /usr/local/share/bash-completion/completions/distrobox
+fi
 if [ -e "${HOME}/.local/share/bash-completion/completions/distrobox" ]; then
 	source "${HOME}/.local/share/bash-completion/completions/distrobox"
 fi

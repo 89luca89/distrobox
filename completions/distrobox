@@ -12,21 +12,32 @@ _generate_from_help() {
 	opts="$($command --help | sed 's|^\t||g' | grep '^--' | cut -d':' -f1 | tr '/' ' ' | tr '\n' ' ')"
 	totalopts="$(echo $opts | tr ' ' '|')"
 	diropts="-H|--home|--volume"
+	fileopts="-f|--file"
 
 	if [[ ${prev} =~ ${diropts} ]]; then
 		COMPREPLY=($(compgen -d -- ${cur}))
 		return 0
 	fi
 
+	if [[ ${prev} =~ ${fileopts} ]]; then
+		COMPREPLY=($(compgen -f -- ${cur}))
+		return 0
+	fi
+	if [[ ${prev} == "assemble" ]]; then
+		COMPREPLY+=($(compgen -W "create rm" -- ${cur}))
+		return 0
+	fi
+
 	if [[ ${prev} == "--image" ]] || [[ ${prev} == "-i" ]]; then
-		COMPREPLY+=($(compgen -W "$(distrobox-create --compatibility)" -- ${cur} ))
+		COMPREPLY+=($(compgen -W "$(distrobox-create --compatibility)" -- ${cur}))
 		return 0
 	fi
 
 	if [[ ${cur} == -* ]]; then
 		COMPREPLY+=($(compgen -W "${opts}" -- ${cur}))
 		return 0
-	elif [[ ${command} != *"create"* ]] && [[ ${command} != *"ephemeral"* ]] && [[ ${command} != *"list"* ]]; then
+	elif [[ ${command} != *"create"* ]] && [[ ${command} != *"ephemeral"* ]] &&
+		[[ ${command} != *"list"* ]] && [[ ${command} != *"assemble"* ]]; then
 		while IFS= read -r line; do
 			list+="$line "
 		done < <(distrobox-list --no-color | tail -n+2 | awk '{print $3}')
