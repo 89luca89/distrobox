@@ -227,7 +227,10 @@ get_locked_mount_flags() (
 mount_bind() (
 	source_dir="$1"
 	target_dir="$2"
-	mount_flags="$3"
+	mount_flags=""
+	if [ "$#" -gt 2 ]; then
+		mount_flags="$3"
+	fi
 
 	# if source dir doesn't exist, just exit normally
 	! [ -d "${source_dir}" ] && ! [ -f "${source_dir}" ] && return 0
@@ -293,7 +296,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 	! command -v pinentry || ! command -v wget || ! command -v curl ||
 	! command -v less || ! command -v bc || ! command -v time || ! command -v lsof ||
 	! command -v "${shell_pkg}" ||
-	[ -n "${container_additional_packages}" ]; then
+	{ [ -n "${container_additional_packages}" ] && [ ! -e /run/.containersetupdone ]; }; then
 
 	# Detect the available package manager
 	# install minimal dependencies needed to bootstrap the container:
@@ -830,6 +833,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 	else
 		SHELL="$(command -v "${shell_pkg}")"
 	fi
+
+	touch /run/.containersetupdone
 fi
 ###############################################################################
 
@@ -870,7 +875,7 @@ HOST_MOUNTS="
 	/var/lib/libvirt
 	/var/mnt"
 for host_mount in ${HOST_MOUNTS}; do
-	if ! mount_bind /run/host"${host_mount}" "${host_mount}" rw; then
+	if ! mount_bind /run/host"${host_mount}" "${host_mount}"; then
 		printf "Warning: Cannot bind mount %s to /run/host%s\n" "${host_mount}" "${host_mount}"
 	fi
 done
@@ -889,7 +894,7 @@ HOST_MOUNTS_RO_INIT="
 # it to be in /home. In the hosts systems this is fixed by using a symlink.
 # Do something similar here with a bind mount.
 if [ -e "/var/home/${container_user_name}" ]; then
-	if ! mount_bind "/run/host/var/home/${container_user_name}" "/home/${container_user_name}" rw; then
+	if ! mount_bind "/run/host/var/home/${container_user_name}" "/home/${container_user_name}"; then
 		printf "Warning: Cannot bind mount %s to /run/host%s\n" "/var/home" "/home"
 	fi
 fi
@@ -991,15 +996,15 @@ printf "distrobox: Integrating host's themes, icons, fonts...\n"
 # Themes and icons integration works using a bind mount inside the container
 # of the host's themes and icons directory. This ensures that the host's home will
 # not be littered with files and directories and broken symlinks.
-if ! mount_bind "/run/host/usr/share/themes" "/usr/local/share/themes" rw; then
+if ! mount_bind "/run/host/usr/share/themes" "/usr/local/share/themes"; then
 	printf "Warning: Cannot bind mount /run/host/usr/share/themes to /usr/local/share/themes\n"
 	printf "Warning: Themes integration with the host is disabled.\n"
 fi
-if ! mount_bind "/run/host/usr/share/icons" "/usr/local/share/icons" rw; then
+if ! mount_bind "/run/host/usr/share/icons" "/usr/local/share/icons"; then
 	printf "Warning: Cannot bind mount /run/host/usr/share/icons to /usr/local/share/icons\n"
 	printf "Warning: Icons integration with the host is disabled.\n"
 fi
-if ! mount_bind "/run/host/usr/share/fonts" "/usr/local/share/fonts" rw; then
+if ! mount_bind "/run/host/usr/share/fonts" "/usr/local/share/fonts"; then
 	printf "Warning: Cannot bind mount /run/host/usr/share/fonts to /usr/local/share/fonts\n"
 	printf "Warning: Fonts integration with the host is disabled.\n"
 fi
@@ -1261,7 +1266,7 @@ if [ "${init}" -eq 0 ]; then
 					# files so that can be separated from the host.
 					findmnt "${file_watch}" > /dev/null &&
 						umount "${file_watch}" &&
-						mount_bind "/run/host${file_watch}" "${file_watch}" rw
+						mount_bind "/run/host${file_watch}" "${file_watch}"
 				fi
 			fi
 		done
