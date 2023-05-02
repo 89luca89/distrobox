@@ -163,7 +163,7 @@ Distrobox guests tested successfully with the following container images:
 | CentOS | 7 | quay.io/centos/centos:7  |
 | ClearLinux |      | docker.io/library/clearlinux:latest <br> docker.io/library/clearlinux:base    |
 | Crystal Linux | | registry.getcryst.al/crystal/misc/docker:latest |
-| Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 | docker.io/debian/eol:wheezy <br> docker.io/library/debian:9 <br> docker.io/library/debian:10 <br> docker.io/library/debian:stable <br> docker.io/library/debian:stable-backports    |
+| Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 | docker.io/debian/eol:wheezy <br> docker.io/debian/eol:stretch <br> docker.io/library/debian:10 <br> docker.io/library/debian:stable <br> docker.io/library/debian:stable-backports    |
 | Debian | Testing    | docker.io/library/debian:testing  <br>  docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
 | Fedora | 36 <br> 37 <br> 38 <br> 39 <br> Rawhide | quay.io/fedora/fedora:36 <br> registry.fedoraproject.org/fedora:37 <br> quay.io/fedora/fedora:38 <br> quay.io/fedora/fedora:39  |
