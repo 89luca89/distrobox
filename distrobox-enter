@@ -275,10 +275,9 @@ fi
 #   prints the podman or docker command to enter the distrobox container
 generate_command() {
 	result_command="${container_manager} exec"
-	result_command="${result_command} \\
-		--interactive \\
-		--detach-keys=\"\" \\
-		--user=\"${USER}\""
+	result_command="${result_command} --interactive"
+	result_command="${result_command} --detach-keys=\"\""
+	result_command="${result_command} --user=\"${USER}\""
 
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
@@ -287,8 +286,7 @@ generate_command() {
 	# work in tty-less situations.
 	# Disable tty also if we're NOT in a tty (test -t 0).
 	if [ "${headless}" -eq 0 ] && [ -t 0 ]; then
-		result_command="${result_command} \\
-			--tty"
+		result_command="${result_command} --tty"
 	fi
 
 	# Entering container using our user and workdir.
@@ -308,10 +306,9 @@ generate_command() {
 		# Skipping workdir we just enter $HOME of the container.
 		workdir="${container_home}"
 	fi
-	result_command="${result_command} \\
-		--workdir=\"${workdir}\" \\
-		--env \"CONTAINER_ID=${container_name}\" \\
-		--env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
+	result_command="${result_command} --workdir=\"${workdir}\""
+	result_command="${result_command} --env \"CONTAINER_ID=${container_name}\""
+	result_command="${result_command} --env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
