@@ -76,7 +76,6 @@ graphical apps (X11/Wayland), and audio.
   - [Export to the host](useful_tips.md#export-to-the-host)
   - [Execute commands on the host](useful_tips.md#execute-commands-on-the-host)
   - [Enable SSH X-Forwarding when SSH-ing in a distrobox](useful_tips.md#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
-  - [Use distrobox to install different flatpaks from the host](useful_tips.md#use-distrobox-to-install-different-flatpaks-from-the-host)
   - [Using podman or docker inside a distrobox](useful_tips.md#using-podman-or-docker-inside-a-distrobox)
   - [Using init system inside a distrobox](useful_tips.md#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](useful_tips.md#using-distrobox-as-main-cli)

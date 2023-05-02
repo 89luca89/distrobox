@@ -10,7 +10,6 @@
   - [Export to the host](#export-to-the-host)
   - [Execute commands on the host](#execute-commands-on-the-host)
   - [Enable SSH X-Forwarding when SSH-ing in a distrobox](#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
-  - [Use distrobox to install different flatpaks from the host](#use-distrobox-to-install-different-flatpaks-from-the-host)
   - [Using podman or docker inside a distrobox](#using-podman-or-docker-inside-a-distrobox)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
@@ -207,22 +206,6 @@ distrobox create --name test --image your-chosen-image:tag \
 This will ensure SSH X-Forwarding will work when SSH-ing inside the distrobox:
 
 `ssh -X myhost distrobox enter test -- xclock`
-
-## Use distrobox to install different flatpaks from the host
-
-By default distrobox will integrate with host's flatpak directory if present:
-`/var/lib/flatpak` and obviously with the $HOME one.
-
-If you want to have a separate system remote between host and container,
-you can create your distrobox with the following init-hook:
-
-```sh
-distrobox create --name test --image your-chosen-image:tag \
-                        --init-hooks 'umount /var/lib/flatpak'`
-```
-
-After that you'll be able to have separate flatpaks between host and distrobox.
-You can proceed to export them using `distrobox-export` (for distrobox 1.2.14+)
 
 ## Using podman or docker inside a distrobox
 
