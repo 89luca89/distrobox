@@ -191,7 +191,7 @@ while :; do
 			for arg in "$@"; do
 				arg="$(echo "${arg}x" | sed 's|'\''|'\'\\\\\'\''|g')"
 				arg="${arg%x}"
-				container_command="${container_command} '$arg'"
+				container_command="${container_command} '${arg}'"
 			done
 			break
 			;;
