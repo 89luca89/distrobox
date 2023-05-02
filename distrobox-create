@@ -50,7 +50,7 @@ container_always_pull=0
 container_clone=""
 container_home_prefix=""
 container_image=""
-container_image_default="registry.fedoraproject.org/fedora-toolbox:37"
+container_image_default="registry.fedoraproject.org/fedora-toolbox:38"
 container_name_default="my-distrobox"
 container_init_hook=""
 container_manager="autodetect"
@@ -140,12 +140,12 @@ distrobox version: ${version}
 Usage:
 
 	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
-	distrobox create --image fedora:35 --name test --additional-flags "--env MY_VAR-value"
-	distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
+	distrobox create --image fedora:38 --name test --additional-flags "--env MY_VAR-value"
+	distrobox create --image fedora:38 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
 	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
-	distrobox create --clone fedora-35 --name fedora-35-copy
+	distrobox create --clone fedora-38 --name fedora-38-copy
 	distrobox create --image alpine my-alpine-container
-	distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
+	distrobox create --image registry.fedoraproject.org/fedora-toolbox:38 --name fedora-toolbox-38
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
 	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim"
 	distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
@@ -390,7 +390,7 @@ fi
 # Examples:
 #	alpine -> alpine
 #	ubuntu:20.04 -> ubuntu-20.04
-#	registry.fedoraproject.org/fedora-toolbox:35 -> fedora-toolbox-35
+#	registry.fedoraproject.org/fedora-toolbox:38 -> fedora-toolbox-38
 #	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
 if [ -z "${container_name}" ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/[:.]/-/g')"
