@@ -34,7 +34,8 @@ This is an example manifest file to create two containers:
 	root=false
 	replace=true
 
-	[arch]
+	# You can add comments using this #
+	[arch] # also inline comments are supported
 	additional_packages=git vim tmux nodejs
 	home=/tmp/home
 	image=archlinux:latest
