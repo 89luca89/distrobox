@@ -37,7 +37,7 @@ Choose one of the available commands:
 	assemble
 	create
 	enter
-	list
+	list | ls
 	rm
 	stop
 	upgrade
@@ -70,6 +70,9 @@ case "${distrobox_command}" in
 		;;
 	list)
 		"${distrobox_path}"/distrobox-list "$@"
+		;;
+	ls)
+		"${distrobox_path}"/distrobox-ls "$@"
 		;;
 	stop)
 		"${distrobox_path}"/distrobox-stop "$@"
