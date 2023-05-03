@@ -352,7 +352,7 @@ export_application() {
 	# Find icons by usinc the Icon= specification. If it's only a name, we'll
 	# search for the file, if it's already a path, just grab it.
 	icon_files=""
-	for desktop_file in ${desktop_files}; do
+	while IFS= read -r desktop_file; do
 		icon_name="$(grep Icon= "${desktop_file}" | cut -d'=' -f2-)"
 
 		# In case it's an hard path, conserve it and continue
@@ -366,7 +366,9 @@ export_application() {
 			/usr/share/icons \
 			/usr/share/pixmaps \
 			/var/lib/flatpak/exports/share/icons -iname "*${icon_name}*" 2> /dev/null || :)"
-	done
+	done << EOF
+${desktop_files}
+EOF
 
 	# create applications dir if not existing
 	mkdir -p "/run/host${host_home}/.local/share/applications"
@@ -400,7 +402,7 @@ export_application() {
 	done
 
 	# create desktop files for the distrobox
-	for desktop_file in ${desktop_files}; do
+	while IFS= read -r desktop_file; do
 		desktop_original_file="$(basename "${desktop_file}")"
 		desktop_home_file="${container_name}-$(basename "${desktop_file}")"
 
@@ -444,7 +446,9 @@ export_application() {
 			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 		sed -i "s|pixmaps|icons|g" \
 			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
-	done
+	done << EOF
+${desktop_files}
+EOF
 
 	if [ "${exported_delete}" -ne 0 ]; then
 		printf "Application %s successfully un-exported.\nOK!\n" "${exported_app}"
