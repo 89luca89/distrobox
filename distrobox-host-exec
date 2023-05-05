@@ -22,7 +22,8 @@
 host_command=""
 non_interactive=0
 # If we're in a non-interactive shell, let's act accordingly
-if ! tty > /dev/null 2>&1; then
+if [ ! -t 1 ] ||
+	! tty > /dev/null 2>&1; then
 	non_interactive=1
 fi
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
@@ -179,6 +180,7 @@ fi
 # Also, we don't initialize a pty, if we're not in a tty.
 if  [ "$(basename "${host_command}")" = "xdg-open" ] ||
 	[ "$(basename "${host_command}")" = "gio" ] ||
+	[ ! -t 1 ] ||
 	! tty > /dev/null 2>&1; then
 
 	host-spawn --no-pty "${host_command}" "$@"

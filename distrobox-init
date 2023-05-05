@@ -1266,7 +1266,7 @@ if [ "${init}" -eq 0 ]; then
 					# files so that can be separated from the host.
 					findmnt "${file_watch}" > /dev/null &&
 						umount "${file_watch}" &&
-						mount_bind "/run/host${file_watch}" "${file_watch}"
+						mount_bind "${file_watch_src}" "${file_watch}"
 				fi
 			fi
 		done
