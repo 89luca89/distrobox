@@ -27,7 +27,7 @@ Let it initialize, then we can install all the packages we need:
 ```console
 :~> distrobox enter --root libvirtd-container
 :~$ # We're now inside the container
-:~$ sudo dnf groupinstall Virtualization Host --allowerasing 
+:~$ sudo dnf groupinstall "Virtualization Host" --allowerasing 
 ...
 :~$ sudo systemctl enable --now libvirtd
 ```
