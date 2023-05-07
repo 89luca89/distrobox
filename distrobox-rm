@@ -247,7 +247,7 @@ for container_name in ${container_name_list}; do
 		else
 			printf >&2 "Please stop container %s before deletion\n" "${container_name}"
 			printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
-			printf >&2 'or use the "--force" flag'
+			printf >&2 "or use the \"--force\" flag\n"
 			exit 1
 		fi
 	fi
