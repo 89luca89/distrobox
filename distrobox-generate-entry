@@ -151,7 +151,6 @@ fi
 # If we delete, just ask confirmation and exit.
 if [ "${delete}" -ne 0 ]; then
 	rm -f "${HOME}/.local/share/applications/${container_name}.desktop"
-	printf "%s\n" "${container_name}"
 	exit
 fi
 
@@ -282,5 +281,3 @@ Terminal=true
 TryExec=${distrobox_path}/distrobox
 Type=Application
 EOF
-
-printf "%s\n" "${container_name}"
