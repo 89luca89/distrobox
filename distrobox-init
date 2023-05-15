@@ -290,12 +290,23 @@ if [ "${shell_pkg}" = "ash" ]; then
 	shell_pkg="busybox"
 fi
 
+shell_real_path="$(realpath "${SHELL}" 2> /dev/null || :)"
+case "${shell_real_path}" in
+	/nix/store/*|/gnu/store/*)
+		shell_pkg=""
+		if ! grep -q "${SHELL}" /etc/shells; then
+			echo "${SHELL}" | tee -a /etc/shells
+		fi
+		;;
+	*) ;;
+esac
+
 # Check if dependencies are met for the script to run.
 if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! command -v passwd ||
 	! command -v sudo || ! command -v useradd || ! command -v diff ||
 	! command -v pinentry || ! command -v wget || ! command -v curl ||
 	! command -v less || ! command -v bc || ! command -v time || ! command -v lsof ||
-	! command -v "${shell_pkg}" ||
+	! command -v "${shell_pkg:-"${SHELL}"}" ||
 	{ [ -n "${container_additional_packages}" ] && [ ! -e /run/.containersetupdone ]; }; then
 
 	# Detect the available package manager
@@ -312,11 +323,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		if ! apk add "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! apk add "${shell_pkg}"; then
+				shell_pkg="bash"
+				apk add "${shell_pkg}"
+			fi
 		fi
 		apk add \
-			"${shell_pkg}" \
 			bc \
 			curl \
 			diffutils \
@@ -362,11 +375,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		if ! apt-get install -y "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! apt-get install -y "${shell_pkg}"; then
+				shell_pkg="bash"
+				apt-get install -y "${shell_pkg}"
+			fi
 		fi
 		apt-get install -y \
-			"${shell_pkg}" \
 			apt-utils \
 			bc \
 			curl \
@@ -419,11 +434,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		if ! dnf install -y "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! dnf install -y "${shell_pkg}"; then
+				shell_pkg="bash"
+				dnf install -y "${shell_pkg}"
+			fi
 		fi
 		dnf install -y --allowerasing \
-			"${shell_pkg}" \
 			bc \
 			curl \
 			diffutils \
@@ -476,11 +493,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		if ! emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"; then
+				shell_pkg="bash"
+				emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"
+			fi
 		fi
 		emerge --ask=n --autounmask-continue --noreplace --quiet-build \
-			"${shell_pkg}" \
 			app-crypt/gnupg \
 			sys-devel/bc \
 			diffutils \
@@ -512,11 +531,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		if ! microdnf install -y "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! microdnf install -y "${shell_pkg}"; then
+				shell_pkg="bash"
+				microdnf install -y "${shell_pkg}"
+			fi
 		fi
 		microdnf install -y \
-			"${shell_pkg}" \
 			bc \
 			diffutils \
 			findutils \
@@ -564,11 +585,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
 		pacman --noconfirm -Syyu
-		if ! pacman -Sy --noconfirm "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! pacman -Sy --noconfirm "${shell_pkg}"; then
+				shell_pkg="bash"
+				pacman -Sy --noconfirm "${shell_pkg}"
+			fi
 		fi
 		pacman -Sy --noconfirm \
-			"${shell_pkg}" \
 			bc \
 			curl \
 			diffutils \
@@ -609,11 +632,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		if ! yes | slackpkg install -default_answer=yes -batch=yes "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! yes | slackpkg install -default_answer=yes -batch=yes "${shell_pkg}"; then
+				shell_pkg="bash"
+				yes | slackpkg install -default_answer=yes -batch=yes "${shell_pkg}"
+			fi
 		fi
 		yes | slackpkg install -default_answer=yes -batch=yes \
-			"${shell_pkg}" \
 			bc \
 			curl \
 			diffutils \
@@ -684,11 +709,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		if ! xbps-install -Sy "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! xbps-install -Sy "${shell_pkg}"; then
+				shell_pkg="bash"
+				xbps-install -Sy "${shell_pkg}"
+			fi
 		fi
 		xbps-install -Sy \
-			"${shell_pkg}" \
 			bc \
 			curl \
 			diffutils \
@@ -727,11 +754,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		if ! yum install -y "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! yum install -y "${shell_pkg}"; then
+				yum install -y "${shell_pkg}"
+				shell_pkg="bash"
+			fi
 		fi
 		yum install -y \
-			"${shell_pkg}" \
 			bc \
 			curl \
 			diffutils \
@@ -769,11 +798,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			zypper dup -y
 			exit
 		fi
-		if ! zypper install -y "${shell_pkg}"; then
-			shell_pkg="bash"
+		if [ -n "${shell_pkg}" ]; then
+			if ! zypper install -y "${shell_pkg}"; then
+				shell_pkg="bash"
+				zypper install -y "${shell_pkg}"
+			fi
 		fi
 		zypper install -y \
-			"${shell_pkg}" \
 			bc \
 			curl \
 			diffutils \
@@ -830,7 +861,9 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 	# for this reason, use this quirk to adjust the package name.
 	if [ "${shell_pkg}" = "ash" ]; then
 		SHELL="/bin/sh"
-	else
+	# An empty shell_pkg means the shell is present on a shared filesystem
+	# path.
+	elif [ -n "${shell_pkg}" ]; then
 		SHELL="$(command -v "${shell_pkg}")"
 	fi
 
