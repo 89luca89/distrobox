@@ -294,7 +294,7 @@ shell_real_path="$(realpath "${SHELL}" 2> /dev/null || :)"
 case "${shell_real_path}" in
 	/nix/store/*|/gnu/store/*)
 		shell_pkg=""
-		if ! grep -q "${SHELL}" /etc/shells; then
+		if ! grep -q "^${SHELL}\$" /etc/shells; then
 			echo "${SHELL}" | tee -a /etc/shells
 		fi
 		;;
