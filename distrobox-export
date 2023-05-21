@@ -396,7 +396,9 @@ export_application() {
 
 		# we wanto to export the application's icons
 		mkdir -p "${icon_home_directory}"
-		cp -r "$(realpath "${icon_file}")" "${icon_home_directory}"
+		if [ -e "$(realpath "${icon_file}")" ]; then
+			cp -r "$(realpath "${icon_file}")" "${icon_home_directory}"
+		fi
 	done
 
 	# create desktop files for the distrobox
