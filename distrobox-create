@@ -653,7 +653,6 @@ generate_command() {
 			fi
 		done
 	fi
-	
 	TIME_FILES="
 		/etc/timezone
 		/etc/localtime
