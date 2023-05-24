@@ -654,7 +654,6 @@ generate_command() {
 		done
 	fi
 	TIME_FILES="
-		/etc/timezone
 		/etc/localtime
 	"
 	for time_file in ${TIME_FILES}; do
