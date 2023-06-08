@@ -112,8 +112,8 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 			install -D -m 0644 -t "${completion_dest_path}" "${file}"
 		done
 	fi
-	if [ -e terminal-distrobox-icon.png ]; then
-		install -D -m 0644 -t "${icon_dest_path}" terminal-distrobox-icon.png
+	if [ -e terminal-distrobox-icon.svg ]; then
+		install -D -m 0644 -t "${icon_dest_path}" terminal-distrobox-icon.svg
 	fi
 else
 	printf >&2 "\033[1;31m Checking dependencies...\n\033[0m"
@@ -167,9 +167,9 @@ else
 			install -D -m 0644 -t "${completion_dest_path}" "${file}"
 		done
 	fi
-	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.png ]; then
+	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.svg ]; then
 		install -D -m 0644 -t "${icon_dest_path}" \
-			"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.png
+			"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.svg
 	fi
 
 	# securely delete unneeded files

@@ -100,7 +100,7 @@ done
 for file in "${completion_dest_path}/distrobox"*; do
 	[ -e "${file}" ] && rm "${file}"
 done
-[  -e "${icon_dest_path}"/terminal-distrobox-icon.png ] && rm "${icon_dest_path}"/terminal-distrobox-icon.png
+[  -e "${icon_dest_path}"/terminal-distrobox-icon.svg ] && rm "${icon_dest_path}"/terminal-distrobox-icon.svg
 [  -e "${icon_dest_path}"/distrobox ] && rm -rf "${icon_dest_path}"/distrobox
 
 printf >&2 "\033[1;32m Thank you for using Distrobox. Uninstall complete.\n\033[0m"
