@@ -233,6 +233,7 @@ if [ "${icon}" = "auto" ]; then
 		centos:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/centos-distrobox.png
 		clear--os:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/clear-distrobox.png
 		debian:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/debian-distrobox.png
+		deepin:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/deepin-distrobox.png
 		fedora:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/fedora-distrobox.png
 		gentoo:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/gentoo-distrobox.png
 		opensuse-leap:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/opensuse-distrobox.png
