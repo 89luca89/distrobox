@@ -119,8 +119,8 @@ each Distrobox we choose to integrate with VSCode:
   "name" : // PUT YOUR DISTROBOX NAME HERE
   "remoteUser": "${localEnv:USER}",
   "settings": {
-    "remote.containers.copyGitConfig": false,
-    "remote.containers.gitCredentialHelperConfigLocation": "none",
+    "dev.containers.copyGitConfig": false,
+    "dev.containers.gitCredentialHelperConfigLocation": "none",
     "terminal.integrated.profiles.linux": {
       "shell": {
         "path": "${localEnv:SHELL}",
