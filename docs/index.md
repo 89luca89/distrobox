@@ -6,7 +6,6 @@ layout: default
   <img src="assets/brand/svg/distrobox-logomark-light.svg">
 </picture>
 
-
 Use any Linux distribution inside your terminal. Enable both backward and forward
 compatibility with software and freedom to use whatever distribution you’re more
 comfortable with.
