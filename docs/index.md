@@ -2,14 +2,8 @@
 layout: default
 ---
 <picture>
-    <source 
-        srcset="assets/brand/svg/distrobox-logomark-dark.svg" 
-        media="(prefers-color-scheme: dark)"
-    >
-   <img 
-        src="assets/brand/svg/distrobox-logomark-light.svg" 
-        media="(prefers-color-scheme: light)"
-    >
+  <source srcset="assets/brand/svg/distrobox-logomark-dark.svg" media="(prefers-color-scheme: dark)">
+  <img src="assets/brand/svg/distrobox-logomark-light.svg">
 </picture>
 
 
