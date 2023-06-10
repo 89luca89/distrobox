@@ -234,24 +234,6 @@ for container_name in ${container_name_list}; do
 		exit 1
 	fi
 
-	# If the container is not already running, we need to start if first
-	if [ "${container_status}" = "running" ]; then
-		if [ "${force}" -ne 0 ]; then
-			printf >&2 "Stopping container %s\n" "${container_name}"
-			if ! ${container_manager} stop "${container_name}"; then
-				printf >&2 "Could not stop container %s\n" "${container_name}"
-				printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-				printf >&2 "Run:\n\t%s stop %s" "${container_manager}" "${container_name}"
-				exit 1
-			fi
-		else
-			printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-			printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
-			printf >&2 "or use the \"--force\" flag\n"
-			exit 1
-		fi
-	fi
-
 	# Prompt for confirmation
 	if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
 		printf "Do you really want to delete %s? [Y/n]: " "${container_name}"
@@ -306,6 +288,50 @@ for container_name in ${container_name_list}; do
 					verbose_arg="--verbose"
 				fi
 				"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete "${verbose_arg}"
+			fi
+
+			IFS='@'
+			# Remove exported binaries from this container in default path
+			binary_files="$(grep -rl "# distrobox_binary" "${HOME}/.local/bin" |
+				xargs -I{} grep -le "# name: ${container_name}$" "{}" |
+				xargs -I{} printf "%s@" {} 2> /dev/null || :)"
+			for file in ${binary_files}; do
+				printf "Removing exported binary %s...\n" "${file}"
+				rm -f "${file}"
+			done
+
+			# Remove exported gui apps from this container in default path
+			if ls "${HOME}/.local/share/applications/${container_name}"* > /dev/null 2> /dev/null; then
+				# shellcheck disable=SC2086,SC2038
+				desktop_files="$(find "${HOME}/.local/share/applications/${container_name}"* -type f -o -type l |
+					xargs -I{} grep -le "Exec=.*${container_name} " "{}" |
+					xargs -I{} printf "%s@" {} 2> /dev/null || :)"
+				for file in ${desktop_files}; do
+					if [ -e "${file}" ]; then
+						app="$(grep -Eo "Name=.*" "${file}" | head -n 1 | cut -d' ' -f1 | cut -d'=' -f2)"
+
+						printf "Removing exported app %s...\n" "${app}"
+						"$(dirname "$(realpath "${0}")")/distrobox-enter" "${container_name}" -- distrobox-export --delete --app "${app}" > /dev/null 2> /dev/null || :
+					fi
+				done
+			fi
+
+			# If the container is running, we need to stop if first
+			if [ "${container_status}" = "running" ]; then
+				if [ "${force}" -ne 0 ]; then
+					printf >&2 "Stopping container %s\n" "${container_name}"
+					if ! ${container_manager} stop "${container_name}"; then
+						printf >&2 "Could not stop container %s\n" "${container_name}"
+						printf >&2 "Please stop container %s before deletion\n" "${container_name}"
+						printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
+						exit 1
+					fi
+				else
+					printf >&2 "Please stop container %s before deletion\n" "${container_name}"
+					printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
+					printf >&2 "or use the \"--force\" flag\n"
+					exit 1
+				fi
 			fi
 
 			# Remove the container
