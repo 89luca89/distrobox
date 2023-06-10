@@ -301,7 +301,11 @@ for container_name in ${container_name_list}; do
 		y | Y | Yes | yes | YES)
 			# We're going to delete the box, let's also delete the entry
 			if [ "${rootful}" -eq 0 ]; then
-				"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete
+				verbose_arg=""
+				if [ "${verbose}" -ne 0 ]; then
+					verbose_arg="--verbose"
+				fi
+				"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete "${verbose_arg}"
 			fi
 
 			# Remove the container
