@@ -642,14 +642,23 @@ generate_command() {
 	# relative paths.
 	# This is the bare minimum to ensure connectivity inside the container.
 	# These files, will then be kept updated by the main loop every 15 seconds.
-	HOST_FILES="
-		/etc/hosts
+	if [ "${unshare_netns}" -eq 0 ]; then
+		NET_FILES="
+			/etc/hosts
+			/etc/resolv.conf
+		"
+		for net_file in ${NET_FILES}; do
+			if [ -e "${net_file}" ]; then
+				result_command="${result_command} --volume ${net_file}:${net_file}:ro"
+			fi
+		done
+	fi
+	TIME_FILES="
 		/etc/localtime
-		/etc/resolv.conf
 	"
-	for host_file in ${HOST_FILES}; do
-		if [ -e "${host_file}" ]; then
-			result_command="${result_command} --volume ${host_file}:${host_file}:ro"
+	for time_file in ${TIME_FILES}; do
+		if [ -e "${time_file}" ]; then
+			result_command="${result_command} --volume ${time_file}:${time_file}:ro"
 		fi
 	done
 
