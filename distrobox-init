@@ -1304,17 +1304,17 @@ if command -v systemctl 2> /dev/null; then
 	"
 	# shellcheck disable=SC2086,SC2044
 	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
-		systemctl mask "$(basename "${unit}")"
+		systemctl mask "$(basename "${unit}")" || :
 	done
 fi
 # We don't want these workarounds anymore
-rm  -f /run/systemd/coredump
-rm  -f /run/systemd/io.system.ManagedOOM
-rm  -f /run/systemd/notify
-rm  -f /run/systemd/private
-rm  -f /etc/apt/apt.conf.d/00_distrobox
-rm  -f /usr/share/libalpm/hooks/*distrobox*.hook
-rm  -f /usr/share/libalpm/scripts/*distrobox*.sh
+rm -f /run/systemd/coredump
+rm -f /run/systemd/io.system.ManagedOOM
+rm -f /run/systemd/notify
+rm -f /run/systemd/private
+rm -f /etc/apt/apt.conf.d/00_distrobox
+rm -f /usr/share/libalpm/hooks/*distrobox*.hook
+rm -f /usr/share/libalpm/scripts/*distrobox*.sh
 # Remove /dev/console when using init systems, this will confuse host system if
 # we use rootful containers
 touch /var/container-console
