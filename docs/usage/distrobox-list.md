@@ -18,7 +18,6 @@ from the rest of normal podman or docker containers.
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
-	--size/-s:		show also container size
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
