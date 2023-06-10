@@ -75,13 +75,13 @@ Usage:
 
 	distrobox assemble create
 	distrobox assemble rm
-	distrobox assemble create -f /path/to/file.ini
-	distrobox assemble rm -f /path/to/file.ini
-	distrobox assemble create --replace -f /path/to/file.ini
+	distrobox assemble create --file /path/to/file.ini
+	distrobox assemble rm --file /path/to/file.ini
+	distrobox assemble create --replace --file /path/to/file.ini
 
 Options:
 
-	--file/-f:		path to the distrobox manifest/ini file
+	--file:		path to the distrobox manifest/ini file
 	--replace/-R:		replace already existing distroboxes with matching names
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
@@ -100,7 +100,7 @@ while :; do
 			delete=1
 			shift
 			;;
-		-f | --file)
+		--file)
 			# Call a "show_help" function to display a synopsis, then exit.
 			if [ -n "$2" ]; then
 				input_file="${2}"

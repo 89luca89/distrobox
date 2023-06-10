@@ -16,7 +16,7 @@ _generate_from_help() {
 	opts="$($command --help | sed 's|^\t||g' | grep '^--' | cut -d':' -f1 | tr '/' ' ' | tr '\n' ' ')"
 	totalopts="$(echo $opts | tr ' ' '|')"
 	diropts="-H|--home|--volume"
-	fileopts="-f|--file"
+	fileopts="--file"
 
 	if [[ ${prev} =~ ${diropts} ]]; then
 		COMPREPLY=($(compgen -d -- ${cur}))
@@ -41,7 +41,7 @@ _generate_from_help() {
 		COMPREPLY+=($(compgen -W "${opts}" -- ${cur}))
 		return 0
 	elif [[ ${command} != *"create"* ]] && [[ ${command} != *"ephemeral"* ]] &&
-		[[ ${command} != *"list"* ]] && [[ ${command} != *"ls"* ]] && [[ ${command} != *"assemble"* ]]; then
+		[[ ${command} != *"list"* ]] && [[ ${command} != *"assemble"* ]]; then
 		while IFS= read -r line; do
 			list+="$line "
 		done < <(distrobox-list --no-color | tail -n+2 | awk '{print $3}')
