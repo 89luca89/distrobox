@@ -1,7 +1,7 @@
 # Site settings
 title: Distrobox
 baseurl: "/" # the subpath of your site, e.g. /blog/
-                                 # usually empty. necessary for buidling absolute URIs
+                                 # usually empty. necessary for building absolute URIs
                                  # for metadata header
 url: "https://distrobox.privatedns.org"   # the base hostname & protocol for your site
 sourceurl: "https://github.com/89luca89/distrobox/tree/main/docs" # "edit this website" link in the footer

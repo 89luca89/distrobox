@@ -1,7 +1,7 @@
 ---
 layout: default
 ---
-![Pixels](assets/splash.gif){:.full.pixels}
+![Logo](assets/brand/svg/distrobox-logomark-light.svg)
 
 
 Use any Linux distribution inside your terminal. Enable both backward and forward
@@ -25,7 +25,7 @@ graphical apps (X11/Wayland), and audio.
 
 ---
 
-- [Distrobox](#distrobox)
+- [Distrobox](index.md)
   - [What it does](#what-it-does)
     - [See it in action](#see-it-in-action)
   - [Why?](#why)
