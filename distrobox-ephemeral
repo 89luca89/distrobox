@@ -46,6 +46,8 @@ extra_flags=""
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
 version="1.4.2.1"
+container_pre_init_hook=" "
+container_init_hook=" "
 
 # Print usage to stdout.
 # Arguments:
@@ -105,6 +107,27 @@ while :; do
 			container_command="-- $*"
 			break
 			;;
+		-n | --name)
+			# Ignore --name on ephemeral
+			if [ -n "$2" ]; then
+				shift
+				shift
+			fi
+			;;
+		--init-hooks)
+			if [ -n "$2" ]; then
+				container_init_hook="$2"
+				shift
+				shift
+			fi
+			;;
+		--pre-init-hooks)
+			if [ -n "$2" ]; then
+				container_pre_init_hook="${2}"
+				shift
+				shift
+			fi
+			;;
 		*) # Default case: If no more options then break out of the loop.
 			# If we have a flagless option and container_name is not specified
 			# then let's accept argument as container_name
@@ -132,10 +155,10 @@ fi
 
 name=$(mktemp -u distrobox-XXXXXXXXXX)
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-create --name ${name} --yes ${create_flags} ${extra_flags}
+"${distrobox_path}"/distrobox-create --init-hooks "${container_init_hook}" --pre-init-hooks "${container_pre_init_hook}" ${extra_flags} ${create_flags} --yes --name ${name} 
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-enter "${name}" ${container_command} ${extra_flags}
+"${distrobox_path}"/distrobox-enter ${extra_flags} "${name}" ${container_command} 
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-stop "${name}" --yes ${extra_flags}
+"${distrobox_path}"/distrobox-stop ${extra_flags} "${name}" --yes 
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-rm --force "${name}" --yes ${extra_flags}
+"${distrobox_path}"/distrobox-rm  ${extra_flags} --force "${name}" --yes 
