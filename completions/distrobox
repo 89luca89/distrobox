@@ -3,7 +3,7 @@
 _generate_from_help() {
 	command=$1
 	# if command does not exist, try with `distrobox subcommand`
-	if ! $command --help 2>/dev/null ; then
+	if ! $command --help >/dev/null 2>/dev/null ; then
 		command="$(echo $command | tr '-' ' ')"
 	fi
 
