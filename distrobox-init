@@ -455,7 +455,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vulkan
 		"
 		# shellcheck disable=SC2086,2046
-		dnf install -y --allowerasing $(dnf repoquery -q --latest-limit 1 ${deps})
+		dnf install -y --best --allowerasing $(dnf repoquery -q --latest-limit 1 --arch "$(uname -m)" ${deps})
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -798,7 +798,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vulkan
 		"
 		# shellcheck disable=SC2086,SC2046
-		yum install $(yum list -q ${deps} | grep -v "Packages" | cut -d' ' -f1)
+		yum install -y $(yum list -q ${deps} | grep -v "Packages" | cut -d' ' -f1)
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
