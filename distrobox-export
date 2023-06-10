@@ -332,13 +332,10 @@ export_application() {
 	# by its launcher name.
 	desktop_files=$(
 		# shellcheck disable=SC2086
-		find ${canon_dirs} \
-			-type f \
-			-exec grep -qle "Exec=.*${exported_app}.*" {} \; \
-			-exec grep -Le "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox-enter"}.*" {} \;
-		# shellcheck disable=SC2086
-		find ${canon_dirs} \
-			-name "${exported_app}*"
+		find ${canon_dirs} -type f | \
+			xargs -I{} grep -le "Exec=.*${exported_app}.*" "{}" | \
+			xargs -I{} grep -Le "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox-enter"}.*" "{}" | \
+			xargs -I{} printf "%s@" {}
 	)
 
 	# Ensure the app we're exporting is installed
@@ -352,20 +349,26 @@ export_application() {
 	# Find icons by usinc the Icon= specification. If it's only a name, we'll
 	# search for the file, if it's already a path, just grab it.
 	icon_files=""
+	IFS="@"
 	for desktop_file in ${desktop_files}; do
+		if [ -z "${desktop_file}" ]; then
+			continue
+		fi
+
 		icon_name="$(grep Icon= "${desktop_file}" | cut -d'=' -f2-)"
 
 		# In case it's an hard path, conserve it and continue
 		if [ -e "${icon_name}" ]; then
-			icon_files="${icon_files} ${icon_name}"
+			icon_files="${icon_files}@${icon_name}"
 			continue
 		fi
 
 		# If it's not an hard path, find all files in the canonical paths.
-		icon_files="${icon_files} $(find \
+		icon_files="${icon_files}@$(find \
 			/usr/share/icons \
 			/usr/share/pixmaps \
-			/var/lib/flatpak/exports/share/icons -iname "*${icon_name}*" 2> /dev/null || :)"
+			/var/lib/flatpak/exports/share/icons -iname "*${icon_name}*" \
+			-printf "%p@" 2> /dev/null || :)"
 	done
 
 	# create applications dir if not existing
@@ -373,7 +376,11 @@ export_application() {
 
 	# copy icons in home directory
 	icon_file_absolute_path=""
+	IFS="@"
 	for icon_file in ${icon_files}; do
+		if [ -z "${icon_file}" ]; then
+			continue
+		fi
 
 		# replace canonical paths with equivalent paths in HOME
 		icon_home_directory="$(dirname "${icon_file}" |
@@ -400,7 +407,12 @@ export_application() {
 	done
 
 	# create desktop files for the distrobox
+	IFS="@"
 	for desktop_file in ${desktop_files}; do
+		if [ -z "${desktop_file}" ]; then
+			continue
+		fi
+
 		desktop_original_file="$(basename "${desktop_file}")"
 		desktop_home_file="${container_name}-$(basename "${desktop_file}")"
 
