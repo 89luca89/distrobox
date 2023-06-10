@@ -1,0 +1,489 @@
+/* 
+
+    OS Component Website
+    ====================
+    
+    shamelessy stolen CSS from systemd 
+    https://github.com/systemd/systemd/tree/main/docs
+    
+*/
+
+/* GNOME Color Palette */
+:root {
+  --rounded-corner: 12px;
+  --blue1: rgb(153,193,241);
+  --blue2: rgb(98,160,234);
+  --blue3: rgb(53,132,228);
+  --blue4: rgb(28,113,216);
+  --blue5: rgb(26,95,180);
+  --green1: rgb(143,240,164);
+  --green2: rgb(87,227,137);
+  --green3: rgb(51,209,122);
+  --green4: rgb(46,194,126);
+  --green5: rgb(38,162,105);
+  --yellow1: rgb(249,240,107);
+  --yellow2: rgb(248,228,92);
+  --yellow3: rgb(246,211,45);
+  --yellow4: rgb(245,194,17);
+  --yellow5: rgb(229,165,10);
+  --orange1: rgb(255,190,111);
+  --orange2: rgb(255,163,72);
+  --orange3: rgb(255,120,0);
+  --orange4: rgb(230,97,0);
+  --orange5: rgb(198,70,0);
+  --red1: rgb(246,97,81);
+  --red2: rgb(237,51,59);
+  --red3: rgb(224,27,36);
+  --red4: rgb(192,28,40);
+  --red5: rgb(165,29,45);
+  --purple1: rgb(220,138,221);
+  --purple2: rgb(192,97,203);
+  --purple3: rgb(145,65,172);
+  --purple4: rgb(129,61,156);
+  --purple5: rgb(97,53,131);
+  --brown1: rgb(205,171,143);
+  --brown2: rgb(181,131,90);
+  --brown3: rgb(152,106,68);
+  --brown4: rgb(134,94,60);
+  --brown5: rgb(99,69,44);
+  --light1: rgb(255,255,255);
+  --light2: rgb(246,245,244);
+  --light3: rgb(222,221,218);
+  --light4: rgb(192,191,188);
+  --light5: rgb(154,153,150);
+  --dark1: rgb(119,118,123);
+  --dark2: rgb(94,92,100);
+  --dark3: rgb(61,56,70);
+  --dark4: rgb(36,31,49);
+  --dark5: rgb(0,0,0);
+  --primary-color: var(--medium-armadillo); /* Set your project color */
+  --borders: var(--light3);
+  
+  --dark-armadillo: #4f433c;
+  --medium-armadillo: #70594d;
+  --light-armadillo: #f0e2d1;
+}
+
+/* Typography */
+
+@font-face {
+  font-family: 'Inter Var';
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: oblique 0deg 10deg;
+  src: url("fonts/Inter.var.woff2?v=3.19") format("woff2");
+}
+
+* {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  font-family: "Inter Var", sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+body {
+  color: #241f31;
+  background-color: #f6f5f4;
+  /* ⇩⇩ put footer at the bottom for short pages, such as the 404 ⇩⇩ */
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto minmax(auto,1fr) auto; /* header, stuff, footer */
+}
+h1, h2, h3, h4, h5, h6 {
+  margin: 3rem 0 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+  font-variation-settings: "wght" 600; /* needed for webkit */
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 100;
+  font-style: normal;
+  margin: 3rem 0 1rem;
+}
+
+@media screen and (min-width: 650px) {
+  h1 {
+    font-size: 1.6rem;
+  }
+}
+h2 {
+  font-size: 1.2rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    filter: invert(100%) hue-rotate(180deg);
+  }
+
+  html {
+    background-color: var(--dark5);
+  }
+
+  img, video, iframe {
+    filter: invert(100%) hue-rotate(180deg);
+  }
+}
+
+a {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-variation-settings: "wght" 600; /* needed for webkit */
+}
+a:hover {
+  text-decoration: underline;
+}
+b {
+  font-weight: 600;
+}
+small {
+  color: #777;
+}
+hr {
+  margin: 3rem auto 4rem;
+  width: 40%;
+  opacity: 40%;
+}
+
+img {
+  display: block;
+  margin: 2rem auto;
+  max-width: 100%;
+  }
+  img.full { width: 100%; }
+  img.pixels { 
+    image-rendering: crisp-edges; /* older firefox browsers */ 
+    image-rendering: pixelated; 
+  }
+
+
+/* Layout */
+.container {
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 720px;
+}
+
+/* Singletons */
+#logo {
+  display: block;
+  width: 251px; height: 26px;
+  background: url('assets/page-logo.svg') no-repeat center;
+  padding: 5rem 0 3rem;
+  margin: 0 auto;
+  position: relative;
+}
+  #logo a {
+    display: block;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    color: rgba(0,0,0,0); /* make text transparent */
+    cursor: pointer;
+  }
+.page-logo > img {
+  margin: 0 auto;
+}
+
+  @media (prefers-color-scheme: dark) {
+    #logo {
+      filter: invert(100%) hue-rotate(180deg); /* uninvert */
+      background-image: url('assets/page-logo-i.svg');
+    }
+  }
+
+.brand-white {
+  background-color: #fff;
+}
+
+.brand-green {
+  background-color: #30D475;
+}
+
+.brand-black {
+  background-color: #201A26;
+  color: white;
+}
+
+.page-link::after {
+  content: " ➜";
+}
+
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 3em 0 3em;
+  font-size: 1em;
+  margin-top: 4rem;
+}
+
+/* Make tables vertically aligned to the top */
+tbody td {
+  vertical-align: top;
+}
+
+/* Github Code Highlighting */
+.highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight .cm {
+  color: #999988;
+  font-style: italic;
+}
+.highlight .cp {
+  color: #999999;
+  font-weight: bold;
+}
+.highlight .c1 {
+  color: #999988;
+  font-style: italic;
+}
+.highlight .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cpf {
+  color: #999988;
+  font-style: italic;
+}
+.highlight .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
+.highlight .gd {
+  color: #000000;
+  background-color: #ffdddd;
+}
+.highlight .ge {
+  color: #000000;
+  font-style: italic;
+}
+.highlight .gr {
+  color: #aa0000;
+}
+.highlight .gh {
+  color: #999999;
+}
+.highlight .gi {
+  color: #000000;
+  background-color: #ddffdd;
+}
+.highlight .go {
+  color: #888888;
+}
+.highlight .gp {
+  color: #555555;
+}
+.highlight .gs {
+  font-weight: bold;
+}
+.highlight .gu {
+  color: #aaaaaa;
+}
+.highlight .gt {
+  color: #aa0000;
+}
+.highlight .kc {
+  color: #000000;
+  font-weight: bold;
+}
+.highlight .kd {
+  color: #000000;
+  font-weight: bold;
+}
+.highlight .kn {
+  color: #000000;
+  font-weight: bold;
+}
+.highlight .kp {
+  color: #000000;
+  font-weight: bold;
+}
+.highlight .kr {
+  color: #000000;
+  font-weight: bold;
+}
+.highlight .kt {
+  color: #445588;
+  font-weight: bold;
+}
+.highlight .k, .highlight .kv {
+  color: #000000;
+  font-weight: bold;
+}
+.highlight .mf {
+  color: #009999;
+}
+.highlight .mh {
+  color: #009999;
+}
+.highlight .il {
+  color: #009999;
+}
+.highlight .mi {
+  color: #009999;
+}
+.highlight .mo {
+  color: #009999;
+}
+.highlight .m, .highlight .mb, .highlight .mx {
+  color: #009999;
+}
+.highlight .sb {
+  color: #d14;
+}
+.highlight .sc {
+  color: #d14;
+}
+.highlight .sd {
+  color: #d14;
+}
+.highlight .s2 {
+  color: #d14;
+}
+.highlight .se {
+  color: #d14;
+}
+.highlight .sh {
+  color: #d14;
+}
+.highlight .si {
+  color: #d14;
+}
+.highlight .sx {
+  color: #d14;
+}
+.highlight .sr {
+  color: #009926;
+}
+.highlight .s1 {
+  color: #d14;
+}
+.highlight .ss {
+  color: #990073;
+}
+.highlight .s, .highlight .sa, .highlight .dl {
+  color: #d14;
+}
+.highlight .na {
+  color: #008080;
+}
+.highlight .bp {
+  color: #999999;
+}
+.highlight .nb {
+  color: #0086B3;
+}
+.highlight .nc {
+  color: #445588;
+  font-weight: bold;
+}
+.highlight .no {
+  color: #008080;
+}
+.highlight .nd {
+  color: #3c5d5d;
+  font-weight: bold;
+}
+.highlight .ni {
+  color: #800080;
+}
+.highlight .ne {
+  color: #990000;
+  font-weight: bold;
+}
+.highlight .nf, .highlight .fm {
+  color: #990000;
+  font-weight: bold;
+}
+.highlight .nl {
+  color: #990000;
+  font-weight: bold;
+}
+.highlight .nn {
+  color: #555555;
+}
+.highlight .nt {
+  color: #000080;
+}
+.highlight .vc {
+  color: #008080;
+}
+.highlight .vg {
+  color: #008080;
+}
+.highlight .vi {
+  color: #008080;
+}
+.highlight .nv, .highlight .vm {
+  color: #008080;
+}
+.highlight .ow {
+  color: #000000;
+  font-weight: bold;
+}
+.highlight .o {
+  color: #000000;
+  font-weight: bold;
+}
+.highlight .w {
+  color: #bbbbbb;
+}
+.highlight {
+  background-color: #f8f8f8;
+}
+
+
+/* Code Blocks */
+.highlighter-rouge {
+  padding: 2px 1rem;
+  border-radius: 5px;
+  background-color: var(--light1);
+  max-width: 100%;
+  overflow-x: auto;
+}
+  @media only screen and (max-device-width : 480px) {
+  /*mobile*/
+  .highlighter-rouge { max-width: 80vw; }
+  }
+  
+.highlighter-rouge * {
+  background-color: var(--light1);
+}
+
+/* Inline Code */
+code.highlighter-rouge {
+  padding: 2px 6px;
+  background-color: rgba(0,0,0, 0.07);
+}
+
+/* Buttons */
+
+.dialog-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 6rem;
+}
+
+.inline-button {
+  display: inline-block;
+  font-weight: 900;
+  font-size: 90%;
+  padding: .4rem 1rem;
+  border-radius: var(--rounded-corner);
+  background-color: rgba(0,0,0,0.05);
+  color: var(--dark5);
+}

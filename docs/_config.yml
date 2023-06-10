@@ -1,5 +1,14 @@
----
-theme: jekyll-theme-slate
+# Site settings
 title: Distrobox
-description: Use any linux distribution inside your terminal
-show_downloads: true
+baseurl: "/" # the subpath of your site, e.g. /blog/
+                                 # usually empty. necessary for building absolute URIs
+                                 # for metadata header
+url: "https://distrobox.privatedns.org"   # the base hostname & protocol for your site
+sourceurl: "https://github.com/89luca89/distrobox/tree/main/docs" # "edit this website" link in the footer
+description: "Use any linux distribution inside your terminal."
+issuesurl: "https://github.com/89luca89/distrobox/issues" # issue tracker for website
+permalink: /:title/
+primary-color: "#70594d" #used in ios theme. further color customization in style.css  
+
+# Build settings
+markdown: kramdown
