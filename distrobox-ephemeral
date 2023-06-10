@@ -155,10 +155,10 @@ fi
 
 name=$(mktemp -u distrobox-XXXXXXXXXX)
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-create --init-hooks "${container_init_hook}" --pre-init-hooks "${container_pre_init_hook}" ${extra_flags} ${create_flags} --yes --name ${name} 
+"${distrobox_path}"/distrobox-create --init-hooks "${container_init_hook}" --pre-init-hooks "${container_pre_init_hook}" ${extra_flags} ${create_flags} --yes --name ${name}
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-enter ${extra_flags} "${name}" ${container_command} 
+"${distrobox_path}"/distrobox-enter ${extra_flags} "${name}" ${container_command}
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-stop ${extra_flags} "${name}" --yes 
+"${distrobox_path}"/distrobox-stop ${extra_flags} "${name}" --yes
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-rm  ${extra_flags} --force "${name}" --yes 
+"${distrobox_path}"/distrobox-rm  ${extra_flags} --force "${name}" --yes
