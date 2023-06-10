@@ -284,7 +284,7 @@ init_hooks="touch /init-normal"
 [opensuse]
 additional_packages=git vim tmux nodejs
 home=/tmp/home
-image==opensuse/tumbleweed:latest
+image=opensuse/tumbleweed:latest
 init=true
 init_hooks="touch /init-normal"
 pre_init_hooks="touch /pre-init"
