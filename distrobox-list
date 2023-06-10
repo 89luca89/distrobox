@@ -215,8 +215,9 @@ for container in ${container_list}; do
 		container_name="$(printf "%s" "${container}" | cut -d'|' -f3)"
 		container_status="$(printf "%s" "${container}" | cut -d'|' -f4)"
 
-		container_stats="$(${container_manager} stats "${container_id}" \
-			--no-stream --format "{{ .MemUsage }}|{{ .CPUPerc }}")"
+		IFS=' '
+		container_stats=$(${container_manager} stats "${container_id}" \
+			--no-stream --format "{{ .MemUsage }}|{{ .CPUPerc }}")
 		container_mem="$(printf "%s" "${container_stats}" | cut -d'|' -f1)"
 		container_cpu="$(printf "%s" "${container_stats}" | cut -d'|' -f2)"
 
