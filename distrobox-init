@@ -455,7 +455,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vulkan
 		"
 		# shellcheck disable=SC2086,2046
-		dnf install -y --best --allowerasing $(dnf repoquery -q --latest-limit 1 --arch "$(uname -m)" ${deps})
+		dnf install -y --allowerasing $(dnf repoquery -q --latest-limit 1 --arch "$(uname -m)" ${deps})
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -553,8 +553,14 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vulkan
 			util-linux
 		"
+		install_pkg=""
+		for dep in ${deps}; do
+			if [ "$(microdnf repoquery "${dep}" | wc -l)" -gt 0 ]; then
+				install_pkg="${install_pkg} ${dep}"
+			fi
+		done
 		# shellcheck disable=SC2086,SC2046
-		microdnf install -y $(microdnf repoquery ${dep})
+		microdnf install -y ${install_pkg}
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -798,7 +804,10 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vulkan
 		"
 		# shellcheck disable=SC2086,SC2046
-		yum install -y $(yum list -q ${deps} | grep -v "Packages" | cut -d' ' -f1)
+		yum install -y $(yum list -q ${deps} | \
+			grep -v "Packages" | \
+			grep "$(uname -m)" | \
+			cut -d' ' -f1)
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
