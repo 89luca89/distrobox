@@ -193,7 +193,7 @@ A small time tax to pay for the ability to use any type of image.
 This will **not** occur after the first time, **subsequent enters will be much faster.**
 
 NixOS is not a supported container distro, and there are currently no plans to
-bring support to it. If you are looking for unprivlaged NixOS environments,
+bring support to it. If you are looking for unprivileged NixOS environments,
 we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html) or [nix portable](https://github.com/DavHau/nix-portable)
 
 ### New Distro support
