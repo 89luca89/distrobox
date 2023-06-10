@@ -315,29 +315,35 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! apk add "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		apk add \
-			"${shell_pkg}" \
-			bc \
-			curl \
-			diffutils \
-			findutils \
-			gnupg \
-			less \
-			lsof \
-			ncurses \
-			pinentry \
-			procps \
-			shadow \
-			sudo \
-			util-linux \
-			wget \
+		deps="
+			${shell_pkg}
+			bc
+			curl
+			diffutils
+			findutils
+			gnupg
+			less
+			lsof
+			ncurses
+			pinentry
+			procps
+			shadow
+			sudo
+			util-linux
+			wget
 			vte3
-		# These are graphics drivers for 3d applications
-		# shellcheck disable=SC2046
-		apk add \
-			$(apk search -q mesa-dri) \
-			$(apk search -q mesa-vulkan) \
+			$(apk search -q mesa-dri)
+			$(apk search -q mesa-vulkan)
 			vulkan-loader
+		"
+		install_pkg=""
+		for dep in ${deps}; do
+			if apk info "${dep}" > /dev/null; then
+				install_pkg="${install_pkg} ${dep}"
+			fi
+		done
+		# shellcheck disable=SC2086
+		apk add ${install_pkg}
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -365,39 +371,41 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! apt-get install -y "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		apt-get install -y \
-			"${shell_pkg}" \
-			apt-utils \
-			bc \
-			curl \
-			dialog \
-			diffutils \
-			findutils \
-			gnupg2 \
-			less \
-			libnss-myhostname \
-			libvte-2.9[0-9]-common \
-			libvte-common \
-			lsof \
-			ncurses-base \
-			passwd \
-			pinentry-curses \
-			procps \
-			sudo \
-			time \
-			wget \
-			util-linux
-
-		# These are graphics drivers for 3d applications
-		apt-get install -y \
-			libegl1-mesa \
+		deps="
+			${shell_pkg}
+			apt-utils
+			bc
+			curl
+			dialog
+			diffutils
+			findutils
+			gnupg2
+			less
+			libegl1-mesa
 			libgl1-mesa-glx
-		# Older versions of debian/ubuntu don't have vulkan, check for it.
-		if apt-cache show libvulkan1 > /dev/null; then
-			apt-get install -y \
-				libvulkan1 \
-				mesa-vulkan-drivers
-		fi
+			libnss-myhostname
+			libvte-2.9*-common
+			libvte-common
+			libvulkan1
+			lsof
+			mesa-vulkan-drivers
+			ncurses-base
+			passwd
+			pinentry-curses
+			procps
+			sudo
+			time
+			util-linux
+			wget
+		"
+		install_pkg=""
+		for dep in ${deps}; do
+			if apt-cache show "${dep}" > /dev/null; then
+				install_pkg="${install_pkg} ${dep}"
+			fi
+		done
+		# shellcheck disable=SC2086
+		apt-get install -y ${install_pkg}
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -422,38 +430,32 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! dnf install -y "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		dnf install -y --allowerasing \
-			"${shell_pkg}" \
-			bc \
-			curl \
-			diffutils \
-			dnf-plugins-core \
-			findutils \
-			gnupg2 \
-			less \
-			lsof \
-			ncurses \
-			passwd \
-			pinentry \
-			procps-ng \
-			shadow-utils \
-			sudo \
-			time \
-			util-linux \
-			wget \
+		deps="
+			${shell_pkg}
+			bc
+			curl
+			diffutils
+			dnf-plugins-core
+			findutils
+			gnupg2
+			less
+			lsof
+			ncurses
+			passwd
+			pinentry
+			procps-ng
+			shadow-utils
+			sudo
+			time
+			util-linux
+			wget
 			vte-profile
-
-		# These are graphics drivers for 3d applications
-		if dnf list mesa-dri-drivers > /dev/null; then
-			dnf install -y \
-				mesa-dri-drivers
-		fi
-
-		if dnf list mesa-vulkan-drivers > /dev/null; then
-			dnf install -y \
-				mesa-vulkan-drivers \
-				vulkan
-		fi
+			mesa-dri-drivers
+			mesa-vulkan-drivers
+			vulkan
+		"
+		# shellcheck disable=SC2086,2046
+		dnf install -y --allowerasing $(dnf repoquery -q --latest-limit 1 ${deps})
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -479,22 +481,36 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		emerge --ask=n --autounmask-continue --noreplace --quiet-build \
-			"${shell_pkg}" \
-			app-crypt/gnupg \
-			sys-devel/bc \
-			diffutils \
-			findutils \
-			less \
-			ncurses \
-			net-misc/curl \
-			pinentry \
-			procps \
-			shadow \
-			sudo \
-			sys-process/lsof \
-			util-linux \
+		emerge --ask=n --autounmask-continue --noreplace --quiet-build
+		deps="
+			${shell_pkg}
+			app-crypt/gnupg
+			sys-devel/bc
+			diffutils
+			findutils
+			less
+			ncurses
+			net-misc/curl
+			pinentry
+			procps
+			shadow
+			sudo
+			sys-process/lsof
+			util-linux
 			wget
+			mesa-dri-drivers
+			mesa-vulkan-drivers
+			vulkan
+		"
+		install_pkg=""
+		for dep in ${deps}; do
+			if [ "$(emerge --search "${dep}" | grep "Applications found" | grep -Eo "[0-9]")" -gt 0 ]; then
+				# shellcheck disable=SC2086
+				install_pkg="${install_pkg} ${dep}"
+			fi
+		done
+		# shellcheck disable=SC2086
+		emerge --ask=n --autounmask-continue --noreplace --quiet-build ${install_pkg}
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -515,32 +531,30 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! microdnf install -y "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		microdnf install -y \
-			"${shell_pkg}" \
-			bc \
-			diffutils \
-			findutils \
-			gnupg \
-			less \
-			lsof \
-			ncurses \
-			passwd \
-			pinentry \
-			procps \
-			shadow-utils \
-			sudo \
-			time \
-			wget \
-			vte-profile \
+		deps="
+			${shell_pkg}
+			bc
+			diffutils
+			findutils
+			gnupg
+			less
+			lsof
+			ncurses
+			passwd
+			pinentry
+			procps
+			shadow-utils
+			sudo
+			time
+			wget
+			vte-profile
+			mesa-dri-drivers
+			mesa-vulkan-drivers
+			vulkan
 			util-linux
-
-		# These are graphics drivers for 3d applications
-		# On these very minimal images, graphics can be abstent
-		# from the repos, so let's ignore the error in this case.
-		microdnf install -y \
-			mesa-dri-drivers \
-			mesa-vulkan-drivers \
-			vulkan || :
+		"
+		# shellcheck disable=SC2086,SC2046
+		microdnf install -y $(microdnf repoquery ${dep})
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -567,31 +581,37 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! pacman -Sy --noconfirm "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		pacman -Sy --noconfirm \
-			"${shell_pkg}" \
-			bc \
-			curl \
-			diffutils \
-			findutils \
-			gnupg \
-			less \
-			lsof \
-			ncurses \
-			pinentry \
-			procps-ng \
-			shadow \
-			sudo \
-			time \
-			util-linux \
-			wget \
+		deps="
+			${shell_pkg}
+			bc
+			curl
+			diffutils
+			findutils
+			gnupg
+			less
+			lsof
+			ncurses
+			pinentry
+			procps-ng
+			shadow
+			sudo
+			time
+			util-linux
+			wget
+			mesa
+			opengl-driver
+			vulkan-intel
 			vte-common
-
-		# These are graphics drivers for 3d applications
-		pacman -Sy --noconfirm \
-			mesa \
-			opengl-driver \
-			vulkan-intel \
 			vulkan-radeon
+		"
+		install_pkg=""
+		for dep in ${deps}; do
+			if pacman -Qs "${dep}" > /dev/null; then
+				install_pkg="${install_pkg} ${dep}"
+			fi
+		done
+		# shellcheck disable=SC2086
+		pacman -Sy --noconfirm ${install_pkg}
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -612,28 +632,34 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! yes | slackpkg install -default_answer=yes -batch=yes "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		yes | slackpkg install -default_answer=yes -batch=yes \
-			"${shell_pkg}" \
-			bc \
-			curl \
-			diffutils \
-			findutils \
-			gnupg2 \
-			less \
-			libvte-2 \
-			lsof \
-			ncurses \
-			pinentry \
-			procps \
-			shadow \
-			sudo \
-			time \
-			wget \
-			util-linux
-
-		# These are graphics drivers for 3d applications
-		yes | slackpkg install -default_answer=yes -batch=yes \
+		deps="
+			${shell_pkg}
+			bc
+			curl
+			diffutils
+			findutils
+			gnupg2
+			less
+			libvte-2
+			lsof
+			ncurses
+			pinentry
+			procps
+			shadow
+			sudo
+			time
+			wget
 			mesa
+		"
+		install_pkg=""
+		dep=""
+		for dep in ${deps}; do
+			if ! slackpkg search "${dep}" | grep -q "No package name matches the pattern"; then
+				install_pkg="${install_pkg} ${dep}"
+			fi
+		done
+		# shellcheck disable=SC2086
+		yes | slackpkg install -default_answer=yes -batch=yes ${install_pkg}
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -648,21 +674,29 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			swupd update
 			exit
 		fi
-		# Here we do not handle shell_pkg as shells are already all bundled
-		# together in "shells"
-		swupd bundle-add \
-			bc \
-			cryptography \
-			curl \
-			procps-ng \
-			shells \
-			sysadmin-basic \
-			wget
 
-		# These are graphics drivers for 3d applications
-		swupd bundle-add \
-			lib-opengl \
+		swupd bundle-add os-core-search
+
+		deps="
+			${shell_pkg}
+			bc
+			cryptography
+			curl
+			procps-ng
+			shells
+			sysadmin-basic
+			wget
+			lib-opengl
 			devpkg-Vulkan-Loader
+		"
+		install_pkg=""
+		for dep in ${deps}; do
+			if swupd search "${dep}" > /dev/null; then
+				install_pkg="${install_pkg} ${dep}"
+			fi
+		done
+		# shellcheck disable=SC2086
+		swupd bundle-add ${install_pkg}
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -687,25 +721,35 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! xbps-install -Sy "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		xbps-install -Sy \
-			"${shell_pkg}" \
-			bc \
-			curl \
-			diffutils \
-			findutils \
-			gnupg2 \
-			less \
-			lsof \
-			ncurses-base \
-			procps-ng \
-			shadow \
-			sudo \
-			time \
-			wget \
+		deps="
+			${shell_pkg}
+			bc
+			curl
+			diffutils
+			findutils
+			gnupg2
+			less
+			lsof
+			ncurses-base
+			procps-ng
+			shadow
+			sudo
+			time
+			wget
 			util-linux
-
-		# These are graphics drivers for 3d applications
-		xbps-install -Sy mesa-dri
+			mesa-dri
+			vulkan-loader
+			mesa-vulkan-intel
+			mesa-vulkan-radeon
+		"
+		install_pkg=""
+		for dep in ${deps}; do
+			if [ "$(xbps-query -Rs "${dep}" | wc -l)" -gt 0 ]; then
+				install_pkg="${install_pkg} ${dep}"
+			fi
+		done
+		# shellcheck disable=SC2086
+		xbps-install -Sy ${install_pkg}
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -730,32 +774,31 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! yum install -y "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		yum install -y \
-			"${shell_pkg}" \
-			bc \
-			curl \
-			diffutils \
-			findutils \
-			gnupg2 \
-			less \
-			lsof \
-			ncurses \
-			passwd \
-			pinentry \
-			procps \
-			shadow-utils \
-			sudo \
-			time \
-			util-linux \
-			wget \
+		deps="
+			${shell_pkg}
+			bc
+			curl
+			diffutils
+			findutils
+			gnupg2
+			less
+			lsof
+			ncurses
+			passwd
+			pinentry
+			procps-ng
+			shadow-utils
+			sudo
+			time
+			util-linux
+			wget
 			vte-profile
-
-		# These are graphics drivers for 3d applications
-		# yum distros are too old to have vulkan anyway.
-		if yum list mesa-dri-drivers > /dev/null; then
-			yum install -y \
-				mesa-dri-drivers
-		fi
+			mesa-dri-drivers
+			mesa-vulkan-drivers
+			vulkan
+		"
+		# shellcheck disable=SC2086,SC2046
+		yum install $(yum list -q ${deps} | grep -v "Packages" | cut -d' ' -f1)
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -772,33 +815,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! zypper install -y "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		zypper install -y \
-			"${shell_pkg}" \
-			bc \
-			curl \
-			diffutils \
-			findutils \
-			gnupg \
-			less \
-			libvte-2* \
-			lsof \
-			ncurses \
-			pinentry \
-			procps \
-			shadow \
-			sudo \
-			systemd \
-			time \
-			wget \
-			util-linux \
-			util-linux-systemd
-
-		# These are graphics drivers for 3d applications
-		zypper install -y \
-			Mesa-dri \
-			libvulkan1 \
-			libvulkan_intel \
-			libvulkan_radeon
 
 		# In openSUSE official images, zypper is configured to ignore recommended
 		# packages (i.e., weak dependencies). This however, results in a rather
@@ -814,6 +830,33 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
+		deps="
+			${shell_pkg}
+			bc
+			curl
+			diffutils
+			findutils
+			gnupg
+			less
+			libvte-2*
+			lsof
+			ncurses
+			pinentry
+			procps
+			shadow
+			sudo
+			systemd
+			time
+			wget
+			util-linux
+			util-linux-systemd
+			Mesa-dri
+			libvulkan1
+			libvulkan_intel
+			libvulkan_radeon
+		"
+		# shellcheck disable=SC2086,SC2046
+		zypper install -y $(zypper -q se -x ${deps} | tail -n +4 | cut -d'|' -f2)
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
