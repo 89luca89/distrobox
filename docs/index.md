@@ -1,7 +1,16 @@
 ---
 layout: default
 ---
-![Logo](assets/brand/svg/distrobox-logomark-light.svg)
+<picture>
+    <source 
+        srcset="assets/brand/svg/distrobox-logomark-dark.svg" 
+        media="(prefers-color-scheme: dark)"
+    >
+   <img 
+        src="assets/brand/svg/distrobox-logomark-light.svg" 
+        media="(prefers-color-scheme: light)"
+    >
+</picture>
 
 
 Use any Linux distribution inside your terminal. Enable both backward and forward
