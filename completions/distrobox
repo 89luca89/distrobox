@@ -2,6 +2,10 @@
 
 _generate_from_help() {
 	command=$1
+	# if command does not exist, try with `distrobox subcommand`
+	if ! $command --help 2>/dev/null ; then
+		command="$(echo $command | tr '-' ' ')"
+	fi
 
 	local list cur prev totalopts opts diropts
 
@@ -37,7 +41,7 @@ _generate_from_help() {
 		COMPREPLY+=($(compgen -W "${opts}" -- ${cur}))
 		return 0
 	elif [[ ${command} != *"create"* ]] && [[ ${command} != *"ephemeral"* ]] &&
-		[[ ${command} != *"list"* ]] && [[ ${command} != *"assemble"* ]]; then
+		[[ ${command} != *"list"* ]] && [[ ${command} != *"ls"* ]] && [[ ${command} != *"assemble"* ]]; then
 		while IFS= read -r line; do
 			list+="$line "
 		done < <(distrobox-list --no-color | tail -n+2 | awk '{print $3}')
