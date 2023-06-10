@@ -100,7 +100,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
       # Exclude from bashate the following rules:
       #   - E002 we use tab indentation as suggested by shfmt.
       #   - E003 we use tab indentation as suggested by shfmt.
@@ -137,4 +136,4 @@ jobs:
 
       - uses: codespell-project/actions-codespell@v1
         with:
-          skip: .git,*.pdf,*.1
+          skip: .git,*.pdf,*.1,*.css,*.lock
