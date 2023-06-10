@@ -331,10 +331,10 @@ export_application() {
 	# it is possible to export an app not only by its executable name but also
 	# by its launcher name.
 	desktop_files=$(
-		# shellcheck disable=SC2086
-		find ${canon_dirs} -type f | \
-			xargs -I{} grep -le "Exec=.*${exported_app}.*" "{}" | \
-			xargs -I{} grep -Le "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox-enter"}.*" "{}" | \
+		# shellcheck disable=SC2086,SC2038
+		find ${canon_dirs} -type f |
+			xargs -I{} grep -le "Exec=.*${exported_app}.*" "{}" |
+			xargs -I{} grep -Le "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox-enter"}.*" "{}" |
 			xargs -I{} printf "%s@" {}
 	)
 
