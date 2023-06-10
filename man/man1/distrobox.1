@@ -386,6 +386,13 @@ T}@T{
 docker.io/library/debian:unstable
 T}
 T{
+deepin
+T}@T{
+20 (apricot) 23 (beige)
+T}@T{
+docker.io/linuxdeepin/apricot docker.io/linuxdeepin/beige
+T}
+T{
 Fedora
 T}@T{
 36 37 38 39 Rawhide
@@ -514,7 +521,7 @@ enters will be much faster.\f[R]
 .PP
 NixOS is not a supported container distro, and there are currently no
 plans to bring support to it.
-If you are looking for unprivlaged NixOS environments, we suggest you
+If you are looking for unprivileged NixOS environments, we suggest you
 look into
 nix-shell (https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html)
 or nix portable (https://github.com/DavHau/nix-portable)
@@ -1571,7 +1578,6 @@ or docker containers.
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
---size/-s:      show also container size
 --verbose/-v:       show more verbosity
 --version/-V:       show version
 \f[R]
