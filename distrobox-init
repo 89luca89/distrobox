@@ -405,7 +405,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			procps
 			sudo
 			time
-			tzdata
 			util-linux
 			wget
 		"
@@ -417,9 +416,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		done
 		# shellcheck disable=SC2086
 		apt-get install -y ${install_pkg}
-
-		# Workaround for tzdata
-		apt-mark hold tzdata
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -585,7 +581,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			pacman -Syyu --noconfirm
 			exit
 		fi
-		# In archlinux  official images, pacman is configured to ignore locale and docs
+		# In archlinux official images, pacman is configured to ignore locale and docs
 		# This however, results in a rather poor out-of-the-box experience
 		# So, let's enable them.
 		sed -i "s|NoExtract.*||g" /etc/pacman.conf
@@ -915,6 +911,7 @@ fi
 printf "distrobox: Setting up read-only mounts...\n"
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="
+	/etc/localtime
 	/var/lib/flatpak
 	/var/lib/systemd/coredump
 	/var/log/journal"
@@ -1060,7 +1057,7 @@ if [ "${nvidia}" -eq 1 ]; then
 	empty_libs="$(ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2)"
 	if [ -n "${empty_libs}" ]; then
 		# shellcheck disable=SC2086
-		find ${empty_libs} -delete
+		find ${empty_libs} -delete || :
 	fi
 fi
 
@@ -1162,7 +1159,7 @@ if [ -d "/usr/share/libalpm/scripts" ]; then
 EOF
 	# create hooks files for them
 	printf "distrobox: Setting up pacman hooks...\n"
-	find /usr/share/libalpm/hooks/*distrobox* -delete
+	find /usr/share/libalpm/hooks/*distrobox* -delete || :
 	for hook in 00_distrobox_pre_hook 01_distrobox_post_hook 02_distrobox_post_hook; do
 		when="PostTransaction"
 		[ -z "${hook##*pre*}" ] && when="PreTransaction"
@@ -1275,7 +1272,7 @@ mkdir -p /etc/profile.d
 printf "test -z \"\$USER\" && USER=\"\$(id -un 2> /dev/null)\"\n" > /etc/profile.d/distrobox_profile.sh
 printf "test -z \"\$UID\"  && readonly  UID=\"\$(id -ur 2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
 printf "test -z \"\$EUID\" && readonly EUID=\"\$(id -u  2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
-if [ -n "${DISTROBOX_HOST_HOME-}"  ] && [ -d "/etc/skel" ]; then
+if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
 		base_file_name=$(basename "${skel_file}")
@@ -1350,11 +1347,11 @@ fi
 ###############################################################################
 
 # If we're here, the init support has been enabled.
-printf  "distrobox: Setting up init system...\n"
+printf "distrobox: Setting up init system...\n"
 # some of this directories are needed by
 # the init system. If they're mounts, there might
 # be problems. Let's unmount them.
-for host_mount in  ${HOST_MOUNTS_RO_INIT}; do
+for host_mount in ${HOST_MOUNTS_RO_INIT}; do
 	if findmnt "${host_mount}" > /dev/null; then umount "${host_mount}"; fi
 done
 if command -v systemctl 2> /dev/null; then
@@ -1386,13 +1383,13 @@ rm -f /run/systemd/io.system.ManagedOOM
 rm -f /run/systemd/notify
 rm -f /run/systemd/private
 rm -f /etc/apt/apt.conf.d/00_distrobox
-find /usr/share/libalpm/hooks/*distrobox*.hook -delete
-find /usr/share/libalpm/scripts/*distrobox*.sh -delete
+find /usr/share/libalpm/hooks/*distrobox*.hook -delete || :
+find /usr/share/libalpm/scripts/*distrobox*.sh -delete || :
 # Remove /dev/console when using init systems, this will confuse host system if
 # we use rootful containers
 touch /var/container-console
 mount --rbind /var/container-console /dev/console
 # Now we can launch init
-printf  "distrobox: Firing up init system...\n"
+printf "distrobox: Firing up init system...\n"
 printf "container_setup_done\n"
-exec  /sbin/init
+exec /sbin/init

@@ -653,14 +653,6 @@ generate_command() {
 			fi
 		done
 	fi
-	TIME_FILES="
-		/etc/localtime
-	"
-	for time_file in ${TIME_FILES}; do
-		if [ -e "${time_file}" ]; then
-			result_command="${result_command} --volume ${time_file}:${time_file}:ro"
-		fi
-	done
 
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
