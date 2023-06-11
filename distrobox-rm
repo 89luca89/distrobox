@@ -41,6 +41,7 @@ fi
 # Defaults
 container_manager="autodetect"
 force=0
+force_flag=""
 non_interactive=0
 # If the user runs this script as root in a login shell, set rootful=1.
 # There's no need for them to pass the --root flag option in such cases.
@@ -211,6 +212,11 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
+# add  -f if force is specified
+if [ "${force}" -ne 0 ]; then
+	force_flag="--force"
+fi
+
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program-} ${container_manager}"
@@ -222,25 +228,16 @@ if [ -z "${container_name_list}" ]; then
 	exit 1
 fi
 
-for container_name in ${container_name_list}; do
+delete_container() {
+	container_name="$1"
 	# Inspect the container we're working with.
 	container_status="$(${container_manager} inspect --type container \
-		"${container_name}" --format '{{.State.Status}}')"
-	container_exists="$?"
+		"${container_name}" --format '{{.State.Status}}' || :)"
 	# Does the container exist? check if inspect reported errors
-	if [ "${container_exists}" -gt 0 ]; then
+	if [ -z "${container_status}" ]; then
 		# If not, prompt to create it first
-		printf >&2 "Cannot find container %s, does it exist?\n" "${container_name}"
-		exit 1
-	fi
-
-	# Prompt for confirmation
-	if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
-		printf "Do you really want to delete %s? [Y/n]: " "${container_name}"
-		read -r response
-		response="${response:-"Y"}"
-	else
-		response="yes"
+		printf >&2 "Cannot find container %s.\n" "${container_name}"
+		return
 	fi
 
 	# Retrieve container's HOME, and check if it's different from host's one. In
@@ -248,18 +245,14 @@ for container_name in ${container_name_list}; do
 	container_home=$(${container_manager} inspect "${container_name}" --format \
 		'{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}')
 	# Prompt for confirmation
-	if [ "${non_interactive}" -eq 0 ] && [ "${container_home}" != "${HOME}" ] && [ "${rm_home}" -eq 0 ]; then
+	response_rm_home="Y"
+	if [ "${non_interactive}" -eq 0 ] &&
+		[ "${container_home}" != "${HOME}" ] &&
+		[ "${rm_home}" -eq 0 ]; then
+
 		printf "Do you want to remove custom home of container %s (%s)? [y/N]: " "${container_name}" "${container_home}"
 		read -r response_rm_home
 		response_rm_home="${response_rm_home:-"N"}"
-	elif [ "${container_home}" != "${HOME}" ]; then
-		if [ "${rm_home}" -eq 0 ]; then
-			response_rm_home="N"
-		else
-			response_rm_home="Y"
-		fi
-	else
-		response_rm_home="N"
 	fi
 
 	# Validate home response
@@ -278,79 +271,72 @@ for container_name in ${container_name_list}; do
 			;;
 	esac
 
-	# Accept only y,Y,Yes,yes,n,N,No,no.
-	case "${response}" in
-		y | Y | Yes | yes | YES)
-			# We're going to delete the box, let's also delete the entry
-			if [ "${rootful}" -eq 0 ]; then
-				verbose_arg=""
-				if [ "${verbose}" -ne 0 ]; then
-					verbose_arg="--verbose"
-				fi
-				"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete "${verbose_arg}"
+	IFS='@'
+	# Remove exported binaries from this container in default path
+	binary_files="$(grep -rl "# distrobox_binary" "${HOME}/.local/bin" |
+		xargs -I{} grep -le "# name: ${container_name}$" "{}" |
+		xargs -I{} printf "%s@" {} 2> /dev/null || :)"
+	for file in ${binary_files}; do
+		printf "Removing exported binary %s...\n" "${file}"
+		rm -f "${file}"
+	done
+
+	# Remove exported gui apps from this container in default path
+	if ls "${HOME}/.local/share/applications/${container_name}"* > /dev/null 2> /dev/null; then
+		# shellcheck disable=SC2086,SC2038
+		desktop_files="$(find "${HOME}/.local/share/applications/${container_name}"* -type f -o -type l |
+			xargs -I{} grep -le "Exec=.*${container_name} " "{}" |
+			xargs -I{} printf "%s@" {} 2> /dev/null || :)"
+		for file in ${desktop_files}; do
+			if [ -e "${file}" ]; then
+				app="$(grep -Eo "Name=.*" "${file}" | head -n 1 | cut -d' ' -f1 | cut -d'=' -f2)"
+
+				printf "Removing exported app %s...\n" "${app}"
+				"$(dirname "$(realpath "${0}")")/distrobox-enter" "${container_name}" -- distrobox-export --delete --app "${app}" > /dev/null 2> /dev/null || :
 			fi
+		done
+	fi
 
-			IFS='@'
-			# Remove exported binaries from this container in default path
-			binary_files="$(grep -rl "# distrobox_binary" "${HOME}/.local/bin" |
-				xargs -I{} grep -le "# name: ${container_name}$" "{}" |
-				xargs -I{} printf "%s@" {} 2> /dev/null || :)"
-			for file in ${binary_files}; do
-				printf "Removing exported binary %s...\n" "${file}"
-				rm -f "${file}"
-			done
+	# Remove the container
+	${container_manager} rm ${force_flag} "${container_name}"
 
-			# Remove exported gui apps from this container in default path
-			if ls "${HOME}/.local/share/applications/${container_name}"* > /dev/null 2> /dev/null; then
-				# shellcheck disable=SC2086,SC2038
-				desktop_files="$(find "${HOME}/.local/share/applications/${container_name}"* -type f -o -type l |
-					xargs -I{} grep -le "Exec=.*${container_name} " "{}" |
-					xargs -I{} printf "%s@" {} 2> /dev/null || :)"
-				for file in ${desktop_files}; do
-					if [ -e "${file}" ]; then
-						app="$(grep -Eo "Name=.*" "${file}" | head -n 1 | cut -d' ' -f1 | cut -d'=' -f2)"
+	# We're going to delete the box, let's also delete the entry
+	verbose_arg=""
+	if [ "${verbose}" -ne 0 ]; then
+		verbose_arg="--verbose"
+	fi
+	"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete "${verbose_arg}"
 
-						printf "Removing exported app %s...\n" "${app}"
-						"$(dirname "$(realpath "${0}")")/distrobox-enter" "${container_name}" -- distrobox-export --delete --app "${app}" > /dev/null 2> /dev/null || :
-					fi
-				done
-			fi
+	# Remove custom home
+	if [ "${rm_home_local}" -eq 1 ]; then
+		rm -r "${container_home}"
+		printf "Successfully removed %s\n" "${container_home}"
+	fi
+}
 
-			# If the container is running, we need to stop if first
-			if [ "${container_status}" = "running" ]; then
-				if [ "${force}" -ne 0 ]; then
-					printf >&2 "Stopping container %s\n" "${container_name}"
-					if ! ${container_manager} stop "${container_name}"; then
-						printf >&2 "Could not stop container %s\n" "${container_name}"
-						printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-						printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
-						exit 1
-					fi
-				else
-					printf >&2 "Please stop container %s before deletion\n" "${container_name}"
-					printf >&2 "Run:\n\t%s stop %s\n" "${container_manager}" "${container_name}"
-					printf >&2 "or use the \"--force\" flag\n"
-					exit 1
-				fi
-			fi
+# Prompt for confirmation
+if  [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
+	printf "Do you really want to delete %s? [Y/n]: " "${container_name_list}"
+	read -r response
+	response="${response:-"Y"}"
+else
+	response="yes"
+fi
 
-			# Remove the container
-			${container_manager} rm "${container_name}"
-
-			# Remove custom home
-			if [ "${rm_home_local}" -eq 1 ]; then
-				rm -r "${container_home}"
-				printf "Successfully removed %s\n" "${container_home}"
-			fi
-			;;
-		n | N | No | no | NO)
-			printf "Aborted.\n"
-			exit 0
-			;;
-		*) # Default case: If no more options then break out of the loop.
-			printf >&2 "Invalid input.\n"
-			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
-			exit 1
-			;;
-	esac
-done
+# Accept only y,Y,Yes,yes,n,N,No,no.
+case "${response}" in
+	y | Y | Yes | yes | YES)
+		for container_name in ${container_name_list}; do
+			delete_container "${container_name}"
+		done
+		;;
+	n | N | No | no | NO)
+		printf "Aborted.\n"
+		exit 0
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		printf >&2 "Invalid input.\n"
+		printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+		exit 1
+		;;
+esac
