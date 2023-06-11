@@ -81,6 +81,7 @@ if [ -z "${host_command}" ]; then
 				;;
 			-V | --version)
 				printf "distrobox: %s\n" "${version}"
+				printf "host-spawn: %s\n" "${host_spawn_version}"
 				exit 0
 				;;
 			-Y | --yes)
