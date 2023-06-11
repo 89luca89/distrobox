@@ -32,6 +32,7 @@ fi
 
 all=0
 container_manager="autodetect"
+distrobox_flags=""
 distrobox_path="$(dirname "$(realpath "${0}")")"
 rootful=0
 verbose=0
@@ -198,27 +199,22 @@ fi
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program} ${container_manager}"
+	distrobox_flags="--root"
 fi
 
 # If all, just set container_name to the list of names in distrobox-list
 if [ "${all}" -ne 0 ]; then
 
 	# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
-	if [ "${rootful}" -ne 0 ]; then
-		container_name="$("${distrobox_path}"/distrobox-list --root --no-color | tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
-	else
-		container_name="$("${distrobox_path}"/distrobox-list --no-color | tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
-	fi
+	# shellcheck disable=SC2086,2248
+	container_name="$("${distrobox_path}"/distrobox-list ${distrobox_flags} --no-color |
+		tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
 fi
 
 # Launch the entrypoint in upgrade mode
 for container in ${container_name}; do
 	printf >&2 "\033[1;31m Upgrading %s...\n\033[0m" "${container}"
-	if [ "${rootful}" -ne 0 ]; then
-		# shellcheck disable=SC2086
-		"${distrobox_path}"/distrobox-enter --root ${container} -- sudo /usr/bin/entrypoint --upgrade
-	else
-		# shellcheck disable=SC2086
-		"${distrobox_path}"/distrobox-enter ${container} -- sudo /usr/bin/entrypoint --upgrade
-	fi
+	# shellcheck disable=SC2086
+	"${distrobox_path}"/distrobox-enter ${distrobox_flags} ${container} -- \
+		sudo /usr/bin/entrypoint --upgrade
 done
