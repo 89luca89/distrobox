@@ -321,6 +321,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl
 			diffutils
 			findutils
+			findmnt
 			gnupg
 			less
 			lsof
@@ -329,6 +330,10 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			procps
 			shadow
 			sudo
+			su-exec
+			util-linux
+			posix-libc-utils
+			util-linux-misc
 			util-linux
 			wget
 			vte3
@@ -349,6 +354,11 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if [ -n "${container_additional_packages}" ]; then
 			# shellcheck disable=SC2086
 			apk add ${container_additional_packages}
+		fi
+
+		# Workaround for when sudo is missing, we use su-exec as a replacement.
+		if [ -e /sbin/su-exec ]; then
+			chmod u+s /sbin/su-exec
 		fi
 
 	elif command -v apt-get; then
@@ -395,6 +405,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			procps
 			sudo
 			time
+			tzdata
 			util-linux
 			wget
 		"
@@ -406,6 +417,9 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		done
 		# shellcheck disable=SC2086
 		apt-get install -y ${install_pkg}
+
+		# Workaround for tzdata
+		apt-mark hold tzdata
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -447,6 +461,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			shadow-utils
 			sudo
 			time
+			tzdata
 			util-linux
 			wget
 			vte-profile
@@ -892,6 +907,7 @@ fi
 # If xdg-open is not present, do a link of it. This is handy to handle opening of
 # links, files and apps from inside the container into the host.
 if ! command -v xdg-open; then
+	mkdir -p /usr/local/bin/
 	ln -s /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
 fi
 

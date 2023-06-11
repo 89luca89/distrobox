@@ -162,6 +162,7 @@ Distrobox guests tested successfully with the following container images:
 | Archlinux     | | docker.io/library/archlinux:latest    |
 | CentOS Stream | 8 <br> 9 | quay.io/centos/centos:stream8 <br> quay.io/centos/centos:stream9  |
 | CentOS | 7 | quay.io/centos/centos:7  |
+| Chainguard Wolfi | Small note: sudo is missing, use su-exec instead. | cgr.dev/chainguard/wolfi-base:latest |
 | ClearLinux |      | docker.io/library/clearlinux:latest <br> docker.io/library/clearlinux:base    |
 | Crystal Linux | | registry.getcryst.al/crystal/misc/docker:latest |
 | Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 | docker.io/debian/eol:wheezy <br> docker.io/library/debian:10 <br> docker.io/library/debian:stable <br> docker.io/library/debian:stable-backports    |
