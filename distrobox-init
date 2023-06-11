@@ -892,7 +892,7 @@ fi
 # If xdg-open is not present, do a link of it. This is handy to handle opening of
 # links, files and apps from inside the container into the host.
 if ! command -v xdg-open; then
-	 ln -s /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
+	ln -s /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
 fi
 
 ###############################################################################

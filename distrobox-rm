@@ -298,6 +298,7 @@ delete_container() {
 	fi
 
 	# Remove the container
+	# shellcheck disable=SC2086,SC2248
 	${container_manager} rm ${force_flag} "${container_name}"
 
 	# We're going to delete the box, let's also delete the entry

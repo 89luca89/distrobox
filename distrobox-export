@@ -404,7 +404,7 @@ export_application() {
 
 		# we wanto to export the application's icons
 		mkdir -p "${icon_home_directory}"
-		if [ ! -e "${icon_home_directory}/$(basename ${icon_file})" ]; then
+		if [ ! -e "${icon_home_directory}/$(basename "${icon_file}")" ]; then
 			cp -rf "$(realpath "${icon_file}")" "${icon_home_directory}"
 		fi
 	done
