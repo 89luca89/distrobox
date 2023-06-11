@@ -20,6 +20,22 @@
 
 # POSIX
 
+# Despite of running this script via SUDO/DOAS being not supported (the
+# script itself will call the appropriate tool when necessary), we still want
+# to allow people to run it as root, logged in in a shell, and create rootful
+# containers.
+#
+# SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
+if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
+	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
+	exit 1
+fi
+
+# If the user runs this script as root in a login shell, set rootful=1.
+# There's no need for them to pass the --root flag option in such cases.
+[ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
+extra_flags=""
 all=0
 container_manager="autodetect"
 container_name_default="my-distrobox"
@@ -45,6 +61,15 @@ for config_file in ${config_files}; do
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
+# If we're running this script as root -- as in, logged in in the shell as root
+# user, and not via SUDO/DOAS --, we don't need to set distrobox_sudo_program
+# as it's meaningless for this use case.
+if [ "$(id -ru)" -ne 0 ]; then
+	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
+	# user, use its value instead of "sudo". But only if not running the script
+	# as root (UID 0).
+	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
+fi
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 
@@ -103,6 +128,10 @@ while :; do
 				shift
 			fi
 			;;
+		-r | --root)
+			shift
+			rootful=1
+			;;
 		--) # End of all options.
 			shift
 			break
@@ -154,15 +183,15 @@ if [ "${delete}" -ne 0 ]; then
 	exit
 fi
 
-if  ! command -v curl > /dev/null && ! command -v wget > /dev/null; then
+if ! command -v curl > /dev/null && ! command -v wget > /dev/null; then
 	printf >&2 "Icon generation depends on either curl or wget\n"
 	printf >&2 "Fallbacking to default icon.\n"
 	download="null"
 fi
 
-if  command -v curl > /dev/null 2>&1; then
+if command -v curl > /dev/null 2>&1; then
 	download="curl -sLo"
-elif  command -v wget > /dev/null 2>&1; then
+elif command -v wget > /dev/null 2>&1; then
 	download="wget -qO"
 fi
 
@@ -204,9 +233,17 @@ if ! command -v "${container_manager}" > /dev/null; then
 	exit 127
 fi
 
-# add  verbose if -v is specified
+# add verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
+	container_manager_cp_command="${container_manager_cp_command} --log-level debug"
+fi
+
+# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+if [ "${rootful}" -ne 0 ]; then
+	extra_flags="${extra_flags} --root"
+	container_manager="${distrobox_sudo_program-} ${container_manager}"
+	container_manager_cp_command="${distrobox_sudo_program-} ${container_manager_cp_command}"
 fi
 
 if ! ${container_manager} inspect --type container "${container_name}" > /dev/null; then
@@ -250,7 +287,7 @@ if [ "${icon}" = "auto" ]; then
 		sed "s|linux||g" |
 		tr -d ' ' |
 		tr -d '"')"
-	rm -f /tmp/"${container_name}".os-release
+	${distrobox_sudo_program-} rm -f /tmp/"${container_name}".os-release
 
 	icon_url="$(echo "${DISTRO_ICON_MAP}" | grep "${container_distro}:" | cut -d':' -f2-)"
 	if [ -n "${icon_url}" ] && [ "${download}" != "null" ]; then
@@ -274,7 +311,7 @@ Name=${entry_name}
 GenericName=Terminal entering ${entry_name}
 Comment=Terminal entering ${entry_name}
 Categories=Distrobox;System;Utility
-Exec=${distrobox_path}/distrobox enter ${container_name}
+Exec=${distrobox_path}/distrobox enter ${extra_flags} ${container_name}
 Icon=${icon}
 Keywords=distrobox;
 NoDisplay=false
