@@ -74,11 +74,7 @@ Options:
 
 See also:
 
-	distrobox-create --help
-
-	for a list of additional flags to specify during the creation.
-	distrobox-ephemeral can use all flags from distrobox-create.
-
+	distrobox-ephemeral also inherits all the flags from distrobox-create:
 EOF
 }
 
@@ -88,6 +84,7 @@ while :; do
 		-h | --help)
 			# Call a "show_help" function to display a synopsis, then exit.
 			show_help
+			"${distrobox_path}"/distrobox-create --help | tail -n +2
 			exit 0
 			;;
 		-r | --root)
