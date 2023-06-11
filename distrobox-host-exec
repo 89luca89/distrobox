@@ -130,6 +130,12 @@ else
 	sudo_command="su -l -c"
 fi
 
+if  command -v curl > /dev/null 2>&1; then
+	download="curl -sLo"
+elif  command -v wget > /dev/null 2>&1; then
+	download="wget -qO"
+fi
+
 # Setup host-spawn as a way to execute commands back on the host
 if ! command -v host-spawn > /dev/null ||
 	[ "$(printf "%s\n%s\n" "${host_spawn_version}" "$(host-spawn --version)" |
@@ -149,9 +155,8 @@ if ! command -v host-spawn > /dev/null ||
 	case "${response}" in
 		y | Y | Yes | yes | YES)
 			# Download matching version with current distrobox
-			if ! curl -L \
-				"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-$(uname -m)" \
-				-o /tmp/host-spawn; then
+			if ! ${download} /tmp/host-spawn \
+				"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-$(uname -m)"; then
 
 				printf "Error: Cannot download host-spawn\n"
 				exit 1
