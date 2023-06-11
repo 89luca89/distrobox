@@ -48,6 +48,7 @@ non_interactive=0
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
 rm_home=0
+response_rm_home="N"
 version="1.4.2.1"
 
 # Source configuration files, this is done in an hierarchy so local files have
@@ -245,14 +246,16 @@ delete_container() {
 	container_home=$(${container_manager} inspect "${container_name}" --format \
 		'{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}')
 	# Prompt for confirmation
-	response_rm_home="Y"
-	if [ "${non_interactive}" -eq 0 ] &&
-		[ "${container_home}" != "${HOME}" ] &&
-		[ "${rm_home}" -eq 0 ]; then
+	if [ "${container_home}" != "${HOME}" ]; then
+		if [ "${non_interactive}" -eq 0 ] &&
+			[ "${rm_home}" -eq 0 ]; then
 
-		printf "Do you want to remove custom home of container %s (%s)? [y/N]: " "${container_name}" "${container_home}"
-		read -r response_rm_home
-		response_rm_home="${response_rm_home:-"N"}"
+			printf "Do you want to remove custom home of container %s (%s)? [y/N]: " "${container_name}" "${container_home}"
+			read -r response_rm_home
+			response_rm_home="${response_rm_home:-"N"}"
+		else
+			response_rm_home="Y"
+		fi
 	fi
 
 	# Validate home response
@@ -296,6 +299,7 @@ delete_container() {
 			fi
 		done
 	fi
+	IFS=' '
 
 	# Remove the container
 	# shellcheck disable=SC2086,SC2248
