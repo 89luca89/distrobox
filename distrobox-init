@@ -481,7 +481,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		if ! emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		emerge --ask=n --autounmask-continue --noreplace --quiet-build
 		deps="
 			${shell_pkg}
 			app-crypt/gnupg
@@ -498,9 +497,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			sys-process/lsof
 			util-linux
 			wget
-			mesa-dri-drivers
-			mesa-vulkan-drivers
-			vulkan
 		"
 		install_pkg=""
 		for dep in ${deps}; do
@@ -684,7 +680,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		swupd bundle-add os-core-search
 
 		deps="
-			${shell_pkg}
 			bc
 			cryptography
 			curl
@@ -804,9 +799,9 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			vulkan
 		"
 		# shellcheck disable=SC2086,SC2046
-		yum install -y $(yum list -q ${deps} | \
-			grep -v "Packages" | \
-			grep "$(uname -m)" | \
+		yum install -y $(yum list -q ${deps} |
+			grep -v "Packages" |
+			grep "$(uname -m)" |
 			cut -d' ' -f1)
 
 		# Install additional packages passed at distrbox-create time
