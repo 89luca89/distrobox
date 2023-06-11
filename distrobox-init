@@ -889,6 +889,12 @@ fi
 # continue in that case
 /usr/bin/distrobox-host-exec -Y test || :
 
+# If xdg-open is not present, do a link of it. This is handy to handle opening of
+# links, files and apps from inside the container into the host.
+if ! command -v xdg-open; then
+	 ln -s /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
+fi
+
 ###############################################################################
 printf "distrobox: Setting up read-only mounts...\n"
 # We'll also bind mount in READ-ONLY useful directories from the host
