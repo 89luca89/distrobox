@@ -124,14 +124,14 @@ if [ -z "${host_command}" ]; then
 	host_command="${distrobox_host_exec_default_command}"
 fi
 
-if command -v sudo 2>/dev/null >/dev/null; then
+if command -v sudo 2> /dev/null > /dev/null; then
 	sudo_command="sudo"
 else
 	sudo_command="su -l -c"
 fi
 
 # Setup host-spawn as a way to execute commands back on the host
-if  ! command -v host-spawn > /dev/null ||
+if ! command -v host-spawn > /dev/null ||
 	[ "$(printf "%s\n%s\n" "${host_spawn_version}" "$(host-spawn --version)" |
 		sort -V | head -n 1)" != "${host_spawn_version}" ]; then
 
@@ -185,7 +185,7 @@ fi
 # As an (ugly) workaround, we will not allocate a pty for those commands.
 ###
 # Also, we don't initialize a pty, if we're not in a tty.
-if  [ "$(basename "${host_command}")" = "xdg-open" ] ||
+if [ "$(basename "${host_command}")" = "xdg-open" ] ||
 	[ "$(basename "${host_command}")" = "gio" ] ||
 	[ ! -t 1 ] ||
 	! tty > /dev/null 2>&1; then
@@ -195,6 +195,6 @@ if  [ "$(basename "${host_command}")" = "xdg-open" ] ||
 	exit $?
 fi
 
-host-spawn  "${host_command}" "$@"
+host-spawn "${host_command}" "$@"
 # Exit here, we don't continue execution
-exit  $?
+exit $?

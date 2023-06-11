@@ -208,12 +208,12 @@ if ! command -v "${container_manager}" > /dev/null; then
 	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
 	exit 127
 fi
-# add  verbose if -v is specified
+# add verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
-# add  -f if force is specified
+# add -f if force is specified
 if [ "${force}" -ne 0 ]; then
 	force_flag="--force"
 fi
@@ -320,7 +320,7 @@ delete_container() {
 }
 
 # Prompt for confirmation
-if  [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
+if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
 	printf "Do you really want to delete %s? [Y/n]: " "${container_name_list}"
 	read -r response
 	response="${response:-"Y"}"

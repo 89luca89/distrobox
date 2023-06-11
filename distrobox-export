@@ -205,10 +205,10 @@ if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
 	exit 2
 fi
 
-if  [ -n "${CONTAINER_ID}" ]; then
+if [ -n "${CONTAINER_ID}" ]; then
 	container_name="${CONTAINER_ID}"
 # if the variable is not set, let's fall back to some tricks.
-elif  [ -e /.dockerenv ]; then
+elif [ -e /.dockerenv ]; then
 	# we're in docker, let's use this trick
 	container_name=$(grep "memory:/" < /proc/self/cgroup | sed 's|.*/||')
 elif [ -e /run/.containerenv ]; then

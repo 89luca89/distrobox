@@ -174,7 +174,7 @@ if ! command -v "${container_manager}" > /dev/null; then
 	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
 	exit 127
 fi
-# add  verbose if -v is specified
+# add verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
@@ -189,7 +189,7 @@ fi
 # between a normal podman or docker container and a distrobox one.
 container_list=$(${container_manager} ps -a --no-trunc --format \
 	"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Labels}}{{.Mounts}}")
-printf   "%-12s | %-20s | %-18s | %-16s | %-5s | %-30s\n" \
+printf "%-12s | %-20s | %-18s | %-16s | %-5s | %-30s\n" \
 	"ID" "NAME" "STATUS" "MEM" "CPU%" "IMAGE"
 IFS='
 '
