@@ -124,6 +124,12 @@ if [ -z "${host_command}" ]; then
 	host_command="${distrobox_host_exec_default_command}"
 fi
 
+if command -v sudo 2>/dev/null >/dev/null; then
+	sudo_command="sudo"
+else
+	sudo_command="su -l -c"
+fi
+
 # Setup host-spawn as a way to execute commands back on the host
 if  ! command -v host-spawn > /dev/null ||
 	[ "$(printf "%s\n%s\n" "${host_spawn_version}" "$(host-spawn --version)" |
@@ -151,8 +157,8 @@ if  ! command -v host-spawn > /dev/null ||
 				exit 1
 			fi
 			if [ -e /tmp/host-spawn ]; then
-				sudo mv /tmp/host-spawn /usr/bin/
-				sudo chmod +x /usr/bin/host-spawn
+				${sudo_command} sh -c "mv /tmp/host-spawn /usr/bin/"
+				${sudo_command} sh -c "chmod +x /usr/bin/host-spawn"
 			fi
 			;;
 		n | N | No | no | NO)
