@@ -1034,7 +1034,7 @@ if [ "${nvidia}" -eq 1 ]; then
 	empty_libs="$(ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2)"
 	if [ -n "${empty_libs}" ]; then
 		# shellcheck disable=SC2086
-		rm -f ${empty_libs}
+		find ${empty_libs} -delete
 	fi
 fi
 
@@ -1136,7 +1136,7 @@ if [ -d "/usr/share/libalpm/scripts" ]; then
 EOF
 	# create hooks files for them
 	printf "distrobox: Setting up pacman hooks...\n"
-	rm -f /usr/share/libalpm/hooks/*distrobox*
+	find /usr/share/libalpm/hooks/*distrobox* -delete
 	for hook in 00_distrobox_pre_hook 01_distrobox_post_hook 02_distrobox_post_hook; do
 		when="PostTransaction"
 		[ -z "${hook##*pre*}" ] && when="PreTransaction"
@@ -1360,8 +1360,8 @@ rm -f /run/systemd/io.system.ManagedOOM
 rm -f /run/systemd/notify
 rm -f /run/systemd/private
 rm -f /etc/apt/apt.conf.d/00_distrobox
-rm -f /usr/share/libalpm/hooks/*distrobox*.hook
-rm -f /usr/share/libalpm/scripts/*distrobox*.sh
+find /usr/share/libalpm/hooks/*distrobox*.hook -delete
+find /usr/share/libalpm/scripts/*distrobox*.sh -delete
 # Remove /dev/console when using init systems, this will confuse host system if
 # we use rootful containers
 touch /var/container-console
