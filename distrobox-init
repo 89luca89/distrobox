@@ -885,6 +885,10 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 fi
 ###############################################################################
 
+# Attempt to download host-spawn during init, we don't care if it fails, so let's
+# continue in that case
+/usr/bin/distrobox-host-exec -Y test || :
+
 ###############################################################################
 printf "distrobox: Setting up read-only mounts...\n"
 # We'll also bind mount in READ-ONLY useful directories from the host
