@@ -27,7 +27,7 @@ if [ ! -t 1 ] ||
 	non_interactive=1
 fi
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
-host_spawn_version="1.4.1"
+host_spawn_version="1.4.2"
 verbose=0
 version="1.4.2.1"
 
