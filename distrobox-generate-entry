@@ -61,15 +61,6 @@ for config_file in ${config_files}; do
 	# shellcheck disable=SC1090
 	[ -e "${config_file}" ] && . "${config_file}"
 done
-# If we're running this script as root -- as in, logged in in the shell as root
-# user, and not via SUDO/DOAS --, we don't need to set distrobox_sudo_program
-# as it's meaningless for this use case.
-if [ "$(id -ru)" -ne 0 ]; then
-	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
-	# user, use its value instead of "sudo". But only if not running the script
-	# as root (UID 0).
-	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
-fi
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 
@@ -242,8 +233,8 @@ fi
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
-	container_manager="${distrobox_sudo_program-} ${container_manager}"
-	container_manager_cp_command="${distrobox_sudo_program-} ${container_manager_cp_command}"
+	container_manager="${distrobox_sudo_program:-"sudo"} ${container_manager}"
+	container_manager_cp_command="${distrobox_sudo_program:-"sudo"} ${container_manager_cp_command}"
 fi
 
 if ! ${container_manager} inspect --type container "${container_name}" > /dev/null; then
@@ -287,7 +278,12 @@ if [ "${icon}" = "auto" ]; then
 		sed "s|linux||g" |
 		tr -d ' ' |
 		tr -d '"')"
-	${distrobox_sudo_program-} rm -f /tmp/"${container_name}".os-release
+
+	if [ "${rootful}" -ne 0 ]; then
+		${distrobox_sudo_program:-"sudo"} rm -f /tmp/"${container_name}".os-release
+	else
+		rm -f /tmp/"${container_name}".os-release
+	fi
 
 	icon_url="$(echo "${DISTRO_ICON_MAP}" | grep "${container_distro}:" | cut -d':' -f2-)"
 	if [ -n "${icon_url}" ] && [ "${download}" != "null" ]; then
