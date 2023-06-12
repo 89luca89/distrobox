@@ -619,7 +619,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		"
 		install_pkg=""
 		for dep in ${deps}; do
-			if pacman -Qs "${dep}" > /dev/null; then
+			if pacman -Ss "${dep}" > /dev/null; then
 				install_pkg="${install_pkg} ${dep}"
 			fi
 		done
@@ -898,7 +898,7 @@ fi
 
 # Attempt to download host-spawn during init, we don't care if it fails, so let's
 # continue in that case
-/usr/bin/distrobox-host-exec -Y test || :
+/usr/bin/distrobox-host-exec -Y test 2> /dev/null > /dev/null || :
 
 # If xdg-open is not present, do a link of it. This is handy to handle opening of
 # links, files and apps from inside the container into the host.
