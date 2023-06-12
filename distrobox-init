@@ -1217,6 +1217,14 @@ if [ -d "/run/host/var/kerberos" ] &&
 EOF
 fi
 
+# If we have sudo/wheel groups, let's add the user to them.
+additional_groups=""
+if grep -q "^sudo" /etc/group; then
+	additional_groups="sudo"
+elif grep -q "^wheel" /etc/group; then
+	additional_groups="wheel"
+fi
+
 # Let's add our user to the container. if the user already exists, enforce properties.
 #
 # In case of AD or LDAP usernames, it is possible we will have a backslach in the name.
@@ -1226,6 +1234,7 @@ if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/pass
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
+		--groups "${additional_groups}" \
 		--shell "${SHELL:-"/bin/bash"}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
@@ -1248,6 +1257,7 @@ elif [ ! -e /etc/passwd.done ]; then
 	if ! usermod \
 		--home "${container_user_home}" \
 		--shell "${SHELL:-"/bin/bash"}" \
+		--groups "${additional_groups}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
 		"${container_user_name}"; then
