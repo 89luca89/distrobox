@@ -28,6 +28,7 @@ if [ ! -t 1 ] ||
 fi
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
 host_spawn_version="1.4.2"
+sudo_command=""
 verbose=0
 version="1.4.2.1"
 
@@ -124,7 +125,7 @@ if [ -z "${host_command}" ]; then
 	host_command="${distrobox_host_exec_default_command}"
 fi
 
-if command -v sudo 2> /dev/null > /dev/null; then
+if [ "$(id -ru)" -ne 0 ] && command -v sudo 2> /dev/null > /dev/null; then
 	sudo_command="sudo"
 else
 	sudo_command="su -l -c"
