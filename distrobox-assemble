@@ -37,15 +37,16 @@ additional_packages=""
 entry=""
 home=""
 image=""
+start_now=""
 init=""
 init_hooks=""
+nvidia=""
 pre_init_hooks=""
 pull=""
 root=""
-volume=""
-nvidia=""
-unshare_netns=""
 unshare_ipc=""
+unshare_netns=""
+volume=""
 
 # Cleanup tmpfiles on exit
 trap 'rm -f ${tmpfile}' EXIT
@@ -195,9 +196,7 @@ run_distrobox() (
 		printf " - Deleting %s... \n" "${name}"
 
 		# Execute the distrobox-create command
-		if [ "${dryrun}" -ne 0 ]; then
-			echo "${distrobox_path}/distrobox-rm" -f "${name}"
-		else
+		if [ "${dryrun}" -eq 0 ]; then
 			"${distrobox_path}"/distrobox rm -f "${name}" > /dev/null || :
 		fi
 
@@ -295,6 +294,12 @@ run_distrobox() (
 		return
 	fi
 	eval "${result_command}"
+
+	# If we need to start immediately, do it, so that the container
+	# is ready to be entered.
+	if [ -n "${start_now}" ] && [ "${start_now}" -eq 1 ]; then
+		"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
+	fi
 )
 
 # Sanitize an input, add single/double quotes and escapes
