@@ -64,3 +64,41 @@ Upgrade a list of distroboxes
 distrobox-upgrade alpine-linux ubuntu22 my-distrobox123
 \f[R]
 .fi
+.PP
+\f[B]Automatically update all distro\f[R]
+.PP
+You can create a systemd service to perform distrobox-upgrade
+automatically, this example shows how to run it daily:
+.PP
+\[ti]/.config/systemd/user/distrobox-upgrade.service
+.IP
+.nf
+\f[C]
+[Unit]
+Description=distrobox-upgrade Automatic Update
+
+[Service]
+Type=simple
+ExecStart=distrobox-upgrade --all
+StandardOutput=null
+\f[R]
+.fi
+.PP
+\[ti]/.config/systemd/user/distrobox-upgrade.timer
+.IP
+.nf
+\f[C]
+[Unit]
+Description=distrobox-upgrade Automatic Update Trigger
+
+[Timer]
+OnBootSec=1h
+OnUnitInactiveSec=1d
+
+[Install]
+WantedBy=timers.target
+\f[R]
+.fi
+.PP
+Then simply do a
+\f[V]systemctl --user daemon reload && systemctl --user enable --now distrobox-upgrade.timer\f[R]

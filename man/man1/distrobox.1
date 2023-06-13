@@ -1,3 +1,4 @@
+'\" t
 .\
 .\"
 .\" Define V font for inline verbatim, using C font in formats
@@ -36,7 +37,7 @@ specified using the \f[V]--file\f[R] flag.
 .IP
 .nf
 \f[C]
---file/-f:      path to the distrobox manifest/ini file
+--file:     path to the distrobox manifest/ini file
 --replace/-R:       replace already existing distroboxes with matching names
 --dry-run/-d:       only print the container manager command generated
 --verbose/-v:       show more verbosity
@@ -57,6 +58,7 @@ nvidia=false
 pull=true
 root=false
 replace=true
+start_now=false
 
 # You can add comments using this #
 [arch] # also inline comments are supported
@@ -64,6 +66,7 @@ additional_packages=git vim tmux nodejs
 home=/tmp/home
 image=archlinux:latest
 init=false
+start_now=true
 init_hooks=\[dq]touch /init-normal\[dq]
 nvidia=true
 pre_init_hooks=\[dq]touch /pre-init\[dq]
@@ -91,7 +94,7 @@ You can specify a custom path for the file using
 .IP
 .nf
 \f[C]
-distrobox assemble create -f /my/custom/path.ini
+distrobox assemble create --file /my/custom/path.ini
 \f[R]
 .fi
 .PP
@@ -109,7 +112,7 @@ To force a replace for all containers in a manifest use the
 .IP
 .nf
 \f[C]
-distrobox assemble create --replace [-f my/custom/path.ini]
+distrobox assemble create --replace [--file my/custom/path.ini]
 \f[R]
 .fi
 .PP
@@ -137,6 +140,139 @@ You can always test what distrobox \f[B]would do\f[R] by using the
 \f[V]--dry-run\f[R] flag.
 This command will only print what commands distrobox would do without
 actually running them.
+.PP
+\f[B]Available options\f[R]
+.PP
+This is a list of available options with the corresponding type:
+.PP
+.TS
+tab(@);
+l l.
+T{
+Flag Name
+T}@T{
+Type
+T}
+_
+T{
+additional_flags
+T}@T{
+string
+T}
+T{
+additional_packages
+T}@T{
+string
+T}
+T{
+home
+T}@T{
+string
+T}
+T{
+image
+T}@T{
+string
+T}
+T{
+init_hooks
+T}@T{
+string
+T}
+T{
+pre_init_hooks
+T}@T{
+string
+T}
+T{
+volume
+T}@T{
+string
+T}
+T{
+entry
+T}@T{
+bool
+T}
+T{
+start_now
+T}@T{
+bool
+T}
+T{
+init
+T}@T{
+bool
+T}
+T{
+nvidia
+T}@T{
+bool
+T}
+T{
+pull
+T}@T{
+bool
+T}
+T{
+root
+T}@T{
+bool
+T}
+T{
+unshare_ipc
+T}@T{
+bool
+T}
+T{
+unshare_netns
+T}@T{
+bool
+T}
+.TE
+.PP
+boolean options default to false if not specified.
+string options can be broken in multiple declarations additively in
+order to improve readability of the file:
+.IP
+.nf
+\f[C]
+[ubuntu]
+image=ubuntu:latest
+additional_packages=git vim tmux nodejs
+additional_packages=htop iftop iotop
+additional_packages=zsh fish
+\f[R]
+.fi
+.PP
+\f[B]Advanced example\f[R]
+.IP
+.nf
+\f[C]
+[tumbleweed_distrobox]
+image=registry.opensuse.org/opensuse/distrobox
+pull=true
+additional_packages=\[dq]acpi bash-completion findutils iproute iputils sensors inotify-tools unzip\[dq]
+additional_packages=\[dq]net-tools nmap openssl procps psmisc rsync man tig tmux tree vim htop xclip yt-dlp\[dq]
+additional_packages=\[dq]git git-credential-libsecret\[dq]
+additional_packages=\[dq]patterns-devel-base-devel_basis\[dq]
+additional_packages=\[dq]ShellCheck ansible-lint clang clang-tools codespell ctags desktop-file-utils gcc golang jq python3\[dq]
+additional_packages=\[dq]python3-bashate python3-flake8 python3-mypy python3-pipx python3-pycodestyle python3-pyflakes python3-pylint python3-python-lsp-server python3-rstcheck python3-yapf python3-yamllint rustup shfmt\[dq]
+additional_packages=\[dq]kubernetes-client helm\[dq]
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint\[at]latest
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo\[at]latest
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports\[at]latest
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/gopls\[at]latest
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install sigs.k8s.io/kind\[at]latest
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/conmon
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/crun
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker-compose
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/flatpak
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/podman
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
+\f[R]
+.fi
 '\" t
 .\
 .\"
@@ -1151,7 +1287,7 @@ will automatically be launched from the container it is exported from.
             Defaults to (on \[rs]$container_name)
 --export-path/-ep:  path where to export the binary
 --extra-flags/-ef:  extra flags to add to the command
-    --login/-l          run the exported item in a login shell
+--login/-l      run the exported item in a login shell
 --sudo/-S:      specify if the exported item should be run as sudo
 --help/-h:      show this message
 --verbose/-v:       show more verbosity
@@ -1168,7 +1304,7 @@ will let you use them from the host itself.
 .nf
 \f[C]
 distrobox-export --app mpv [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
-distrobox-export --bin /path/to/bin --export-path \[ti]/.local/bin [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
+distrobox-export --bin /path/to/bin [--export-path \[ti]/.local/bin] [--extra-flags \[dq]flags\[dq]] [--delete] [--sudo]
 \f[R]
 .fi
 .PP
@@ -1204,8 +1340,6 @@ versions of the same binary based on your \f[V]env\f[R] or project.
 The exported binaries will be exported in the \[lq]\[en]export-path\[rq]
 of choice as a wrapper script that acts naturally both on the host and
 in the container.
-Note that \[lq]\[en]export-path\[rq] is NOT OPTIONAL, you have to
-explicitly set it.
 .PP
 \f[B]Additional flags\f[R]
 .PP
@@ -1365,6 +1499,7 @@ This will be then deleted when you remove the matching distrobox.
     --help/-h:            show this message
     --all/-a:              perform for all distroboxes
     --delete/-d:            delete the entry
+    --root/-r:      perform for a rootful distrobox
     --icon/-i:            specify a custom icon [/path/to/icon] (default auto)
     --verbose/-v:          show more verbosity
     --version/-V:          show version
@@ -1829,3 +1964,41 @@ Upgrade a list of distroboxes
 distrobox-upgrade alpine-linux ubuntu22 my-distrobox123
 \f[R]
 .fi
+.PP
+\f[B]Automatically update all distro\f[R]
+.PP
+You can create a systemd service to perform distrobox-upgrade
+automatically, this example shows how to run it daily:
+.PP
+\[ti]/.config/systemd/user/distrobox-upgrade.service
+.IP
+.nf
+\f[C]
+[Unit]
+Description=distrobox-upgrade Automatic Update
+
+[Service]
+Type=simple
+ExecStart=distrobox-upgrade --all
+StandardOutput=null
+\f[R]
+.fi
+.PP
+\[ti]/.config/systemd/user/distrobox-upgrade.timer
+.IP
+.nf
+\f[C]
+[Unit]
+Description=distrobox-upgrade Automatic Update Trigger
+
+[Timer]
+OnBootSec=1h
+OnUnitInactiveSec=1d
+
+[Install]
+WantedBy=timers.target
+\f[R]
+.fi
+.PP
+Then simply do a
+\f[V]systemctl --user daemon reload && systemctl --user enable --now distrobox-upgrade.timer\f[R]
