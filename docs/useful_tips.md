@@ -15,6 +15,7 @@
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
   - [Using a different architecture](#using-a-different-architecture)
   - [Using the GPU inside the container](#using-the-gpu-inside-the-container)
+  - [Using nvidia-container-toolkit](#using-nvidia-container-toolkit)
   - [Slow creation on podman and image size getting bigger with distrobox create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](#container-save-and-restore)
   - [Check used resources](#check-used-resources)

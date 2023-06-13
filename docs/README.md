@@ -1,5 +1,5 @@
-![distrobox-logo](./assets/page-logo-dark.svg#gh-dark-mode-only)
-![distrobox-logo](./assets/page-logo-light.svg#gh-light-mode-only)
+![distrobox-logo](./assets/page-logo-i.svg#gh-dark-mode-only)
+![distrobox-logo](./assets/page-logo.svg#gh-light-mode-only)
 
 <sub>previous logo credits [j4ckr3d](https://github.com/j4ckr3d)  
 current logo credits [David Lapshin](https://github.com/daudix-UFO)<sub>
@@ -68,10 +68,13 @@ graphical apps (X11/Wayland), and audio.
     - [distrobox-init](usage/distrobox-init.md)
   - [Configure distrobox](#configure-distrobox)
 - [Useful tips](useful_tips.md)
-  - [Execute complex commands directly from distrobox-enter](useful_tips.md#execute-complex-commands-directly-from-distrobox-enter)
+  - [Launch a distrobox from you applications list](useful_tips.md#launch-a-distrobox-from-you-applications-list)
   - [Create a distrobox with a custom HOME directory](useful_tips.md#create-a-distrobox-with-a-custom-home-directory)
   - [Mount additional volumes in a distrobox](useful_tips.md#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](useful_tips.md#use-a-different-shell-than-the-host)
+  - [Run the container with real root](useful_tips.md#run-the-container-with-real-root)
+  - [Run Debian/Ubuntu container behind proxy](useful_tips.md#run-debian-ubuntu-container-behind-proxy)
+  - [Using a command other than sudo to run a rootful container](useful_tips.md#using-a-command-other-than-sudo-to-run-a-rootful-container)
   - [Duplicate an existing distrobox](useful_tips.md#duplicate-an-existing-distrobox)
   - [Export to the host](useful_tips.md#export-to-the-host)
   - [Execute commands on the host](useful_tips.md#execute-commands-on-the-host)
@@ -80,11 +83,13 @@ graphical apps (X11/Wayland), and audio.
   - [Using init system inside a distrobox](useful_tips.md#using-init-system-inside-a-distrobox)
   - [Using distrobox as main cli](useful_tips.md#using-distrobox-as-main-cli)
   - [Using a different architecture](useful_tips.md#using-a-different-architecture)
-  - [Slow creation on podman and image size getting bigger with distrobox-create](useful_tips.md#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
+  - [Using the GPU inside the container](useful_tips.md#using-the-gpu-inside-the-container)
+  - [Using nvidia-container-toolkit](useful_tips.md#using-nvidia-container-toolkit)
+  - [Slow creation on podman and image size getting bigger with distrobox create](useful_tips.md#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](useful_tips.md#container-save-and-restore)
   - [Check used resources](useful_tips.md#check-used-resources)
-  - [Build a Gentoo distrobox container](distrobox_gentoo.md)
-  - [Build a Dedicated distrobox container](distrobox_custom.md)
+  - [Pre-installing additional package repositories](useful_tips.md#pre-installing-additional-package-repositories)
+  - [Apply resource limitation on the fly](useful_tips.md#apply-resource-limitation-on-the-fly)
 - [Posts](posts/posts.md)
   - [Run Libvirt using distrobox](posts/run_libvirt_in_distrobox.md)
   - [Run latest GNOME and KDE Plasma using distrobox](posts/run_latest_gnome_kde_on_distrobox.md)
@@ -112,6 +117,9 @@ graphical apps (X11/Wayland), and audio.
     - [A "Box" Full of Tools and Distros - Dario Faggioli @ OpenSUSE Conference 2022](https://www.youtube.com/watch?v=_RzARte80SQ)
     - [Podman Community Meeting October 4, 2022](https://www.youtube.com/watch?v=JNijOHL4_Ko)
     - [Distrobox opens the Steam Deck to a whole new world (GUIDE) - GamingOnLinux](https://www.youtube.com/watch?v=kkkyNA31KOA)
+    - [CERN - Containerization as a means of extending the lifetime of HDL development tools](https://cdsweb.cern.ch/record/2859962?ln=ja)
+    - [How to Code with Distrobox on the Steam Deck](https://www.youtube.com/watch?v=qic7lmACqPo)
+    - [Why you should be running the MicroOS Desktop](https://www.youtube.com/watch?v=lKYLF1tA4Ik)
   - [Podcasts](featured_articles.md#podcasts)
 
 ---
@@ -222,38 +230,34 @@ as discussed here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/is
 
 ---
 
-# Basic usage
+# Quick Start
 
-Create a new distrobox:
+**Create a new distrobox:**
 
 `distrobox create -n test`
 
-Enter created distrobox:
+**Enter created distrobox:**
 
 `distrobox enter test`
 
-Add [various](https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#host-distros)
-distroboxes, eg Ubuntu 20.04:
+**Add one with a [different distribution](https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#host-distros),
+eg Ubuntu 20.04:**
 
 `distrobox create -i ubuntu:20.04`
 
-Execute a command in a distrobox:
+**Execute a command in a distrobox:**
 
 `distrobox enter test -- command-to-execute`
 
-Upgrade all distroboxes at once:
-
-`distrobox upgrade --all`
-
-List running distroboxes:
+**List running distroboxes:**
 
 `distrobox list`
 
-Stop a running distrobox:
+**Stop a running distrobox:**
 
 `distrobox stop test`
 
-Remove a distrobox
+**Remove a distrobox:**
 
 `distrobox rm test`
 
@@ -264,51 +268,6 @@ and check a [comprehensive list of useful tips HERE](useful_tips.md)
 
 Manifest files can be used to declare a set of distroboxes and use
 `distrobox-assemble` to create/destroy them in batch.
-
-Take this example `distrobox-example.ini` file:
-
-```ini
-
-[alpine3]
-additional_packages=git vim tmux nodejs
-home=/tmp/home
-image=alpine:latest
-
-[debian5]
-additional_packages=git vim tmux nodejs
-home=/tmp/home
-image=debian:latest
-init=false
-init_hooks="touch /init-normal"
-
-[opensuse]
-additional_packages=git vim tmux nodejs
-home=/tmp/home
-image=opensuse/tumbleweed:latest
-init=true
-init_hooks="touch /init-normal"
-pre_init_hooks="touch /pre-init"
-pull=true
-```
-
-Using the following command:
-
-```console
-distrobox-assemble create -f ./distrobox-example.ini
-```
-
-We can create all the distroboxes at once, configured as declared in the manifest file.
-We can also recreate them from scratch using:
-
-```console
-distrobox-assemble create --replace -f ./distrobox-example.ini
-```
-
-And finally destroy all of them at once with
-
-```console
-distrobox-assemble rm -f ./distrobox-example.ini
-```
 
 Head over the [usage docs of distrobox-assemble](usage/distrobox-assemble.md)
 for a more detailed guide.
