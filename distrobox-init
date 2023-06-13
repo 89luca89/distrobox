@@ -216,6 +216,19 @@ get_locked_mount_flags() (
 	echo "${locked_flags}"
 )
 
+# init_readlink is a simplistic implementation for
+# readlink -fm
+# we use this as readlink -fm does not work on
+# busybox systems, and we need the path even for broken links.
+# Arguments:
+#	source file
+# Outputs:
+#	original path the link is pointing
+init_readlink() {
+	# shellcheck disable=SC2010
+	ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2-
+}
+
 # Bind mount or error.
 # Arguments:
 #   source_dir
@@ -232,6 +245,13 @@ mount_bind() (
 		mount_flags="$3"
 	fi
 
+	if [ -L "${source_dir}" ]; then
+		source_dir="$(init_readlink "${source_dir}")"
+		if ! echo "${source_dir}" | grep -q "/run/host"; then
+			source_dir="/run/host${source_dir}"
+		fi
+	fi
+
 	# if source dir doesn't exist, just exit normally
 	! [ -d "${source_dir}" ] && ! [ -f "${source_dir}" ] && return 0
 
@@ -241,21 +261,22 @@ mount_bind() (
 	fi
 	# if the source_dir exists, then create the target_dir
 	if [ -d "${source_dir}" ]; then
-		# exit if not successful
-		if ! mkdir -p "${target_dir}"; then
-			printf "Warning: cannot create mount target directory: %s\n" "${target_dir}"
-			return 1
+		if [ ! -d "${target_dir}" ]; then
+			mkdir -p "${target_dir}"
 		fi
 	# if instead it's a file, create it with touch
 	elif [ -f "${source_dir}" ]; then
-		# exit if not successful
-		if ! mkdir -p "$(dirname "${target_dir}")"; then
-			printf "Warning: cannot create mount target directory: %s\n" "${target_dir}"
-			return 1
+		if [ ! -d "$(dirname "${target_dir}")" ]; then
+			mkdir -p "$(dirname "${target_dir}")"
 		fi
+		# if we encounter a broken link, and we touch it
+		# then remove the broken link, the next touch
+		# will cover it.
 		if ! touch "${target_dir}"; then
-			printf "Warning: cannot create mount target file: %s\n" "${target_dir}"
-			return 1
+			rm -f "${target_dir}"
+		fi
+		if ! ls "${target_dir}" 2> /dev/null; then
+			touch "${target_dir}"
 		fi
 	fi
 
@@ -364,8 +385,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 	elif command -v apt-get; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
-			apt update
-			apt upgrade -y
+			apt-get update
+			apt-get upgrade -y
 			exit
 		fi
 		# In Ubuntu official images, dpkg is configured to ignore locale and docs
@@ -1332,9 +1353,9 @@ if [ "${init}" -eq 0 ]; then
 			# do stuff, only if we need to.
 			file_watch_src="/run/host${file_watch}"
 			# check if the target file is a symlink and take the source
-			if [ -e "${file_watch_src}" ]; then
+			if ls -l "${file_watch_src}" > /dev/null; then
 				if [ -L "${file_watch_src}" ]; then
-					file_watch_src="$(readlink -f "/run/host${file_watch}")"
+					file_watch_src="$(init_readlink "/run/host${file_watch}")"
 					# if it's an absolute link, we need to append /run/host ourselves.
 					if ! echo "${file_watch_src}" | grep -q "/run/host"; then
 						file_watch_src="/run/host${file_watch_src}"
