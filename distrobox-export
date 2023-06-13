@@ -26,7 +26,7 @@
 #	DISTROBOX_HOST_HOME
 
 # Defaults
-dest_path=""
+dest_path="${HOME}/.local/bin"
 export_action=""
 exported_app=""
 exported_app_label=""
@@ -37,10 +37,10 @@ extra_flags=""
 #	DBX_HOST_HOME is set in case container is created
 #	with custom --home directory
 host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
-start_shell=""
 is_login=0
 is_sudo=0
 rootful=""
+start_shell=""
 verbose=0
 version="1.4.2.1"
 

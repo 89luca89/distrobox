@@ -25,7 +25,7 @@ automatically be launched from the container it is exported from.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-    	--login/-l      	run the exported item in a login shell
+	--login/-l		run the exported item in a login shell
 	--sudo/-S:		specify if the exported item should be run as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
@@ -37,7 +37,7 @@ Using `distrobox-export` from **inside** the container will let you use them fro
 # EXAMPLES
 
 	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --bin /path/to/bin --export-path ~/.local/bin [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --bin /path/to/bin [--export-path ~/.local/bin] [--extra-flags "flags"] [--delete] [--sudo]
 
 **App export example**
 
@@ -59,7 +59,6 @@ your `env` or project.
 
 The exported binaries will be exported in the "--export-path" of choice as a wrapper
 script that acts naturally both on the host and in the container.
-Note that "--export-path" is NOT OPTIONAL, you have to explicitly set it.
 
 **Additional flags**
 
