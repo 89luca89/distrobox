@@ -283,6 +283,9 @@ to the most important:
 - ${HOME}/.config/distrobox/distrobox.conf
 - ${HOME}/.distroboxrc
 
+You can specify inside distrobox configurations and distrobox-specific Environment
+variables.
+
 Example configuration file:
 
 ```conf
@@ -297,6 +300,7 @@ container_pre_init_hook="~/a_custom_default_pre_init_hook.sh"
 container_manager_additional_flags="--env-file /path/to/file --custom-flag"
 non_interactive="1"
 skip_workdir="0"
+PATH="$PATH:/path/to/custom/podman"
 ```
 
 Alternatively it is possible to specify preferences using ENV variables:
