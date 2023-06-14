@@ -191,26 +191,34 @@ get_locked_mount_flags() (
 	prev_dir=""
 	locked_flags=""
 
-	! [ -d "${source_dir}" ] && return 0
+	if [ ! -d "${source_dir}" ]; then
+		return 0
+	fi
+
+	# If we can't read the directory, exit
+	if ! ls "${source_dir}" 2> /dev/null > /dev/null; then
+		return 0
+	fi
 
 	# Get mount flags of given directory, using nearest mountpoint.
 	# Earlier versions of findmnt did not check parents until it found a mountpoint,
 	# so we use a workaround with dirname.
 	while true; do
-		flags="$(findmnt --noheadings --output OPTIONS --target "${source_dir}")" && break
+		flags="$(findmnt --noheadings --output OPTIONS --target "${source_dir}" || :)"
+		# shellcheck disable=SC2181
+		if [ -n "${flags}" ]; then
+			break
+		fi
 		prev_dir="${source_dir}"
 		source_dir="$(dirname "${source_dir}")"
 		[ "${source_dir}" = "${prev_dir}" ] && return 1
 	done
 
 	for flag in nodev noexec nosuid; do
-		case ",${flags}," in
-			*,${flag},*)
-				# Locked flag found, append to list while avoiding leading/trailing commas
-				locked_flags="${locked_flags:+${locked_flags},}${flag}"
-				;;
-			*) : ;;
-		esac
+		if echo "${flags}" | grep -q "${flag}"; then
+			# Locked flag found, append to list while avoiding leading/trailing commas
+			locked_flags="${locked_flags:+${locked_flags},}${flag}"
+		fi
 	done
 
 	echo "${locked_flags}"
@@ -245,6 +253,7 @@ mount_bind() (
 		mount_flags="$3"
 	fi
 
+	# Adjust source_dir in order to point to /run/host if it's a symlink
 	if [ -L "${source_dir}" ]; then
 		source_dir="$(init_readlink "${source_dir}")"
 		if ! echo "${source_dir}" | grep -q "/run/host"; then
@@ -252,17 +261,26 @@ mount_bind() (
 		fi
 	fi
 
-	# if source dir doesn't exist, just exit normally
-	! [ -d "${source_dir}" ] && ! [ -f "${source_dir}" ] && return 0
+	# if source dir doesn't exist, just exit
+	if [ ! -d "${source_dir}" ] && [ ! -f "${source_dir}" ]; then
+		return 0
+	fi
 
 	# if target_dir exists, check if it is a mountpoint and umount it.
 	if [ -e "${target_dir}" ] && findmnt "${target_dir}" > /dev/null; then
 		umount "${target_dir}"
 	fi
+
+	# if target_dir exists, and is a symlink, remove it
+	if [ -L "${target_dir}" ]; then
+		rm -f "${target_dir}"
+	fi
+
 	# if the source_dir exists, then create the target_dir
 	if [ -d "${source_dir}" ]; then
-		if [ ! -d "${target_dir}" ]; then
-			mkdir -p "${target_dir}"
+		if ! mkdir -p "${target_dir}"; then
+			printf "Warning: cannot create mount target directory: %s\n" "${target_dir}"
+			return 1
 		fi
 	# if instead it's a file, create it with touch
 	elif [ -f "${source_dir}" ]; then
@@ -273,10 +291,8 @@ mount_bind() (
 		# then remove the broken link, the next touch
 		# will cover it.
 		if ! touch "${target_dir}"; then
-			rm -f "${target_dir}"
-		fi
-		if ! ls "${target_dir}" 2> /dev/null; then
-			touch "${target_dir}"
+			printf "Warning: cannot create mount target file: %s\n" "${target_dir}"
+			return 1
 		fi
 	fi
 
@@ -955,12 +971,12 @@ HOST_MOUNTS="
 	/mnt
 	/run/libvirt
 	/run/media
+	/run/netconfig/
 	/run/systemd/journal
+	/run/systemd/resolve/
 	/run/systemd/seats
 	/run/systemd/sessions
 	/run/systemd/users
-	/run/systemd/resolve/
-	/run/netconfig/
 	/run/udev
 	/srv
 	/var/lib/libvirt
@@ -1000,8 +1016,8 @@ printf "distrobox: Setting up host's sockets integration...\n"
 # the container or accessing docker and libvirt sockets.
 host_sockets="$(find /run/host/run -name 'user' \
 	-prune -o -path /run/host/run/media \
-	-prune -o -name 'nscd' \
 	-prune -o -name 'bees' \
+	-prune -o -name 'nscd' \
 	-prune -o -name 'system_bus_socket' \
 	-prune -o -type s -print \
 	2> /dev/null || :)"
@@ -1114,7 +1130,7 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 	for net_mount in \
 		${HOST_MOUNTS_RO} ${HOST_MOUNTS} \
 		'/dev' '/proc' '/sys' '/tmp' \
-		'/etc/host.conf' '/etc/hosts' '/etc/resolv.conf' '/etc/localtime' \
+		'/etc/hosts' '/etc/resolv.conf' \
 		'/usr/share/zoneinfo'; do
 
 		net_mounts="${net_mount}:${net_mounts}"
@@ -1389,8 +1405,12 @@ if command -v systemctl 2> /dev/null; then
 	# Cleanup systemd to not interfere with the host
 	# /etc/systemd/system/*.wants/
 	UNIT_TARGETS="
+		/usr/lib/systemd/system/NetworkManager-wait-online.service
+		/usr/lib/systemd/system/auditd.service
 		/usr/lib/systemd/system/basic.target.wants/*
+		/usr/lib/systemd/system/libstoragemgmt.service
 		/usr/lib/systemd/system/local-fs.target.wants/*
+		/usr/lib/systemd/system/mcelog.service
 		/usr/lib/systemd/system/multi-user.target.wants/*
 		/usr/lib/systemd/system/plymouth*
 		/usr/lib/systemd/system/sockets.target.wants/*initctl*
@@ -1398,10 +1418,6 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/sysinit.target.wants/*
 		/usr/lib/systemd/system/systemd-tmpfiles*
 		/usr/lib/systemd/system/systemd-update-utmp*
-		/usr/lib/systemd/system/NetworkManager-wait-online.service
-		/usr/lib/systemd/system/auditd.service
-		/usr/lib/systemd/system/libstoragemgmt.service
-		/usr/lib/systemd/system/mcelog.service
 	"
 	# shellcheck disable=SC2086,SC2044
 	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
@@ -1409,11 +1425,11 @@ if command -v systemctl 2> /dev/null; then
 	done
 fi
 # We don't want these workarounds anymore
+rm -f /etc/apt/apt.conf.d/00_distrobox
 rm -f /run/systemd/coredump
 rm -f /run/systemd/io.system.ManagedOOM
 rm -f /run/systemd/notify
 rm -f /run/systemd/private
-rm -f /etc/apt/apt.conf.d/00_distrobox
 find /usr/share/libalpm/hooks/*distrobox*.hook -delete || :
 find /usr/share/libalpm/scripts/*distrobox*.sh -delete || :
 # Remove /dev/console when using init systems, this will confuse host system if

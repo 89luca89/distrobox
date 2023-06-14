@@ -21,9 +21,9 @@
 # POSIX
 # Optional env variables:
 #	DBX_CONTAINER_MANAGER
-#   DBX_CONTAINER_NAME
+#	DBX_CONTAINER_NAME
 #	DBX_CONTAINER_RM_CUSTOM_HOME
-#   DBX_NON_INTERACTIVE
+#	DBX_NON_INTERACTIVE
 #	DBX_SUDO_PROGRAM
 
 # Despite of running this script via SUDO/DOAS being not supported (the
@@ -285,20 +285,18 @@ delete_container() {
 	done
 
 	# Remove exported gui apps from this container in default path
-	if ls "${HOME}/.local/share/applications/${container_name}"* > /dev/null 2> /dev/null; then
-		# shellcheck disable=SC2086,SC2038
-		desktop_files="$(find "${HOME}/.local/share/applications/${container_name}"* -type f -o -type l |
-			xargs -I{} grep -le "Exec=.*${container_name} " "{}" |
-			xargs -I{} printf "%s@" {} 2> /dev/null || :)"
-		for file in ${desktop_files}; do
-			if [ -e "${file}" ]; then
-				app="$(grep -Eo "Name=.*" "${file}" | head -n 1 | cut -d' ' -f1 | cut -d'=' -f2)"
+	# shellcheck disable=SC2086,SC2038
+	desktop_files="$(find "${HOME}/.local/share/applications/${container_name}"* -type f -o -type l 2> /dev/null |
+		xargs -I{} grep -le "Exec=.*${container_name} " "{}" |
+		xargs -I{} printf "%s@" {} 2> /dev/null || :)"
+	for file in ${desktop_files}; do
+		if [ -e "${file}" ]; then
+			app="$(grep -Eo "Name=.*" "${file}" | head -n 1 | cut -d' ' -f1 | cut -d'=' -f2)"
 
-				printf "Removing exported app %s...\n" "${app}"
-				"$(dirname "$(realpath "${0}")")/distrobox-enter" "${container_name}" -- distrobox-export --delete --app "${app}" > /dev/null 2> /dev/null || :
-			fi
-		done
-	fi
+			printf "Removing exported app %s...\n" "${app}"
+			"$(dirname "$(realpath "${0}")")/distrobox-enter" "${container_name}" -- distrobox-export --delete --app "${app}" > /dev/null 2> /dev/null || :
+		fi
+	done
 	IFS=' '
 
 	# Remove the container

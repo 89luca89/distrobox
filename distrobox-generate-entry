@@ -83,6 +83,7 @@ Options:
 	--all/-a:		perform for all distroboxes
 	--delete/-d:		delete the entry
 	--icon/-i:		specify a custom icon [/path/to/icon] (default auto)
+	--root/-r:		perform on rootful distroboxes
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 EOF
