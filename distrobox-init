@@ -590,6 +590,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			shadow-utils
 			sudo
 			time
+			tzdata
 			wget
 			vte-profile
 			mesa-dri-drivers
@@ -839,6 +840,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			shadow-utils
 			sudo
 			time
+			tzdata
 			util-linux
 			wget
 			vte-profile
@@ -949,6 +951,7 @@ printf "distrobox: Setting up read-only mounts...\n"
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="
 	/etc/localtime
+	/usr/share/zoneinfo
 	/var/lib/flatpak
 	/var/lib/systemd/coredump
 	/var/log/journal"
@@ -989,6 +992,7 @@ done
 
 HOST_MOUNTS_RO_INIT="
 	/etc/localtime
+	/usr/share/zoneinfo
 	/run/systemd/journal
 	/run/systemd/resolve
 	/run/systemd/seats
@@ -1130,8 +1134,7 @@ if [ -d "/usr/lib/rpm/macros.d/" ]; then
 	for net_mount in \
 		${HOST_MOUNTS_RO} ${HOST_MOUNTS} \
 		'/dev' '/proc' '/sys' '/tmp' \
-		'/etc/hosts' '/etc/resolv.conf' \
-		'/usr/share/zoneinfo'; do
+		'/etc/hosts' '/etc/resolv.conf'; do
 
 		net_mounts="${net_mount}:${net_mounts}"
 
