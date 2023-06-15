@@ -1442,4 +1442,6 @@ mount --rbind /var/container-console /dev/console
 # Now we can launch init
 printf "distrobox: Firing up init system...\n"
 printf "container_setup_done\n"
-exec /sbin/init
+
+exec /sbin/init || exec /usr/sbin/init ||
+	exec /lib/systemd/systemd || exec /usr/lib/systemd/systemd
