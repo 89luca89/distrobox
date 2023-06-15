@@ -148,7 +148,8 @@ This could be useful to create containers with a set of programs already install
 The `--init` is useful to create a container that will use its own separate init system within.
 For example using:
 
-	distrobox create -i docker.io/almalinux/8-init --init-hooks "dnf install -y openssh-server" --init --name test
+	distrobox create -i docker.io/almalinux/8-init --init --name test
+	distrobox create -i docker.io/library/debian --additional-packages "systemd" --init --name test-debian
 
 Inside the container we will be able to use normal systemd units:
 

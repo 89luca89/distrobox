@@ -228,7 +228,9 @@ transparently execute the command on the host.
 
 ## Using init system inside a distrobox
 
-You can use an init system inside the container on supported images.
+You can use an init system inside the container. You can either use supported
+pre-created images, or have to add additional packages.
+
 Example of such images are:
 
 - docker.io/almalinux/8-init
@@ -241,6 +243,12 @@ Example of such images are:
 You can use such feature using:
 
 `distrobox create -i docker.io/almalinux/8-init --init --name test`
+
+If you want to use a non-pre-create image, you'll need to add the additional package:
+
+`distrobox create -i debian:unstable --init --additional-packages "systemd" -n test`
+`distrobox create -i ubuntu:18.04 --init --additional-packages "systemd" -n test`
+`distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-packages "systemd" -n test`
 
 Note however that in this mode, you'll not be able to access host's processes
 from within the container.

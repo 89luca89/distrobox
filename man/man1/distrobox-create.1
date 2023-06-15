@@ -253,7 +253,8 @@ For example using:
 .IP
 .nf
 \f[C]
-distrobox create -i docker.io/almalinux/8-init --init-hooks \[dq]dnf install -y openssh-server\[dq] --init --name test
+distrobox create -i docker.io/almalinux/8-init --init --name test
+distrobox create -i docker.io/library/debian --additional-packages \[dq]systemd\[dq] --init --name test-debian
 \f[R]
 .fi
 .PP
