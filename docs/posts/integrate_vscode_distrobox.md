@@ -1,11 +1,10 @@
 - [Distrobox](../README.md)
   - [Integrate VSCode and Distrobox](#integrate-vscode-and-distrobox)
-    - [The easy one](#the-easy-one)
-    - [The not so easy one](#the-not-so-easy-one)
+    - [From distrobox](#from-distrobox)
+    - [From flatpak](#from-flatpak)
       - [First step, install it](#first-step-install-it)
       - [Second step, extensions](#second-step-extensions)
       - [Third step, podman wrapper](#third-step-podman-wrapper)
-      - [Fourth step, configure the container](#fourth-step-configure-the-container)
     - [Final Result](#final-result)
 
 ---
@@ -20,7 +19,7 @@ alternative to VSCode.
 
 Here are a couple of solutions.
 
-## The easy one
+## From distrobox
 
 Well, you could just install VSCode in your Distrobox of choice, and export it!
 
@@ -52,13 +51,10 @@ it without problems.
 ![image](https://user-images.githubusercontent.com/598882/149206335-1a2d0edd-8b2f-437d-aae0-44b9723d2c30.png)
 ![image](https://user-images.githubusercontent.com/598882/149206414-56bdbc5a-3728-45ef-8dd4-2e168a0d7ccc.png)
 
-## The not so easy one
+## From flatpak
 
 Alternatively you may want to install VSCode on your host. We will explore how
 to integrate VSCode installed via **Flatpak** with Distrobox.
-
-Note that this integration process is inspired by the awesome project [toolbox-vscode](https://github.com/owtaylor/toolbox-vscode)
-so many thanks to @owtaylor for the heavy lifting!
 
 ### First step install it
 
@@ -80,23 +76,18 @@ able to use the containers. Place this in your `~/.local/bin/podman-host`
 ```shell
 #!/bin/bash
 set -x
-if [ "$1" == "exec" ]; then
- # Remove 'exec' from $@
- shift
- script='
-     result_command="podman exec"
-        for i in $(printenv | grep "=" | grep -Ev " |\"" |
-            grep -Ev "^(HOST|HOSTNAME|HOME|PATH|SHELL|USER|_)"); do
 
-            result_command=$result_command --env="$i"
-     done
+# This little workaround is used to ensure
+# we use our $USER inside the containers, without
+# resorting to creating devcontainer.json or similar stuff
+arr=("$@")
+for i in "${!arr[@]}"; do
+    if [[ ${arr[$i]} == *"root:root"* ]]; then
+        arr[$i]="$(echo "${arr[$i]}" | sed "s|root:root|$USER:$USER|g")"
+    fi
+done
 
-        exec ${result_command} "$@"
-    '
- exec flatpak-spawn --host sh -c "$script" - "$@"
-else
- exec flatpak-spawn --host podman "$@"
-fi
+flatpak-spawn --host podman "${arr[@]}"
 ```
 
 and make it executable: `chmod +x ~/.local/bin/podman-host`.
@@ -108,50 +99,6 @@ set it to the path of `podman-exec`, like in the example
 
 This will give a way to execute host's container manager from within the
 flatpak app.
-
-### Fourth step configure the container
-
-We need not to deploy a configuration for our container. We should create one for
-each Distrobox we choose to integrate with VSCode:
-
-```json
-{
-  "name" : // PUT YOUR DISTROBOX NAME HERE
-  "remoteUser": "${localEnv:USER}",
-  "settings": {
-    "dev.containers.copyGitConfig": false,
-    "dev.containers.gitCredentialHelperConfigLocation": "none",
-    "terminal.integrated.profiles.linux": {
-      "shell": {
-        "path": "${localEnv:SHELL}",
-        "args": [
-          "-l"
-        ]
-      }
-    },
-    "terminal.integrated.defaultProfile.linux": "shell"
-  },
-  "remoteEnv": {
-    "COLORTERM": "${localEnv:COLORTERM}",
-    "DBUS_SESSION_BUS_ADDRESS": "${localEnv:DBUS_SESSION_BUS_ADDRESS}",
-    "DESKTOP_SESSION": "${localEnv:DESKTOP_SESSION}",
-    "DISPLAY": "${localEnv:DISPLAY}",
-    "LANG": "${localEnv:LANG}",
-    "SHELL": "${localEnv:SHELL}",
-    "SSH_AUTH_SOCK": "${localEnv:SSH_AUTH_SOCK}",
-    "TERM": "${localEnv:TERM}",
-    "VTE_VERSION": "${localEnv:VTE_VERSION}",
-    "XDG_CURRENT_DESKTOP": "${localEnv:XDG_CURRENT_DESKTOP}",
-    "XDG_DATA_DIRS": "${localEnv:XDG_DATA_DIRS}",
-    "XDG_MENU_PREFIX": "${localEnv:XDG_MENU_PREFIX}",
-    "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
-    "XDG_SESSION_DESKTOP": "${localEnv:XDG_SESSION_DESKTOP}",
-    "XDG_SESSION_TYPE": "${localEnv:XDG_SESSION_TYPE}"
-  }
-}
-```
-
-And place it under `${HOME}/.var/app/com.visualstudio.code/config/Code/User/globalStorage/ms-vscode-remote.remote-containers/nameConfigs/your-distrobox-name.json`
 
 ## Final Result
 
