@@ -37,6 +37,7 @@ if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
 	exit 1
 fi
 
+name=$(mktemp -u distrobox-XXXXXXXXXX)
 container_command=""
 create_flags=""
 distrobox_path="$(dirname "${0}")"
@@ -46,8 +47,10 @@ extra_flags=""
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
 version="1.4.2.1"
-container_pre_init_hook=" "
+container_additional_packages=""
 container_init_hook=" "
+container_manager_additional_flags=""
+container_pre_init_hook=" "
 
 # Print usage to stdout.
 # Arguments:
@@ -107,6 +110,21 @@ while :; do
 		-n | --name)
 			# Ignore --name on ephemeral
 			if [ -n "$2" ]; then
+				name="${2}"
+				shift
+				shift
+			fi
+			;;
+		-a | --additional-flags)
+			if [ -n "$2" ]; then
+				container_manager_additional_flags="${container_manager_additional_flags} ${2}"
+				shift
+				shift
+			fi
+			;;
+		-ap | --additional-packages)
+			if [ -n "$2" ]; then
+				container_additional_packages="${container_additional_packages} ${2}"
 				shift
 				shift
 			fi
@@ -150,9 +168,40 @@ if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
 fi
 
-name=$(mktemp -u distrobox-XXXXXXXXXX)
+# Generate distrobox-create command to execute.
+# Arguments:
+#   None
+# Outputs:
+#   prints the distrobox-create command handling special flags
+generate_command() {
+
+	result_command="${distrobox_path}/distrobox-create"
+	if [ -n "${container_manager_additional_flags}" ]; then
+		result_command="${result_command} \
+			--additional-flags \"${container_manager_additional_flags}\""
+	fi
+	if [ -n "${container_additional_packages}" ]; then
+		result_command="${result_command} \
+			--additional-packages \"${container_additional_packages}\""
+	fi
+	if [ -n "${container_init_hook}" ]; then
+		result_command="${result_command} \
+			--init-hooks \"${container_init_hook}\""
+	fi
+	if [ -n "${container_pre_init_hook}" ]; then
+		result_command="${result_command} \
+			--pre-init-hooks \"${container_pre_init_hook}\""
+	fi
+	result_command="${result_command} \
+		${extra_flags} ${create_flags} --yes --name ${name}"
+
+	# Return generated command.
+	printf "%s" "${result_command}"
+}
+
+cmd="$(generate_command)"
 # shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-create --init-hooks "${container_init_hook}" --pre-init-hooks "${container_pre_init_hook}" ${extra_flags} ${create_flags} --yes --name ${name}
+eval ${cmd}
 # shellcheck disable=SC2086
 "${distrobox_path}"/distrobox-enter ${extra_flags} "${name}" ${container_command}
 # shellcheck disable=SC2086
