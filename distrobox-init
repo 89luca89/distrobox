@@ -357,23 +357,22 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			bc
 			curl
 			diffutils
-			findutils
 			findmnt
+			findutils
 			gnupg
 			less
 			lsof
 			ncurses
 			pinentry
+			posix-libc-utils
 			procps
 			shadow
-			sudo
 			su-exec
+			sudo
 			util-linux
-			posix-libc-utils
 			util-linux-misc
-			util-linux
-			wget
 			vte3
+			wget
 			$(apk search -q mesa-dri)
 			$(apk search -q mesa-vulkan)
 			vulkan-loader
@@ -428,14 +427,10 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			findutils
 			gnupg2
 			less
-			libegl1-mesa
-			libgl1-mesa-glx
 			libnss-myhostname
 			libvte-2.9*-common
 			libvte-common
-			libvulkan1
 			lsof
-			mesa-vulkan-drivers
 			ncurses-base
 			passwd
 			pinentry-curses
@@ -444,6 +439,10 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			time
 			util-linux
 			wget
+			libegl1-mesa
+			libgl1-mesa-glx
+			libvulkan1
+			mesa-vulkan-drivers
 		"
 		install_pkg=""
 		for dep in ${deps}; do
@@ -488,6 +487,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			less
 			lsof
 			ncurses
+			pam
 			passwd
 			pinentry
 			procps-ng
@@ -496,8 +496,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			time
 			tzdata
 			util-linux
-			wget
 			vte-profile
+			wget
 			mesa-dri-drivers
 			mesa-vulkan-drivers
 			vulkan
@@ -532,7 +532,6 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		deps="
 			${shell_pkg}
 			app-crypt/gnupg
-			sys-devel/bc
 			diffutils
 			findutils
 			less
@@ -542,6 +541,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			procps
 			shadow
 			sudo
+			sys-devel/bc
 			sys-process/lsof
 			util-linux
 			wget
@@ -584,6 +584,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			less
 			lsof
 			ncurses
+			pam
 			passwd
 			pinentry
 			procps
@@ -591,12 +592,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			sudo
 			time
 			tzdata
-			wget
+			util-linux
 			vte-profile
+			wget
 			mesa-dri-drivers
 			mesa-vulkan-drivers
 			vulkan
-			util-linux
 		"
 		install_pkg=""
 		for dep in ${deps}; do
@@ -736,8 +737,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			shells
 			sysadmin-basic
 			wget
-			lib-opengl
 			devpkg-Vulkan-Loader
+			lib-opengl
 		"
 		install_pkg=""
 		for dep in ${deps}; do
@@ -785,8 +786,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			shadow
 			sudo
 			time
-			wget
 			util-linux
+			wget
 			mesa-dri
 			vulkan-loader
 			mesa-vulkan-intel
@@ -834,6 +835,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			less
 			lsof
 			ncurses
+			pam
 			passwd
 			pinentry
 			procps-ng
@@ -842,8 +844,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			time
 			tzdata
 			util-linux
-			wget
 			vte-profile
+			wget
 			mesa-dri-drivers
 			mesa-vulkan-drivers
 			vulkan
@@ -895,15 +897,17 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			libvte-2*
 			lsof
 			ncurses
+			pam
+			pam-extra
 			pinentry
 			procps
 			shadow
 			sudo
 			systemd
 			time
-			wget
 			util-linux
 			util-linux-systemd
+			wget
 			Mesa-dri
 			libvulkan1
 			libvulkan_intel
