@@ -1,10 +1,12 @@
-![distrobox-logo](./assets/page-logo-i.svg#gh-dark-mode-only)
-![distrobox-logo](./assets/page-logo.svg#gh-light-mode-only)
+<picture>
+  <source srcset="assets/brand/svg/distrobox-logomark-dark.svg" media="(prefers-color-scheme: dark)">
+  <img src="assets/brand/svg/distrobox-logomark-light.svg">
+</picture>
+
+# Distrobox
 
 <sub>previous logo credits [j4ckr3d](https://github.com/j4ckr3d)  
 current logo credits [David Lapshin](https://github.com/daudix-UFO)<sub>
-
-# Distrobox
 
 ![Lint](https://github.com/89luca89/distrobox/actions/workflows/main.yml/badge.svg)
 [![CI](https://github.com/89luca89/distrobox/actions/workflows/compatibility.yml/badge.svg)](https://github.com/89luca89/distrobox/actions/workflows/compatibility.yml)
