@@ -198,7 +198,8 @@ EOF
 # Outputs:
 #   print usage with examples.
 show_compatibility() {
-	if [ ! -e "${HOME}/.cache/distrobox-compatibility-${version}" ]; then
+	if [ ! -e "${HOME}/.cache/distrobox-compatibility-${version}" ] ||
+		[ ! -s "${HOME}/.cache/distrobox-compatibility-${version}" ]; then
 		mkdir -p "${HOME}/.cache"
 
 		# If we don't have a cache file, we need connectivity. Ensure we have
@@ -215,8 +216,7 @@ show_compatibility() {
 			cut -d '|' -f 4 |
 			sed 's|<br>|\n|g' |
 			tr -d ' ' |
-			sort -u |
-			tail -n+4 > "${HOME}/.cache/distrobox-compatibility-${version}"
+			sort -u > "${HOME}/.cache/distrobox-compatibility-${version}"
 	fi
 	cat "${HOME}/.cache/distrobox-compatibility-${version}"
 }
