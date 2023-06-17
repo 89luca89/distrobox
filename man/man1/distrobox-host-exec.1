@@ -38,11 +38,13 @@ arguments, if any.
 .IP
 .nf
 \f[C]
-distrobox-host-exec [command [arguments]]
-
 --help/-h:      show this message
 --verbose/-v:       show more verbosity
 --version/-V:       show version
+--yes/-Y:       Automatically answer yes to prompt:
+                            host-spawn will be installed on the guest system
+                            if host-spawn is not detected.
+                            This behaviour is default when running in a non-interactive shell.
 \f[R]
 .fi
 .PP

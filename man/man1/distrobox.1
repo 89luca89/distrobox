@@ -37,7 +37,7 @@ specified using the \f[V]--file\f[R] flag.
 .IP
 .nf
 \f[C]
---file:     path to the distrobox manifest/ini file
+--file:         path to the distrobox manifest/ini file
 --replace/-R:       replace already existing distroboxes with matching names
 --dry-run/-d:       only print the container manager command generated
 --verbose/-v:       show more verbosity
@@ -1062,7 +1062,7 @@ specify the \[en]headless mode to disable tty and interactivity.
 --name/-n:      name for the distrobox                      default: my-distrobox
 --/-e:          end arguments execute the rest as command to execute at login   default: bash -l
 --no-tty/-T:        do not instantiate a tty
---no-workdir/-nw:       always start the container from container\[aq]s home directory
+--no-workdir/-nw:   always start the container from container\[aq]s home directory
 --additional-flags/-a:  additional flags to pass to the container manager command
 --help/-h:      show this message
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -1497,13 +1497,13 @@ This will be then deleted when you remove the matching distrobox.
 .IP
 .nf
 \f[C]
-    --help/-h:            show this message
-    --all/-a:              perform for all distroboxes
-    --delete/-d:            delete the entry
-    --root/-r:      perform for a rootful distrobox
-    --icon/-i:            specify a custom icon [/path/to/icon] (default auto)
-    --verbose/-v:          show more verbosity
-    --version/-V:          show version
+--help/-h:      show this message
+--all/-a:       perform for all distroboxes
+--delete/-d:        delete the entry
+--icon/-i:      specify a custom icon [/path/to/icon] (default auto)
+--root/-r:      perform on rootful distroboxes
+--verbose/-v:       show more verbosity
+--version/-V:       show version
 \f[R]
 .fi
 .SH EXAMPLES
@@ -1579,11 +1579,13 @@ arguments, if any.
 .IP
 .nf
 \f[C]
-distrobox-host-exec [command [arguments]]
-
 --help/-h:      show this message
 --verbose/-v:       show more verbosity
 --version/-V:       show version
+--yes/-Y:       Automatically answer yes to prompt:
+                            host-spawn will be installed on the guest system
+                            if host-spawn is not detected.
+                            This behaviour is default when running in a non-interactive shell.
 \f[R]
 .fi
 .PP
@@ -1936,6 +1938,9 @@ perform an upgrade using the container\[cq]s package manager.
 \f[C]
 --help/-h:      show this message
 --all/-a:       perform for all distroboxes
+--root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
 --version/-V:       show version
 \f[R]
