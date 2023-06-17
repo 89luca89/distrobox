@@ -15,11 +15,13 @@ If the tool is not found the user will be prompted to install it.
 
 Just pass to "distrobox-host-exec" any command and all its arguments, if any.
 
-	distrobox-host-exec [command [arguments]]
-
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
+	--yes/-Y:		Automatically answer yes to prompt:
+                                host-spawn will be installed on the guest system
+                                if host-spawn is not detected.
+                                This behaviour is default when running in a non-interactive shell.
 
 If no command is provided, it will execute "$SHELL".
 

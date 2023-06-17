@@ -104,6 +104,7 @@ Usage:
 Options:
 
 	--name/-n:		name for the distrobox
+	--force/-f:		force deletion
 	--rm-home:		remove the mounted home if it differs from the host user's one
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,

@@ -12,13 +12,13 @@ This will be then deleted when you remove the matching distrobox.
 
 **distrobox generate-entry**
 
-		--help/-h:			  show this message
-		--all/-a:			   perform for all distroboxes
-		--delete/-d:			delete the entry
-		--root/-r:		perform for a rootful distrobox
-		--icon/-i:			  specify a custom icon [/path/to/icon] (default auto)
-		--verbose/-v:		   show more verbosity
-		--version/-V:		   show version
+	--help/-h:		show this message
+	--all/-a:		perform for all distroboxes
+	--delete/-d:		delete the entry
+	--icon/-i:		specify a custom icon [/path/to/icon] (default auto)
+	--root/-r:		perform on rootful distroboxes
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
 
 # EXAMPLES
 
