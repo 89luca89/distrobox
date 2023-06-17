@@ -88,7 +88,7 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 # There's no need for them to pass the --root flag option in such cases.
 [ "${container_user_uid}" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
-version="1.4.2.1"
+version="1.5.0"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
@@ -211,8 +211,7 @@ show_compatibility() {
 		# Always use the docs as source of truth for this.
 		curl -s \
 			"https://raw.githubusercontent.com/89luca89/distrobox/${version}/docs/compatibility.md" |
-			grep -A200 "^## Containers Distros" |
-			grep '|' |
+			sed -n -e '/| Alma/,/| Void/ p' |
 			cut -d '|' -f 4 |
 			sed 's|<br>|\n|g' |
 			tr -d ' ' |
