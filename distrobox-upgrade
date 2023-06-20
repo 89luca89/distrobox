@@ -214,5 +214,8 @@ fi
 # Launch the entrypoint in upgrade mode
 for container in ${container_name}; do
 	printf >&2 "\033[1;31m Upgrading %s...\n\033[0m" "${container}"
-	${container_manager} exec --user root "${container}" /usr/bin/entrypoint --upgrade
+	# shellcheck disable=SC2086,SC2248
+	"${distrobox_path}"/distrobox-enter --additional-flags "--user root:root" \
+		${distrobox_flags} ${container} -- \
+		/usr/bin/entrypoint --upgrade
 done
