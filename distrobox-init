@@ -234,7 +234,7 @@ get_locked_mount_flags() (
 #	original path the link is pointing
 init_readlink() {
 	# shellcheck disable=SC2010
-	ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2-
+	ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2- | sed 's|\.\./|/|g'
 }
 
 # Bind mount or error.
