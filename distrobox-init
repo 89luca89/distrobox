@@ -362,6 +362,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			gnupg
 			less
 			lsof
+			mount
+			umount
 			ncurses
 			pinentry
 			posix-libc-utils
