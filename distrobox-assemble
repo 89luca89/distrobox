@@ -370,8 +370,7 @@ parse_file() (
 		touch "${tmpfile}"
 		if [ -n "${key}" ] && [ -n "${value}" ]; then
 			if grep -q "${key}" "${tmpfile}"; then
-				echo "${key}+=\|${value}" >> "${tmpfile}"
-				continue
+				value="$(echo "${value}" | sed "s|\"|\" \${${key}} |")"
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
 		fi
