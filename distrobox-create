@@ -648,7 +648,8 @@ generate_command() {
 		"
 		for net_file in ${NET_FILES}; do
 			if [ -e "${net_file}" ]; then
-				result_command="${result_command} --volume ${net_file}:${net_file}:ro"
+				result_command="${result_command}
+					--volume ${net_file}:${net_file}:ro"
 			fi
 		done
 	fi
@@ -683,8 +684,11 @@ generate_command() {
 	#
 	# We set the entrypoint _before_ running the container image so that
 	# we can override any user provided entrypoint if need be
-	result_command="${result_command} --entrypoint /usr/bin/entrypoint
-	${container_image} -v --name \"${container_user_name}\"
+	result_command="${result_command}
+	--entrypoint /usr/bin/entrypoint
+	${container_image}
+		--verbose
+		--name \"${container_user_name}\"
 		--user ${container_user_uid}
 		--group ${container_user_gid}
 		--home \"${container_user_custom_home:-"${container_user_home}"}\"
@@ -693,7 +697,7 @@ generate_command() {
 		--pre-init-hooks \"${container_pre_init_hook}\"
 		--additional-packages \"${container_additional_packages}\"
 		-- '${container_init_hook}'
-		"
+	"
 	# use container_user_custom_home if defined, else fallback to normal home.
 
 	# Return generated command.
@@ -713,7 +717,7 @@ if [ "${dryrun}" -ne 0 ]; then
 		container_image="${container_clone}"
 	fi
 	cmd="$(generate_command)"
-	cmd="$(echo "${cmd}" | tr '[:blank:]\n' ' ' | tr -s ' ')"
+	cmd="$(echo "${cmd}" | sed 's/\t//g')"
 	printf "%s\n" "${cmd}"
 	exit 0
 fi
