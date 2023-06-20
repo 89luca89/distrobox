@@ -34,7 +34,7 @@ nvidia=0
 pre_init_hook=""
 upgrade=0
 verbose=0
-version="1.5.0"
+version="1.5.0.1"
 # Print usage to stdout.
 # Arguments:
 #   None

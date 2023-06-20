@@ -30,7 +30,7 @@ replace=0
 # quoting and escaping
 tmpfile="$(mktemp -u)"
 verbose=0
-version="1.5.0"
+version="1.5.0.1"
 # initializing block of variables used in the manifest
 additional_flags=""
 additional_packages=""
