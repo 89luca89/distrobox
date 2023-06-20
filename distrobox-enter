@@ -275,9 +275,12 @@ fi
 #   prints the podman or docker command to enter the distrobox container
 generate_command() {
 	result_command="${container_manager} exec"
-	result_command="${result_command} --interactive"
-	result_command="${result_command} --detach-keys=\"\""
-	result_command="${result_command} --user=\"${USER}\""
+	result_command="${result_command}
+		--interactive"
+	result_command="${result_command}
+		--detach-keys=\"\""
+	result_command="${result_command}
+		--user=\"${USER}\""
 
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
@@ -286,7 +289,8 @@ generate_command() {
 	# work in tty-less situations.
 	# Disable tty also if we're NOT in a tty (test -t 0).
 	if [ "${headless}" -eq 0 ] && [ -t 0 ]; then
-		result_command="${result_command} --tty"
+		result_command="${result_command}
+			--tty"
 	fi
 
 	# Entering container using our user and workdir.
@@ -306,9 +310,12 @@ generate_command() {
 		# Skipping workdir we just enter $HOME of the container.
 		workdir="${container_home}"
 	fi
-	result_command="${result_command} --workdir=\"${workdir}\""
-	result_command="${result_command} --env \"CONTAINER_ID=${container_name}\""
-	result_command="${result_command} --env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
+	result_command="${result_command}
+		--workdir=\"${workdir}\""
+	result_command="${result_command}
+		--env \"CONTAINER_ID=${container_name}\""
+	result_command="${result_command}
+		--env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
@@ -319,7 +326,8 @@ generate_command() {
 		# multiline or containing spaces.
 		# We also NEED to ignore the HOME variable, as this is set at create time
 		# and needs to stay that way to use custom home dirs.
-		result_command="${result_command} --env \"${i}\""
+		result_command="${result_command}
+			--env \"${i}\""
 	done
 
 	# Start with the $PATH set in the container's config
@@ -341,7 +349,8 @@ generate_command() {
 		fi
 	done
 	IFS="${ORIG_IFS}"
-	result_command="${result_command} --env \"PATH=${container_paths}\""
+	result_command="${result_command}
+		--env \"PATH=${container_paths}\""
 
 	# Ensure the standard FHS program paths are in XDG_DATA_DIRS environment
 	standard_paths="/usr/local/share /usr/share"
@@ -352,7 +361,8 @@ generate_command() {
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
-	result_command="${result_command} --env \"XDG_DATA_DIRS=${container_paths}\""
+	result_command="${result_command}
+		--env \"XDG_DATA_DIRS=${container_paths}\""
 
 	# Ensure the standard FHS program paths are in XDG_CONFIG_DIRS environment
 	standard_paths="/etc/xdg"
@@ -363,7 +373,8 @@ generate_command() {
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
-	result_command="${result_command} --env \"XDG_CONFIG_DIRS=${container_paths}\""
+	result_command="${result_command}
+		--env \"XDG_CONFIG_DIRS=${container_paths}\""
 
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
@@ -371,17 +382,23 @@ generate_command() {
 	fi
 
 	# Add additional flags
-	result_command="${result_command} ${container_manager_additional_flags}"
+	if [ -n "${container_manager_additional_flags}" ]; then
+		result_command="${result_command}
+			${container_manager_additional_flags}"
+	fi
 
 	# Run selected container with specified command.
-	result_command="${result_command} ${container_name}"
+	result_command="${result_command}
+		${container_name}"
 
 	if [ -n "${container_command}" ]; then
-		result_command="${result_command} ${container_command}"
+		result_command="${result_command}
+			${container_command}"
 	else
 		# if no command was specified, let's execute a command that will find
 		# and run the default shell for the user
-		result_command="${result_command} sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l"\"
+		result_command="${result_command}
+			sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l"\"
 	fi
 
 	# Return generated command.
@@ -393,7 +410,7 @@ container_path="${PATH}"
 # dry run mode, just generate the command and print it. No execution.
 if [ "${dryrun}" -ne 0 ]; then
 	cmd="$(generate_command)"
-	cmd="$(echo "${cmd}" | tr '[:blank:]\n' ' ' | tr -s ' ')"
+	cmd="$(echo "${cmd}" | sed 's/\t//g')"
 	printf "%s\n" "${cmd}"
 	exit 0
 fi
@@ -519,4 +536,5 @@ fi
 
 # Generate the exec command and run it
 cmd="$(generate_command)"
-eval "${cmd}"
+# shellcheck disable=SC2086
+eval ${cmd}
