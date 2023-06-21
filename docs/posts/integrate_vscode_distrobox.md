@@ -93,7 +93,7 @@ flatpak-spawn --host podman "${arr[@]}"
 and make it executable: `chmod +x ~/.local/bin/podman-host`.
 
 Open VSCode settings (Ctrl+,) and head to `Remote>Containers>Docker Path` and
-set it to the path of `podman-exec`, like in the example
+set it to the path of `podman-host`, like in the example
 
 ![image](https://user-images.githubusercontent.com/598882/149208525-5ad630c9-fcbc-4ee6-9d77-e50d2c782a56.png)
 
