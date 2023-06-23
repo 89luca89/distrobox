@@ -1276,7 +1276,8 @@ fi
 # In case of AD or LDAP usernames, it is possible we will have a backslach in the name.
 # In that case grep would fail, so we replace the backslash with a point to make the regex work.
 # shellcheck disable=SC1003
-if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd; then
+if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd &&
+	! grep -q "^.*:.*:${container_user_uid}:" /etc/passwd; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
@@ -1300,13 +1301,21 @@ elif [ ! -e /etc/passwd.done ]; then
 	# This situation is presented when podman or docker already creates the user
 	# for us inside container. We should modify the user's prepopulated shadowfile
 	# entry though as per user's active preferences.
+
+	# If the user was there with a different username, get that username so
+	# we can modify it
+	if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd; then
+		user_to_modify=$(getent passwd "${container_user_uid}" | cut -d: -f1)
+	fi
+
 	if ! usermod \
 		--home "${container_user_home}" \
 		--shell "${SHELL:-"/bin/bash"}" \
 		--groups "${additional_groups}" \
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
-		"${container_user_name}"; then
+		--login "${container_user_name}" \
+		"${user_to_modify:-"${container_user_name}"}"; then
 
 		printf "Warning: there was a problem setting up the user\n"
 	fi
