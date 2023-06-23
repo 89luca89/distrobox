@@ -30,7 +30,7 @@ distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
 host_spawn_version="1.4.2"
 sudo_command=""
 verbose=0
-version="1.5.0.1"
+version="1.5.0.2"
 
 # Print usage to stdout.
 # Arguments:

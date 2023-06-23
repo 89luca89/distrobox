@@ -43,7 +43,7 @@ delete=0
 icon="auto"
 icon_default="${HOME}/.local/share/icons/terminal-distrobox-icon.svg"
 verbose=0
-version="1.5.0.1"
+version="1.5.0.2"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults

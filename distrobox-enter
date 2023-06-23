@@ -63,7 +63,7 @@ headless=0
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 skip_workdir=0
 verbose=0
-version="1.5.0.1"
+version="1.5.0.2"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults

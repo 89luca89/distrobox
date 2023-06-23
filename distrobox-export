@@ -42,7 +42,7 @@ is_sudo=0
 rootful=""
 start_shell=""
 verbose=0
-version="1.5.0.1"
+version="1.5.0.2"
 
 # We depend on some commands, let's be sure we have them
 base_dependencies="basename grep sed find"

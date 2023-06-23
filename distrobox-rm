@@ -49,7 +49,7 @@ non_interactive=0
 verbose=0
 rm_home=0
 response_rm_home="N"
-version="1.5.0.1"
+version="1.5.0.2"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
