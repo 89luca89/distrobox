@@ -1004,8 +1004,7 @@ HOST_MOUNTS_RO_INIT="
 	/run/systemd/seats
 	/run/systemd/sessions
 	/run/systemd/users
-	/var/lib/systemd/coredump
-	/var/log/journal"
+	/var/lib/systemd/coredump"
 
 # On some ostree systems, home is in /var/home, but most of the software expects
 # it to be in /home. In the hosts systems this is fixed by using a symlink.
@@ -1385,23 +1384,23 @@ if [ "${init}" -eq 0 ]; then
 		#	- bindmount will need a container restart on changes
 		for file_watch in ${HOST_WATCH}; do
 			# do stuff, only if we need to.
-			file_watch_src="/run/host${file_watch}"
-			# check if the target file is a symlink and take the source
-			if ls -l "${file_watch_src}" > /dev/null; then
-				if [ -L "${file_watch_src}" ]; then
-					file_watch_src="$(init_readlink "/run/host${file_watch}")"
-					# if it's an absolute link, we need to append /run/host ourselves.
-					if ! echo "${file_watch_src}" | grep -q "/run/host"; then
-						file_watch_src="/run/host${file_watch_src}"
+			if [ "$(findmnt -no FSTYPE "${file_watch}")" = "overlay" ]; then
+				file_watch_src="/run/host${file_watch}"
+				# check if the target file exists
+				if ls -l "${file_watch_src}" 2> /dev/null > /dev/null; then
+					# if it's a symlink and take the source
+					if [ -L "${file_watch_src}" ]; then
+						file_watch_src="$(init_readlink "/run/host${file_watch}")"
+						# if it's an absolute link, we need to append /run/host ourselves.
+						if ! echo "${file_watch_src}" | grep -q "/run/host"; then
+							file_watch_src="/run/host${file_watch_src}"
+						fi
 					fi
-				fi
-				if ! diff "${file_watch}" "${file_watch_src}" > /dev/null; then
-					# We only do this, if the file is a bind mount in the first place.
-					# This could be useful for init-hooks that involve umounting those
-					# files so that can be separated from the host.
-					findmnt "${file_watch}" > /dev/null &&
+					if ! diff "${file_watch}" "${file_watch_src}" > /dev/null; then
+						# We only do this, if the file is actually different
 						umount "${file_watch}" &&
-						mount_bind "${file_watch_src}" "${file_watch}"
+							mount_bind "${file_watch_src}" "${file_watch}"
+					fi
 				fi
 			fi
 		done
@@ -1452,8 +1451,10 @@ find /usr/share/libalpm/hooks/*distrobox*.hook -delete || :
 find /usr/share/libalpm/scripts/*distrobox*.sh -delete || :
 # Remove /dev/console when using init systems, this will confuse host system if
 # we use rootful containers
-touch /var/container-console
-mount --rbind /var/container-console /dev/console
+if [ -e /dev/console ]; then
+	touch /var/container-console
+	mount --rbind /var/container-console /dev/console
+fi
 # Now we can launch init
 printf "distrobox: Firing up init system...\n"
 printf "container_setup_done\n"
