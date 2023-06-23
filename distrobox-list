@@ -188,7 +188,7 @@ fi
 # we do this as we can detect the custom mounts done by distrobox to distringuish
 # between a normal podman or docker container and a distrobox one.
 container_list=$(${container_manager} ps -a --no-trunc --format \
-	"{{.ID}}|{{.Image}}|{{.Names}}|{{.State}}|{{.Labels}}{{.Mounts}}")
+	"{{.ID}}|{{.Image}}|{{.Names}}|{{.Status}}|{{.Labels}}{{.Mounts}}")
 printf "%-12s | %-20s | %-18s | %-16s | %-5s | %-30s\n" \
 	"ID" "NAME" "STATUS" "MEM" "CPU%" "IMAGE"
 IFS='

@@ -35,7 +35,7 @@ It depends either on `podman` configured in `rootless mode`
 or on `docker` configured without sudo (follow [THESE instructions](https://docs.docker.com/engine/install/linux-postinstall/))
 
 - Minimum podman version: **2.1.0**
-- Minimum docker version: **18.06.1**
+- Minimum docker client version: **19.03.15**
 
 Follow the official installation guide here:
 
