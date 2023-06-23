@@ -116,7 +116,7 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 # Check we're running inside a container and not on the host
-if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
+if [ -z "${CONTAINER_ID}" ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
 	exit 126
 fi
