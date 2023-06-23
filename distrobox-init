@@ -1275,7 +1275,7 @@ fi
 # In that case grep would fail, so we replace the backslash with a point to make the regex work.
 # shellcheck disable=SC1003
 if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd &&
-   ! grep -q "^.*:.*:${container_user_uid}:" /etc/passwd; then
+	! grep -q "^.*:.*:${container_user_uid}:" /etc/passwd; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
@@ -1304,8 +1304,6 @@ elif [ ! -e /etc/passwd.done ]; then
 	# we can modify it
 	if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd; then
 		user_to_modify=$(getent passwd "${container_user_uid}" | cut -d: -f1)
-	else
-		user_to_modify=${container_user_name}
 	fi
 
 	if ! usermod \
@@ -1315,7 +1313,7 @@ elif [ ! -e /etc/passwd.done ]; then
 		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
 		--login "${container_user_name}" \
-		"${user_to_modify}"; then
+		"${user_to_modify:-"${container_user_name}"}"; then
 
 		printf "Warning: there was a problem setting up the user\n"
 	fi
