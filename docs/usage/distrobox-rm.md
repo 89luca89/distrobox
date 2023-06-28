@@ -32,6 +32,6 @@ You can also use environment variables to specify container manager and name:
 # ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_MANAGER
-	DBX_CONTAINER_
+	DBX_CONTAINER_NAME
 	DBX_NON_INTERACTIVE
 	DBX_SUDO_PROGRAM
