@@ -617,9 +617,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		fi
 
 	elif command -v pacman; then
+		# Update the package repository cache exactly once before installing packages.
+		pacman -S -y -y
+
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
-			pacman -Syyu --noconfirm
+			pacman -S -u --noconfirm
 			exit
 		fi
 		# In archlinux official images, pacman is configured to ignore locale and docs
@@ -631,8 +634,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
-		pacman --noconfirm -Syyu
-		if ! pacman -Sy --noconfirm "${shell_pkg}"; then
+		pacman -S -u --noconfirm
+		if ! pacman -S --needed --noconfirm "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
 		deps="
@@ -665,12 +668,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			fi
 		done
 		# shellcheck disable=SC2086
-		pacman -Sy --noconfirm ${install_pkg}
+		pacman -S --needed --noconfirm ${install_pkg}
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
 			# shellcheck disable=SC2086
-			pacman -Sy --noconfirm ${container_additional_packages}
+			pacman -S --needed --noconfirm ${container_additional_packages}
 		fi
 
 	elif command -v slackpkg; then
