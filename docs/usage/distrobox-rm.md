@@ -12,7 +12,6 @@ distrobox-rm delete one of the available distroboxes.
 
 **distrobox rm**
 
-	--name/-n:		name for the distrobox
 	--force/-f:		force deletion
 	--rm-home:		remove the mounted home if it differs from the host user's one
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -24,8 +23,7 @@ distrobox-rm delete one of the available distroboxes.
 
 # EXAMPLES
 
-	distrobox-rm --name container-name [--force]
-	distrobox-rm container-name [-f]
+	distrobox-rm container-name [--force]
 
 You can also use environment variables to specify container manager and name:
 
@@ -34,6 +32,6 @@ You can also use environment variables to specify container manager and name:
 # ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_MANAGER
-	DBX_CONTAINER_NAME
+	DBX_CONTAINER_
 	DBX_NON_INTERACTIVE
 	DBX_SUDO_PROGRAM
