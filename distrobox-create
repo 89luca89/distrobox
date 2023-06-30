@@ -523,7 +523,7 @@ generate_command() {
 	# utilities.
 	result_command="${result_command}
 		--label \"manager=distrobox\"
-		--env \"SHELL=${SHELL:-"/bin/bash"}\"
+		--env \"SHELL=$(basename "${SHELL:-"/bin/bash"}")\"
 		--env \"HOME=${container_user_home}\"
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
