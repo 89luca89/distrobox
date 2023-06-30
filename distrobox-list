@@ -49,7 +49,9 @@ container_manager="autodetect"
 # leave priority to environment variables.
 config_files="
 	/usr/share/distrobox/distrobox.conf
+	/usr/share/defaults/distrobox/distrobox.conf
 	/usr/etc/distrobox/distrobox.conf
+	/usr/local/share/distrobox/distrobox.conf
 	/etc/distrobox/distrobox.conf
 	${XDG_CONFIG_HOME:-"${HOME}/.config"}/distrobox/distrobox.conf
 	${HOME}/.distroboxrc

@@ -50,7 +50,9 @@ version="1.5.0.2"
 # leave priority to environment variables.
 config_files="
 	/usr/share/distrobox/distrobox.conf
+	/usr/share/defaults/distrobox/distrobox.conf
 	/usr/etc/distrobox/distrobox.conf
+	/usr/local/share/distrobox/distrobox.conf
 	/etc/distrobox/distrobox.conf
 	${XDG_CONFIG_HOME:-"${HOME}/.config"}/distrobox/distrobox.conf
 	${HOME}/.distroboxrc
