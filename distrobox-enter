@@ -339,7 +339,7 @@ generate_command() {
 	# add to the PATH after the existing paths, and only if not already present
 	for standard_path in ${standard_paths}; do
 		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${container_paths}:${standard_path}"
+			container_paths="${standard_path}:${container_paths}"
 		fi
 	done
 	# Ensure the $PATH entries from the host are appended as well
@@ -347,7 +347,7 @@ generate_command() {
 	IFS=:
 	for standard_path in ${PATH}; do
 		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${container_paths}:${standard_path}"
+			container_paths="${standard_path}:${container_paths}"
 		fi
 	done
 	IFS="${ORIG_IFS}"
