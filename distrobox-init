@@ -929,15 +929,16 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Exit as command not found
 		exit 127
 	fi
-	# Ash shell is an exception, it is not a standalone package, but part of busybox.
-	# for this reason, use this quirk to adjust the package name.
-	if [ "${shell_pkg}" = "ash" ]; then
-		SHELL="/bin/sh"
-	else
-		SHELL="$(command -v "${shell_pkg}")"
-	fi
 
 	touch /run/.containersetupdone
+fi
+
+# Ash shell is an exception, it is not a standalone package, but part of busybox.
+# for this reason, use this quirk to adjust the package name.
+if  [ "${shell_pkg}" = "busybox" ]; then
+	SHELL="/bin/sh"
+else
+	SHELL="$(command -v "${shell_pkg}")"
 fi
 ###############################################################################
 
@@ -1356,6 +1357,7 @@ if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 		fi
 	done
 fi
+printf "export SHELL=\"\$(getent passwd \"\${USER}\" | cut -f 7 -d :)\"\n" >> /etc/profile.d/distrobox_profile.sh
 
 ###############################################################################
 
