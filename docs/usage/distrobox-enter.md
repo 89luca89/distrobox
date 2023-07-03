@@ -18,6 +18,7 @@ If using it inside a script, an application, or a service, you can specify the
 
 	--name/-n:		name for the distrobox						default: my-distrobox
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
+	--user			user of enter the container					default: $USER
 	--no-tty/-T:		do not instantiate a tty
 	--no-workdir/-nw:	always start the container from container's home directory
 	--additional-flags/-a:	additional flags to pass to the container manager command

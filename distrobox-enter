@@ -21,7 +21,7 @@
 # POSIX
 # Expected env variables:
 #	HOME
-#	USER
+#	USER || ENTER_USER
 # Optional env variables:
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
@@ -49,6 +49,8 @@ container_manager="autodetect"
 container_manager_additional_flags=""
 container_name=""
 container_name_default="my-distrobox"
+[ -n "$ENTER_USER" ] && container_enter_user=$ENTER_USER || container_enter_user=$USER
+
 non_interactive=0
 
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
@@ -122,6 +124,7 @@ Options:
 
 	--name/-n:		name for the distrobox						default: my-distrobox
 	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
+	--user			user of enter the container					default: $USER
 	--no-tty/-T:		do not instantiate a tty
 	--no-workdir/-nw:	always start the container from container's home directory
 	--additional-flags/-a:	additional flags to pass to the container manager command
@@ -170,6 +173,13 @@ while :; do
 		-n | --name)
 			if [ -n "$2" ]; then
 				container_name="$2"
+				shift
+				shift
+			fi
+			;;
+		--user)
+			if [ -n "$2" ]; then
+				container_enter_user="$2"
 				shift
 				shift
 			fi
@@ -282,7 +292,7 @@ generate_command() {
 	result_command="${result_command}
 		--detach-keys=\"\""
 	result_command="${result_command}
-		--user=\"${USER}\""
+		--user=\"${container_enter_user}\""
 
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
