@@ -578,6 +578,8 @@ generate_command() {
 		/nix
 		/gnu
 		/run/current-system/sw
+		/etc/profiles/per-user
+		/etc/static/profiles/per-user
 	"
 	for nix_dir in ${nix_dirs}; do
 		if [ -d "${nix_dir}" ]; then
