@@ -222,10 +222,14 @@ if [ -z "${container_name}" ]; then
 fi
 
 #
-if [ "${is_login}" -ne 0 ] && [ "${is_sudo}" -ne 0 ]; then
-	start_shell="sudo -i"
-elif [ "${is_login}" -ne 0 ]; then
-	start_shell="sudo -u ${USER} -i"
+if [ "${is_login}" -ne 0 ]; then
+	if [ "${is_sudo}" -ne 0 ]; then
+		start_shell="sudo -i"
+	else
+		start_shell="sudo -u ${USER} -i"
+	fi
+elif [ "${is_sudo}" -ne 0 ]; then
+	start_shell="sudo"
 else
 	start_shell=""
 fi
