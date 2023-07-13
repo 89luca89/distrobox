@@ -370,7 +370,7 @@ parse_file() (
 		touch "${tmpfile}"
 		if [ -n "${key}" ] && [ -n "${value}" ]; then
 			if grep -q "${key}" "${tmpfile}"; then
-				if [ ${key} == "init_hooks" ] || [ ${key} == "pre_init_hooks" ]; then
+				if [ "${key}" = "init_hooks" ] || [ "${key}" = "pre_init_hooks" ]; then
 					concatenator=' \&\& '
 				else
 					concatenator=' '
