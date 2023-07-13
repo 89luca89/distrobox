@@ -370,7 +370,12 @@ parse_file() (
 		touch "${tmpfile}"
 		if [ -n "${key}" ] && [ -n "${value}" ]; then
 			if grep -q "${key}" "${tmpfile}"; then
-				value="$(echo "${value}" | sed "s|\"|\" \${${key}} |")"
+				if [ ${key} == "init_hooks" ] || [ ${key} == "pre_init_hooks" ]; then
+					concatenator=' \&\& '
+				else
+					concatenator=' '
+				fi
+				value="$(echo "${value}" | sed "s|\"|\" \${${key}}${concatenator}|")"
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
 		fi
