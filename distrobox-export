@@ -37,10 +37,8 @@ extra_flags=""
 #	DBX_HOST_HOME is set in case container is created
 #	with custom --home directory
 host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
-is_login=0
-is_sudo=0
+sudo=""
 rootful=""
-start_shell=""
 verbose=0
 version="1.5.0.2"
 
@@ -76,7 +74,6 @@ Options:
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-	--login/-l		run the exported item in a login shell
 	--sudo/-S:		specify if the exported item should be run as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
@@ -116,12 +113,8 @@ while :; do
 				shift
 			fi
 			;;
-		-l | --login)
-			is_login=1
-			shift
-			;;
 		-S | --sudo)
-			is_sudo=1
+			sudo="sudo"
 			shift
 			;;
 		-el | --export-label)
@@ -221,17 +214,8 @@ if [ -z "${container_name}" ]; then
 	container_name=$(uname -n | cut -d'.' -f1)
 fi
 
-#
-if [ "${is_login}" -ne 0 ] && [ "${is_sudo}" -ne 0 ]; then
-	start_shell="sudo -i"
-elif [ "${is_login}" -ne 0 ]; then
-	start_shell="sudo -u ${USER} -i"
-else
-	start_shell=""
-fi
-
 # Prefix to add to an existing command to work through the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${start_shell} "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${sudo} "
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
 fi
@@ -248,7 +232,7 @@ generate_script() {
 # name: ${container_name}
 if [ -z "\${CONTAINER_ID}" ]; then
 	exec ${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- \
-		${start_shell} ${exported_bin} ${extra_flags} "\$@"
+		${sudo} sh -lc '${exported_bin} "\$@"' distrobox-export ${extra_flags} "\$@"
 else
 	exec ${exported_bin} "\$@"
 fi

@@ -25,7 +25,6 @@ automatically be launched from the container it is exported from.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-	--login/-l		run the exported item in a login shell
 	--sudo/-S:		specify if the exported item should be run as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
@@ -82,11 +81,6 @@ The option "--delete" will un-export an app or binary
 **Run as root in the container**
 
 The option "--sudo" will launch the exported item as root inside the distrobox.
-
-**Run inside a login shell**
-
-The option "--login" will launch the exported item inside a login shell, allowing access to
-variables sourced at login in the container (e.g: /etc/profile).
 
 **Exporting apps from rootful containers**
 
