@@ -61,4 +61,4 @@ this example shows how to run it daily:
 	[Install]
 	WantedBy=timers.target
 
-Then simply do a `systemctl --user daemon reload && systemctl --user enable --now distrobox-upgrade.timer`
+Then simply do a `systemctl --user daemon-reload && systemctl --user enable --now distrobox-upgrade.timer`
