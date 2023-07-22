@@ -39,6 +39,7 @@ fi
 
 # Defaults
 container_manager="autodetect"
+container_name=""
 container_name_default="my-distrobox"
 non_interactive=0
 # If the user runs this script as root in a login shell, set rootful=1.
