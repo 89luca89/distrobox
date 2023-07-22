@@ -37,6 +37,7 @@ fi
 
 # Defaults
 no_color=0
+no_stats=0
 # If the user runs this script as root in a login shell, set rootful=1.
 # There's no need for them to pass the --root flag option in such cases.
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
@@ -90,6 +91,7 @@ Options:
 
 	--help/-h:		show this message
 	--no-color:		disable color formatting
+  --no-stats:   disable stats (cpu/mem usage)
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
@@ -109,6 +111,10 @@ while :; do
 		--no-color)
 			shift
 			no_color=1
+			;;
+		--no-stats)
+			shift
+			no_stats=1
 			;;
 		-r | --root)
 			shift
@@ -191,8 +197,13 @@ fi
 # between a normal podman or docker container and a distrobox one.
 container_list=$(${container_manager} ps -a --no-trunc --format \
 	"{{.ID}}|{{.Image}}|{{.Names}}|{{.Status}}|{{.Labels}}{{.Mounts}}")
-printf "%-12s | %-20s | %-18s | %-16s | %-5s | %-30s\n" \
-	"ID" "NAME" "STATUS" "MEM" "CPU%" "IMAGE"
+if [ "${no_stats}" -ne 1 ]; then
+  printf "%-12s | %-20s | %-18s | %-16s | %-5s | %-30s\n" \
+    "ID" "NAME" "STATUS" "MEM" "CPU%" "IMAGE"
+else
+  printf "%-12s | %-20s | %-18s | %-30s\n" \
+    "ID" "NAME" "STATUS" "IMAGE"
+fi
 IFS='
 '
 
@@ -218,10 +229,12 @@ for container in ${container_list}; do
 		container_status="$(printf "%s" "${container}" | cut -d'|' -f4)"
 
 		IFS=' '
-		container_stats=$(${container_manager} stats "${container_id}" \
-			--no-stream --format "{{ .MemUsage }}|{{ .CPUPerc }}")
-		container_mem="$(printf "%s" "${container_stats}" | cut -d'|' -f1)"
-		container_cpu="$(printf "%s" "${container_stats}" | cut -d'|' -f2)"
+    if [ "${no_stats}" -ne 1 ]; then
+      container_stats=$(${container_manager} stats "${container_id}" \
+        --no-stream --format "{{ .MemUsage }}|{{ .CPUPerc }}")
+      container_mem="$(printf "%s" "${container_stats}" | cut -d'|' -f1)"
+      container_cpu="$(printf "%s" "${container_stats}" | cut -d'|' -f2)"
+    fi
 
 		# If the container is Up and Running, print it in green and go next.
 		if [ -z "${container_status##*Up*}" ] || [ -z "${container_status##*running*}" ]; then
@@ -234,8 +247,13 @@ for container in ${container_list}; do
 			printf "${YELLOW}"
 		fi
 		# print it in yellow if not Running
-		printf "%-12s | %-20s | %-18s | %-16s | %-5s | %-30s" \
-			"${container_id}" "${container_name}" "${container_status}" "${container_mem}" "${container_cpu}" "${container_image}"
+    if [ "${no_stats}" -ne 1 ]; then
+      printf "%-12s | %-20s | %-18s | %-16s | %-5s | %-30s" \
+        "${container_id}" "${container_name}" "${container_status}" "${container_mem}" "${container_cpu}" "${container_image}"
+    else
+      printf "%-12s | %-20s | %-18s | %-30s" \
+        "${container_id}" "${container_name}" "${container_status}" "${container_image}"
+    fi
 
 		# shellcheck disable=SC2059
 		printf "${CLEAR}\n"
