@@ -366,7 +366,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			umount
 			ncurses
 			pinentry
-			posix-libc-utils
+			libc-utils
 			procps
 			shadow
 			su-exec
