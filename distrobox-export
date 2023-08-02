@@ -45,7 +45,7 @@ verbose=0
 version="1.5.0.2"
 
 # We depend on some commands, let's be sure we have them
-base_dependencies="basename grep sed find"
+base_dependencies="basename find grep sed update-desktop-database"
 for dep in ${base_dependencies}; do
 	if ! command -v "${dep}" > /dev/null; then
 		printf >&2 "Missing dependency: %s\n" "${dep}"
@@ -460,6 +460,11 @@ export_application() {
 		sed -i "s|pixmaps|icons|g" \
 			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 	done
+
+	# Update the desktop files database to ensure exported applications will
+	# show up in the taskbar/desktop menu/whatnot right after running this
+	# script.
+	update-desktop-database "/run/host/${host_home}/.local/share/applications"
 
 	if [ "${exported_delete}" -ne 0 ]; then
 		printf "Application %s successfully un-exported.\nOK!\n" "${exported_app}"
