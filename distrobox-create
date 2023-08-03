@@ -579,22 +579,6 @@ generate_command() {
 			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
 	fi
 
-	# If you are using NixOS, or have Nix or Guix installed, /nix and /gnu are volumes containing
-	# you binaries and many configs.
-	# They be mounted if you want to execute those binaries from within
-	# the container. Therefore we need to mount as a volume, but only if they exists.
-	nix_dirs="
-		/nix
-		/gnu
-		/run/current-system/sw
-	"
-	for nix_dir in ${nix_dirs}; do
-		if [ -d "${nix_dir}" ]; then
-			result_command="${result_command}
-				--volume ${nix_dir}:${nix_dir}"
-		fi
-	done
-
 	# If we have a home prefix to use,
 	#	1- override the HOME env variable
 	#	2- export the DISTROBOX_HOST_HOME env variable pointing to original HOME
