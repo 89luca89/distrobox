@@ -367,6 +367,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			ncurses
 			pinentry
 			libc-utils
+			posix-libc-utils
 			procps
 			shadow
 			su-exec
@@ -397,6 +398,11 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# Workaround for when sudo is missing, we use su-exec as a replacement.
 		if [ -e /sbin/su-exec ]; then
 			chmod u+s /sbin/su-exec
+
+			if [ ! -e /usr/bin/sudo ]; then
+				printf "%s\n%s" '#!/bin/sh' '/sbin/su-exec root "$@"' > /usr/bin/sudo
+				chmod +x /usr/bin/sudo
+			fi
 		fi
 
 	elif command -v apt-get; then
@@ -653,6 +659,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			sudo
 			time
 			util-linux
+			util-linux-libs
 			wget
 			mesa
 			opengl-driver
@@ -1278,8 +1285,7 @@ fi
 # In case of AD or LDAP usernames, it is possible we will have a backslach in the name.
 # In that case grep would fail, so we replace the backslash with a point to make the regex work.
 # shellcheck disable=SC1003
-if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd &&
-	! grep -q "^.*:.*:${container_user_uid}:" /etc/passwd; then
+if ! grep "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \

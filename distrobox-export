@@ -224,12 +224,12 @@ fi
 #
 if [ "${is_login}" -ne 0 ]; then
 	if [ "${is_sudo}" -ne 0 ]; then
-		start_shell="sudo -i"
+		start_shell="$(command -v sudo) -i"
 	else
-		start_shell="sudo -u ${USER} -i"
+		start_shell="$(command -v sudo) -u ${USER} -i"
 	fi
 elif [ "${is_sudo}" -ne 0 ]; then
-	start_shell="sudo"
+	start_shell="$(command -v sudo)"
 else
 	start_shell=""
 fi

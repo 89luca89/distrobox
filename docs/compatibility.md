@@ -172,9 +172,7 @@ Distrobox guests tested successfully with the following container images:
 | deepin | 20 (apricot) <br> 23 (beige) | docker.io/linuxdeepin/apricot  <br>  docker.io/linuxdeepin/beige    |
 | Fedora | 36 <br> 37 <br> 38 <br> 39 <br> Rawhide | quay.io/fedora/fedora:36 <br> registry.fedoraproject.org/fedora:37 <br> quay.io/fedora/fedora:38 <br> quay.io/fedora/fedora:39  |
 | Gentoo Linux | rolling | docker.io/gentoo/stage3:latest |
-| KDE neon | User | invent-registry.kde.org/neon/docker-images/plasma:user |
-| KDE neon | Testing | invent-registry.kde.org/neon/docker-images/plasma:testing |
-| KDE neon | Unstable | invent-registry.kde.org/neon/docker-images/plasma:unstable |
+| KDE neon | Latest <br> Testing <br> Unstable | invent-registry.kde.org/neon/docker-images/plasma:latest <br> invent-registry.kde.org/neon/docker-images/plasma:testing <br> invent-registry.kde.org/neon/docker-images/plasma:unstable |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Mageia | 8 | docker.io/library/mageia |
 | Mint | 21.1 | docker.io/linuxmintd/mint21.1-amd64 |
