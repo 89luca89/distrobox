@@ -195,12 +195,14 @@ run_distrobox() (
 	if [ "${delete}" -ne 0 ] || [ "${replace}" -ne 0 ]; then
 		printf " - Deleting %s... \n" "${name}"
 
-		# Execute the distrobox-create command
 		if [ "${dryrun}" -eq 0 ]; then
-			"${distrobox_path}"/distrobox rm -f "${name}" > /dev/null || :
+			if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
+				"${distrobox_path}"/distrobox rm --root -f "${name}" > /dev/null || :
+			else
+				"${distrobox_path}"/distrobox rm -f "${name}" > /dev/null || :
+			fi
 		fi
 
-		# In case we're just deleting, return
 		if [ "${delete}" -ne 0 ]; then
 			return
 		fi
