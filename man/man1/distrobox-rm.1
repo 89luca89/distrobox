@@ -33,6 +33,7 @@ distrobox-rm delete one of the available distroboxes.
 .IP
 .nf
 \f[C]
+--all/-a:       delete all distroboxes
 --force/-f:     force deletion
 --rm-home:      remove the mounted home if it differs from the host user\[aq]s one
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -47,7 +48,7 @@ distrobox-rm delete one of the available distroboxes.
 .IP
 .nf
 \f[C]
-distrobox-rm container-name [--force]
+distrobox-rm container-name [--force] [--all]
 \f[R]
 .fi
 .PP
