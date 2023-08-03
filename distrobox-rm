@@ -255,8 +255,6 @@ delete_container() {
 			printf "Do you want to remove custom home of container %s (%s)? [y/N]: " "${container_name}" "${container_home}"
 			read -r response_rm_home
 			response_rm_home="${response_rm_home:-"N"}"
-		else
-			response_rm_home="Y"
 		fi
 	fi
 
