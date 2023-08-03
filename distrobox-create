@@ -47,6 +47,7 @@ fi
 
 # Defaults
 container_additional_packages=""
+container_additional_volumes=""
 container_always_pull=0
 container_clone=""
 container_generate_entry=1
@@ -309,7 +310,7 @@ while :; do
 			;;
 		--volume)
 			if [ -n "$2" ]; then
-				container_manager_additional_flags="${container_manager_additional_flags} ${1} ${2}"
+				container_additional_volumes="${container_additional_volumes} ${2}"
 				shift
 				shift
 			fi
@@ -438,6 +439,14 @@ fi
 # prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program-} ${container_manager}"
+fi
+
+# inject additional volumes if specified
+if [ -n "${container_additional_volumes}" ]; then
+	for volume in ${container_additional_volumes}; do
+		container_manager_additional_flags="${container_manager_additional_flags}
+			--volume ${volume}"
+	done
 fi
 
 # Clone a container as a snapshot.
@@ -675,7 +684,8 @@ generate_command() {
 	fi
 
 	# Add additional flags
-	result_command="${result_command} ${container_manager_additional_flags}"
+	result_command="${result_command}
+		${container_manager_additional_flags}"
 
 	# Now execute the entrypoint, refer to `distrobox-init -h` for instructions
 	#
