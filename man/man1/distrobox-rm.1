@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-RM" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-RM" "1" "Aug 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -33,7 +33,6 @@ distrobox-rm delete one of the available distroboxes.
 .IP
 .nf
 \f[C]
---name/-n:      name for the distrobox
 --force/-f:     force deletion
 --rm-home:      remove the mounted home if it differs from the host user\[aq]s one
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -48,8 +47,7 @@ distrobox-rm delete one of the available distroboxes.
 .IP
 .nf
 \f[C]
-distrobox-rm --name container-name [--force]
-distrobox-rm container-name [-f]
+distrobox-rm container-name [--force]
 \f[R]
 .fi
 .PP
