@@ -31,6 +31,7 @@ if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
 fi
 
 all=0
+running=0
 container_manager="autodetect"
 distrobox_flags=""
 distrobox_path="$(dirname "$(realpath "${0}")")"
@@ -88,6 +89,7 @@ Options:
 
 	--help/-h:		show this message
 	--all/-a:		perform for all distroboxes
+	--running:		perform only for running distroboxes
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
@@ -119,6 +121,10 @@ while :; do
 			;;
 		-a | --all)
 			all=1
+			shift
+			;;
+		--running)
+			running=1
 			shift
 			;;
 		-r | --root)
@@ -154,7 +160,7 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-if [ -z "${container_name}" ] && [ "${all}" -eq 0 ]; then
+if [ -z "${container_name}" ] && [ "${all}" -eq 0 ] && [ "${running}" -eq 0 ]; then
 	printf >&2 "Please specify the name of the container.\n"
 	exit 1
 fi
@@ -211,6 +217,13 @@ if [ "${all}" -ne 0 ]; then
 	# shellcheck disable=SC2086,2248
 	container_name="$("${distrobox_path}"/distrobox-list ${distrobox_flags} --no-color |
 		tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
+
+	# If running, set container_name to the list of names of running instances
+	if [ "${running}" -ne 0 ]; then
+		# shellcheck disable=SC2086,2248
+		container_name="$("${distrobox_path}"/distrobox-list ${distrobox_flags} --no-color |
+			tail -n +2 | grep -iE '\| running|up' | cut -d'|' -f2 | tr -d ' ')"
+	fi
 fi
 
 # Launch the entrypoint in upgrade mode
