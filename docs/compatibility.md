@@ -58,6 +58,7 @@ Distrobox has been successfully tested on:
 | Fedora Silverblue/Kinoite | 35 <br> 36 <br> 37 <br> Rawhide | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
 | Fedora | 35 <br> 36 <br> 37 <br> 38 <br> Rawhide | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
 | Gentoo | | To setup rootless podman, look [HERE](https://wiki.gentoo.org/wiki/Podman) |
+| KDE neon | | `distrobox` is available in default repo |
 | Manjaro | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | NixOS | 21.11 | Make sure to mind your executable paths. Sometimes a container will not have nix paths, and sometimes it will not have its own paths.  <br>  Distrobox is available in Nixpkg collection (thanks [AtilaSaraiva](https://github.com/AtilaSaraiva)!)< <br> To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker)  <br> To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
 | openSUSE | Leap 15.4 <br> Leap 15.3 <br> Leap 15.2 | Packages are available [here](https://software.opensuse.org/download/package?package=distrobox&project=home%3Adfaggioli%3Amicroos-desktop) (thanks [dfaggioli](https://github.com/dfaggioli)!).<br> To install on openSUSE Leap 15, Use the following repository links in the `zypper addrepo` command: [15.4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.4/home:dfaggioli:microos-desktop.repo), [15.3](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.3/home:dfaggioli:microos-desktop.repo), [15.2](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.2/home:dfaggioli:microos-desktop.repo). Then: <br>  `zypper refresh && zypper install distrobox`. <br> `Podman` under SUSE Leap, cannot initialize correctly the containers managed by ``distrobox`` until [this openSUSE bug](https://bugzilla.opensuse.org/show_bug.cgi?id=1199871) is fixed, or ``podman`` logging is configured properly. |
@@ -171,6 +172,9 @@ Distrobox guests tested successfully with the following container images:
 | deepin | 20 (apricot) <br> 23 (beige) | docker.io/linuxdeepin/apricot  <br>  docker.io/linuxdeepin/beige    |
 | Fedora | 36 <br> 37 <br> 38 <br> 39 <br> Rawhide | quay.io/fedora/fedora:36 <br> registry.fedoraproject.org/fedora:37 <br> quay.io/fedora/fedora:38 <br> quay.io/fedora/fedora:39  |
 | Gentoo Linux | rolling | docker.io/gentoo/stage3:latest |
+| KDE neon | User | invent-registry.kde.org/neon/docker-images/plasma:user |
+| KDE neon | Testing | invent-registry.kde.org/neon/docker-images/plasma:testing |
+| KDE neon | Unstable | invent-registry.kde.org/neon/docker-images/plasma:unstable |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Mageia | 8 | docker.io/library/mageia |
 | Mint | 21.1 | docker.io/linuxmintd/mint21.1-amd64 |
