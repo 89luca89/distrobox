@@ -123,7 +123,7 @@ readability of the file:
 	additional_packages="zsh fish"
 
 Be aware that if you're doing lines with spaces, you need to quote them.
-If you're doing multiple hooks (init or pre_init) in multiple lines, end the line with a semicolumn (;)
+If you're doing multiple hooks (init or pre_init) in multiple lines, end the line with a semicolon (;)
 in order to execute them one after the other.
 
 **Advanced example**
