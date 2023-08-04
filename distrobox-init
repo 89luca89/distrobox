@@ -354,6 +354,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		fi
 		deps="
 			${shell_pkg}
+			bash-completion
 			bc
 			curl
 			diffutils
@@ -361,22 +362,22 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			findutils
 			gnupg
 			less
+			libc-utils
 			lsof
 			mount
-			umount
 			ncurses
 			pinentry
-			libc-utils
 			posix-libc-utils
 			procps
 			shadow
 			su-exec
 			sudo
+			tzdata
+			umount
 			util-linux
 			util-linux-misc
 			vte3
 			wget
-			tzdata
 			$(apk search -q mesa-dri)
 			$(apk search -q mesa-vulkan)
 			vulkan-loader
@@ -437,6 +438,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		deps="
 			${shell_pkg}
 			apt-utils
+			bash-completion
 			bc
 			curl
 			dialog
@@ -514,6 +516,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		fi
 		deps="
 			${shell_pkg}
+			bash-completion
 			bc
 			curl
 			diffutils
@@ -583,6 +586,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		deps="
 			${shell_pkg}
 			app-crypt/gnupg
+			bash-completion
 			diffutils
 			findutils
 			less
@@ -639,6 +643,7 @@ EOF
 		fi
 		deps="
 			${shell_pkg}
+			bash-completion
 			bc
 			diffutils
 			findutils
@@ -721,6 +726,7 @@ EOF
 		fi
 		deps="
 			${shell_pkg}
+			bash-completion
 			bc
 			curl
 			diffutils
@@ -781,6 +787,7 @@ EOF
 		fi
 		deps="
 			${shell_pkg}
+			bash-completion
 			bc
 			curl
 			diffutils
@@ -873,6 +880,7 @@ EOF
 		fi
 		deps="
 			${shell_pkg}
+			bash-completion
 			bc
 			curl
 			diffutils
@@ -941,6 +949,7 @@ EOF
 		fi
 		deps="
 			${shell_pkg}
+			bash-completion
 			bc
 			curl
 			diffutils
@@ -1017,6 +1026,7 @@ EOF
 		# that it is set up correctly for the user.
 		deps="
 			${shell_pkg}
+			bash-completion
 			bc
 			curl
 			diffutils
