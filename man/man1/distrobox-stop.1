@@ -37,7 +37,7 @@ This is how they can be stopped.
 .IP
 .nf
 \f[C]
---name/-n:      name for the distrobox
+--all/-a:       stop all distroboxes
 --yes/-Y:       non-interactive, stop without asking
 --help/-h:      show this message
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -51,8 +51,9 @@ This is how they can be stopped.
 .IP
 .nf
 \f[C]
-distrobox-stop --name container-name
+distrobox-stop container-name1 container-name2
 distrobox-stop container-name
+distrobox-stop --all
 \f[R]
 .fi
 .PP
