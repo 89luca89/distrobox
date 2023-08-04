@@ -1146,7 +1146,8 @@ HOST_MOUNTS_RO_INIT="
 	/run/systemd/seats
 	/run/systemd/sessions
 	/run/systemd/users
-	/var/lib/systemd/coredump"
+	/var/lib/systemd/coredump
+	/var/log/journal"
 
 # On some ostree systems, home is in /var/home, but most of the software expects
 # it to be in /home. In the hosts systems this is fixed by using a symlink.
@@ -1564,20 +1565,28 @@ if command -v systemctl 2> /dev/null; then
 	# Cleanup systemd to not interfere with the host
 	# /etc/systemd/system/*.wants/
 	UNIT_TARGETS="
+		/usr/lib/systemd/system/*.mount
 		/usr/lib/systemd/system/NetworkManager-wait-online.service
 		/usr/lib/systemd/system/auditd.service
-		/usr/lib/systemd/system/basic.target.wants/*
+		/usr/lib/systemd/system/console-getty.service
+		/usr/lib/systemd/system/getty@.service
 		/usr/lib/systemd/system/libstoragemgmt.service
-		/usr/lib/systemd/system/local-fs.target.wants/*
 		/usr/lib/systemd/system/mcelog.service
-		/usr/lib/systemd/system/multi-user.target.wants/*
+		/usr/lib/systemd/system/networkd-dispatcher.service
 		/usr/lib/systemd/system/plymouth*
+		/usr/lib/systemd/system/proc-sys-fs-binfmt_misc.automount
+		/usr/lib/systemd/system/setvtrgb.service
 		/usr/lib/systemd/system/sockets.target.wants/*initctl*
 		/usr/lib/systemd/system/sockets.target.wants/*udev*
-		/usr/lib/systemd/system/sysinit.target.wants/*
+		/usr/lib/systemd/system/sysinit.target.wants/*udev*
+		/usr/lib/systemd/system/systemd-machine-id-commit.service
+		/usr/lib/systemd/system/systemd-resolved.service
+		/usr/lib/systemd/system/systemd-rfkill.service
+		/usr/lib/systemd/system/systemd-rfkill.socket
 		/usr/lib/systemd/system/systemd-tmpfiles*
 		/usr/lib/systemd/system/systemd-update-utmp*
 	"
+	# /usr/lib/systemd/system/multi-user.target.wants/*
 	# shellcheck disable=SC2086,SC2044
 	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
 		systemctl mask "$(basename "${unit}")" || :
@@ -1597,6 +1606,13 @@ if [ -e /dev/console ]; then
 	touch /var/container-console
 	mount --rbind /var/container-console /dev/console
 fi
+
+# Restore the symlink if it's an empty file
+if [ -f /etc/localtime ]; then
+	rm -f /etc/localtime
+	ln -sf /usr/share/zoneinfo/UCT /etc/localtime
+fi
+
 # Now we can launch init
 printf "distrobox: Firing up init system...\n"
 printf "container_setup_done\n"
