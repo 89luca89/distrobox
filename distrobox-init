@@ -751,7 +751,7 @@ EOF
 			fi
 		done
 		# shellcheck disable=SC2086
-		pacman -S --needed --noconfirm ${install_pkg}
+		pacman -S --noconfirm ${install_pkg}
 
 		# Ensure we have tzdata installed and populated, sometimes container
 		# images blank the zoneinfo directory, so we reinstall the package to
@@ -1194,6 +1194,17 @@ done
 # If --nvidia, we try to integrate host's nvidia drivers in to the guest
 if [ "${nvidia}" -eq 1 ]; then
 	printf "distrobox: Setting up host's nvidia drivers integration...\n"
+
+	# First we find all non-lib files we need in /etc/
+	#	- confs
+	#	- icd files
+	#	- egl files
+	NVIDIA_ETC="$(find /run/host/etc/ \
+		-type f -iname "*nvidia*" -print || :)"
+	for nvidia_file in ${NVIDIA_ETC}; do
+		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
+		mount_bind "${nvidia_file}" "${dest_file}" ro
+	done
 
 	# First we find all non-lib files we need, this includes
 	#	- binaries

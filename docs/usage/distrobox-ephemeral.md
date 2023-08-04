@@ -30,8 +30,8 @@ You can also use [flags from **distrobox-create**](distrobox-create.md) to custo
 
 # SEE ALSO
 
-	man distrobox-create
 	distrobox-create --help
+	man distrobox-create
 
 # ENVIRONMENT VARIABLES
 
