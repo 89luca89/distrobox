@@ -376,6 +376,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			util-linux-misc
 			vte3
 			wget
+			tzdata
 			$(apk search -q mesa-dri)
 			$(apk search -q mesa-vulkan)
 			vulkan-loader
@@ -388,6 +389,14 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		done
 		# shellcheck disable=SC2086
 		apk add ${install_pkg}
+
+		# Ensure we have tzdata installed and populated, sometimes container
+		# images blank the zoneinfo directory, so we reinstall the package to
+		# ensure population
+		if [ ! -e /usr/share/zoneinfo/UTC ]; then
+			apk del tzdata
+			apk add tzdata
+		fi
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -447,6 +456,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			procps
 			sudo
 			time
+			tzdata
 			util-linux
 			wget
 			libegl1-mesa
@@ -470,6 +480,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			locale-gen
 			update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 			dpkg-reconfigure locales
+		fi
+
+		# Ensure we have tzdata installed and populated, sometimes container
+		# images blank the zoneinfo directory, so we reinstall the package to
+		# ensure population
+		if [ ! -e /usr/share/zoneinfo/UTC ]; then
+			apt-get --reinstall install tzdata
 		fi
 
 		# Install additional packages passed at distrbox-create time
@@ -530,6 +547,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# will ensure we don't fallback to C.UTF-8
 		if ! locale -a | grep -qi en_us.utf8; then
 			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
+		fi
+
+		# Ensure we have tzdata installed and populated, sometimes container
+		# images blank the zoneinfo directory, so we reinstall the package to
+		# ensure population
+		if [ ! -e /usr/share/zoneinfo/UTC ]; then
+			dnf reinstall -y tzdata
 		fi
 
 		# Install additional packages passed at distrbox-create time
@@ -654,6 +678,13 @@ EOF
 			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
 		fi
 
+		# Ensure we have tzdata installed and populated, sometimes container
+		# images blank the zoneinfo directory, so we reinstall the package to
+		# ensure population
+		if [ ! -e /usr/share/zoneinfo/UTC ]; then
+			microdnf reinstall -y tzdata
+		fi
+
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
 			# shellcheck disable=SC2086
@@ -703,6 +734,7 @@ EOF
 			shadow
 			sudo
 			time
+			tzdata
 			util-linux
 			util-linux-libs
 			wget
@@ -720,6 +752,13 @@ EOF
 		done
 		# shellcheck disable=SC2086
 		pacman -S --needed --noconfirm ${install_pkg}
+
+		# Ensure we have tzdata installed and populated, sometimes container
+		# images blank the zoneinfo directory, so we reinstall the package to
+		# ensure population
+		if [ ! -e /usr/share/zoneinfo/UTC ]; then
+			pacman -S --noconfirm tzdata
+		fi
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -846,6 +885,7 @@ EOF
 			shadow
 			sudo
 			time
+			tzdata
 			util-linux
 			wget
 			mesa-dri
@@ -867,6 +907,13 @@ EOF
 		if ! locale -a | grep -qi en_us.utf8; then
 			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/default/libc-locales
 			xbps-reconfigure --force glibc-locales
+		fi
+
+		# Ensure we have tzdata installed and populated, sometimes container
+		# images blank the zoneinfo directory, so we reinstall the package to
+		# ensure population
+		if [ ! -e /usr/share/zoneinfo/UTC ]; then
+			xbps-install --force -y tzdata
 		fi
 
 		# Install additional packages passed at distrbox-create time
@@ -931,6 +978,13 @@ EOF
 			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
 		fi
 
+		# Ensure we have tzdata installed and populated, sometimes container
+		# images blank the zoneinfo directory, so we reinstall the package to
+		# ensure population
+		if [ ! -e /usr/share/zoneinfo/UTC ]; then
+			yum reinstall -y tzdata
+		fi
+
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
 			# shellcheck disable=SC2086
@@ -982,6 +1036,7 @@ EOF
 			sudo
 			systemd
 			time
+			timezone
 			util-linux
 			util-linux-systemd
 			wget
@@ -997,6 +1052,13 @@ EOF
 		# will ensure we don't fallback to C.UTF-8
 		if ! locale -a | grep -qi en_us.utf8; then
 			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
+		fi
+
+		# Ensure we have tzdata installed and populated, sometimes container
+		# images blank the zoneinfo directory, so we reinstall the package to
+		# ensure population
+		if [ ! -e /usr/share/zoneinfo/UTC ]; then
+			zypper install -f -y timezone
 		fi
 
 		# Install additional packages passed at distrbox-create time
@@ -1039,7 +1101,6 @@ printf "distrobox: Setting up read-only mounts...\n"
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="
 	/etc/localtime
-	/usr/share/zoneinfo
 	/var/lib/flatpak
 	/var/lib/systemd/coredump
 	/var/log/journal"
@@ -1080,7 +1141,6 @@ done
 
 HOST_MOUNTS_RO_INIT="
 	/etc/localtime
-	/usr/share/zoneinfo
 	/run/systemd/journal
 	/run/systemd/resolve
 	/run/systemd/seats
@@ -1255,8 +1315,8 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 			printf 'DPkg::Pre-Invoke {"if findmnt %s >/dev/null; then umount -l %s; fi";};\n' \
 				"${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
 			# shellcheck disable=SC2016
-			printf 'DPkg::Post-Invoke {"if [ -e /run/host/%s ] || [ -e /run/host/$(readlink -fm /run/host/%s) ]; then mount --rbind $(readlink -fm /run/host/%s) %s 2>/dev/null || mount --rbind /run/host/$(readlink -fm /run/host/%s) %s; fi";};\n' \
-				"${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
+			printf 'DPkg::Post-Invoke {"if [ -e /run/host/%s ] || [ -e /run/host/$(readlink -fm /run/host/%s) ]; then if [ ! -d %s ]; then rm -f %s && touch %s; fi; mount --rbind $(readlink -fm /run/host/%s) %s 2>/dev/null || mount --rbind /run/host/$(readlink -fm /run/host/%s) %s; fi";};\n' \
+				"${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
 		done
 	fi
 fi

@@ -182,6 +182,13 @@ jobs:
             exit 1
           fi
 
+      # Ensure distrobox upgrade works:
+      - name: Distrobox upgrade
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          ./distrobox upgrade "${container_name}"
+
       # Ensure distrobox list works:
       - name: Distrobox list
         run: |
