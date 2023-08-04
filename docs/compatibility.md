@@ -146,10 +146,11 @@ Distrobox guests tested successfully with the following container images:
 |    Distro  |    Version | Images    |
 | --- | --- | --- |
 | AlmaLinux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/almalinux-toolbox:8 <br> quay.io/toolbx-images/almalinux-toolbox:9 |
-| Alpine (Toolbox) | 3.16 <br> 3.17 <br> edge | quay.io/toolbx-images/alpine-toolbox:3.16 <br> quay.io/toolbx-images/alpine-toolbox:3.17 <br> quay.io/toolbx-images/alpine-toolbox:edge |
+| Alpine (Toolbox) | 3.16 <br> 3.17 <br> 3.18 <br> edge | quay.io/toolbx-images/alpine-toolbox:3.16 <br> quay.io/toolbx-images/alpine-toolbox:3.17 <br> quay.io/toolbx-images/alpine-toolbox:3.18 <br> quay.io/toolbx-images/alpine-toolbox:edge |
+| AmazonLinux (Toolbox) | 2 <br> 2022 | quay.io/toolbx-images/amazonlinux-toolbox:2 <br> quay.io/toolbx-images/amazonlinux-toolbox:2022 |
 | Archlinux (Toolbox) | | quay.io/toolbx-images/archlinux-toolbox |
 | Centos (Toolbox) | stream8 <br> stream9 | quay.io/toolbx-images/centos-toolbox:stream8 <br> quay.io/toolbx-images/centos-toolbox:stream9 |
-| Debian (Toolbox) | 10 <br> 11 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:10 <br> quay.io/toolbx-images/debian-toolbox:11 <br>  quay.io/toolbx-images/debian-toolbox:testing <br>  quay.io/toolbx-images/debian-toolbox:unstable |
+| Debian (Toolbox) | 10 <br> 11 <br> 12 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:10 <br> quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br>  quay.io/toolbx-images/debian-toolbox:testing <br>  quay.io/toolbx-images/debian-toolbox:unstable |
 | Fedora (Toolbox) | 36 <br> 37 <br> 38 <br> 39 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox: 37 <br> registry.fedoraproject.org/fedora-toolbox:38 <br> registry.fedoraproject.org/fedora-toolbox:39 |
 | openSUSE (Toolbox) | | registry.opensuse.org/opensuse/distrobox:latest <br> quay.io/toolbx-images/opensuse-toolbox:latest |
 | RedHat (Toolbox) | 8 <br> 9 | registry.access.redhat.com/ubi8/toolbox <br> registry.access.redhat.com/ubi9/toolbox |
@@ -166,7 +167,7 @@ Distrobox guests tested successfully with the following container images:
 | Chainguard Wolfi | Small note: sudo is missing, use su-exec instead. | cgr.dev/chainguard/wolfi-base:latest |
 | ClearLinux |      | docker.io/library/clearlinux:latest <br> docker.io/library/clearlinux:base    |
 | Crystal Linux | | registry.getcryst.al/crystal/misc/docker:latest |
-| Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 | docker.io/debian/eol:wheezy <br> docker.io/library/debian:10 <br> docker.io/library/debian:stable <br> docker.io/library/debian:stable-backports    |
+| Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 <br> 12 | docker.io/debian/eol:wheezy <br> docker.io/library/debian:buster-backports <br> docker.io/library/debian:bullseye-backports <br> docker.io/library/debian:bookworm-backports <br> docker.io/library/debian:stable-backports |
 | Debian | Testing    | docker.io/library/debian:testing  <br>  docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
 | deepin | 20 (apricot) <br> 23 (beige) | docker.io/linuxdeepin/apricot  <br>  docker.io/linuxdeepin/beige    |
@@ -174,7 +175,6 @@ Distrobox guests tested successfully with the following container images:
 | Gentoo Linux | rolling | docker.io/gentoo/stage3:latest |
 | KDE neon | Latest <br> Testing <br> Unstable | invent-registry.kde.org/neon/docker-images/plasma:latest <br> invent-registry.kde.org/neon/docker-images/plasma:testing <br> invent-registry.kde.org/neon/docker-images/plasma:unstable |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
-| Mageia | 8 | docker.io/library/mageia |
 | Mint | 21.1 | docker.io/linuxmintd/mint21.1-amd64 |
 | Neurodebian | nd100 | docker.io/library/neurodebian:nd100 |
 | openEULER |  | docker.io/openeuler/openeuler:latest |
@@ -185,8 +185,8 @@ Distrobox guests tested successfully with the following container images:
 | Rocky Linux | 8 <br> 8-minimal <br> 9 | quay.io/rockylinux/rockylinux:8 <br> quay.io/rockylinux/rockylinux:8-minimal <br> quay.io/rockylinux/rockylinux:9 <br> quay.io/rockylinux/rockylinux:latest    |
 | Scientific Linux | 7 | docker.io/library/sl:7    |
 | Slackware | 14.2 | docker.io/vbatts/slackware:14.2    |
-| Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 23.04 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04    |
-| Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64  <br>  ghcr.io/void-linux/void-linux:latest-full-x86_64-musl |
+| Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 23.04 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04 |
+| Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64 |
 
 Images marked with **Toolbox** are tailored images, so they are more indicated
 for desktop use, and first setup will take less time.
