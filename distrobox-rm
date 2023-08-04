@@ -91,6 +91,7 @@ fi
 
 # Declare it AFTER config sourcing because we do not want a default name set for rm.
 container_name=""
+container_name_default="my-distrobox"
 container_name_list=""
 
 # Print usage to stdout.
@@ -249,8 +250,7 @@ fi
 
 # check if we have containers to delete
 if [ -z "${container_name_list}" ]; then
-	printf >&2 "Please specify a container name.\n"
-	exit 1
+	container_name_list="${container_name_default}"
 fi
 
 delete_container() {

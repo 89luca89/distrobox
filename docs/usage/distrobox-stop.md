@@ -15,7 +15,7 @@ subsequent enters are really quick. This is how they can be stopped.
 
 **distrobox stop**
 
-	--name/-n:		name for the distrobox
+	--all/-a:		stop all distroboxes
 	--yes/-Y:		non-interactive, stop without asking
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -26,8 +26,9 @@ subsequent enters are really quick. This is how they can be stopped.
 
 # EXAMPLES
 
-	distrobox-stop --name container-name
+	distrobox-stop container-name1 container-name2
 	distrobox-stop container-name
+	distrobox-stop --all
 
 You can also use environment variables to specify container manager and name:
 
