@@ -434,10 +434,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			diffutils
 			findutils
 			gnupg2
+			language-pack-en
 			less
 			libnss-myhostname
 			libvte-2.9*-common
 			libvte-common
+			locales
 			lsof
 			ncurses-base
 			passwd
@@ -460,6 +462,15 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		done
 		# shellcheck disable=SC2086
 		apt-get install -y ${install_pkg}
+
+		# In case the locale is not available, install it
+		# will ensure we don't fallback to C.UTF-8
+		if ! locale -a | grep -qi en_us.utf8; then
+			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+			locale-gen
+			update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+			dpkg-reconfigure locales
+		fi
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -491,6 +502,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			diffutils
 			dnf-plugins-core
 			findutils
+			glibc-all-langpacks
+			glibc-locale-source
 			gnupg2
 			less
 			lsof
@@ -512,6 +525,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		"
 		# shellcheck disable=SC2086,2046
 		dnf install -y --allowerasing $(dnf repoquery -q --latest-limit 1 --arch "$(uname -m)" ${deps})
+
+		# In case the locale is not available, install it
+		# will ensure we don't fallback to C.UTF-8
+		if ! locale -a | grep -qi en_us.utf8; then
+			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
+		fi
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -564,6 +583,17 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# shellcheck disable=SC2086
 		emerge --ask=n --autounmask-continue --noreplace --quiet-build ${install_pkg}
 
+		# In case the locale is not available, install it
+		# will ensure we don't fallback to C.UTF-8
+		if ! locale -a | grep -qi en_us.utf8; then
+			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+			locale-gen
+			cat << EOF > /etc/env.d/02locale
+LANG=en_US.UTF-8
+LC_CTYPE=en_US.UTF-8
+EOF
+		fi
+
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
 			# shellcheck disable=SC2086
@@ -588,6 +618,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			bc
 			diffutils
 			findutils
+			glibc-all-langpacks
+			glibc-locale-source
 			gnupg
 			less
 			lsof
@@ -616,6 +648,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# shellcheck disable=SC2086,SC2046
 		microdnf install -y ${install_pkg}
 
+		# In case the locale is not available, install it
+		# will ensure we don't fallback to C.UTF-8
+		if ! locale -a | grep -qi en_us.utf8; then
+			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
+		fi
+
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
 			# shellcheck disable=SC2086
@@ -636,6 +674,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# So, let's enable them.
 		sed -i "s|NoExtract.*||g" /etc/pacman.conf
 		sed -i "s|NoProgressBar.*||g" /etc/pacman.conf
+
+		# In case the locale is not available, install it
+		# will ensure we don't fallback to C.UTF-8
+		if ! locale -a | grep -qi en_us.utf8; then
+			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+			locale-gen -a
+		fi
 
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
@@ -701,6 +746,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl
 			diffutils
 			findutils
+			glibc
 			gnupg2
 			less
 			libvte-2
@@ -721,6 +767,9 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 				install_pkg="${install_pkg} ${dep}"
 			fi
 		done
+
+		rm -f /var/lock/slackpkg.*
+
 		# shellcheck disable=SC2086
 		yes | slackpkg install -default_answer=yes -batch=yes ${install_pkg}
 
@@ -813,6 +862,13 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		# shellcheck disable=SC2086
 		xbps-install -Sy ${install_pkg}
 
+		# In case the locale is not available, install it
+		# will ensure we don't fallback to C.UTF-8
+		if ! locale -a | grep -qi en_us.utf8; then
+			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/default/libc-locales
+			xbps-reconfigure --force glibc-locales
+		fi
+
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
 			# shellcheck disable=SC2086
@@ -842,6 +898,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl
 			diffutils
 			findutils
+			glibc-all-langpacks
+			glibc-locale-source
 			gnupg2
 			less
 			lsof
@@ -866,6 +924,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			grep -v "Packages" |
 			grep "$(uname -m)" |
 			cut -d' ' -f1)
+
+		# In case the locale is not available, install it
+		# will ensure we don't fallback to C.UTF-8
+		if ! locale -a | grep -qi en_us.utf8; then
+			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
+		fi
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
@@ -903,6 +967,8 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 			curl
 			diffutils
 			findutils
+			glibc-locale
+			glibc-locale-base
 			gnupg
 			less
 			libvte-2*
@@ -926,6 +992,12 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		"
 		# shellcheck disable=SC2086,SC2046
 		zypper install -y $(zypper -q se -x ${deps} | tail -n +4 | cut -d'|' -f2)
+
+		# In case the locale is not available, install it
+		# will ensure we don't fallback to C.UTF-8
+		if ! locale -a | grep -qi en_us.utf8; then
+			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
+		fi
 
 		# Install additional packages passed at distrbox-create time
 		if [ -n "${container_additional_packages}" ]; then
