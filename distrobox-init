@@ -1256,7 +1256,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		# In the guest we need to adjust the destination path, so if we're on
 		# debian based containers, we need to target /usr/lib/x86_64-linux-gnu/
 		if [ -e "/usr/lib/x86_64-linux-gnu/" ]; then
-			if [ "${type}" == "link" ]; then
+			if [ "${type}" = "link" ]; then
 				cp -d "${nvidia_lib}" "/usr/lib/x86_64-linux-gnu/${dest_file}"
 				continue
 			fi
@@ -1264,7 +1264,7 @@ if [ "${nvidia}" -eq 1 ]; then
 			mount_bind "${nvidia_lib}" "/usr/lib/x86_64-linux-gnu/${dest_file}" ro
 			# /usr/lib64 is common in rpm based distros
 		elif [ -e "/usr/lib64" ]; then
-			if [ "${type}" == "link" ]; then
+			if [ "${type}" = "link" ]; then
 				cp -d "${nvidia_lib}" "/usr/lib64/${dest_file}"
 				continue
 			fi
@@ -1272,7 +1272,7 @@ if [ "${nvidia}" -eq 1 ]; then
 			mount_bind "${nvidia_lib}" "/usr/lib64/${dest_file}" ro
 			# fallback to /usr/lib if none of the previous
 		else
-			if [ "${type}" == "link" ]; then
+			if [ "${type}" = "link" ]; then
 				cp -d "${nvidia_lib}" "/usr/lib/${dest_file}"
 				continue
 			fi

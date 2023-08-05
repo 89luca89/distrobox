@@ -255,36 +255,48 @@ run_distrobox() (
 		result_command="${result_command} --home $(sanitize_variable "${home}")"
 	fi
 	if [ -n "${init_hooks}" ]; then
-		IFS="|"
+		IFS="¤"
 		args=":"
 		for arg in ${init_hooks}; do
-			args="${args} && ${arg}"
+			if ! echo "${arg}" | grep -q ';$' &&
+				! echo "${arg}" | grep -q "&&$"; then
+				args="${args} && ${arg}"
+			else
+				args="${args} ${arg}"
+			fi
 		done
 		result_command="${result_command} --init-hooks $(sanitize_variable "${args}")"
 	fi
 	# Replicable flags
 	if [ -n "${pre_init_hooks}" ]; then
-		IFS="|"
+		IFS="¤"
 		args=":"
 		for arg in ${pre_init_hooks}; do
-			args="${args} && ${arg}"
+			if ! echo "${arg}" | grep -q ';$' &&
+				! echo "${arg}" | grep -q "&&$"; then
+				args="${args} && ${arg}"
+			else
+				args="${args} ${arg}"
+			fi
 		done
 		result_command="${result_command} --pre-init-hooks $(sanitize_variable "${args}")"
 	fi
 	if [ -n "${additional_packages}" ]; then
-		IFS="|"
+		IFS="¤"
+		args=""
 		for packages in ${additional_packages}; do
-			result_command="${result_command} --additional-packages $(sanitize_variable "${packages}")"
+			args="${args} ${packages}"
 		done
+		result_command="${result_command} --additional-packages $(sanitize_variable "${args}")"
 	fi
 	if [ -n "${volume}" ]; then
-		IFS="|"
+		IFS=" "
 		for vol in ${volume}; do
 			result_command="${result_command} --volume $(sanitize_variable "${vol}")"
 		done
 	fi
 	if [ -n "${additional_flags}" ]; then
-		IFS="|"
+		IFS="¤"
 		for flag in ${additional_flags}; do
 			result_command="${result_command} --additional-flags $(sanitize_variable "${flag}")"
 		done
@@ -371,8 +383,8 @@ parse_file() (
 		# Save options to tempfile, to source it later
 		touch "${tmpfile}"
 		if [ -n "${key}" ] && [ -n "${value}" ]; then
-			if grep -q "${key}" "${tmpfile}"; then
-				value="$(echo "${value}" | sed "s|\"|\" \${${key}} |")"
+			if grep -q "${key}=" "${tmpfile}"; then
+				value="$(echo "${value}" | sed "s|\"|\" \${${key}}¤|")"
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
 		fi
