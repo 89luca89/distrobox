@@ -49,7 +49,7 @@ Distrobox has been successfully tested on:
 
 |    Distro  |    Version    | Notes |
 | --- | --- | --- |
-| Alpine Linux | 3.14 <br> 3.15 | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
+| Alpine Linux | | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
 | Arch Linux | | `distrobox` and `distrobox-git` are available in AUR (thanks [M0Rf30](https://github.com/M0Rf30)!). <br> To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | CentOS | 8 <br> 8 Stream <br> 9 Stream | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
 | Debian | 11 <br> Testing <br> Unstable | `distrobox` is available in default repos in `testing` and `unstable` (thanks [michel-slm!](https://github.com/michel-slm!)!) |
@@ -62,12 +62,12 @@ Distrobox has been successfully tested on:
 | Manjaro | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | NixOS | 21.11 | Make sure to mind your executable paths. Sometimes a container will not have nix paths, and sometimes it will not have its own paths.  <br>  Distrobox is available in Nixpkg collection (thanks [AtilaSaraiva](https://github.com/AtilaSaraiva)!)< <br> To setup Docker, look [HERE](https://nixos.wiki/wiki/Docker)  <br> To setup Podman, look [HERE](https://nixos.wiki/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
 | openSUSE | Leap 15.4 <br> Leap 15.3 <br> Leap 15.2 | Packages are available [here](https://software.opensuse.org/download/package?package=distrobox&project=home%3Adfaggioli%3Amicroos-desktop) (thanks [dfaggioli](https://github.com/dfaggioli)!).<br> To install on openSUSE Leap 15, Use the following repository links in the `zypper addrepo` command: [15.4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.4/home:dfaggioli:microos-desktop.repo), [15.3](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.3/home:dfaggioli:microos-desktop.repo), [15.2](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.2/home:dfaggioli:microos-desktop.repo). Then: <br>  `zypper refresh && zypper install distrobox`. <br> `Podman` under SUSE Leap, cannot initialize correctly the containers managed by ``distrobox`` until [this openSUSE bug](https://bugzilla.opensuse.org/show_bug.cgi?id=1199871) is fixed, or ``podman`` logging is configured properly. |
-| openSUSE | Tumbleweed <br> MicroOS | `distrobox` is available in default repos (thanks [dfaggioli](https://github.com/dfaggioli)!) <br> For Tumbleweed, do: `zypper install distrobox`. <br> For MicroOS, do: `transactional-update pkg install distrobox` and reboot the system. |
+| openSUSE | Tumbleweed <br> MicroOS | `distrobox` is available in default repos (thanks [dfaggioli](https://github.com/dfaggioli)!) <br> For Tumbleweed, do: `zypper install distrobox`. <br> For MicroOS, **distrobox is installed by default**. |
 | SUSE Linux Enterprise Server | 15&nbsp;Service&nbsp;Pack&nbsp;4 <br> 15&nbsp;Service&nbsp;Pack&nbsp;3 <br> 15&nbsp;Service&nbsp;Pack&nbsp;2 | Same procedure as the one for openSUSE (Leap, respective versions, of course). Use the following repository links in the `zypper addrepo` command: [SLE-15-SP4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.4/home:dfaggioli:microos-desktop.repo), [SLE-15-SP3](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.3/home:dfaggioli:microos-desktop.repo), [SLE-15-SP4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/SLE_15_SP2/home:dfaggioli:microos-desktop.repo). Then: <br>  `zypper refresh && zypper install distrobox`. <br> `Podman` under SUSE Leap, cannot initialize correctly the containers managed by ``distrobox`` until [this openSUSE bug](https://bugzilla.opensuse.org/show_bug.cgi?id=1199871) is fixed, or ``podman`` logging is configured properly. |
 | SteamOS 3 | | You can use `steamos-readonly disable` and follow `Arch Linux` instructions. This will **NOT** survive updates.<br>Alternatively you can follow the [Install Podman in a static manner](posts/install_rootless.md) guide, this will install it in your $HOME and it will survive updates.|
 | RedHat | 8 <br> 9  | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
 | Ubuntu | 18.04 <br> 20.04 <br> 22.04 <br> 22.10 <br> 23.04 <br>| Older versions based on 20.04 or earlier may need external repos to install newer Podman and Docker releases. <br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. <br> [Now PPA available!](https://launchpad.net/~michel-slm/+archive/ubuntu/distrobox), also `distrobox` is available in default repos from `22.10` onward (thanks [michel-slm](https://github.com/michel-slm)!)  |
-| Void Linux | glibc | Systemd service export will not work. |
+| Void Linux | glibc | |
 
 ### Install Podman in a static manner
 
@@ -199,7 +199,8 @@ This will **not** occur after the first time, **subsequent enters will be much f
 
 NixOS is not a supported container distro, and there are currently no plans to
 bring support to it. If you are looking for unprivileged NixOS environments,
-we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html) or [nix portable](https://github.com/DavHau/nix-portable)
+we suggest you look into [nix-shell](https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html)
+or [nix portable](https://github.com/DavHau/nix-portable)
 
 ### New Distro support
 
