@@ -103,6 +103,9 @@ This is a list of available options with the corresponding type:
 | init_hooks | string
 | pre_init_hooks | string
 | volume | string
+| exported_apps | string
+| exported_bins | string
+| exported_bins_path | string
 | entry | bool
 | start_now | bool
 | init | bool
