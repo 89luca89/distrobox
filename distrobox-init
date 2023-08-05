@@ -1652,6 +1652,7 @@ if command -v systemctl 2> /dev/null; then
 		systemctl mask "$(basename "${unit}")" || :
 	done
 fi
+
 # We don't want these workarounds anymore
 rm -f /etc/apt/apt.conf.d/00_distrobox
 rm -f /run/systemd/coredump
@@ -1683,6 +1684,11 @@ INIT_BINS="
 	/lib/systemd/systemd
 	/usr/lib/systemd/systemd
 "
+if [ -e /lib/systemd/systemd ] || [ -e /usr/lib/systemd/systemd ]; then
+	# start systemd user@.service session if we're using systemd
+	sh -c "while true; do systemctl start user@luca-linux.service && exit 0; done" &
+fi
+
 for init_bin in ${INIT_BINS}; do
 	[ -e "${init_bin}" ] && exec "${init_bin}"
 done
