@@ -1516,9 +1516,26 @@ printf "%s:" "${container_user_name}" | chpasswd -e
 # skeleton files, if present.
 # Ensure we copy only if the dotfile is not already present.
 mkdir -p /etc/profile.d
-printf "test -z \"\$USER\" && USER=\"\$(id -un 2> /dev/null)\"\n" > /etc/profile.d/distrobox_profile.sh
-printf "test -z \"\$UID\"  && readonly  UID=\"\$(id -ur 2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
-printf "test -z \"\$EUID\" && readonly EUID=\"\$(id -u  2> /dev/null)\"\n" >> /etc/profile.d/distrobox_profile.sh
+cat << EOF > "/etc/profile.d/distrobox_profile.sh"
+test -z "\$USER" && USER="\$(id -un 2> /dev/null)"
+test -z "\$UID"  && readonly  UID="\$(id -ur 2> /dev/null)"
+test -z "\$EUID" && readonly EUID="\$(id -u  2> /dev/null)"
+export SHELL="\$(getent passwd "\${USER}" | cut -f 7 -d :)"
+EOF
+
+# This will ensure a default prompt for a container, this will be remineshent of
+# toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
+# this will ensure greater compatibility between the two implementations
+if ! grep -q "^# distrobox_profile_ps1" /etc/profile; then
+	cat << EOF >> "/etc/profile"
+# distrobox_profile_ps1
+if [ -f /run/.toolboxenv ]; then
+    [ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\h \W]\$ "
+    [ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@%m]%~%# "
+fi
+EOF
+fi
+
 if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
@@ -1539,7 +1556,9 @@ if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 		fi
 	done
 fi
-printf "export SHELL=\"\$(getent passwd \"\${USER}\" | cut -f 7 -d :)\"\n" >> /etc/profile.d/distrobox_profile.sh
+
+# This ensures compatibility with prompts and tools between toolbx and distrobox
+touch /run/.toolboxenv
 
 ###############################################################################
 
