@@ -47,6 +47,9 @@ start_now=""
 unshare_ipc=""
 unshare_netns=""
 volume=""
+exported_apps=""
+exported_bins=""
+exported_bins_path="${HOME}/.local/bin"
 
 # Cleanup tmpfiles on exit
 trap 'rm -f ${tmpfile}' EXIT
@@ -313,6 +316,22 @@ run_distrobox() (
 	# is ready to be entered.
 	if [ -n "${start_now}" ] && [ "${start_now}" -eq 1 ]; then
 		"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
+	fi
+
+	# if there are exported bins and apps declared, let's export them
+	if [ -n "${exported_apps}" ] || [ -n "${exported_bins}" ]; then
+		# First we start the container
+		"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
+
+		IFS=" "
+		for app in ${exported_apps}; do
+			"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --app "${app}"
+		done
+
+		IFS=" "
+		for bin in ${exported_bins}; do
+			"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
+		done
 	fi
 )
 

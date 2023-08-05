@@ -150,3 +150,6 @@ in order to execute them one after the other.
 	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/flatpak;
 	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/podman;
 	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open;
+	exported_apps="htop"
+	exported_bins="/usr/bin/htop /usr/bin/git"
+	exported_bins_path="~/.local/bin"
