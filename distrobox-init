@@ -1245,6 +1245,7 @@ if [ "${nvidia}" -eq 1 ]; then
 	for nvidia_lib in ${NVIDIA_LIBS}; do
 		dest_file="$(printf "%s" "${nvidia_lib}" |
 			sed 's|/run/host/usr/lib/x86_64-linux-gnu/||g' |
+			sed 's|/run/host/usr/lib/i386-linux-gnu/||g' |
 			sed 's|/run/host/usr/lib64/||g' |
 			sed 's|/run/host/usr/lib/||g')"
 
@@ -1253,10 +1254,44 @@ if [ "${nvidia}" -eq 1 ]; then
 			type="link"
 		fi
 
+		# In case we're dealing with a 32bit library, we should try to put
+		# it in a compelling path
+		if file "${nvidia_lib}" | grep -q "32-bit"; then
+			if [ -e "/usr/lib/i386-linux-gnu/" ]; then
+				if [ "${type}" = "link" ]; then
+					mkdir -p "$(dirname "/usr/lib/i386-linux-gnu/${dest_file}")"
+					cp -d "${nvidia_lib}" "/usr/lib/i386-linux-gnu/${dest_file}"
+					continue
+				fi
+
+				mount_bind "${nvidia_lib}" "/usr/lib/i386-linux-gnu/${dest_file}" ro
+				# /usr/lib64 is common in rpm based distros
+			elif [ -e "/usr/lib32" ]; then
+				if [ "${type}" = "link" ]; then
+					mkdir -p "$(dirname "/usr/lib32/${dest_file}")"
+					cp -d "${nvidia_lib}" "/usr/lib32/${dest_file}"
+					continue
+				fi
+
+				mount_bind "${nvidia_lib}" "/usr/lib32/${dest_file}" ro
+				# fallback to /usr/lib if none of the previous
+			else
+				if [ "${type}" = "link" ]; then
+					mkdir -p "$(dirname "/usr/lib/${dest_file}")"
+					cp -d "${nvidia_lib}" "/usr/lib/${dest_file}"
+					continue
+				fi
+
+				mount_bind "${nvidia_lib}" "/usr/lib/${dest_file}" ro
+			fi
+			continue
+		fi
+
 		# In the guest we need to adjust the destination path, so if we're on
 		# debian based containers, we need to target /usr/lib/x86_64-linux-gnu/
 		if [ -e "/usr/lib/x86_64-linux-gnu/" ]; then
 			if [ "${type}" = "link" ]; then
+				mkdir -p "$(dirname "/usr/lib/x86_64-linux-gnu/${dest_file}")"
 				cp -d "${nvidia_lib}" "/usr/lib/x86_64-linux-gnu/${dest_file}"
 				continue
 			fi
@@ -1265,6 +1300,7 @@ if [ "${nvidia}" -eq 1 ]; then
 			# /usr/lib64 is common in rpm based distros
 		elif [ -e "/usr/lib64" ]; then
 			if [ "${type}" = "link" ]; then
+				mkdir -p "$(dirname "/usr/lib64/${dest_file}")"
 				cp -d "${nvidia_lib}" "/usr/lib64/${dest_file}"
 				continue
 			fi
@@ -1273,6 +1309,7 @@ if [ "${nvidia}" -eq 1 ]; then
 			# fallback to /usr/lib if none of the previous
 		else
 			if [ "${type}" = "link" ]; then
+				mkdir -p "$(dirname "/usr/lib/${dest_file}")"
 				cp -d "${nvidia_lib}" "/usr/lib/${dest_file}"
 				continue
 			fi
