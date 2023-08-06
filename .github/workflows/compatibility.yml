@@ -169,6 +169,7 @@ jobs:
 
       # Ensure distrobox export works:
       - name: Distrobox export - sudo
+        if: matrix.container_manager != 'docker'
         shell: 'script -q -e -c "bash {0}"'
         run: |
           image=${{ matrix.distribution }}

@@ -32,6 +32,7 @@ init=0
 init_hook=""
 nvidia=0
 pre_init_hook=""
+rootful=0
 upgrade=0
 verbose=0
 version="1.5.0.2"
@@ -164,6 +165,15 @@ if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
 	printf >&2 "This is not intended to be used manually, but instead used by distrobox-enter\n"
 	printf >&2 "to set up the container's entrypoint.\n"
 	exit 126
+fi
+
+# Determine if we're in a rootful container, generally if we're able to read
+# host's /etc/shadow, it means we're really root!
+#
+# if /run/.nopasswd is present, let's treat the init as rootless, this is not
+# a good thing, users behold!
+if [ -r /run/host/etc/shadow ] && [ ! -e /run/.nopasswd ]; then
+	rootful=1
 fi
 
 # Ensure the foundamental variables are set and not empty, we will not proceed if
@@ -1044,6 +1054,7 @@ EOF
 			procps
 			shadow
 			sudo
+			system-group-wheel
 			systemd
 			time
 			timezone
@@ -1444,15 +1455,58 @@ EOF
 fi
 ###############################################################################
 
+# If we do not have profile files in the home, we should copy the
+# skeleton files, if present.
+# Ensure we copy only if the dotfile is not already present.
+mkdir -p /etc/profile.d
+cat << EOF > "/etc/profile.d/distrobox_profile.sh"
+test -z "\$USER" && USER="\$(id -un 2> /dev/null)"
+test -z "\$UID"  && readonly  UID="\$(id -ur 2> /dev/null)"
+test -z "\$EUID" && readonly EUID="\$(id -u  2> /dev/null)"
+export SHELL="\$(getent passwd "\${USER}" | cut -f 7 -d :)"
+EOF
+
+# This will ensure a default prompt for a container, this will be remineshent of
+# toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
+# this will ensure greater compatibility between the two implementations
+if ! grep -q "^# distrobox_profile_ps1" /etc/profile; then
+	cat << EOF >> "/etc/profile"
+# distrobox_profile_ps1
+if [ -f /run/.toolboxenv ]; then
+    [ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\h \W]\$ "
+    [ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@%m]%~%# "
+fi
+EOF
+fi
+
+# This will ensure we have a first-shell password setup for an user if needed.
+# We're going to use this later in case of rootful containers
+if  ! grep -q "^# distrobox_profile_passwd" /etc/profile.d/distrobox_profile.sh; then
+	cat << EOF >> "/etc/profile.d/distrobox_profile.sh"
+# distrobox_profile_passwd
+if [ -e /var/tmp/.\$USER.passwd.initialize ]; then
+	trap "echo; exit" INT
+	passwd && rm -f /var/tmp/.\$USER.passwd.initialize
+	trap - INT
+fi
+EOF
+fi
+
+printf  "distrobox: Setting up sudo...\n"
+mkdir  -p /etc/sudoers.d
+# Ensure we're using the user's password for sudo, not root
+sed -i "s|^Defaults targetpw.*||g" /etc/sudoers
+# Do not check fqdn when doing sudo, it will not work anyways
+if  ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
+	printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
+fi
+
 # If we're running this script as root in a login shell (sudoless), we don't
 # have to bother setting up sudo.
-if [ "${container_user_uid}" -ne 0 ]; then
-	printf "distrobox: Setting up sudo...\n"
-	mkdir -p /etc/sudoers.d
-	# Do not check fqdn when doing sudo, it will not work anyways
-	if ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
-		printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
-	fi
+#
+# Also if we're in a rootful container, we will setup user's password,
+# so let's skip passwordless sudo too
+if [ "${container_user_uid}" -ne 0 ] && [ "${rootful}" -eq 0 ] && [ ! -e /etc/passwd.done ]; then
 	# Ensure passwordless sudo is set up for user
 	if ! grep -q "\"${container_user_name}\" ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
 		printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
@@ -1484,11 +1538,27 @@ EOF
 fi
 
 # If we have sudo/wheel groups, let's add the user to them.
+# and ensure that user's in those groups can effectively sudo
 additional_groups=""
 if grep -q "^sudo" /etc/group; then
 	additional_groups="sudo"
+	if ! grep -q '^%sudo ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
+		echo '%sudo ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
+	fi
 elif grep -q "^wheel" /etc/group; then
 	additional_groups="wheel"
+	if ! grep -q '^%wheel ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
+		echo '%wheel ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
+	fi
+fi
+
+# If we're rootful, search for host's groups, if we're not in anyone, let's not
+# add the current user to any sudoers group, so that host's sudo settings are
+# respected
+if [ "${rootful}" -eq 1 ] &&
+	! grep -q "^wheel.*${container_user_name}" /run/host/etc/group &&
+	! grep -q "^sudo.*${container_user_name}" /run/host/etc/group; then
+	additional_groups=""
 fi
 
 # Let's add our user to the container. if the user already exists, enforce properties.
@@ -1538,40 +1608,41 @@ elif [ ! -e /etc/passwd.done ]; then
 
 		printf "Warning: there was a problem setting up the user\n"
 	fi
-	touch /etc/passwd.done
 fi
 
-# We generate a random password to initialize the entry for the user and root.
 temporary_password="$(cat /proc/sys/kernel/random/uuid)"
-printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd root
-printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
-# Delete password for root and user
-printf "%s:" "root" | chpasswd -e
-printf "%s:" "${container_user_name}" | chpasswd -e
-
-# If we do not have profile files in the home, we should copy the
-# skeleton files, if present.
-# Ensure we copy only if the dotfile is not already present.
-mkdir -p /etc/profile.d
-cat << EOF > "/etc/profile.d/distrobox_profile.sh"
-test -z "\$USER" && USER="\$(id -un 2> /dev/null)"
-test -z "\$UID"  && readonly  UID="\$(id -ur 2> /dev/null)"
-test -z "\$EUID" && readonly EUID="\$(id -u  2> /dev/null)"
-export SHELL="\$(getent passwd "\${USER}" | cut -f 7 -d :)"
-EOF
-
-# This will ensure a default prompt for a container, this will be remineshent of
-# toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
-# this will ensure greater compatibility between the two implementations
-if ! grep -q "^# distrobox_profile_ps1" /etc/profile; then
-	cat << EOF >> "/etc/profile"
-# distrobox_profile_ps1
-if [ -f /run/.toolboxenv ]; then
-    [ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\h \W]\$ "
-    [ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@%m]%~%# "
+if  [ ! -e /etc/passwd.done ]; then
+	# We generate a random password to initialize the entry for the user and root.
+	printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd root
+	printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
+	# Delete password for root and user
+	printf "%s:" "root" | chpasswd -e
+	printf "%s:" "${container_user_name}" | chpasswd -e
 fi
-EOF
+
+# If we are in a rootful container, let's setup a first-shell password setup
+# so that sudo, and su has a password
+#
+# else we fallback to the usual setup with passwordless sudo/su user. This is
+# likely because we're in a rootless setup, so privilege escalation is not a concern.
+if [ "${rootful}" -eq 1 ] &&
+	{
+		[ "$(grep "${container_user_name}" /etc/shadow | cut -d':' -f2)" = '!!' ] ||
+			[ "$(grep "${container_user_name}" /etc/shadow | cut -d':' -f2)" = "" ]
+	}; then
+
+	# lock out root user
+	usermod -L root
+
+	# force setup of user's password on first shell
+	touch /var/tmp/."${container_user_name}".passwd.initialize
+	chown "${container_user_name}:${container_user_gid}" /var/tmp/."${container_user_name}".passwd.initialize
 fi
+
+# Now we're done
+touch  /etc/passwd.done
+# This ensures compatibility with prompts and tools between toolbx and distrobox
+touch /run/.toolboxenv
 
 if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
@@ -1593,9 +1664,6 @@ if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 		fi
 	done
 fi
-
-# This ensures compatibility with prompts and tools between toolbx and distrobox
-touch /run/.toolboxenv
 
 ###############################################################################
 
