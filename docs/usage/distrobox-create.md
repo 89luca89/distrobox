@@ -15,8 +15,8 @@ graphical apps (X11/Wayland), and audio.
 
 **distrobox create**
 
-	--image/-i:		image to use for the container
-	--name/-n:		name for the distrobox
+	--image/-i:		image to use for the container	default: ${container_image_default}
+	--name/-n:		name for the distrobox		default: ${container_name_default}
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -42,6 +42,8 @@ graphical apps (X11/Wayland), and audio.
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
+
+	--absolutely-disable-root-password-i-am-really-positively-sure: ⚠️ ⚠️  when setting up a rootful distrobox, this will skip user password setup, leaving it blank. ⚠️ ⚠️
 
 # COMPATIBILITY
 
@@ -170,6 +172,15 @@ This is needed because `/sbin/init` must be pid 1.
 The `--home` flag let's you specify a custom HOME for the container.
 Note that this will NOT prevent the mount of the host's home directory,
 but will ensure that configs and dotfiles will not litter it.
+
+The `--root` flag will let you create a container with real root privileges. At
+first `enter` the user will be required to setup a password. This is done in order
+to not enable passwordless sudo/su, in a **rootful** container, this is needed
+because **in this mode, root inside the container is also root outside the container!**
+
+The `--absolutely-disable-root-password-i-am-really-positively-sure`  will skip user password setup,
+leaving it blank.
+**This is genuinely dangerous and you really, positively should NOT enable this**.
 
 From version 1.4.0 of distrobox, when you create a new container, it will also generate
 an entry in the applications list.

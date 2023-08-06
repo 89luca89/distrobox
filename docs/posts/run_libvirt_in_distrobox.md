@@ -42,11 +42,7 @@ ssh for it:
 Port 2222" | sudo tee -a /etc/ssh/sshd_config
 :-$ sudo systemctl enable --now sshd
 :-$ sudo systemctl restart sshd
-:~$ sudo su -
-:~# passwd
 ```
-
-Now set a password for root user.
 
 ## Connect from the host
 
@@ -67,7 +63,7 @@ Then set it like this:
 Optionally you can set it to autoconnect.
 
 Now you can simply double click the connection to activate it, you'll be prompted
-with a password, insert the one you used in the `passwd` step previously:
+with your password, insert the same password as the host:
 
 ![image](https://user-images.githubusercontent.com/598882/208441932-f561af0b-9c19-45f7-bacc-d690d80b75e1.png)
 

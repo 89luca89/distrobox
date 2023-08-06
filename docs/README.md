@@ -220,7 +220,9 @@ docker/podman container or a flatpak.
 ⚠️ **BE CAREFUL**:⚠️  if you use docker, or you use podman with the `--root/-r` flag,
 the containers will run as root, so **root inside the rootful container can modify
 system stuff outside the container**,
-if you have security concern for this, **use podman that runs in rootless mode**.
+Be also aware that **In rootful mode, you'll be asked to setup user's password**, this will
+ensure at least that the container is not a passwordless gate to root,
+but if you have security concern for this, **use podman that runs in rootless mode**.
 Rootless docker is still not working as intended and will be included in the future
 when it will be complete.
 
