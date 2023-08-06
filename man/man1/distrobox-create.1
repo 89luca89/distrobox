@@ -37,8 +37,8 @@ usb devices and graphical apps (X11/Wayland), and audio.
 .IP
 .nf
 \f[C]
---image/-i:     image to use for the container
---name/-n:      name for the distrobox
+--image/-i:     image to use for the container  default: ${container_image_default}
+--name/-n:      name for the distrobox      default: ${container_name_default}
 --pull/-p:      pull the image even if it exists locally (implies --yes)
 --yes/-Y:       non-interactive, pull images without asking
 --root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
@@ -64,6 +64,8 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --dry-run/-d:       only print the container manager command generated
 --verbose/-v:       show more verbosity
 --version/-V:       show version
+
+--absolutely-disable-root-password-i-am-really-positively-sure: \[u26A0]\[uFE0F] \[u26A0]\[uFE0F]  when setting up a rootful distrobox, this will skip user password setup, leaving it blank. \[u26A0]\[uFE0F] \[u26A0]\[uFE0F]
 \f[R]
 .fi
 .SH COMPATIBILITY
@@ -284,6 +286,19 @@ The \f[V]--home\f[R] flag let\[cq]s you specify a custom HOME for the
 container.
 Note that this will NOT prevent the mount of the host\[cq]s home
 directory, but will ensure that configs and dotfiles will not litter it.
+.PP
+The \f[V]--root\f[R] flag will let you create a container with real root
+privileges.
+At first \f[V]enter\f[R] the user will be required to setup a password.
+This is done in order to not enable passwordless sudo/su, in a
+\f[B]rootful\f[R] container, this is needed because \f[B]in this mode,
+root inside the container is also root outside the container!\f[R]
+.PP
+The
+\f[V]--absolutely-disable-root-password-i-am-really-positively-sure\f[R]
+will skip user password setup, leaving it blank.
+\f[B]This is genuinely dangerous and you really, positively should NOT
+enable this\f[R].
 .PP
 From version 1.4.0 of distrobox, when you create a new container, it
 will also generate an entry in the applications list.
