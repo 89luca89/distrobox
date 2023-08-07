@@ -49,6 +49,7 @@ verbose=0
 version="1.5.0.2"
 container_additional_packages=""
 container_init_hook=" "
+custom_command=""
 container_manager_additional_flags=""
 container_pre_init_hook=" "
 
@@ -111,6 +112,13 @@ while :; do
 			# Ignore --name on ephemeral
 			if [ -n "$2" ]; then
 				name="${2}"
+				shift
+				shift
+			fi
+			;;
+		--custom-command)
+			if [ -n "$2" ]; then
+				custom_command="$2"
 				shift
 				shift
 			fi
@@ -184,6 +192,10 @@ generate_command() {
 		result_command="${result_command} \
 			--additional-packages \"${container_additional_packages}\""
 	fi
+	if [ -n "${custom_command}" ]; then
+		result_command="${result_command} \
+			--custom-command \"${custom_command}\""
+	fi
 	if [ -n "${container_init_hook}" ]; then
 		result_command="${result_command} \
 			--init-hooks \"${container_init_hook}\""
@@ -203,7 +215,11 @@ cmd="$(generate_command)"
 # shellcheck disable=SC2086
 eval ${cmd}
 # shellcheck disable=SC2086
+if [ -n "${custom_command}" ]; then
+	"${distrobox_path}"/distrobox-enter ${extra_flags} "${name}" ${container_command} -- ${custom_command}
+else
 "${distrobox_path}"/distrobox-enter ${extra_flags} "${name}" ${container_command}
+fi
 # shellcheck disable=SC2086
 "${distrobox_path}"/distrobox-stop ${extra_flags} "${name}" --yes
 # shellcheck disable=SC2086

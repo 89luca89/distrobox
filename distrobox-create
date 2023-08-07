@@ -352,7 +352,7 @@ while :; do
 				shift
 			fi
 			;;
-		--custom-entry)
+		--custom-command)
 			if [ -n "$2" ]; then
 				custom_command="$2"
 				shift
@@ -830,7 +830,7 @@ if eval ${cmd} > /dev/null; then
 	if [ "${rootful}" -eq 0 ]; then
 		if [ "${container_generate_entry}" -ne 0 ]; then
 			if [ -n "${custom_command}" ]; then
-				"${distrobox_genentry_path}" --custom-entry "${custom_command}" "${container_name}"
+				"${distrobox_genentry_path}" --custom-command "${custom_command}" "${container_name}"
 			else
 				"${distrobox_genentry_path}" "${container_name}"
 			fi
