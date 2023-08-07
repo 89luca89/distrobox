@@ -42,6 +42,7 @@ container_name_default="my-distrobox"
 delete=0
 icon="auto"
 icon_default="${HOME}/.local/share/icons/terminal-distrobox-icon.svg"
+custom_command=""
 verbose=0
 version="1.5.0.2"
 
@@ -86,6 +87,7 @@ Options:
 	--delete/-d:		delete the entry
 	--icon/-i:		specify a custom icon [/path/to/icon] (default auto)
 	--root/-r:		perform on rootful distroboxes
+	--custom-entry/-c:	specify a custom entrypoint (ex. tmux)
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 EOF
@@ -129,6 +131,13 @@ while :; do
 		--) # End of all options.
 			shift
 			break
+			;;
+		-c | --custom-entry)
+			if [ -n "$2" ]; then
+				custom_command="$2"
+				shift
+				shift
+			fi
 			;;
 		-*) # Invalid options.
 			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
@@ -289,6 +298,10 @@ if [ "${icon}" = "auto" ]; then
 		rm -f /tmp/"${container_name}".os-release
 	fi
 
+	if [ -n "$custom_command" ]; then
+		custom_command="-- ${custom_command}"
+	fi
+
 	icon_url="$(echo "${DISTRO_ICON_MAP}" | grep "${container_distro}:" | cut -d':' -f2-)"
 	if [ -n "${icon_url}" ] && [ "${download}" != "null" ]; then
 		icon_extension="${icon_url##*.}"
@@ -311,7 +324,7 @@ Name=${entry_name}
 GenericName=Terminal entering ${entry_name}
 Comment=Terminal entering ${entry_name}
 Categories=Distrobox;System;Utility
-Exec=${distrobox_path}/distrobox enter ${extra_flags} ${container_name}
+Exec=${distrobox_path}/distrobox enter ${extra_flags} ${container_name} ${custom_command}
 Icon=${icon}
 Keywords=distrobox;
 NoDisplay=false
