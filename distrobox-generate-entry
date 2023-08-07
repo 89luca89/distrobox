@@ -87,7 +87,7 @@ Options:
 	--delete/-d:		delete the entry
 	--icon/-i:		specify a custom icon [/path/to/icon] (default auto)
 	--root/-r:		perform on rootful distroboxes
-	--custom-entry/-c:	specify a custom entrypoint (ex. tmux)
+	--custom-command/-c:	specify a custom entrypoint (ex. tmux)
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 EOF
@@ -132,7 +132,7 @@ while :; do
 			shift
 			break
 			;;
-		-c | --custom-entry)
+		-c | --custom-command)
 			if [ -n "$2" ]; then
 				custom_command="$2"
 				shift

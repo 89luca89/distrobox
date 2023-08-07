@@ -152,7 +152,7 @@ Usage:
 	distrobox create --image alpine my-alpine-container
 	distrobox create --image registry.fedoraproject.org/fedora-toolbox:38 --name fedora-toolbox-38
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
-	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim" --custom-entry tmux
+	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim" --custom-command tmux
 	distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
 
 	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
@@ -183,7 +183,7 @@ Options:
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
-	--custom-entry:		generate a desktop file with a custom entry
+	--custom-command:		generate a desktop file with a custom command
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version

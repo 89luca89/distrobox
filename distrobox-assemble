@@ -35,6 +35,7 @@ version="1.5.0.2"
 additional_flags=""
 additional_packages=""
 entry=""
+custom_command=""
 home=""
 image=""
 init=""
@@ -244,6 +245,9 @@ run_distrobox() (
 	fi
 	if [ -n "${entry}" ] && [ "${entry}" -eq 0 ]; then
 		result_command="${result_command} --no-entry"
+	fi
+	if [ -n "${custom_command}" ]; then
+		result_command="${result_command} --custom-entry $(sanitie_variable "${custom_command}")"
 	fi
 	if [ -n "${nvidia}" ] && [ "${nvidia}" -eq 1 ]; then
 		result_command="${result_command} --nvidia"
