@@ -167,15 +167,6 @@ if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
 	exit 126
 fi
 
-# Determine if we're in a rootful container, generally if we're able to read
-# host's /etc/shadow, it means we're really root!
-#
-# if /run/.nopasswd is present, let's treat the init as rootless, this is not
-# a good thing, users behold!
-if [ -r /run/host/etc/shadow ] && [ ! -e /run/.nopasswd ]; then
-	rootful=1
-fi
-
 # Ensure the foundamental variables are set and not empty, we will not proceed if
 # they are not all set.
 if [ "${upgrade}" -eq 0 ]; then
@@ -189,6 +180,15 @@ set -o nounset
 # set verbosity
 if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
+fi
+
+# Determine if we're in a rootful container, generally if we're able to read
+# host's /etc/shadow, it means we're really root!
+#
+# if /run/.nopasswd is present, let's treat the init as rootless, this is not
+# a good thing, users behold!
+if cat /run/host/etc/shadow > /dev/null && [ ! -e /run/.nopasswd ]; then
+	rootful=1
 fi
 
 # Print mount flags considered "locked".
@@ -1495,7 +1495,9 @@ fi
 printf  "distrobox: Setting up sudo...\n"
 mkdir  -p /etc/sudoers.d
 # Ensure we're using the user's password for sudo, not root
-sed -i "s|^Defaults targetpw.*||g" /etc/sudoers
+if [ -e /etc/sudoers ]; then
+	sed -i "s|^Defaults targetpw.*||g" /etc/sudoers
+fi
 # Do not check fqdn when doing sudo, it will not work anyways
 if  ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
 	printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
@@ -1550,6 +1552,11 @@ elif grep -q "^wheel" /etc/group; then
 	if ! grep -q '^%wheel ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
 		echo '%wheel ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
 	fi
+elif grep -q "^root" /etc/group; then
+	additional_groups="root"
+	if ! grep -q '^%root ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
+		echo '%root ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
+	fi
 fi
 
 # If we're rootful, search for host's groups, if we're not in anyone, let's not
@@ -1557,6 +1564,7 @@ fi
 # respected
 if [ "${rootful}" -eq 1 ] &&
 	! grep -q "^wheel.*${container_user_name}" /run/host/etc/group &&
+	! grep -q "^root.*${container_user_name}" /run/host/etc/group &&
 	! grep -q "^sudo.*${container_user_name}" /run/host/etc/group; then
 	additional_groups=""
 fi
