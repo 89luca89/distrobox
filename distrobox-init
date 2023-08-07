@@ -1484,9 +1484,9 @@ fi
 if  ! grep -q "^# distrobox_profile_passwd" /etc/profile.d/distrobox_profile.sh; then
 	cat << EOF >> "/etc/profile.d/distrobox_profile.sh"
 # distrobox_profile_passwd
-if [ -e /var/tmp/.\$USER.passwd.initialize ]; then
+if [ -e /tmp/.\$USER.passwd.initialize ]; then
 	trap "echo; exit" INT
-	passwd && rm -f /var/tmp/.\$USER.passwd.initialize
+	passwd && rm -f /tmp/.\$USER.passwd.initialize
 	trap - INT
 fi
 EOF
@@ -1501,6 +1501,15 @@ fi
 # Do not check fqdn when doing sudo, it will not work anyways
 if  ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
 	printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
+fi
+if  ! grep -q '^%wheel ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
+	echo '%wheel ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
+fi
+if  ! grep -q '^%sudo ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
+	echo '%sudo ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
+fi
+if  ! grep -q '^%root ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
+	echo '%root ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
 fi
 
 # If we're running this script as root in a login shell (sudoless), we don't
@@ -1544,19 +1553,10 @@ fi
 additional_groups=""
 if grep -q "^sudo" /etc/group; then
 	additional_groups="sudo"
-	if ! grep -q '^%sudo ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
-		echo '%sudo ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
-	fi
 elif grep -q "^wheel" /etc/group; then
 	additional_groups="wheel"
-	if ! grep -q '^%wheel ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
-		echo '%wheel ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
-	fi
 elif grep -q "^root" /etc/group; then
 	additional_groups="root"
-	if ! grep -q '^%root ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
-		echo '%root ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
-	fi
 fi
 
 # If we're rootful, search for host's groups, if we're not in anyone, let's not
@@ -1564,7 +1564,7 @@ fi
 # respected
 if [ "${rootful}" -eq 1 ] &&
 	! grep -q "^wheel.*${container_user_name}" /run/host/etc/group &&
-	! grep -q "^root.*${container_user_name}" /run/host/etc/group &&
+	! grep -q "^wheel.*${container_user_name}" /run/host/etc/group &&
 	! grep -q "^sudo.*${container_user_name}" /run/host/etc/group; then
 	additional_groups=""
 fi
@@ -1640,11 +1640,13 @@ if [ "${rootful}" -eq 1 ] &&
 	}; then
 
 	# lock out root user
-	usermod -L root
+	if ! usermod -L root; then
+		sed -i 's|^root.*|root:!:1::::::|g' /etc/shadow
+	fi
 
 	# force setup of user's password on first shell
-	touch /var/tmp/."${container_user_name}".passwd.initialize
-	chown "${container_user_name}:${container_user_gid}" /var/tmp/."${container_user_name}".passwd.initialize
+	touch /tmp/."${container_user_name}".passwd.initialize
+	chown "${container_user_name}:${container_user_gid}" /tmp/."${container_user_name}".passwd.initialize
 fi
 
 # Now we're done
