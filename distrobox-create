@@ -58,6 +58,7 @@ container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
 container_name=""
+custom_command=""
 container_name_default="my-distrobox"
 container_pre_init_hook=""
 container_user_custom_home=""
@@ -151,7 +152,7 @@ Usage:
 	distrobox create --image alpine my-alpine-container
 	distrobox create --image registry.fedoraproject.org/fedora-toolbox:38 --name fedora-toolbox-38
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
-	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim"
+	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim" --custom-entry tmux
 	distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
 
 	DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
@@ -182,6 +183,7 @@ Options:
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
+	--custom-entry:		generate a desktop file with a custom entry
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -346,6 +348,13 @@ while :; do
 		--pre-init-hooks)
 			if [ -n "$2" ]; then
 				container_pre_init_hook="${2}"
+				shift
+				shift
+			fi
+			;;
+		--custom-entry)
+			if [ -n "$2" ]; then
+				custom_command="$2"
 				shift
 				shift
 			fi
@@ -820,7 +829,11 @@ if eval ${cmd} > /dev/null; then
 	# We've created the box, let's also create the entry
 	if [ "${rootful}" -eq 0 ]; then
 		if [ "${container_generate_entry}" -ne 0 ]; then
-			"${distrobox_genentry_path}" "${container_name}"
+			if [ -n "${custom_command}" ]; then
+				"${distrobox_genentry_path}" --custom-entry "${custom_command}" "${container_name}"
+			else
+				"${distrobox_genentry_path}" "${container_name}"
+			fi
 		fi
 	fi
 	exit $?
