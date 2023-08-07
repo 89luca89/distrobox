@@ -1575,7 +1575,8 @@ fi
 # In case of AD or LDAP usernames, it is possible we will have a backslach in the name.
 # In that case grep would fail, so we replace the backslash with a point to make the regex work.
 # shellcheck disable=SC1003
-if ! grep "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd; then
+if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd &&
+	! getent passwd "${container_user_uid}"; then
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
