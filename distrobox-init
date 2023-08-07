@@ -1618,6 +1618,13 @@ elif [ ! -e /etc/passwd.done ]; then
 	fi
 fi
 
+# Ensure we have our home correctly set, in case of cloned containers or whatnot
+if [ "$(getent passwd "${container_user_name}" | cut -d: -f6)" != "${container_user_home}" ]; then
+	if ! usermod -d "${container_user_home}" "${container_user_name}"; then
+		sed -i "s|^${container_user_name}.*|${container_user_name}:x:${container_user_uid}:${container_user_gid}::${container_user_home}:${SHELL:-"/bin/bash"}|g" /etc/passwd
+	fi
+fi
+
 # If we're rootless, delete password for root and user
 if  [ ! -e /etc/passwd.done ]; then
 	temporary_password="$(cat /proc/sys/kernel/random/uuid)"
