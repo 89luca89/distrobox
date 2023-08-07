@@ -448,12 +448,6 @@ if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program-} ${container_manager}"
 fi
 
-# ensure flags are used correctly
-if [ "${rootful}" -eq 0 ] && [ "${nopasswd}" -ne 0 ]; then
-	printf >&2 "absolutely-disable-root-password-i-am-really-positively-sure is a rootful only flag, need to be used with --root\n"
-	exit 1
-fi
-
 # if nopasswd, then let the init know via a mountpoint
 if [ "${nopasswd}" -ne 0 ]; then
 	container_manager_additional_flags="${container_manager_additional_flags}

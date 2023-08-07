@@ -1485,6 +1485,7 @@ if  ! grep -q "^# distrobox_profile_passwd" /etc/profile.d/distrobox_profile.sh;
 	cat << EOF >> "/etc/profile.d/distrobox_profile.sh"
 # distrobox_profile_passwd
 if [ -e /tmp/.\$USER.passwd.initialize ]; then
+	echo "⚠️  First time user password setup ⚠️ "
 	trap "echo; exit" INT
 	passwd && rm -f /tmp/.\$USER.passwd.initialize
 	trap - INT
