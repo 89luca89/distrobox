@@ -1618,14 +1618,26 @@ elif [ ! -e /etc/passwd.done ]; then
 	fi
 fi
 
-temporary_password="$(cat /proc/sys/kernel/random/uuid)"
+# If we're rootless, delete password for root and user
 if  [ ! -e /etc/passwd.done ]; then
-	# We generate a random password to initialize the entry for the user and root.
-	printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd root
+	temporary_password="$(cat /proc/sys/kernel/random/uuid)"
+	# We generate a random password to initialize the entry for the user.
 	printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
-	# Delete password for root and user
-	printf "%s:" "root" | chpasswd -e
 	printf "%s:" "${container_user_name}" | chpasswd -e
+
+	if [ "${rootful}" -eq 0 ]; then
+		# We're rootless so we don't care about account password, so we remove it
+		printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd root
+		printf "%s:" "root" | chpasswd -e
+	else
+		# We're rootful, so we don't want passwordless accounts, so we lock them
+		# down by default.
+
+		# lock out root user
+		if ! usermod -L root; then
+			sed -i 's|^root.*|root:!:1::::::|g' /etc/shadow
+		fi
+	fi
 fi
 
 # If we are in a rootful container, let's setup a first-shell password setup
@@ -1638,11 +1650,6 @@ if [ "${rootful}" -eq 1 ] &&
 		[ "$(grep "${container_user_name}" /etc/shadow | cut -d':' -f2)" = '!!' ] ||
 			[ "$(grep "${container_user_name}" /etc/shadow | cut -d':' -f2)" = "" ]
 	}; then
-
-	# lock out root user
-	if ! usermod -L root; then
-		sed -i 's|^root.*|root:!:1::::::|g' /etc/shadow
-	fi
 
 	# force setup of user's password on first shell
 	touch /tmp/."${container_user_name}".passwd.initialize
