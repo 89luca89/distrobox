@@ -688,6 +688,13 @@ generate_command() {
 		fi
 	fi
 
+	# In rootful mode this will allow container's cgroups to work
+	# nicely with init system inside
+	if [ "${rootful}" -eq 1 ]; then
+		result_command="${result_command}
+				--cgroupns host"
+	fi
+
 	# Add additional flags
 	result_command="${result_command}
 		${container_manager_additional_flags}"
