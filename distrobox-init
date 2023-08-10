@@ -332,9 +332,9 @@ printf "distrobox: Installing basic packages...\n"
 # If not present as package in the container, we want to install it.
 shell_pkg="$(basename "${SHELL:-"bash"}")"
 # Ash shell is an exception, it is not a standalone package, but part of busybox.
-# for this reason, use this quirk to adjust the package name.
+# for this reason, use this quirk to adjust the package name to standard bash.
 if [ "${shell_pkg}" = "ash" ]; then
-	shell_pkg="busybox"
+	shell_pkg="bash"
 fi
 
 # Check if dependencies are met for the script to run.
@@ -1097,13 +1097,9 @@ EOF
 	touch /run/.containersetupdone
 fi
 
-# Ash shell is an exception, it is not a standalone package, but part of busybox.
-# for this reason, use this quirk to adjust the package name.
-if  [ "${shell_pkg}" = "busybox" ]; then
-	SHELL="/bin/sh"
-else
-	SHELL="$(command -v "${shell_pkg}")"
-fi
+# Set SHELL to the install path inside the container
+SHELL="$(command -v "${shell_pkg}")"
+
 ###############################################################################
 
 # Attempt to download host-spawn during init, we don't care if it fails, so let's
@@ -1464,32 +1460,42 @@ test -z "\$USER" && USER="\$(id -un 2> /dev/null)"
 test -z "\$UID"  && readonly  UID="\$(id -ur 2> /dev/null)"
 test -z "\$EUID" && readonly EUID="\$(id -u  2> /dev/null)"
 export SHELL="\$(getent passwd "\${USER}" | cut -f 7 -d :)"
-EOF
 
 # This will ensure a default prompt for a container, this will be remineshent of
 # toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
 # this will ensure greater compatibility between the two implementations
-if ! grep -q "^# distrobox_profile_ps1" /etc/profile; then
-	cat << EOF >> "/etc/profile"
-# distrobox_profile_ps1
 if [ -f /run/.toolboxenv ]; then
     [ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\h \W]\$ "
     [ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@%m]%~%# "
 fi
-EOF
-fi
 
 # This will ensure we have a first-shell password setup for an user if needed.
 # We're going to use this later in case of rootful containers
-if  ! grep -q "^# distrobox_profile_passwd" /etc/profile.d/distrobox_profile.sh; then
-	cat << EOF >> "/etc/profile.d/distrobox_profile.sh"
-# distrobox_profile_passwd
 if [ -e /tmp/.\$USER.passwd.initialize ]; then
 	echo "⚠️  First time user password setup ⚠️ "
 	trap "echo; exit" INT
 	passwd && rm -f /tmp/.\$USER.passwd.initialize
 	trap - INT
 fi
+EOF
+
+# It's also importanto to keep this working on fish shells
+if [ -e "/etc/fish/config.fish" ]; then
+	cat << EOF >> "/etc/fish/conf.d/config.fish"
+test -z "\$USER" && set -Ux USER "\$(id -un 2> /dev/null)"
+test -z "\$UID"  && set -Ux UID "\$(id -ur 2> /dev/null)"
+test -z "\$EUID" && set -Ux EUID "\$(id -u  2> /dev/null)"
+test -z "\$MARONNE" && set -Ux MARONNE "\$(id -u  2> /dev/null)"
+set -Ux SHELL "\$(getent passwd "\$USER" | cut -f 7 -d :)"
+
+# This will ensure we have a first-shell password setup for an user if needed.
+# We're going to use this later in case of rootful containers
+if test -e /tmp/.\$USER.passwd.initialize
+	echo "⚠️  First time user password setup ⚠️ "
+	trap "echo; exit" INT
+	passwd && rm -f /tmp/.\$USER.passwd.initialize
+	trap - INT
+end
 EOF
 fi
 
