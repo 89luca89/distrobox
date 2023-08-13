@@ -1825,6 +1825,7 @@ INIT_BINS="
 	/usr/lib/systemd/systemd
 "
 if [ -e /lib/systemd/systemd ] || [ -e /usr/lib/systemd/systemd ]; then
+	systemctl set-default multi-user.target
 	# start systemd user@.service session if we're using systemd
 	sh -c "while true; do systemctl start user@${container_user_name}.service && exit 0; done" &
 fi

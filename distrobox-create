@@ -684,7 +684,8 @@ generate_command() {
 
 	# In rootful mode this will allow container's cgroups to work
 	# nicely with init system inside
-	if [ "${rootful}" -eq 1 ]; then
+	if [ "${rootful}" -eq 1 ] ||
+		! echo "${container_manager}" | grep -q "podman"; then
 		result_command="${result_command}
 				--cgroupns host"
 	fi
