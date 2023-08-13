@@ -1823,7 +1823,7 @@ INIT_BINS="
 "
 if [ -e /lib/systemd/systemd ] || [ -e /usr/lib/systemd/systemd ]; then
 	# start systemd user@.service session if we're using systemd
-	sh -c "while true; do systemctl start user@luca-linux.service && exit 0; done" &
+	sh -c "while true; do systemctl start user@${container_user_name}.service && exit 0; done" &
 fi
 
 for init_bin in ${INIT_BINS}; do
