@@ -187,7 +187,7 @@ fi
 #
 # if /run/.nopasswd is present, let's treat the init as rootless, this is not
 # a good thing, users behold!
-if cat /run/host/etc/shadow > /dev/null && [ ! -e /run/.nopasswd ]; then
+if [ -w /run/host/etc/shadow ] && [ ! -e /run/.nopasswd ]; then
 	rootful=1
 fi
 
