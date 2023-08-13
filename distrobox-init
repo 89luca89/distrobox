@@ -1111,7 +1111,7 @@ SHELL="$(command -v "${shell_pkg}")"
 # links, files and apps from inside the container into the host.
 if ! command -v xdg-open; then
 	mkdir -p /usr/local/bin/
-	ln -s /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
+	ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
 fi
 
 ###############################################################################
