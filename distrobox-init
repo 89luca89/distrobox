@@ -1832,18 +1832,12 @@ fi
 printf "distrobox: Firing up init system...\n"
 printf "container_setup_done\n"
 
-INIT_BINS="
-	/sbin/init
-	/usr/sbin/init
-	/lib/systemd/systemd
-	/usr/lib/systemd/systemd
-"
-if [ -e /lib/systemd/systemd ] || [ -e /usr/lib/systemd/systemd ]; then
-	systemctl set-default multi-user.target
-	# start systemd user@.service session if we're using systemd
-	sh -c "while true; do systemctl start user@${container_user_name}.service && exit 0; done" &
-fi
+if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
+	# Start user systemd unit, this will attempt until systemd is ready
+	sh -c "while true; do systemctl start user@${container_user_name}.service 2>/dev/null && exit 0; done" &
 
-for init_bin in ${INIT_BINS}; do
-	[ -e "${init_bin}" ] && exec "${init_bin}"
-done
+	[ -e /usr/lib/systemd/systemd ] && exec /usr/lib/systemd/systemd --system --log-target=console --unit=multi-user.target
+	[ -e /lib/systemd/systemd ] && exec /lib/systemd/systemd --system --log-target=console --unit=multi-user.target
+else
+	exec /sbin/init
+fi
