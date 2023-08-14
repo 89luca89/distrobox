@@ -557,6 +557,15 @@ generate_command() {
 		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
 
+	# This fix is needed so that the container can have a separate devpts instance
+	# inside
+	# This will mount an empty /dev/pts, and the init will take care of mounting
+	# a new devpts with the proper flags set
+	# Mounting an empty volume there, is needed in order to ensure that no package
+	# manager tries to fiddle with /dev/pts/X that would not be writable by them
+	result_command="${result_command}
+		--volume /dev/pts"
+
 	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
 	# will be mounted inside the rootless container.
 	#

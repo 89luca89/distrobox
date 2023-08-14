@@ -138,7 +138,7 @@ elif  command -v wget > /dev/null 2>&1; then
 	download_command="wget -qO"
 fi
 
-# This makes host-spawn work on initful contianers, where the dbus session is
+# This makes host-spawn work on initful containers, where the dbus session is
 # separate from the host, we point the dbus session straight to the host's socket
 # in order to talk with the org.freedesktop.Flatpak.Development.HostCommand on the host
 XDG_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR}"
