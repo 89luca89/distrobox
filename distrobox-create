@@ -547,6 +547,7 @@ generate_command() {
 		--label \"manager=distrobox\"
 		--env \"SHELL=$(basename "${SHELL:-"/bin/bash"}")\"
 		--env \"HOME=${container_user_home}\"
+		--mount type=tmpfs,destination=/run
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
 		--volume /sys:/sys:rslave
@@ -669,12 +670,13 @@ generate_command() {
 	if echo "${container_manager}" | grep -q "podman"; then
 		result_command="${result_command}
 			--ulimit host
-			--annotation run.oci.keep_original_groups=1
-			--mount type=devpts,destination=/dev/pts"
+			--annotation run.oci.keep_original_groups=1"
+
 		if [ "${init}" -eq 1 ]; then
 			result_command="${result_command}
 				--systemd=always"
 		fi
+
 		# Use keep-id only if going rootless.
 		if [ "${rootful}" -eq 0 ]; then
 			result_command="${result_command}
