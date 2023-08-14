@@ -1803,8 +1803,23 @@ find /usr/share/libalpm/scripts/*distrobox*.sh -delete || :
 # Remove /dev/console when using init systems, this will confuse host system if
 # we use rootful containers
 if [ -e /dev/console ]; then
-	touch /var/container-console
-	mount --rbind /var/container-console /dev/console
+	# Instantiate a new pty to mount over /dev/console
+	# this way we will have init output right of the logs
+	mkfifo /var/console
+	script -c "cat /var/console" /dev/null &
+	pty_pid=$!
+
+	# Ensure the pty is created
+	sleep 0.5
+
+	# Mount the created pty over /dev/console in order to have systemd logs
+	# right into container logs
+	if ! mount --bind "$(readlink /proc/"${pty_pid}"/fd/4)" /dev/console; then
+		# Fallback to older behaviour in case it fails
+		rm -f /var/console
+		touch /var/console
+		mount --bind /var/console /dev/console
+	fi
 fi
 
 # Restore the symlink if it's an empty file
