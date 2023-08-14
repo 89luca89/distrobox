@@ -1117,6 +1117,11 @@ if ! command -v xdg-open; then
 fi
 
 ###############################################################################
+
+printf "distrobox: Setting up read-only mounts...\n"
+mount -t devpts devpts /dev/pts/
+
+###############################################################################
 printf "distrobox: Setting up read-only mounts...\n"
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="
