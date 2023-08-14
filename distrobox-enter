@@ -419,10 +419,11 @@ fi
 
 # Now inspect the container we're working with.
 container_status="unknown"
-eval "$(${container_manager} inspect --type container "${container_name}" --format \
+eval "$(${container_manager} inspect --type container --format \
 	'container_status={{.State.Status}};
 	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
-	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
+	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
+	"${container_name}")"
 
 # Check if the container is even there
 if [ "${container_status}" = "unknown" ]; then

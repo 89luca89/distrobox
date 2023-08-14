@@ -486,7 +486,7 @@ clone_container() {
 	# Now we can extract the container ID and commit it to use as source image
 	# for the new container.
 	container_source_id="$(${container_manager} inspect --type container \
-		"${container_clone}" --format '{{.Id}}')"
+		"${container_clone}" --format '{{.ID}}')"
 	container_commit_tag="$(echo "${container_clone}:$(date +%F)" | tr '[:upper:]' '[:lower:]')"
 
 	# Commit current container state to a new image tag
@@ -687,7 +687,7 @@ generate_command() {
 	# In rootful mode this will allow container's cgroups to work
 	# nicely with init system inside
 	if [ "${rootful}" -eq 1 ] ||
-		! echo "${container_manager}" | grep -q "podman"; then
+		echo "${container_manager}" | grep -q "docker"; then
 		result_command="${result_command}
 				--cgroupns host"
 	fi

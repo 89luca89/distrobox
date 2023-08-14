@@ -1118,8 +1118,9 @@ fi
 
 ###############################################################################
 
-printf "distrobox: Setting up read-only mounts...\n"
-mount -t devpts devpts /dev/pts/
+printf "distrobox: Setting up devpts mounts...\n"
+mount -t devpts devpts -o noexec,nosuid,newinstance,ptmxmode=0666,mode=0620 /dev/pts/
+mount --bind /dev/pts/ptmx /dev/ptmx
 
 ###############################################################################
 printf "distrobox: Setting up read-only mounts...\n"
