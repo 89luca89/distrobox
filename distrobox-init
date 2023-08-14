@@ -1367,7 +1367,7 @@ printf "distrobox: Setting up package manager exceptions...\n"
 ###############################################################################
 # In case of an RPM distro, we can specify that our bind_mount directories
 # are in fact net shares. This prevents conflicts during package installations.
-if [ -d "/usr/lib/rpm/macros.d/" ]; then
+if [ -d "/usr/lib/rpm/macros.d/" ] && [ "${init}" -eq 0 ]; then
 	printf "distrobox: Setting up rpm exceptions...\n"
 	# Loop through all the environment vars
 	# and export them to the container.
@@ -1391,7 +1391,7 @@ fi
 ###############################################################################
 # In case of an DEB distro, we can specify that our bind_mount directories
 # have to be ignored. This prevents conflicts during package installations.
-if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
+if [ -d "/etc/dpkg/dpkg.cfg.d/" ] && [ "${init}" -eq 0 ]; then
 	# Loop through all the environment vars
 	# and export them to the container.
 	printf "distrobox: Setting up dpkg exceptions...\n"
@@ -1420,7 +1420,7 @@ fi
 # Workarounds for pacman. We need to exclude the paths by using a pre-hook to umount them and a
 # post-hook to remount them. Additionally we neutralize the systemd-post-hooks as they do not
 # work on a rootless container system.
-if [ -d "/usr/share/libalpm/scripts" ]; then
+if [ -d "/usr/share/libalpm/scripts" ] && [ "${init}" -eq 0 ]; then
 	printf "distrobox: Setting up pacman exceptions...\n"
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
 	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
@@ -1760,9 +1760,15 @@ printf "distrobox: Setting up init system...\n"
 for host_mount in ${HOST_MOUNTS_RO_INIT}; do
 	if findmnt "${host_mount}" > /dev/null; then umount "${host_mount}"; fi
 done
+
+# Remove symlinks
+rm -f /run/systemd/coredump
+rm -f /run/systemd/io.system.ManagedOOM
+rm -f /run/systemd/notify
+rm -f /run/systemd/private
+
 if command -v systemctl 2> /dev/null; then
 	# Cleanup systemd to not interfere with the host
-	# /etc/systemd/system/*.wants/
 	UNIT_TARGETS="
 		/usr/lib/systemd/system/*.mount
 		/usr/lib/systemd/system/NetworkManager-wait-online.service
@@ -1785,21 +1791,18 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/systemd-tmpfiles*
 		/usr/lib/systemd/system/systemd-update-utmp*
 	"
-	# /usr/lib/systemd/system/multi-user.target.wants/*
 	# shellcheck disable=SC2086,SC2044
 	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
 		systemctl mask "$(basename "${unit}")" || :
 	done
 fi
 
-# We don't want these workarounds anymore
-rm -f /etc/apt/apt.conf.d/00_distrobox
-rm -f /run/systemd/coredump
-rm -f /run/systemd/io.system.ManagedOOM
-rm -f /run/systemd/notify
-rm -f /run/systemd/private
-find /usr/share/libalpm/hooks/*distrobox*.hook -delete || :
-find /usr/share/libalpm/scripts/*distrobox*.sh -delete || :
+# Restore the symlink if it's an empty file
+if [ -f /etc/localtime ]; then
+	rm -f /etc/localtime
+	ln -sf /usr/share/zoneinfo/UCT /etc/localtime
+fi
+
 # Remove /dev/console when using init systems, this will confuse host system if
 # we use rootful containers
 if [ -e /dev/console ]; then
@@ -1820,12 +1823,6 @@ if [ -e /dev/console ]; then
 		touch /var/console
 		mount --bind /var/console /dev/console
 	fi
-fi
-
-# Restore the symlink if it's an empty file
-if [ -f /etc/localtime ]; then
-	rm -f /etc/localtime
-	ln -sf /usr/share/zoneinfo/UCT /etc/localtime
 fi
 
 # Now we can launch init
