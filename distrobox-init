@@ -1463,7 +1463,7 @@ fi
 # skeleton files, if present.
 # Ensure we copy only if the dotfile is not already present.
 mkdir -p /etc/profile.d
-cat << EOF > "/etc/profile.d/distrobox_profile.sh"
+cat << EOF > /etc/profile.d/distrobox_profile.sh
 test -z "\$USER" && USER="\$(id -un 2> /dev/null)"
 test -z "\$UID"  && readonly  UID="\$(id -ur 2> /dev/null)"
 test -z "\$EUID" && readonly EUID="\$(id -u  2> /dev/null)"
@@ -1489,7 +1489,7 @@ EOF
 
 # It's also importanto to keep this working on fish shells
 if [ -e "/etc/fish/config.fish" ]; then
-	cat << EOF >> "/etc/fish/conf.d/config.fish"
+	cat << EOF >> /etc/fish/conf.d/config.fish
 test -z "\$USER" && set -Ux USER "\$(id -un 2> /dev/null)"
 test -z "\$UID"  && set -Ux UID "\$(id -ur 2> /dev/null)"
 test -z "\$EUID" && set -Ux EUID "\$(id -u  2> /dev/null)"
@@ -1513,19 +1513,15 @@ mkdir  -p /etc/sudoers.d
 if [ -e /etc/sudoers ]; then
 	sed -i "s|^Defaults targetpw.*||g" /etc/sudoers
 fi
+
 # Do not check fqdn when doing sudo, it will not work anyways
-if  ! grep -q 'Defaults !fqdn' /etc/sudoers.d/sudoers; then
-	printf "Defaults !fqdn\n" >> /etc/sudoers.d/sudoers
-fi
-if  ! grep -q '^%wheel ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
-	echo '%wheel ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
-fi
-if  ! grep -q '^%sudo ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
-	echo '%sudo ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
-fi
-if  ! grep -q '^%root ALL=(ALL:ALL) ALL' /etc/sudoers.d/sudoers; then
-	echo '%root ALL=(ALL:ALL) ALL' >> /etc/sudoers.d/sudoers
-fi
+# Also allow canonical groups to use sudo
+cat << EOF > /etc/sudoers.d/sudoers
+Defaults !fqdn
+%wheel ALL=(ALL:ALL) ALL
+%sudo ALL=(ALL:ALL) ALL
+%root ALL=(ALL:ALL) ALL
+EOF
 
 # If we're running this script as root in a login shell (sudoless), we don't
 # have to bother setting up sudo.
@@ -1534,9 +1530,7 @@ fi
 # so let's skip passwordless sudo too
 if [ "${container_user_uid}" -ne 0 ] && [ "${rootful}" -eq 0 ] && [ ! -e /etc/passwd.done ]; then
 	# Ensure passwordless sudo is set up for user
-	if ! grep -q "\"${container_user_name}\" ALL = (root) NOPASSWD:ALL" /etc/sudoers.d/sudoers; then
-		printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
-	fi
+	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
 fi
 
 printf "distrobox: Setting up groups...\n"
@@ -1556,7 +1550,7 @@ if [ -d "/run/host/var/kerberos" ] &&
 	[ -d "/etc/krb5.conf.d" ] &&
 	[ ! -e "/etc/krb5.conf.d/kcm_default_ccache" ]; then
 
-	cat << EOF > "/etc/krb5.conf.d/kcm_default_ccache"
+	cat << EOF > /etc/krb5.conf.d/kcm_default_ccache
 # # To disable the KCM credential cache, comment out the following lines.
 [libdefaults]
     default_ccache_name = KCM:
