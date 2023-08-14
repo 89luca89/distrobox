@@ -1218,7 +1218,7 @@ done
 
 # If --nvidia, we try to integrate host's nvidia drivers in to the guest
 if [ "${nvidia}" -eq 1 ]; then
-	printf "distrobox: Setting up host's nvidia drivers integration...\n"
+	printf "distrobox: Setting up host's nvidia integration...\n"
 
 	# First we find all non-lib files we need in /etc/
 	#	- confs
@@ -1808,17 +1808,18 @@ fi
 if [ -e /dev/console ]; then
 	# Instantiate a new pty to mount over /dev/console
 	# this way we will have init output right of the logs
+	rm -f /var/console
 	mkfifo /var/console
 	script -c "cat /var/console" /dev/null &
-	pty_pid=$!
 
 	# Ensure the pty is created
 	sleep 0.5
 
 	# Mount the created pty over /dev/console in order to have systemd logs
 	# right into container logs
-	if ! mount --bind "$(readlink /proc/"${pty_pid}"/fd/4)" /dev/console; then
-		# Fallback to older behaviour in case it fails
+	if ! mount --bind /dev/pts/0 /dev/console; then
+		# Fallback to older behaviour or fake plaintext file in case it fails
+		# this ensures rootful + initful boxes do not interfere with host's /dev/console
 		rm -f /var/console
 		touch /var/console
 		mount --bind /var/console /dev/console
@@ -1831,7 +1832,7 @@ printf "container_setup_done\n"
 
 if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	# Start user systemd unit, this will attempt until systemd is ready
-	sh -c "while true; do systemctl start user@${container_user_name}.service 2>/dev/null && exit 0; done" &
+	sh -c "while true; do sleep 1; systemctl start user@${container_user_name}.service 2>/dev/null && exit 0; done" &
 
 	[ -e /usr/lib/systemd/systemd ] && exec /usr/lib/systemd/systemd --system --log-target=console --unit=multi-user.target
 	[ -e /lib/systemd/systemd ] && exec /lib/systemd/systemd --system --log-target=console --unit=multi-user.target
