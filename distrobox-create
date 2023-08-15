@@ -564,7 +564,8 @@ generate_command() {
 	# Mounting an empty volume there, is needed in order to ensure that no package
 	# manager tries to fiddle with /dev/pts/X that would not be writable by them
 	result_command="${result_command}
-		--volume /dev/pts"
+		--volume /dev/pts
+		--volume /dev/null:/dev/ptmx"
 
 	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
 	# will be mounted inside the rootless container.
