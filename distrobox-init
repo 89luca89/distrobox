@@ -1369,7 +1369,9 @@ fi
 ###############################################################################
 
 ###############################################################################
-printf "distrobox: Setting up package manager exceptions...\n"
+if [ "${init}" -eq 0 ]; then
+	printf "distrobox: Setting up package manager exceptions...\n"
+fi
 
 # In case of an RPM distro, we can specify that our bind_mount directories
 # are in fact net shares. This prevents conflicts during package installations.
@@ -1705,7 +1707,7 @@ touch  /etc/passwd.done
 ###############################################################################
 
 ###############################################################################
-printf "distrobox: setting up skel...\n"
+printf "distrobox: Setting up skel...\n"
 
 if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
@@ -1730,10 +1732,12 @@ fi
 ###############################################################################
 
 ###############################################################################
-printf "distrobox: Executing init hooks...\n"
-# execute eventual init hooks if specified
-# shellcheck disable=SC2086
-eval ${init_hook}
+if [ -n "${init_hook}" ]; then
+	printf "distrobox: Executing init hooks...\n"
+	# execute eventual init hooks if specified
+	# shellcheck disable=SC2086
+	eval ${init_hook}
+fi
 ###############################################################################
 
 ###############################################################################
