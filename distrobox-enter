@@ -42,6 +42,14 @@ if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
 	exit 1
 fi
 
+# There is a compatibility issue with Podman and Virtualbox which requires replacing the 'runc' with the 'crun' package.
+# This will also trigger regardless whether Docker is installed even though Docker doesn't have this issue because the create command will automatically use Podman over Docker.
+if test -d /dev/vboxusb/ && which podman &> /dev/null && ! which crun &> /dev/null; then
+    printf >&2 "There is a compatibility issue with Podman and VirtualBox."
+    printf >&2 "Please install the 'crun' package and then recreate all problematic distro containers."
+    exit 1
+fi
+
 # Defaults
 container_command=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:38"
