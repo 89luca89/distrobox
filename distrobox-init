@@ -26,6 +26,16 @@
 
 trap '[ "$?" -ne 0 ] && printf "Error: An error occurred\n"' EXIT
 
+HOST_MOUNTS_RO_INIT="
+	/etc/localtime
+	/run/systemd/journal
+	/run/systemd/resolve
+	/run/systemd/seats
+	/run/systemd/sessions
+	/run/systemd/users
+	/var/lib/systemd/coredump
+	/var/log/journal"
+
 # Defaults
 container_additional_packages=""
 init=0
@@ -345,7 +355,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 	! command -v pinentry || ! command -v wget || ! command -v curl ||
 	! command -v less || ! command -v bc || ! command -v time || ! command -v lsof ||
 	! command -v "${shell_pkg}" ||
-	{ [ -n "${container_additional_packages}" ] && [ ! -e /run/.containersetupdone ]; }; then
+	{ [ -n "${container_additional_packages}" ] && [ ! -e /.containersetupdone ]; }; then
 
 	# Detect the available package manager
 	# install minimal dependencies needed to bootstrap the container:
@@ -1097,13 +1107,11 @@ EOF
 		exit 127
 	fi
 
-	touch /run/.containersetupdone
+	touch /.containersetupdone
 fi
 
 # Set SHELL to the install path inside the container
 SHELL="$(command -v "${shell_pkg}")"
-
-###############################################################################
 
 # Attempt to download host-spawn during init, we don't care if it fails, so let's
 # continue in that case
@@ -1115,19 +1123,26 @@ if ! command -v xdg-open; then
 	mkdir -p /usr/local/bin/
 	ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
 fi
-
 ###############################################################################
 
+###############################################################################
 printf "distrobox: Setting up devpts mounts...\n"
+
+# Instantiate a new /dev/pts mount, this will ensure pseudoterminals are container-scoped
+# and make easier in case of initful containers to have a separate /dev/console
+#
+# Podman supports a mount option to do this at creation time, but we're doing it
+# here to support also docker which does not support that flag
 mount -t devpts devpts -o noexec,nosuid,newinstance,ptmxmode=0666,mode=0620 /dev/pts/
 mount --bind /dev/pts/ptmx /dev/ptmx
+###############################################################################
 
 ###############################################################################
 printf "distrobox: Setting up read-only mounts...\n"
+
 # We'll also bind mount in READ-ONLY useful directories from the host
 HOST_MOUNTS_RO="
 	/etc/localtime
-	/var/lib/flatpak
 	/var/lib/systemd/coredump
 	/var/log/journal"
 for host_mount_ro in ${HOST_MOUNTS_RO}; do
@@ -1140,6 +1155,16 @@ done
 
 ###############################################################################
 printf "distrobox: Setting up read-write mounts...\n"
+
+# On some ostree systems, home is in /var/home, but most of the software expects
+# it to be in /home. In the hosts systems this is fixed by using a symlink.
+# Do something similar here with a bind mount.
+if [ -e "/var/home/${container_user_name}" ]; then
+	if ! mount_bind "/run/host/var/home/${container_user_name}" "/home/${container_user_name}"; then
+		printf "Warning: Cannot bind mount %s to /run/host%s\n" "/var/home" "/home"
+	fi
+fi
+
 # We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
 # the host to the container
 HOST_MOUNTS="
@@ -1156,7 +1181,6 @@ HOST_MOUNTS="
 	/run/systemd/sessions
 	/run/systemd/users
 	/run/udev
-	/srv
 	/var/lib/libvirt
 	/var/mnt"
 for host_mount in ${HOST_MOUNTS}; do
@@ -1164,25 +1188,6 @@ for host_mount in ${HOST_MOUNTS}; do
 		printf "Warning: Cannot bind mount %s to /run/host%s\n" "${host_mount}" "${host_mount}"
 	fi
 done
-
-HOST_MOUNTS_RO_INIT="
-	/etc/localtime
-	/run/systemd/journal
-	/run/systemd/resolve
-	/run/systemd/seats
-	/run/systemd/sessions
-	/run/systemd/users
-	/var/lib/systemd/coredump
-	/var/log/journal"
-
-# On some ostree systems, home is in /var/home, but most of the software expects
-# it to be in /home. In the hosts systems this is fixed by using a symlink.
-# Do something similar here with a bind mount.
-if [ -e "/var/home/${container_user_name}" ]; then
-	if ! mount_bind "/run/host/var/home/${container_user_name}" "/home/${container_user_name}"; then
-		printf "Warning: Cannot bind mount %s to /run/host%s\n" "/var/home" "/home"
-	fi
-fi
 ###############################################################################
 
 ###############################################################################
@@ -1363,9 +1368,9 @@ if ! mount_bind "/run/host/usr/share/fonts" "/usr/local/share/fonts"; then
 fi
 ###############################################################################
 
+###############################################################################
 printf "distrobox: Setting up package manager exceptions...\n"
 
-###############################################################################
 # In case of an RPM distro, we can specify that our bind_mount directories
 # are in fact net shares. This prevents conflicts during package installations.
 if [ -d "/usr/lib/rpm/macros.d/" ] && [ "${init}" -eq 0 ]; then
@@ -1379,17 +1384,40 @@ if [ -d "/usr/lib/rpm/macros.d/" ] && [ "${init}" -eq 0 ]; then
 		'/etc/hosts' '/etc/resolv.conf'; do
 
 		net_mounts="${net_mount}:${net_mounts}"
-
 	done
 	net_mounts=${net_mounts%?}
 	cat << EOF > /usr/lib/rpm/macros.d/macros.distrobox
 %_netsharedpath ${net_mounts}
 EOF
-
 fi
-###############################################################################
 
-###############################################################################
+if { [ -d "/etc/dpkg/dpkg.cfg.d/" ] || [ -d "/usr/share/libalpm/scripts" ]; } && [ "${init}" -eq 0 ]; then
+	cat << EOF > /etc/distrobox-pre-hook.sh
+#!/bin/sh
+mounts="$HOST_MOUNTS_RO_INIT"
+for mount in \$mounts; do
+	if findmnt \$mount >/dev/null; then
+		umount -l \$mount
+	fi
+done
+EOF
+	cat << EOF > /etc/distrobox-post-hook.sh
+#!/bin/sh
+mounts="$HOST_MOUNTS_RO_INIT"
+for mount in \$mounts; do
+	if [ -e /run/host/\$mount ] || [ -e /run/host/\$(readlink -fm /run/host/\$mount) ]; then
+		if [ ! -d /run/host/\$mount ]; then
+			rm -f \$mount && touch \$mount
+		fi
+		if ! mount --rbind \$(readlink -fm /run/host/\$mount) \$mount; then
+			mount --rbind /run/host/\$(readlink -fm /run/host/\$mount) \$mount
+		fi
+	fi
+done
+EOF
+	chmod +x /etc/distrobox-pre-hook.sh /etc/distrobox-post-hook.sh
+fi
+
 # In case of an DEB distro, we can specify that our bind_mount directories
 # have to be ignored. This prevents conflicts during package installations.
 if [ -d "/etc/dpkg/dpkg.cfg.d/" ] && [ "${init}" -eq 0 ]; then
@@ -1405,47 +1433,33 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ] && [ "${init}" -eq 0 ]; then
 	# with read only filesystems, like systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
 		printf "distrobox: Setting up apt hooks...\n"
-		printf "" > /etc/apt/apt.conf.d/00_distrobox
-		for init_mount in ${HOST_MOUNTS_RO_INIT}; do
-			printf 'DPkg::Pre-Invoke {"if findmnt %s >/dev/null; then umount -l %s; fi";};\n' \
-				"${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
-			# shellcheck disable=SC2016
-			printf 'DPkg::Post-Invoke {"if [ -e /run/host/%s ] || [ -e /run/host/$(readlink -fm /run/host/%s) ]; then if [ ! -d %s ]; then rm -f %s && touch %s; fi; mount --rbind $(readlink -fm /run/host/%s) %s 2>/dev/null || mount --rbind /run/host/$(readlink -fm /run/host/%s) %s; fi";};\n' \
-				"${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" "${init_mount}" >> /etc/apt/apt.conf.d/00_distrobox
-		done
+		printf 'DPkg::Pre-Invoke {/etc/distrobox-pre-hook.sh};\n' > /etc/apt/apt.conf.d/00_distrobox
+		printf 'DPkg::Post-Invoke {/etc/distrobox-post-hook.sh};\n' >> /etc/apt/apt.conf.d/00_distrobox
 	fi
 fi
-###############################################################################
 
-###############################################################################
 # Workarounds for pacman. We need to exclude the paths by using a pre-hook to umount them and a
 # post-hook to remount them. Additionally we neutralize the systemd-post-hooks as they do not
 # work on a rootless container system.
 if [ -d "/usr/share/libalpm/scripts" ] && [ "${init}" -eq 0 ]; then
 	printf "distrobox: Setting up pacman exceptions...\n"
-	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
-	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
-	printf "#!/bin/sh\n" > /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
-	chmod +x /usr/share/libalpm/scripts/*distrobox*.sh
-	for net_mount in ${HOST_MOUNTS_RO}; do
-		printf "if findmnt %s >/dev/null; then umount %s; fi\n" \
-			"${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/00_distrobox_pre_hook.sh
-		printf "if [ -e /run/host/%s ]; then mount --rbind -o ro /run/host/%s %s; fi\n" \
-			"${net_mount}" "${net_mount}" "${net_mount}" >> /usr/share/libalpm/scripts/02_distrobox_post_hook.sh
-	done
+
 	# in case we're not using an init image, neutralize systemd post installation hooks
 	# so that we do not encounter problems along the way.
 	# This will be removed if we're using --init.
-	cat << EOF >> /usr/share/libalpm/scripts/01_distrobox_post_hook.sh
-	echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
+	cat << EOF >> /usr/share/libalpm/scripts/distrobox_post_hook.sh
+#!/bin/sh
+echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
 EOF
+	chmod +x /usr/share/libalpm/scripts/distrobox_post_hook.sh
+
 	# create hooks files for them
 	printf "distrobox: Setting up pacman hooks...\n"
 	find /usr/share/libalpm/hooks/*distrobox* -delete || :
-	for hook in 00_distrobox_pre_hook 01_distrobox_post_hook 02_distrobox_post_hook; do
+	for hook in /etc/distrobox-pre-hook.sh /etc/distrobox-post-hook.sh /usr/share/libalpm/scripts/distrobox_post_hook.sh; do
 		when="PostTransaction"
 		[ -z "${hook##*pre*}" ] && when="PreTransaction"
-		cat << EOF > "/usr/share/libalpm/hooks/${hook}.hook"
+		cat << EOF > "/usr/share/libalpm/hooks/$(basename ${hook}).hook"
 [Trigger]
 Operation = Install
 Operation = Upgrade
@@ -1454,11 +1468,17 @@ Target = *
 [Action]
 Description = Distrobox hook ${hook}...
 When = ${when}
-Exec = /usr/share/libalpm/scripts/${hook}.sh
+Exec = ${hook}
 EOF
 	done
 fi
 ###############################################################################
+
+###############################################################################
+printf  "distrobox: Setting up distrobox profile...\n"
+
+# This ensures compatibility with prompts and tools between toolbx and distrobox
+touch /run/.toolboxenv
 
 # If we do not have profile files in the home, we should copy the
 # skeleton files, if present.
@@ -1507,7 +1527,9 @@ if test -e /tmp/.\$USER.passwd.initialize
 end
 EOF
 fi
+###############################################################################
 
+###############################################################################
 printf  "distrobox: Setting up sudo...\n"
 mkdir  -p /etc/sudoers.d
 # Ensure we're using the user's password for sudo, not root
@@ -1533,7 +1555,9 @@ if [ "${container_user_uid}" -ne 0 ] && [ "${rootful}" -eq 0 ] && [ ! -e /etc/pa
 	# Ensure passwordless sudo is set up for user
 	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
 fi
+###############################################################################
 
+###############################################################################
 printf "distrobox: Setting up groups...\n"
 # If not existing, ensure we have a group for our user.
 if ! grep -q "^${container_user_name}:" /etc/group; then
@@ -1543,7 +1567,9 @@ if ! grep -q "^${container_user_name}:" /etc/group; then
 		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >> /etc/group
 	fi
 fi
+###############################################################################
 
+###############################################################################
 printf "distrobox: Setting up users...\n"
 
 # Setup kerberos integration with the host
@@ -1676,8 +1702,10 @@ fi
 
 # Now we're done
 touch  /etc/passwd.done
-# This ensures compatibility with prompts and tools between toolbx and distrobox
-touch /run/.toolboxenv
+###############################################################################
+
+###############################################################################
+printf "distrobox: setting up skel...\n"
 
 if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 	skel_files="$(find /etc/skel/ -type f || :)"
@@ -1699,16 +1727,20 @@ if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 		fi
 	done
 fi
-
 ###############################################################################
 
+###############################################################################
 printf "distrobox: Executing init hooks...\n"
 # execute eventual init hooks if specified
 # shellcheck disable=SC2086
 eval ${init_hook}
+###############################################################################
 
+###############################################################################
 # If init support is disabled, let's do our routine to keep the container
 # up, running and in sync with host.
+#
+# For non-init containers, the init will stop here
 if [ "${init}" -eq 0 ]; then
 	printf "container_setup_done\n"
 	# Keepalive loop
@@ -1750,11 +1782,12 @@ if [ "${init}" -eq 0 ]; then
 		sleep 15
 	done
 fi
-
 ###############################################################################
 
+###############################################################################
 # If we're here, the init support has been enabled.
 printf "distrobox: Setting up init system...\n"
+
 # some of this directories are needed by
 # the init system. If they're mounts, there might
 # be problems. Let's unmount them.
@@ -1767,6 +1800,35 @@ rm -f /run/systemd/coredump
 rm -f /run/systemd/io.system.ManagedOOM
 rm -f /run/systemd/notify
 rm -f /run/systemd/private
+
+# Restore the symlink if it's an empty file
+if [ -f /etc/localtime ]; then
+	rm -f /etc/localtime
+	ln -sf /usr/share/zoneinfo/UCT /etc/localtime
+fi
+
+# Remove /dev/console when using init systems, this will confuse host system if
+# we use rootful containers
+if [ -e /dev/console ]; then
+	# Instantiate a new pty to mount over /dev/console
+	# this way we will have init output right of the logs
+	rm -f /var/console
+	mkfifo /var/console
+	script -c "cat /var/console" /dev/null &
+
+	# Ensure the pty is created
+	sleep 0.5
+
+	# Mount the created pty over /dev/console in order to have systemd logs
+	# right into container logs
+	if ! mount --bind /dev/pts/0 /dev/console; then
+		# Fallback to older behaviour or fake plaintext file in case it fails
+		# this ensures rootful + initful boxes do not interfere with host's /dev/console
+		rm -f /var/console
+		touch /var/console
+		mount --bind /var/console /dev/console
+	fi
+fi
 
 if command -v systemctl 2> /dev/null; then
 	# Cleanup systemd to not interfere with the host
@@ -1798,35 +1860,6 @@ if command -v systemctl 2> /dev/null; then
 	done
 fi
 
-# Restore the symlink if it's an empty file
-if [ -f /etc/localtime ]; then
-	rm -f /etc/localtime
-	ln -sf /usr/share/zoneinfo/UCT /etc/localtime
-fi
-
-# Remove /dev/console when using init systems, this will confuse host system if
-# we use rootful containers
-if [ -e /dev/console ]; then
-	# Instantiate a new pty to mount over /dev/console
-	# this way we will have init output right of the logs
-	rm -f /var/console
-	mkfifo /var/console
-	script -c "cat /var/console" /dev/null &
-
-	# Ensure the pty is created
-	sleep 0.5
-
-	# Mount the created pty over /dev/console in order to have systemd logs
-	# right into container logs
-	if ! mount --bind /dev/pts/0 /dev/console; then
-		# Fallback to older behaviour or fake plaintext file in case it fails
-		# this ensures rootful + initful boxes do not interfere with host's /dev/console
-		rm -f /var/console
-		touch /var/console
-		mount --bind /var/console /dev/console
-	fi
-fi
-
 # Now we can launch init
 printf "distrobox: Firing up init system...\n"
 printf "container_setup_done\n"
@@ -1838,5 +1871,7 @@ if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	[ -e /usr/lib/systemd/systemd ] && exec /usr/lib/systemd/systemd --system --log-target=console --unit=multi-user.target
 	[ -e /lib/systemd/systemd ] && exec /lib/systemd/systemd --system --log-target=console --unit=multi-user.target
 else
+	# Fallback to standard init path, this is useful in case of non-systemd containers
+	# like an openrc alpine
 	exec /sbin/init
 fi
