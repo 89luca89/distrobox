@@ -273,6 +273,7 @@ if [ "${icon}" = "auto" ]; then
 		rhel:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/redhat-distrobox.png
 		rocky:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/rocky-distrobox.png
 		ubuntu:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/ubuntu-distrobox.png
+		vanilla:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/vanilla-distrobox.png
 		void:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/void-distrobox.png
 	"
 	# Try to detect container's distribution by using /etc/os-release
