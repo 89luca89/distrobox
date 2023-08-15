@@ -547,7 +547,7 @@ generate_command() {
 		--label \"manager=distrobox\"
 		--env \"SHELL=$(basename "${SHELL:-"/bin/bash"}")\"
 		--env \"HOME=${container_user_home}\"
-		--mount type=tmpfs,destination=/run
+		--env \"container=${container_manager}\"
 		--volume /:/run/host:rslave
 		--volume /dev:/dev:rslave
 		--volume /sys:/sys:rslave
@@ -556,6 +556,15 @@ generate_command() {
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
 		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+
+	if [ "${init}" -eq 1 ] && echo "${container_manager}" | grep -q "docker"; then
+		result_command="${result_command}
+			--cgroupns host
+			--stop-signal SIGRTMIN+3
+			--mount type=tmpfs,destination=/run
+			--mount type=tmpfs,destination=/run/lock
+			--mount type=tmpfs,destination=/var/lib/journal"
+	fi
 
 	# This fix is needed so that the container can have a separate devpts instance
 	# inside
