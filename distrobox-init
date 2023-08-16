@@ -1864,13 +1864,43 @@ if command -v systemctl 2> /dev/null; then
 	done
 fi
 
+# Let's do a minimal user-integration for the user when using system
+# as the user@.service will trigger the user-runtime-dir@.service which will
+# undo all the integration we did at the start of the script
+#
+# This will ensure the basic integration for x11/wayland/pipewire/keyring
+if [ -e /usr/lib/systemd/system/user@.service ]; then
+	cat << EOF > /usr/lib/systemd/system/user-integration@.service
+[Unit]
+Description=User runtime integration for UID %i
+After=user@%i.service
+Requires=user-runtime-dir@%i.service
+
+[Service]
+User=%i
+Type=oneshot
+ExecStart=sh -c "ln -sf /run/host/run/user/\$(id -ru)/keyring/ /run/user/\$(id -ru)/ ; \
+	ln -sf /run/host/run/user/\$(id -ru)/wayland-0 /run/user/\$(id -ru)/ ; \
+	ln -sf /run/host/run/user/\$(id -ru)/pipewire-0 /run/user/\$(id -ru)/ ; \
+	ln -sf /run/host/run/user/\$(id -ru)/ICEauthority /run/user/\$(id -ru)/ ; \
+	ln -sf /run/host/run/user/\$(id -ru)/.mutter* /run/user/\$(id -ru)/"
+Slice=user-%i.slice
+EOF
+
+fi
+
 # Now we can launch init
 printf "distrobox: Firing up init system...\n"
 printf "container_setup_done\n"
 
 if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	# Start user systemd unit, this will attempt until systemd is ready
-	sh -c "while true; do sleep 1; systemctl start user@${container_user_name}.service 2>/dev/null && exit 0; done" &
+	sh -c "while true; do \
+		sleep 1; \
+		systemctl start user@${container_user_name}.service 2>/dev/null && \
+		systemctl start user-integration@${container_user_name}.service 2>/dev/null && \
+		exit 0; \
+	done" &
 
 	[ -e /usr/lib/systemd/systemd ] && exec /usr/lib/systemd/systemd --system --log-target=console --unit=multi-user.target
 	[ -e /lib/systemd/systemd ] && exec /lib/systemd/systemd --system --log-target=console --unit=multi-user.target
