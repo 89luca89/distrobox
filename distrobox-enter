@@ -359,7 +359,10 @@ generate_command() {
 	container_paths="${XDG_DATA_DIRS:=}"
 	# add to the XDG_DATA_DIRS only after the host's paths, and only if not already present.
 	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
+		pattern="(:|^)${standard_path}(:|$)"
+		if [ -z "${container_paths}" ]; then
+			container_paths="${standard_path}"
+		elif ! echo "${container_paths}" | grep -Eq "${pattern}"; then
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
@@ -371,7 +374,10 @@ generate_command() {
 	container_paths="${XDG_CONFIG_DIRS:=}"
 	# add to the XDG_CONFIG_DIRS only after the host's paths, and only if not already present.
 	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
+		pattern="(:|^)${standard_path}(:|$)"
+		if [ -z "${container_paths}" ]; then
+			container_paths="${standard_path}"
+		elif ! echo "${container_paths}" | grep -Eq "${pattern}"; then
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
