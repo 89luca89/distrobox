@@ -557,6 +557,19 @@ generate_command() {
 		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
 
+	# In case of initful containers, we implement a series of mountpoint in order
+	# for systemd to work properly inside a container.
+	# The following are a flag-based implementation of what podman's --systemd flag
+	# does under the hood, as explained in their docs here:
+	#   https://docs.podman.io/en/latest/markdown/options/systemd.html
+	#
+	# set the default stop signal to SIGRTMIN+3.
+	# mount tmpfs file systems on the following directories
+	#	/run
+	#	/run/lock
+	#	/tmp
+	#	/var/lib/journal
+	#	/sys/fs/cgroup/systemd <- this one is done by cgroupns=host
 	if [ "${init}" -eq 1 ] && echo "${container_manager}" | grep -q "docker"; then
 		result_command="${result_command}
 			--cgroupns host
@@ -572,6 +585,9 @@ generate_command() {
 	# a new devpts with the proper flags set
 	# Mounting an empty volume there, is needed in order to ensure that no package
 	# manager tries to fiddle with /dev/pts/X that would not be writable by them
+	#
+	# This implementation is done this way in order to be compatible with both
+	# docker and podman
 	result_command="${result_command}
 		--volume /dev/pts
 		--volume /dev/null:/dev/ptmx"
@@ -701,14 +717,6 @@ generate_command() {
 			result_command="${result_command}
 				--userns keep-id"
 		fi
-	fi
-
-	# In rootful mode this will allow container's cgroups to work
-	# nicely with init system inside
-	if [ "${rootful}" -eq 1 ] ||
-		echo "${container_manager}" | grep -q "docker"; then
-		result_command="${result_command}
-				--cgroupns host"
 	fi
 
 	# Add additional flags
