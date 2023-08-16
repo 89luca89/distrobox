@@ -1396,7 +1396,7 @@ fi
 if { [ -d "/etc/dpkg/dpkg.cfg.d/" ] || [ -d "/usr/share/libalpm/scripts" ]; } && [ "${init}" -eq 0 ]; then
 	cat << EOF > /etc/distrobox-pre-hook.sh
 #!/bin/sh
-mounts="$HOST_MOUNTS_RO_INIT"
+mounts="${HOST_MOUNTS_RO_INIT}"
 for mount in \$mounts; do
 	if findmnt \$mount >/dev/null; then
 		umount -l \$mount
@@ -1405,7 +1405,7 @@ done
 EOF
 	cat << EOF > /etc/distrobox-post-hook.sh
 #!/bin/sh
-mounts="$HOST_MOUNTS_RO_INIT"
+mounts="${HOST_MOUNTS_RO_INIT}"
 for mount in \$mounts; do
 	if [ -e /run/host/\$mount ] || [ -e /run/host/\$(readlink -fm /run/host/\$mount) ]; then
 		if [ ! -d /run/host/\$mount ]; then
@@ -1461,7 +1461,7 @@ EOF
 	for hook in /etc/distrobox-pre-hook.sh /etc/distrobox-post-hook.sh /usr/share/libalpm/scripts/distrobox_post_hook.sh; do
 		when="PostTransaction"
 		[ -z "${hook##*pre*}" ] && when="PreTransaction"
-		cat << EOF > "/usr/share/libalpm/hooks/$(basename ${hook}).hook"
+		cat << EOF > "/usr/share/libalpm/hooks/$(basename "${hook}").hook"
 [Trigger]
 Operation = Install
 Operation = Upgrade
