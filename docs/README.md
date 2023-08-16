@@ -174,7 +174,7 @@ Fedora Silverblue for the [uBlue](https://github.com/ublue-os) project
 ## Why
 
 - Provide a mutable environment on an immutable OS, like [Endless OS,
-  Fedora Silverblue, OpenSUSE MicroOS](compatibility.md#host-distros)  or [SteamOS3](posts/install_rootless.md)
+  Fedora Silverblue, OpenSUSE MicroOS, ChromeOS](compatibility.md#host-distros)  or [SteamOS3](posts/install_rootless.md)
 - Provide a locally privileged environment for sudoless setups
   (eg. company-provided laptops, security reasons, etc...)
 - To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat)
