@@ -430,7 +430,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		export debian_chroot="${CONTAINER_ID:-distrobox}"
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
-			apt-get update 
+			apt-get update -y
 			apt-get upgrade -y
 			exit
 		fi
@@ -440,7 +440,7 @@ if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! comman
 		rm -f /etc/dpkg/dpkg.cfg.d/excludes
 
 		export DEBIAN_FRONTEND=noninteractive
-		apt-get update --allow-releaseinfo-change
+		apt-get update -y
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
@@ -1397,7 +1397,6 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ]; then
 	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
 		printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
 	done
-	printf 'Acquire::AllowReleaseInfoChange::Suite "true"' >> /etc/dpkg/dpkg.cfg.d/00_distrobox
 	# Also we put a hook to clear some critical paths that do not play well
 	# with read only filesystems, like systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
