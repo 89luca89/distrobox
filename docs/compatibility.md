@@ -52,7 +52,7 @@ Distrobox has been successfully tested on:
 | Alpine Linux | | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
 | Arch Linux | | `distrobox` and `distrobox-git` are available in AUR (thanks [M0Rf30](https://github.com/M0Rf30)!). <br> To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | CentOS | 8 <br> 8 Stream <br> 9 Stream | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
-| ChromeOS | Debian 11 | This is using the built in Linux on ChromeOS mode which is debian-based. |
+| ChromeOS | Debian 11 | This is using the built in Linux on ChromeOS mode which is debian-based. Install either [docker engine](https://docs.docker.com/engine/install/debian/) or [podman (v4 or newer)](https://podman.io/getting-started/installation) and then follow the [Non shared mounts](#non-shared-mounts) section |
 | Debian | 11 <br> Testing <br> Unstable | `distrobox` is available in default repos in `testing` and `unstable` (thanks [michel-slm!](https://github.com/michel-slm!)!) |
 | deepin | 23 <br> Testing <br> Unstable | `distrobox` is available in default repos in `testing` and `unstable` |
 | EndlessOS | 4.0.0 | |
