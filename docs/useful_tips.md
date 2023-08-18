@@ -67,8 +67,10 @@ exit and log back in the container.
 For version older than 1.4.0, distrobox will pick up the shell from the host and use it inside the container.
 If you want a different one you can use:
 
-`SHELL=/bin/zsh distrobox create -n test`
-`SHELL=/bin/zsh distrobox enter test`
+```sh
+SHELL=/bin/zsh distrobox create -n test
+SHELL=/bin/zsh distrobox enter test
+```
 
 ## Run the container with real root
 
