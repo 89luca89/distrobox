@@ -187,8 +187,8 @@ Distrobox guests tested successfully with the following container images:
 | Scientific Linux | 7 | docker.io/library/sl:7    |
 | Slackware | 14.2 | docker.io/vbatts/slackware:14.2    |
 | Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 23.04 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04 |
-| Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64 |
 | Vanilla OS | VSO | ghcr.io/vanilla-os/vso:main |
+| Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64 |
 
 Images marked with **Toolbox** are tailored images, so they are more indicated
 for desktop use, and first setup will take less time.
