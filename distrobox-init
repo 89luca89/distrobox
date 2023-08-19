@@ -753,6 +753,7 @@ EOF
 			curl
 			diffutils
 			findutils
+			glibc
 			gnupg
 			less
 			lsof
