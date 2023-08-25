@@ -455,7 +455,6 @@ if [ "${container_status}" = "unknown" ]; then
 		y | Y | Yes | yes | YES)
 			# Check if we want to use `distrobox assemble` instead of `distrobox create`
 			if [ "${non_interactive_assemble}" -eq 1 ] && [ "${non_interactive}" -eq 1 ]; then
-				echo "yes please use assemble instead of create"
 				# Use distrobox manifest where the entry is sepcified with
 				# `distrobox assemble create -n $container_name --file $non_interactive_assemble_manifest`
 				create_command="$(dirname "${0}")/distrobox-assemble create -n ${container_name} --file ${non_interactive_assemble_manifest}"
