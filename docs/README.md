@@ -301,6 +301,8 @@ container_pre_init_hook="~/a_custom_default_pre_init_hook.sh"
 container_manager_additional_flags="--env-file /path/to/file --custom-flag"
 container_additional_volumes="/example:/example1 /example2:/example3:ro"
 non_interactive="1"
+non_interactive_assemble="0"
+non_interactive_assemble_manifest="/etc/distrobox/distrobox.ini"
 skip_workdir="0"
 PATH="$PATH:/path/to/custom/podman"
 ```
