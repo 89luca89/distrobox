@@ -49,7 +49,7 @@ This is an example manifest file to create two containers:
 	pull=true
 	root=false
 	replace=false
-	volume=/tmp/test:/run/a /tmp/test:/run/b
+	volume="/tmp/test:/run/a /tmp/test:/run/b"
 
 **Create**
 
