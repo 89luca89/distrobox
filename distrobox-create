@@ -623,9 +623,11 @@ generate_command() {
 	#
 	# This implementation is done this way in order to be compatible with both
 	# docker and podman
-	result_command="${result_command}
-		--volume /dev/pts
-		--volume /dev/null:/dev/ptmx"
+	if [ "${unshare_devsys}" -eq 0 ]; then
+		result_command="${result_command}
+			--volume /dev/pts
+			--volume /dev/null:/dev/ptmx"
+	fi
 
 	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
 	# will be mounted inside the rootless container.

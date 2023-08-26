@@ -1863,12 +1863,18 @@ fi
 if [ -e /etc/inittab ]; then
 	# Cleanup openrc to not interfere with the host
 	sed -i 's/^\(tty\d\:\:\)/#\1/g' /etc/inittab
+fi
+
+if [ -e /etc/rc.conf ]; then
 	sed -i \
 		-e 's/#rc_env_allow=".*"/rc_env_allow="\*"/g' \
 		-e 's/#rc_crashed_stop=.*/rc_crashed_stop=NO/g' \
 		-e 's/#rc_crashed_start=.*/rc_crashed_start=YES/g' \
 		-e 's/#rc_provide=".*"/rc_provide="loopback net"/g' \
 		/etc/rc.conf
+fi
+
+if [ -e /etc/init.d ]; then
 	rm -f /etc/init.d/hwdrivers \
 		/etc/init.d/hwclock \
 		/etc/init.d/hwdrivers \
@@ -1894,6 +1900,7 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/sockets.target.wants/*initctl*
 		/usr/lib/systemd/system/sockets.target.wants/*udev*
 		/usr/lib/systemd/system/sysinit.target.wants/*udev*
+		/usr/lib/systemd/system/systemd-binfmt.service
 		/usr/lib/systemd/system/systemd-machine-id-commit.service
 		/usr/lib/systemd/system/systemd-resolved.service
 		/usr/lib/systemd/system/systemd-rfkill.service
@@ -1933,9 +1940,10 @@ fi
 
 # Now we can launch init
 printf "distrobox: Firing up init system...\n"
-printf "container_setup_done\n"
 
 if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
+	printf "container_setup_done\n"
+
 	# Start user systemd unit, this will attempt until systemd is ready
 	sh -c "while true; do \
 		sleep 1; \
@@ -1946,8 +1954,13 @@ if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 
 	[ -e /usr/lib/systemd/systemd ] && exec /usr/lib/systemd/systemd --system --log-target=console --unit=multi-user.target
 	[ -e /lib/systemd/systemd ] && exec /lib/systemd/systemd --system --log-target=console --unit=multi-user.target
-else
+elif [ -e /sbin/init ]; then
+	printf "container_setup_done\n"
+
 	# Fallback to standard init path, this is useful in case of non-systemd containers
 	# like an openrc alpine
 	exec /sbin/init
+else
+	printf "Error: could not set up init system, no init found! Consider using an image that ships with an init system, or add it with \"--additional-packages\" during creation.!\n"
+	exit 1
 fi
