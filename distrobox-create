@@ -405,6 +405,16 @@ if [ -z "${container_name}" ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/[:.]/-/g')"
 fi
 
+# container_name is later set as hostname
+# let's check if the hostname is less than 64chars or we will have problems later
+# in setting the container's hostname.
+if [ "$(printf "%s" ${container_name}.$(uname -n) | wc -m)" -gt 64 ]; then
+	printf >&2 "ERROR: Invalid name '%s'\n" "${container_name}"
+	printf >&2 "ERROR: This will result in hostname: '%s'\n" "${container_name}.$(uname -n)"
+	printf >&2 "ERROR: Hostname too long.\n"
+	exit 1
+fi
+
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker
 case "${container_manager}" in
