@@ -349,12 +349,37 @@ if [ "${shell_pkg}" = "ash" ]; then
 	shell_pkg="bash"
 fi
 
+# Check dependencies in a list, and install all if one is missing
+missing_packages=0
+dependencies="
+	bc
+	chpasswd
+	curl
+	diff
+	find
+	findmnt
+	less
+	lsof
+	mount
+	passwd
+	pinentry
+	ps
+	script
+	sudo
+	time
+	umount
+	useradd
+	wc
+	wget
+	${shell_pkg}
+"
+for dep in ${dependencies}; do
+	! command -v "${dep}" && missing_packages=1 && break
+done
+
 # Check if dependencies are met for the script to run.
-if [ "${upgrade}" -ne 0 ] || ! command -v find || ! command -v mount || ! command -v passwd ||
-	! command -v sudo || ! command -v useradd || ! command -v diff ||
-	! command -v pinentry || ! command -v wget || ! command -v curl ||
-	! command -v less || ! command -v bc || ! command -v time || ! command -v lsof ||
-	! command -v "${shell_pkg}" ||
+if [ "${upgrade}" -ne 0 ] ||
+	[ "${missing_packages}" -ne 0 ] ||
 	{ [ -n "${container_additional_packages}" ] && [ ! -e /.containersetupdone ]; }; then
 
 	# Detect the available package manager
@@ -1835,6 +1860,23 @@ if [ -e /dev/console ]; then
 	fi
 fi
 
+if [ -e /etc/inittab ]; then
+	# Cleanup openrc to not interfere with the host
+	sed -i 's/^\(tty\d\:\:\)/#\1/g' /etc/inittab
+	sed -i \
+		-e 's/#rc_env_allow=".*"/rc_env_allow="\*"/g' \
+		-e 's/#rc_crashed_stop=.*/rc_crashed_stop=NO/g' \
+		-e 's/#rc_crashed_start=.*/rc_crashed_start=YES/g' \
+		-e 's/#rc_provide=".*"/rc_provide="loopback net"/g' \
+		/etc/rc.conf
+	rm -f /etc/init.d/hwdrivers \
+		/etc/init.d/hwclock \
+		/etc/init.d/hwdrivers \
+		/etc/init.d/modules \
+		/etc/init.d/modules-load \
+		/etc/init.d/modloop
+fi
+
 if command -v systemctl 2> /dev/null; then
 	# Cleanup systemd to not interfere with the host
 	UNIT_TARGETS="
@@ -1887,7 +1929,6 @@ ExecStart=sh -c "ln -sf /run/host/run/user/\$(id -ru)/keyring/ /run/user/\$(id -
 	ln -sf /run/host/run/user/\$(id -ru)/.mutter* /run/user/\$(id -ru)/"
 Slice=user-%i.slice
 EOF
-
 fi
 
 # Now we can launch init

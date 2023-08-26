@@ -187,8 +187,8 @@ Simply use:
 
 ## Export to the host
 
-Distrobox supports exporting to the host either binaries, applications or systemd
-services. [Head over the usage page to have an explanation and examples.](usage/distrobox-export.md)
+Distrobox supports exporting to the host either binaries or applications.
+[Head over the usage page to have an explanation and examples.](usage/distrobox-export.md)
 
 ## Execute commands on the host
 
@@ -248,8 +248,11 @@ You can use such feature using:
 
 If you want to use a non-pre-create image, you'll need to add the additional package:
 
-`distrobox create -i debian:unstable --init --additional-packages "systemd" -n test`
-`distrobox create -i ubuntu:18.04 --init --additional-packages "systemd" -n test`
+`distrobox create -i alpine:latest --init --additional-packages "openrc" -n test`
+`distrobox create -i debian:stable --init --additional-packages "systemd libpam-systemd" -n test`
+`distrobox create -i ubuntu:22.04 --init --additional-packages "systemd libpam-systemd" -n test`
+`distrobox create -i archlinux:latest --init --additional-packages "systemd" -n test`
+`distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages "systemd" -n test`
 `distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-packages "systemd" -n test`
 
 Note however that in this mode, you'll not be able to access host's processes

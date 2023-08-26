@@ -169,6 +169,15 @@ Note that enabling `--init` **will disable host's process integration**.
 From within the container you will not be able to see and manage host's processes.
 This is needed because `/sbin/init` must be pid 1.
 
+If you want to use a non-pre-create image, you'll need to add the additional package:
+
+	distrobox create -i alpine:latest --init --additional-packages "openrc" -n test
+	distrobox create -i debian:stable --init --additional-packages "systemd libpam-systemd" -n test
+	distrobox create -i ubuntu:22.04 --init --additional-packages "systemd libpam-systemd" -n test
+	distrobox create -i archlinux:latest --init --additional-packages "systemd" -n test
+	distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages "systemd" -n test
+	distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-packages "systemd" -n test
+
 The `--home` flag let's you specify a custom HOME for the container.
 Note that this will NOT prevent the mount of the host's home directory,
 but will ensure that configs and dotfiles will not litter it.
