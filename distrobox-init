@@ -1554,7 +1554,7 @@ EOF
 #
 # Also if we're in a rootful container, we will setup user's password,
 # so let's skip passwordless sudo too
-if [ "${container_user_uid}" -ne 0 ] && [ "${rootful}" -eq 0 ] && [ ! -e /etc/passwd.done ]; then
+if [ "${container_user_uid}" -ne 0 ] && [ "${rootful}" -eq 0 ]; then
 	# Ensure passwordless sudo is set up for user
 	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
 fi
