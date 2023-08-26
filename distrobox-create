@@ -72,6 +72,8 @@ nvidia=0
 nopasswd=0
 unshare_ipc=0
 unshare_netns=0
+unshare_process=0
+unshare_devsys=0
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
 # "realpath" would break situations like Nix or similar symlink based package
@@ -175,10 +177,13 @@ Options:
 	--init-hooks:		additional commands to execute during container initialization
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
-				this will make host's processes not visible from within the container.
+				this will make host's processes not visible from within the container. (assumes --unshare-process)
 	--nvidia:		try to integrate host's nVidia drivers in the guest
-	--unshare-netns:        do not share the net namespace with host
+	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-ipc:          do not share ipc namemspace with host
+	--unshare-netns:        do not share the net namespace with host
+	--unshare-process:          do not share process namemspace with host
+	--unshare-all:          activate all the unshare flags below
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
@@ -262,14 +267,30 @@ while :; do
 		-I | --init)
 			shift
 			init=1
+			unshare_process=1
+			;;
+		--unshare-ipc)
+			shift
+			unshare_ipc=1
 			;;
 		--unshare-netns)
 			shift
 			unshare_netns=1
 			;;
-		--unshare-ipc)
+		--unshare-process)
+			shift
+			unshare_process=1
+			;;
+		--unshare-sys)
+			shift
+			unshare_devsys=1
+			;;
+		--unshare-all)
 			shift
 			unshare_ipc=1
+			unshare_netns=1
+			unshare_process=1
+			unshare_devsys=1
 			;;
 		-C | --compatibility)
 			show_compatibility
@@ -539,7 +560,7 @@ generate_command() {
 			--network host"
 	fi
 
-	if [ "${init}" -eq 0 ]; then
+	if [ "${unshare_process}" -eq 0 ]; then
 		result_command="${result_command}
 			--pid host"
 	fi
@@ -559,13 +580,17 @@ generate_command() {
 		--env \"HOME=${container_user_home}\"
 		--env \"container=${container_manager}\"
 		--volume /:/run/host:rslave
-		--volume /dev:/dev:rslave
-		--volume /sys:/sys:rslave
 		--volume /tmp:/tmp:rslave
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
 		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+
+	if [ "${unshare_devsys}" -eq 0 ]; then
+		result_command="${result_command}
+			--volume /dev:/dev:rslave
+			--volume /sys:/sys:rslave"
+	fi
 
 	# In case of initful containers, we implement a series of mountpoint in order
 	# for systemd to work properly inside a container.
@@ -633,7 +658,7 @@ generate_command() {
 	# to /run/shm, instead of the other way around.
 	# Resolve this detecting if /dev/shm is a symlink and mount original
 	# source also in the container.
-	if [ -L "/dev/shm" ]; then
+	if [ -L "/dev/shm" ] && [ "${unshare_ipc}" -eq 0 ]; then
 		result_command="${result_command}
 			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
 	fi
