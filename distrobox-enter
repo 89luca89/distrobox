@@ -336,21 +336,23 @@ generate_command() {
 	container_paths="${container_path:-""}"
 	# Ensure the standard FHS program paths are in PATH environment
 	standard_paths="/usr/local/sbin /usr/local/bin /usr/sbin /usr/bin /sbin /bin"
-	# add to the PATH after the existing paths, and only if not already present
+	# collect standard paths not existing from host PATH
 	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${standard_path}:${container_paths}"
+		pattern="(:|^)${standard_path}(:|$)"
+		if ! echo "${PATH}" | grep -Eq "${pattern}"; then
+			if [ -z "${container_paths}" ]; then
+				container_paths="${standard_path}"
+			else
+				container_paths="${container_paths}:${standard_path}"
+			fi
 		fi
 	done
-	# Ensure the $PATH entries from the host are appended as well
-	ORIG_IFS="${IFS}"
-	IFS=:
-	for standard_path in ${PATH}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${standard_path}:${container_paths}"
-		fi
-	done
-	IFS="${ORIG_IFS}"
+	# append additional standard paths to host PATH to get final container_paths
+	if [ -n "${container_paths}" ]; then
+		container_paths="${container_paths}:${PATH}"
+	else
+		container_paths="${PATH}"
+	fi
 	result_command="${result_command}
 		--env \"PATH=${container_paths}\""
 
