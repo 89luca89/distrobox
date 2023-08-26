@@ -26,6 +26,7 @@ distrobox_path="$(dirname "${0}")"
 dryrun=0
 input_file=""
 replace=0
+boxname=""
 # tmpfile will be used as a little buffer to pass variables without messing up
 # quoting and escaping
 tmpfile="$(mktemp -u)"
@@ -86,6 +87,7 @@ Usage:
 Options:
 
 	--file:			path to the distrobox manifest/ini file
+	--name/-n:		run against a single entry in the manifest/ini file
 	--replace/-R:		replace already existing distroboxes with matching names
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
@@ -108,6 +110,14 @@ while :; do
 			# Call a "show_help" function to display a synopsis, then exit.
 			if [ -n "$2" ]; then
 				input_file="${2}"
+				shift
+				shift
+			fi
+			;;
+		-n | --name)
+			# Call a "show_help" function to display a synopsis, then exit.
+			if [ -n "$2" ]; then
+				boxname="${2}"
 				shift
 				shift
 			fi
@@ -187,6 +197,11 @@ fi
 #   execution of the proper distrobox-create command.
 run_distrobox() (
 	name="${1}"
+
+	# Skip item if --name used and no match is found
+	if [ "${boxname}" != "" ] && [ "${boxname}" != "${name}" ]; then
+		return
+	fi
 
 	# Source the current block variables
 	if [ -e "${tmpfile}" ]; then
