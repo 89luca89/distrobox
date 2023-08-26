@@ -1161,6 +1161,10 @@ printf "distrobox: Setting up devpts mounts...\n"
 # here to support also docker which does not support that flag
 mount -t devpts devpts -o noexec,nosuid,newinstance,ptmxmode=0666,mode=0620 /dev/pts/
 mount --bind /dev/pts/ptmx /dev/ptmx
+
+# Change mount propagation to shared to make the environment more similar to a
+# modern Linux system, e.g. with Systemd as PID 1.
+mount --make-rshared /
 ###############################################################################
 
 ###############################################################################
@@ -1458,7 +1462,7 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ] && [ "${init}" -eq 0 ]; then
 	done
 
 	# Also we put a hook to clear some critical paths that do not play well
-	# with read only filesystems, like systemd.
+	# with read only filesystems, like Systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
 		printf "distrobox: Setting up apt hooks...\n"
 		printf 'DPkg::Pre-Invoke {/etc/distrobox-pre-hook.sh};\n' > /etc/apt/apt.conf.d/00_distrobox
@@ -1883,28 +1887,14 @@ if [ -e /etc/init.d ]; then
 fi
 
 if command -v systemctl 2> /dev/null; then
-	# Cleanup systemd to not interfere with the host
+	# Cleanup Systemd to not interfere with the host
 	UNIT_TARGETS="
 		/usr/lib/systemd/system/*.mount
-		/usr/lib/systemd/system/NetworkManager-wait-online.service
-		/usr/lib/systemd/system/auditd.service
 		/usr/lib/systemd/system/console-getty.service
 		/usr/lib/systemd/system/getty@.service
-		/usr/lib/systemd/system/libstoragemgmt.service
-		/usr/lib/systemd/system/mcelog.service
-		/usr/lib/systemd/system/networkd-dispatcher.service
-		/usr/lib/systemd/system/plymouth*
-		/usr/lib/systemd/system/proc-sys-fs-binfmt_misc.automount
-		/usr/lib/systemd/system/setvtrgb.service
-		/usr/lib/systemd/system/sockets.target.wants/*initctl*
-		/usr/lib/systemd/system/sockets.target.wants/*udev*
-		/usr/lib/systemd/system/sysinit.target.wants/*udev*
-		/usr/lib/systemd/system/systemd-binfmt.service
 		/usr/lib/systemd/system/systemd-machine-id-commit.service
-		/usr/lib/systemd/system/systemd-resolved.service
-		/usr/lib/systemd/system/systemd-rfkill.service
-		/usr/lib/systemd/system/systemd-rfkill.socket
 		/usr/lib/systemd/system/systemd-tmpfiles*
+		/usr/lib/systemd/system/systemd-udevd.service
 		/usr/lib/systemd/system/systemd-update-utmp*
 	"
 	# shellcheck disable=SC2086,SC2044
@@ -1943,7 +1933,7 @@ printf "distrobox: Firing up init system...\n"
 if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	printf "container_setup_done\n"
 
-	# Start user systemd unit, this will attempt until systemd is ready
+	# Start user Systemd unit, this will attempt until Systemd is ready
 	sh -c "while true; do \
 		sleep 1; \
 		systemctl start user@${container_user_name}.service 2>/dev/null && \
@@ -1956,7 +1946,7 @@ if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 elif [ -e /sbin/init ]; then
 	printf "container_setup_done\n"
 
-	# Fallback to standard init path, this is useful in case of non-systemd containers
+	# Fallback to standard init path, this is useful in case of non-Systemd containers
 	# like an openrc alpine
 	exec /sbin/init
 else
