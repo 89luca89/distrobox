@@ -199,7 +199,7 @@ run_distrobox() (
 	name="${1}"
 
 	# Skip item if --name used and no match is found
-	if [ "${boxname}" != "" ] && [ ${boxname} != ${name} ]; then
+	if [ "${boxname}" != "" ] && [ "${boxname}" != "${name}" ]; then
 		return
 	fi
 
