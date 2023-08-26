@@ -10,12 +10,15 @@
   - [Export to the host](#export-to-the-host)
   - [Execute commands on the host](#execute-commands-on-the-host)
   - [Enable SSH X-Forwarding when SSH-ing in a distrobox](#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
-  - [Using podman or docker inside a distrobox](#using-podman-or-docker-inside-a-distrobox)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
+  - [Using Docker inside a Distrobox](#using-docker-inside-a-distrobox)
+  - [Using Podman inside a Distrobox](#using-podman-inside-a-distrobox)
+  - [Using LXC inside a Distrobox](#using-lxc-inside-a-distrobox)
+  - [Using host's Podman or Docker inside a Distrobox](#using-hosts-podman-or-docker-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
   - [Using a different architecture](#using-a-different-architecture)
   - [Using the GPU inside the container](#using-the-gpu-inside-the-container)
-  - [Using nvidia-container-toolkit](#using-nvidia-container-toolkit)
+    - [Using nvidia-container-toolkit](#using-nvidia-container-toolkit)
   - [Slow creation on podman and image size getting bigger with distrobox create](#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](#container-save-and-restore)
   - [Check used resources](#check-used-resources)
@@ -210,24 +213,6 @@ This will ensure SSH X-Forwarding will work when SSH-ing inside the distrobox:
 
 `ssh -X myhost distrobox enter test -- xclock`
 
-## Using podman or docker inside a distrobox
-
-You can easily control host's instance of docker or podman, using `distrobox-host-exec`
-You can use:
-
-```console
-sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
-```
-
-or
-
-```console
-sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/docker
-```
-
-This will create a `podman` or `docker` command inside the distrobox that will
-transparently execute the command on the host.
-
 ## Using init system inside a distrobox
 
 You can use an init system inside the container. You can either use supported
@@ -273,6 +258,192 @@ user@test:~$ sudo systemctl status sshd
                man:sshd_config(5)
      Main PID: 291 (sshd)
 ```
+
+## Using Docker inside a Distrobox
+
+You may want to run a separate instance of docker inside your container.
+In order to do this, create a [container with an init system](#using-init-system-inside-a-distrobox)
+**using a podman rootful container or using docker** using the **unshare-all flag**
+
+Example:
+
+```sh
+distrobox create --root \
+  --image registry.opensuse.org/opensuse/distrobox:latest \
+  --additional-packages "systemd docker" \
+  --init \
+  --unshare-all
+```
+
+Inside the container:
+
+```console
+luca-linux@tumbleweed:~$ sudo systemctl enable --now docker
+luca-linux@tumbleweed:~$ sudo systemctl status docker
+● docker.service - Docker Application Container Engine
+     Loaded: loaded (/usr/lib/systemd/system/docker.service; enabled; preset: disabled)
+     Active: active (running) since Sat 2023-08-26 19:21:34 UTC; 3min 47s ago
+       Docs: http://docs.docker.com
+   Main PID: 1924 (dockerd)
+        CPU: 1.268s
+     CGroup: /system.slice/docker-b63c525a32a313837146cfb00ed09c151eabd3137ad62779f47d3924c92f7b16.scope/system.slice/docker.service
+             ├─1924 /usr/bin/dockerd --add-runtime oci=/usr/sbin/docker-runc
+             └─1942 containerd --config /var/run/docker/containerd/containerd.toml --log-level warn
+
+Aug 26 19:21:31 tumbleweed.localhost dockerd[1924]: time="2023-08-26T19:21:31.188589166Z" level=error msg="failed to mount overlay: invalid argument" storage-driver=overlay2
+Aug 26 19:21:31 tumbleweed.localhost dockerd[1924]: time="2023-08-26T19:21:31.391206840Z" level=warning msg="WARNING: No swap limit support"
+Aug 26 19:22:54 tumbleweed.localhost dockerd[1942]: time="2023-08-26T19:22:54.385157019Z" level=info msg="loading plugin \"io.containerd.event.v1.publisher\"..." runtime=io.containerd.runc.v2 type=io.containerd.event.v1
+Aug 26 19:22:54 tumbleweed.localhost dockerd[1942]: time="2023-08-26T19:22:54.385241039Z" level=info msg="loading plugin \"io.containerd.internal.v1.shutdown\"..." runtime=io.containerd.runc.v2 type=io.containerd.internal.v1
+Aug 26 19:22:54 tumbleweed.localhost dockerd[1942]: time="2023-08-26T19:22:54.385250887Z" level=info msg="loading plugin \"io.containerd.ttrpc.v1.task\"..." runtime=io.containerd.runc.v2 type=io.containerd.ttrpc.v1
+Aug 26 19:22:54 tumbleweed.localhost dockerd[1942]: time="2023-08-26T19:22:54.385411802Z" level=info msg="starting signal loop" namespace=moby path=/run/docker/containerd/daemon/io.containerd.runtime.v2.task/moby/bd4cb19537b4c39131b084e04>
+Aug 26 19:23:16 tumbleweed.localhost dockerd[1942]: time="2023-08-26T19:23:16.575589748Z" level=error msg="failed to enable controllers ([cpuset cpu io memory hugetlb pids rdma misc])" error="failed to write subtree controllers [cpuset cp>
+Aug 26 19:23:16 tumbleweed.localhost dockerd[1942]: time="2023-08-26T19:23:16.575764283Z" level=warning msg="error from *cgroupsv2.Manager.EventChan" error="failed to add inotify watch for \"/sys/fs/cgroup/system.slice/docker-b63c525a32a3>
+Aug 26 19:23:44 tumbleweed.localhost dockerd[1942]: time="2023-08-26T19:23:44.744144975Z" level=warning msg="cleaning up after shim disconnected" id=bd4cb19537b4c39131b084e04c354712bac71c6d1ced33d6d1d6933ada0507cc namespace=moby
+Aug 26 19:23:44 tumbleweed.localhost dockerd[1942]: time="2023-08-26T19:23:44.754027382Z" level=warning msg="cleanup warnings time=\"2023-08-26T19:23:44Z\" level=info msg=\"starting signal loop\" namespace=moby pid=2221 runtime=io.contain>
+luca-linux@tumbleweed:~$ sudo docker run --rm -ti alpine
+/ # 
+```
+
+## Using Podman inside a Distrobox
+
+You may want to run a separate instance of podman inside your container.
+In order to do this, create a container using the **unshare-all flag**, the
+container manager can be anyone of choice.
+
+Example:
+
+```sh
+distrobox create \
+  --image registry.opensuse.org/opensuse/distrobox:latest \
+  --additional-packages "podman crun" \
+  --unshare-all
+```
+
+Inside it install podman, and add suduids for the user:
+
+```sh
+sudo usermod --add-subuids 10000-65536 $USER
+sudo usermod --add-subgids 10000-65536 $USER
+cat << EOF > /etc/containers/containers.conf
+[containers]
+netns="host"
+userns="host"
+ipcns="host"
+utsns="host"
+cgroupns="host"
+log_driver = "k8s-file"
+[engine]
+cgroup_manager = "cgroupfs"
+events_logger="file"
+EOF
+```
+
+Then you'll be able to use both rootful and rootless podman inside the container:
+
+```console
+luca-linux@tumbleweed:~> podman run --rm -ti alpine
+/ #
+luca-linux@tumbleweed:~> sudo podman run --rm -ti alpine
+/ #
+```
+
+## Using LXC inside a Distrobox
+
+You may want to run an LXC instance inside your container.
+In order to do this, create a [container with an init system](#using-init-system-inside-a-distrobox)
+using the **unshare-all flag**, this works with either docker, rootful podman, or rootless podman.
+
+Example:
+
+```sh
+distrobox create --root \
+  --image registry.opensuse.org/opensuse/distrobox:latest \
+  --additional-packages "systemd lxc" \
+  --init \
+  --unshare-all
+```
+
+Inside the container we will need to first setup the lxcbr0 network and enable the services:
+
+```console
+luca-linux@tumbleweed:~> sudo systemctl enable --now lxc-monitord.service lxc-net.service lxc.service lxcfs.service
+Created symlink /etc/systemd/system/multi-user.target.wants/lxc-monitord.service → /usr/lib/systemd/system/lxc-monitord.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/lxc-net.service → /usr/lib/systemd/system/lxc-net.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/lxc.service → /usr/lib/systemd/system/lxc.service.
+Created symlink /etc/systemd/system/multi-user.target.wants/lxcfs.service → /usr/lib/systemd/system/lxcfs.service.
+luca-linux@tumbleweed:~> ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host proto kernel_lo 
+       valid_lft forever preferred_lft forever
+2: tap0: <BROADCAST,UP,LOWER_UP> mtu 65520 qdisc fq_codel state UNKNOWN group default qlen 1000
+    link/ether 02:81:bf:43:1e:65 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.100/24 brd 10.0.2.255 scope global tap0
+       valid_lft forever preferred_lft forever
+    inet6 fd00::81:bfff:fe43:1e65/64 scope global dynamic mngtmpaddr proto kernel_ra 
+       valid_lft 86309sec preferred_lft 14309sec
+    inet6 fe80::81:bfff:fe43:1e65/64 scope link proto kernel_ll 
+       valid_lft forever preferred_lft forever
+luca-linux@tumbleweed:~> sudo ip link add name lxcbr0 type bridge
+luca-linux@tumbleweed:~> sudo ip link set dev lxcbr0 up
+luca-linux@tumbleweed:~> sudo ip link set tap0 master lxcbr0
+luca-linux@tumbleweed:~> sudo ip address add 10.0.2.100/24 dev lxcbr0
+```
+
+Then we can proceed with the LXC container creation:
+
+```console
+luca-linux@tumbleweed:~> sudo lxc-create -n test-nested-lxc -t download
+[ ... ] # Here do the interactive rootfs choice, I'll use alpine:edge amd64
+
+Downloading the image index
+Downloading the rootfs
+Downloading the metadata
+The image cache is now ready
+Unpacking the rootfs
+
+---
+You just created an Alpinelinux edge x86_64 (20230826_13:00) container.
+
+luca-linux@tumbleweed:~> sudo lxc-start test-nested-lxc
+luca-linux@tumbleweed:~> sudo lxc-attach test-nested-lxc
+/ # ps aux
+PID   USER     TIME  COMMAND
+    1 root      0:00 /sbin/init
+  266 root      0:00 /sbin/syslogd -t -n
+  273 root      0:00 /sbin/openrc default
+  293 root      0:00 /usr/sbin/crond -c /etc/crontabs -f
+  300 root      0:00 {networking} /sbin/openrc-run /etc/init.d/networking --lockfd 4 start
+  301 root      0:00 {openrc-run.sh} /bin/sh /lib/rc/sh/openrc-run.sh /etc/init.d/networking start
+  347 root      0:00 ifup -i /etc/network/interfaces eth0
+  367 root      0:00 {dhcp} /bin/sh /usr/libexec/ifupdown-ng/dhcp
+  372 root      0:00 /sbin/udhcpc -b -R -p /var/run/udhcpc.eth0.pid -i eth0 -x hostname:test-nested-lxc
+  375 root      0:00 /bin/ash
+  376 root      0:00 ps aux
+/ #
+```
+
+And you have a working LXC inside your Distrobox container.
+
+## Using host's Podman or Docker inside a Distrobox
+
+You can easily control host's instance of docker or podman, using `distrobox-host-exec`
+You can use:
+
+```console
+sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
+```
+
+or
+
+```console
+sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/docker
+```
+
+This will create a `podman` or `docker` command inside the distrobox that will
+transparently execute the command on the host.
 
 ## Using distrobox as main cli
 
