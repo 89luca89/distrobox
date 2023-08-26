@@ -50,8 +50,6 @@ container_manager_additional_flags=""
 container_name=""
 container_name_default="my-distrobox"
 non_interactive=0
-non_interactive_assemble=0
-non_interactive_assemble_manifest="/etc/distrobox/distrobox.ini"
 
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
@@ -97,10 +95,6 @@ fi
 # Fixup non_interactive=[true|false], in case we find it in the config file(s)
 [ "${non_interactive}" = "true" ] && non_interactive=1
 [ "${non_interactive}" = "false" ] && non_interactive=0
-
-# Fixup non_interactive_assemble=[true|false], in case we find it in the config file(s)
-[ "${non_interactive_assemble}" = "true" ] && non_interactive_assemble=1
-[ "${non_interactive_assemble}" = "false" ] && non_interactive_assemble=0
 
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
@@ -453,19 +447,12 @@ if [ "${container_status}" = "unknown" ]; then
 	# Accept only y,Y,Yes,yes,n,N,No,no.
 	case "${response}" in
 		y | Y | Yes | yes | YES)
-			# Check if we want to use `distrobox assemble` instead of `distrobox create`
-			if [ "${non_interactive_assemble}" -eq 1 ] && [ "${non_interactive}" -eq 1 ]; then
-				# Use distrobox manifest where the entry is sepcified with
-				# `distrobox assemble create -n $container_name --file $non_interactive_assemble_manifest`
-				create_command="$(dirname "${0}")/distrobox-assemble create -n ${container_name} --file ${non_interactive_assemble_manifest}"
-			else
-				# Ok, let's create the container with just 'distrobox create $container_name
-				create_command="$(dirname "${0}")/distrobox-create"
-				if [ "${rootful}" -ne 0 ]; then
-					create_command="${create_command} --root"
-				fi
-				create_command="${create_command} -i ${container_image_default} -n ${container_name}"
+			# Ok, let's create the container with just 'distrobox create $container_name
+			create_command="$(dirname "${0}")/distrobox-create"
+			if [ "${rootful}" -ne 0 ]; then
+				create_command="${create_command} --root"
 			fi
+			create_command="${create_command} -i ${container_image_default} -n ${container_name}"
 			printf >&2 "Creating the container with command:\n"
 			printf >&2 "  %s\n" "${create_command}"
 			if [ "${dryrun}" -ne 1 ]; then
