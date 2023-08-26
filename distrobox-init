@@ -1839,25 +1839,24 @@ fi
 
 # Remove /dev/console when using init systems, this will confuse host system if
 # we use rootful containers
-if [ -e /dev/console ]; then
-	# Instantiate a new pty to mount over /dev/console
-	# this way we will have init output right of the logs
+# Instantiate a new pty to mount over /dev/console
+# this way we will have init output right of the logs
+[ -e /dev/console ] || touch /dev/console
+rm  -f /var/console
+mkfifo  /var/console
+script  -c "cat /var/console" /dev/null &
+
+# Ensure the pty is created
+sleep  0.5
+
+# Mount the created pty over /dev/console in order to have systemd logs
+# right into container logs
+if  ! mount --bind /dev/pts/0 /dev/console; then
+	# Fallback to older behaviour or fake plaintext file in case it fails
+	# this ensures rootful + initful boxes do not interfere with host's /dev/console
 	rm -f /var/console
-	mkfifo /var/console
-	script -c "cat /var/console" /dev/null &
-
-	# Ensure the pty is created
-	sleep 0.5
-
-	# Mount the created pty over /dev/console in order to have systemd logs
-	# right into container logs
-	if ! mount --bind /dev/pts/0 /dev/console; then
-		# Fallback to older behaviour or fake plaintext file in case it fails
-		# this ensures rootful + initful boxes do not interfere with host's /dev/console
-		rm -f /var/console
-		touch /var/console
-		mount --bind /var/console /dev/console
-	fi
+	touch /var/console
+	mount --bind /var/console /dev/console
 fi
 
 if [ -e /etc/inittab ]; then
