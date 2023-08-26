@@ -371,6 +371,15 @@ generate_command() {
 	result_command="${result_command}
 		--env \"XDG_DATA_DIRS=${container_paths}\""
 
+	# This correctly sets the XDG_* dirs to the container_home
+	# it will be $HOME if using regular home dirs
+	# if will be $container_home if using a custom home during create
+	result_command="${result_command}
+		--env \"XDG_CACHE_HOME=${container_home}/.cache\"
+		--env \"XDG_CONFIG_HOME=${container_home}/.config\"
+		--env \"XDG_DATA_HOME=${container_home}/.local/share\"
+		--env \"XDG_STATE_HOME=${container_home}/.local/state\""
+
 	# Ensure the standard FHS program paths are in XDG_CONFIG_DIRS environment
 	standard_paths="/etc/xdg"
 	container_paths="${XDG_CONFIG_DIRS:=}"

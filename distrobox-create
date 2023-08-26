@@ -408,7 +408,7 @@ fi
 # container_name is later set as hostname
 # let's check if the hostname is less than 64chars or we will have problems later
 # in setting the container's hostname.
-if [ "$(printf "%s" ${container_name}.$(uname -n) | wc -m)" -gt 64 ]; then
+if [ "$(printf "%s" "${container_name}.$(uname -n)" | wc -m)" -gt 64 ]; then
 	printf >&2 "ERROR: Invalid name '%s'\n" "${container_name}"
 	printf >&2 "ERROR: This will result in hostname: '%s'\n" "${container_name}.$(uname -n)"
 	printf >&2 "ERROR: Hostname too long.\n"
