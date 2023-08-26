@@ -282,6 +282,20 @@ From within the container you will not be able to see and manage
 host\[cq]s processes.
 This is needed because \f[V]/sbin/init\f[R] must be pid 1.
 .PP
+If you want to use a non-pre-create image, you\[cq]ll need to add the
+additional package:
+.IP
+.nf
+\f[C]
+distrobox create -i alpine:latest --init --additional-packages \[dq]openrc\[dq] -n test
+distrobox create -i debian:stable --init --additional-packages \[dq]systemd libpam-systemd\[dq] -n test
+distrobox create -i ubuntu:22.04 --init --additional-packages \[dq]systemd libpam-systemd\[dq] -n test
+distrobox create -i archlinux:latest --init --additional-packages \[dq]systemd\[dq] -n test
+distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages \[dq]systemd\[dq] -n test
+distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-packages \[dq]systemd\[dq] -n test
+\f[R]
+.fi
+.PP
 The \f[V]--home\f[R] flag let\[cq]s you specify a custom HOME for the
 container.
 Note that this will NOT prevent the mount of the host\[cq]s home
