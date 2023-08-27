@@ -245,6 +245,10 @@ distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-pac
 Note however that in this mode, you'll not be able to access host's processes
 from within the container.
 
+Result:
+
+![image](https://github.com/89luca89/distrobox/assets/598882/aa70ce88-2ca6-4266-b530-f51956bd4a0a)
+
 Example use:
 
 ```shell
