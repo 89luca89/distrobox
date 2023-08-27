@@ -1893,6 +1893,7 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/console-getty.service
 		/usr/lib/systemd/system/getty@.service
 		/usr/lib/systemd/system/systemd-machine-id-commit.service
+		/usr/lib/systemd/system/systemd-binfmt.service
 		/usr/lib/systemd/system/systemd-tmpfiles*
 		/usr/lib/systemd/system/systemd-udevd.service
 		/usr/lib/systemd/system/systemd-update-utmp*
