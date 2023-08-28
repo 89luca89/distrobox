@@ -240,6 +240,10 @@ as discussed here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/is
 
 `distrobox create -n test`
 
+**Create a new distrobox with Systemd (acts similar to an LXC):**
+
+`distrobox create --name test --init --image debian:latest --additional-packages "systemd libpam-systemd"`
+
 **Enter created distrobox:**
 
 `distrobox enter test`
