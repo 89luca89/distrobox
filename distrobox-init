@@ -1532,10 +1532,10 @@ fi
 
 # This will ensure we have a first-shell password setup for an user if needed.
 # We're going to use this later in case of rootful containers
-if [ -e /tmp/.\$USER.passwd.initialize ]; then
+if [ -e /var/tmp/.\$USER.passwd.initialize ]; then
 	echo "⚠️  First time user password setup ⚠️ "
 	trap "echo; exit" INT
-	passwd && rm -f /tmp/.\$USER.passwd.initialize
+	passwd && rm -f /var/tmp/.\$USER.passwd.initialize
 	trap - INT
 fi
 EOF
@@ -1551,10 +1551,10 @@ set -Ux SHELL "\$(getent passwd "\$USER" | cut -f 7 -d :)"
 
 # This will ensure we have a first-shell password setup for an user if needed.
 # We're going to use this later in case of rootful containers
-if test -e /tmp/.\$USER.passwd.initialize
+if test -e /var/tmp/.\$USER.passwd.initialize
 	echo "⚠️  First time user password setup ⚠️ "
 	trap "echo; exit" INT
-	passwd && rm -f /tmp/.\$USER.passwd.initialize
+	passwd && rm -f /var/tmp/.\$USER.passwd.initialize
 	trap - INT
 end
 EOF
@@ -1728,8 +1728,12 @@ if [ "${rootful}" -eq 1 ] &&
 	}; then
 
 	# force setup of user's password on first shell
-	touch /tmp/."${container_user_name}".passwd.initialize
-	chown "${container_user_name}:${container_user_gid}" /tmp/."${container_user_name}".passwd.initialize
+	if [ ! -e /var/tmp ]; then
+		mkdir -p /var/tmp
+		chmod 0777 /var/tmp
+	fi
+	touch /var/tmp/."${container_user_name}".passwd.initialize
+	chown "${container_user_name}:${container_user_gid}" /var/tmp/."${container_user_name}".passwd.initialize
 fi
 
 # Now we're done
