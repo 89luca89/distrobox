@@ -670,6 +670,21 @@ generate_command() {
 			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
 	fi
 
+	# Ensure that both podman and docker support forwarding of RedHat subscription-manager
+	# This is needed in order to have a working subscription forwarded into the container,
+	# this will ensure that rhel-9-for-x86_64-appstream-rpms and rhel-9-for-x86_64-baseos-rpms repos
+	# will be available in the container, so that distrobox-init will be able to
+	# install properly all the dependencies like mesa drivers.
+	#
+	# /run/secrets is a standard location for RHEL containers, that is being pointed by
+	# /etc/rhsm-host by default.
+	if [ -e /etc/rhsm ]; then
+		result_command="${result_command}
+			--volume /etc/pki/entitlement/:/run/secrets/etc-pki-entitlement:ro
+			--volume /etc/rhsm/:/run/secrets/rhsm:ro
+			--volume /etc/yum.repos.d/redhat.repo:/run/secrets/redhat.repo:ro"
+	fi
+
 	# If we have a home prefix to use,
 	#	1- override the HOME env variable
 	#	2- export the DISTROBOX_HOST_HOME env variable pointing to original HOME
