@@ -499,8 +499,8 @@ if [ "${container_status}" != "running" ]; then
 	# Check if the container is going in error status earlier than the
 	# entrypoint
 	if [ "$(${container_manager} inspect \
-		--type container "${container_name}" \
-		--format "{{.State.Status}}")" != "running" ]; then
+		--type container \
+		--format "{{.State.Status}}" "${container_name}")" != "running" ]; then
 
 		printf >&2 "\033[31m Error: could not start entrypoint.\n\033[0m"
 		container_manager_log="$(${container_manager} logs \

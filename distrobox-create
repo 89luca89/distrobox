@@ -548,6 +548,7 @@ generate_command() {
 		--name \"${container_name}\"
 		--privileged
 		--security-opt label=disable
+		--security-opt apparmor=unconfined
 		--user root:root"
 
 	if [ "${unshare_ipc}" -eq 0 ]; then
@@ -606,8 +607,12 @@ generate_command() {
 	#	/var/lib/journal
 	#	/sys/fs/cgroup/systemd <- this one is done by cgroupns=host
 	if [ "${init}" -eq 1 ] && echo "${container_manager}" | grep -q "docker"; then
+		# In case of docker we're actually rootful, so we need to use hosts cgroups
 		result_command="${result_command}
-			--cgroupns host
+			--cgroupns host"
+	fi
+	if [ "${init}" -eq 1 ] && echo "${container_manager}" | grep -vq "podman"; then
+		result_command="${result_command}
 			--stop-signal SIGRTMIN+3
 			--mount type=tmpfs,destination=/run
 			--mount type=tmpfs,destination=/run/lock
