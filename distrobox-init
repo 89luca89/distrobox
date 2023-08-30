@@ -1653,8 +1653,8 @@ if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/pass
 		--gid "${container_user_gid}" \
 		"${container_user_name}"; then
 
-		printf "Warning: there was a problem setting up the user\n"
-		printf "Warning: trying manual addition\n"
+		printf "There was a problem setting up the user with usermod, trying manual addition\n"
+
 		printf "%s:x:%s:%s:%s:%s:%s" \
 			"${container_user_name}" "${container_user_uid}" \
 			"${container_user_gid}" "${container_user_name}" \
@@ -1683,7 +1683,29 @@ elif [ ! -e /etc/passwd.done ]; then
 		--login "${container_user_name}" \
 		"${user_to_modify:-"${container_user_name}"}"; then
 
-		printf "Warning: there was a problem setting up the user\n"
+		printf "There was a problem setting up the user with usermod, trying manual addition\n"
+
+		# Modify the user
+		sed -i "s|^${container_user_name}.*||g" /etc/passwd
+		printf "%s:x:%s:%s:%s:%s:%s" \
+			"${container_user_name}" "${container_user_uid}" \
+			"${container_user_gid}" "${container_user_name}" \
+			"${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
+
+		# Add or modify the default group
+		# and add or modify the additional groups
+		for group in ${container_user_name} ${additional_groups}; do
+			# Check if we have the user in the group
+			if ! grep -q "^${group}.*${container_user_name}.*" /etc/group; then
+				group_line="$(grep "^${group}.*" /etc/group)"
+				# If no users in the group just add it
+				if grep -q "^${group}.*:$" /etc/group; then
+					sed -i "s|${group_line}|${group_line}${container_user_name}|g" /etc/group
+				else
+					sed -i "s|${group_line}|${group_line},${container_user_name}|g" /etc/group
+				fi
+			fi
+		done
 	fi
 fi
 

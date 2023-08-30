@@ -281,7 +281,7 @@ while :; do
 			shift
 			unshare_process=1
 			;;
-		--unshare-sys)
+		--unshare-devsys)
 			shift
 			unshare_devsys=1
 			;;
