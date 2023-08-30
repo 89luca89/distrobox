@@ -28,7 +28,7 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
-trap 'rm -f ${HOME}/.cache/.${container_name}.fifo ${HOME}/.cache/.${container_name}.status' EXIT
+trap 'rm -f ${HOME}/.cache/.${container_name}.fifo ${HOME}/.cache/.${container_name}.status; if [ "${verbose}" -eq 1 ]; then ${container_manager} logs "${container_name}"; fi' EXIT
 
 # Despite of running this script via SUDO/DOAS being not supported (the
 # script itself will call the appropriate tool when necessary), we still want
@@ -445,7 +445,6 @@ eval "$(${container_manager} inspect --type container --format \
 # Check if the container is even there
 if [ "${container_status}" = "unknown" ]; then
 	# If not, prompt to create it first
-	printf >&2 "Cannot find container %s\n" "${container_name}"
 	# If we're not-interactive, just don't ask questions
 	if [ "${non_interactive}" -eq 1 ]; then
 		response="yes"
@@ -463,11 +462,13 @@ if [ "${container_status}" = "unknown" ]; then
 			if [ "${rootful}" -ne 0 ]; then
 				create_command="${create_command} --root"
 			fi
+
 			create_command="${create_command} -i ${container_image_default} -n ${container_name}"
-			printf >&2 "Creating the container with command:\n"
-			printf >&2 "  %s\n" "${create_command}"
+
+			printf >&2 "Creating the container %s\n" "${container_name}"
+
 			if [ "${dryrun}" -ne 1 ]; then
-				eval "${create_command}"
+				eval "${create_command}" 2> /dev/null > /dev/null
 			fi
 			;;
 		n | N | No | no | NO)
@@ -488,12 +489,7 @@ if [ "${container_status}" != "running" ]; then
 	# If container is not running, start it first
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
-
-	printf >&2 "Container %s is not running.\n" "${container_name}"
-	printf >&2 "Starting container %s\n" "${container_name}"
-	printf >&2 "run this command to follow along:\n\n"
-	printf >&2 " %s logs -f %s\n\n" "${container_manager}" "${container_name}"
-
+	#
 	log_timestamp="$(date +%FT%T.%N%:z)"
 	${container_manager} start "${container_name}" > /dev/null
 	# Check if the container is going in error status earlier than the
@@ -509,7 +505,7 @@ if [ "${container_status}" != "running" ]; then
 		exit 1
 	fi
 
-	printf >&2 "%-40s\t" " Starting container..."
+	printf >&2 "%-40s\t" "Starting container..."
 	mkdir -p "${HOME}/.cache/"
 	touch "${HOME}/.cache/.${container_name}.fifo"
 	touch "${HOME}/.cache/.${container_name}.status"
@@ -530,7 +526,7 @@ if [ "${container_status}" != "running" ]; then
 					printf >&2 "\n\033[33m %s\033[0m" "${line}"
 					;;
 				*"distrobox:"*)
-					current_line="$(echo "${line}" | cut -d':' -f2-)"
+					current_line="$(echo "${line}" | cut -d' ' -f2-)"
 					# Save current line in the status, to avoid printing the same line multiple times
 					if ! grep -q "${current_line}" "${HOME}/.cache/.${container_name}.status"; then
 						printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "${current_line}"
