@@ -247,7 +247,11 @@ from within the container.
 
 Result:
 
+Systemd running on openSUSE
 ![image](https://github.com/89luca89/distrobox/assets/598882/aa70ce88-2ca6-4266-b530-f51956bd4a0a)
+
+OpenRC running on Alpine Linux
+![image](https://github.com/89luca89/distrobox/assets/598882/eb6226d5-6992-47d8-a42b-f3e90e5809d2)
 
 Example use:
 
