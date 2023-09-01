@@ -14,6 +14,7 @@
   - [Using Docker inside a Distrobox](#using-docker-inside-a-distrobox)
   - [Using Podman inside a Distrobox](#using-podman-inside-a-distrobox)
   - [Using LXC inside a Distrobox](#using-lxc-inside-a-distrobox)
+  - [Using Waydroid inside a Distrobox](#using-waydroid-inside-a-distrobox)
   - [Using host's Podman or Docker inside a Distrobox](#using-hosts-podman-or-docker-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
   - [Using a different architecture](#using-a-different-architecture)
