@@ -438,7 +438,7 @@ PID   USER     TIME  COMMAND
 
 And you have a working LXC inside your Distrobox container.
 
-# Using Waydroid inside a Distrobox
+## Using Waydroid inside a Distrobox
 
 Waydroid is a popular solution for running Android applications on Linux using an LXC container. 
 Since these containers run inside a Distrobox, you can also run Waydroid.
@@ -446,7 +446,7 @@ Since these containers run inside a Distrobox, you can also run Waydroid.
 > **Note**: Wayland and the `binder_linux` module are required at the host level. You can install
 > the DKMS from the [choff/anbox-modules](https://github.com/choff/anbox-modules) repository.
 
-## Manual Installation
+### Manual Installation
 
 To do this, we need a rootful container [with Systemd](#using-init-system-inside-a-distrobox) plus 
 some additional dependencies (tested with Vanilla OS Pico and Debian Sid):
@@ -490,7 +490,7 @@ waydroid init
 
 The above environment variables must be present each time the `waydroid` command is used.
 
-## Automated Installation
+### Automated Installation
 
 The [Waydroid image](https://github.com/Vanilla-OS/waydroid-image/blob/main/recipe.yml) from 
 the Vanilla OS Team is designed to streamline the entire setup process. To use it, proceed as follows:
