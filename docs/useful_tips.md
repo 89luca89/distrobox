@@ -505,7 +505,7 @@ distrobox create --root \
 distrobox enter --root waydroid
 ```
 
-Once started, Waydroid is automatically executed via Systemd. Check for the process to finish using 
+Once started, Waydroid is automatically executed via Systemd. Check for the process to finish using
 the `systemctl status waydroid-init` command, then start using Waydroid with:
 
 ```bash
