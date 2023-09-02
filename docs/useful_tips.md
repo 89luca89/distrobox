@@ -14,6 +14,7 @@
   - [Using Docker inside a Distrobox](#using-docker-inside-a-distrobox)
   - [Using Podman inside a Distrobox](#using-podman-inside-a-distrobox)
   - [Using LXC inside a Distrobox](#using-lxc-inside-a-distrobox)
+  - [Using Waydroid inside a Distrobox](#using-waydroid-inside-a-distrobox)
   - [Using host's Podman or Docker inside a Distrobox](#using-hosts-podman-or-docker-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
   - [Using a different architecture](#using-a-different-architecture)
@@ -436,6 +437,83 @@ PID   USER     TIME  COMMAND
 ```
 
 And you have a working LXC inside your Distrobox container.
+
+## Using Waydroid inside a Distrobox
+
+Waydroid is a popular solution for running Android applications on Linux using an LXC container.
+Since these containers run inside a Distrobox, you can also run Waydroid.
+
+> **Note**: Wayland and the `binder_linux` module are required at the host level. You can install
+> the DKMS from the [choff/anbox-modules](https://github.com/choff/anbox-modules) repository.
+
+### Manual Installation
+
+To do this, we need a rootful container [with Systemd](#using-init-system-inside-a-distrobox) plus
+some additional dependencies (tested with Vanilla OS Pico and Debian Sid):
+
+- libpam-systemd
+- curl
+- kmod
+- dbus-x11
+- iptables
+- mutter
+
+Let's create a rootful and unshared container as follows:
+
+```sh
+distrobox create --root \
+  --image ghcr.io/vanilla-os/pico:main \
+  --additional-packages "systemd libpam-systemd curl kmod dbus-x11 iptables mutter" \
+  --init \
+  --unshare-all \
+  --name waydroid
+```
+
+Once it's started with `distrobox enter --root waydroid`, we can proceed with the Waydroid
+installation from the official repository:
+
+```bash
+curl --progress-bar --proto '=https' --tlsv1.2 -Sf https://repo.waydro.id/waydroid.gpg --output /usr/share/keyrings/waydroid.gpg
+echo "deb [signed-by=/usr/share/keyrings/waydroid.gpg] https://repo.waydro.id/ bookworm main" | tee /etc/apt/sources.list.d/waydroid.list
+sudo apt update
+sudo apt install waydroid
+```
+
+Then proceed with its initialization using:
+
+```bash
+export XDG_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR}"
+export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/host/$(echo "${DBUS_SESSION_BUS_ADDRESS}" | cut -d '=' -f2-)"
+
+waydroid init
+```
+
+The above environment variables must be present each time the `waydroid` command is used.
+
+### Automated Installation
+
+The [Waydroid image](https://github.com/Vanilla-OS/waydroid-image/blob/main/recipe.yml) from
+the Vanilla OS Team is designed to streamline the entire setup process. To use it, proceed as follows:
+
+```bash
+distrobox create --root \
+  --image ghcr.io/vanilla-os/waydroid:main \
+  --init \
+  --unshare-all \
+  --name waydroid
+
+distrobox enter --root waydroid
+```
+
+Once started, Waydroid is automatically executed via Systemd. Check for the process to finish using
+the `systemctl status waydroid-init` command, then start using Waydroid with:
+
+```bash
+ewaydroid --help
+```
+
+Make sure to use the `ewaydroid` command each time you need to work with Waydroid. This command is a
+wrapper that sets the proper environment variables to make it work with the host D-Bus.
 
 ## Using host's Podman or Docker inside a Distrobox
 
