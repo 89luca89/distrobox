@@ -512,7 +512,7 @@ the `systemctl status waydroid-init` command, then start using Waydroid with:
 ewaydroid --help
 ```
 
-Make sure to use the `ewaydroid` command each time you need to work with Waydroid. This command is a 
+Make sure to use the `ewaydroid` command each time you need to work with Waydroid. This command is a
 wrapper that sets the proper environment variables to make it work with the host D-Bus.
 
 ## Using host's Podman or Docker inside a Distrobox
