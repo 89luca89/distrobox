@@ -492,7 +492,7 @@ The above environment variables must be present each time the `waydroid` command
 
 ### Automated Installation
 
-The [Waydroid image](https://github.com/Vanilla-OS/waydroid-image/blob/main/recipe.yml) from 
+The [Waydroid image](https://github.com/Vanilla-OS/waydroid-image/blob/main/recipe.yml) from
 the Vanilla OS Team is designed to streamline the entire setup process. To use it, proceed as follows:
 
 ```bash
