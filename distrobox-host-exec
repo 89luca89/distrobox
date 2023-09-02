@@ -27,7 +27,7 @@ if [ ! -t 1 ] ||
 	non_interactive=1
 fi
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
-host_spawn_version="1.4.2"
+host_spawn_version="1.5.0"
 download_command=""
 sudo_command=""
 verbose=0
