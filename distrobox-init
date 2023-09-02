@@ -1949,7 +1949,8 @@ ExecStart=sh -c "ln -sf /run/host/run/user/\$(id -ru)/keyring/ /run/user/\$(id -
 	ln -sf /run/host/run/user/\$(id -ru)/wayland-0 /run/user/\$(id -ru)/ ; \
 	ln -sf /run/host/run/user/\$(id -ru)/pipewire-0 /run/user/\$(id -ru)/ ; \
 	ln -sf /run/host/run/user/\$(id -ru)/ICEauthority /run/user/\$(id -ru)/ ; \
-	ln -sf /run/host/run/user/\$(id -ru)/.mutter* /run/user/\$(id -ru)/"
+	ln -sf /run/host/run/user/\$(id -ru)/.mutter* /run/user/\$(id -ru)/"; \
+	mkdir -p  && ln -s /run/host/run/user/\$(id -ru)/pulse/* /run/user/\$(id -ru)/pulse/
 Slice=user-%i.slice
 EOF
 fi
