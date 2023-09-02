@@ -469,7 +469,7 @@ distrobox create --root \
   --name waydroid
 ```
 
-Once it's started with `distrobox enter --root waydroid`, we can proceed with the Waydroid 
+Once it's started with `distrobox enter --root waydroid`, we can proceed with the Waydroid
 installation from the official repository:
 
 ```bash
