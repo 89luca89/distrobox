@@ -440,7 +440,7 @@ And you have a working LXC inside your Distrobox container.
 
 ## Using Waydroid inside a Distrobox
 
-Waydroid is a popular solution for running Android applications on Linux using an LXC container. 
+Waydroid is a popular solution for running Android applications on Linux using an LXC container.
 Since these containers run inside a Distrobox, you can also run Waydroid.
 
 > **Note**: Wayland and the `binder_linux` module are required at the host level. You can install
