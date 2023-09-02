@@ -231,7 +231,7 @@ run_distrobox() (
 
 	# If distrobox already exist, and we have replace enabled, destroy the container
 	# we have to recreate it.
-	if "${distrobox_path}"/distrobox-list | grep -qw "${name} " &&  [ "${dryrun}" -eq 0 ]; then
+	if "${distrobox_path}"/distrobox-list | grep -qw "${name} " && [ "${dryrun}" -eq 0 ]; then
 		printf >&2 "%s already exists\n" "${name}"
 		return 0
 	fi
