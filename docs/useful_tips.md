@@ -448,7 +448,7 @@ Since these containers run inside a Distrobox, you can also run Waydroid.
 
 ### Manual Installation
 
-To do this, we need a rootful container [with Systemd](#using-init-system-inside-a-distrobox) plus 
+To do this, we need a rootful container [with Systemd](#using-init-system-inside-a-distrobox) plus
 some additional dependencies (tested with Vanilla OS Pico and Debian Sid):
 
 - libpam-systemd
