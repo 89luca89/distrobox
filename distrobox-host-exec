@@ -126,10 +126,12 @@ if [ -z "${host_command}" ]; then
 	host_command="${distrobox_host_exec_default_command}"
 fi
 
-if [ "$(id -ru)" -ne 0 ] && command -v sudo 2> /dev/null > /dev/null; then
-	sudo_command="sudo"
-else
-	sudo_command="su -l -c"
+if [ "$(id -ru)" -ne 0 ]; then
+	if command -v sudo 2> /dev/null > /dev/null; then
+		sudo_command="sudo"
+	else
+		sudo_command="su -l -c"
+	fi
 fi
 
 if  command -v curl > /dev/null 2>&1; then

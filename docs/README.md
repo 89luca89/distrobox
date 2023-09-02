@@ -82,6 +82,7 @@ graphical apps (X11/Wayland), and audio.
   - [Using Docker inside a Distrobox](useful_tips.md#using-docker-inside-a-distrobox)
   - [Using Podman inside a Distrobox](useful_tips.md#using-podman-inside-a-distrobox)
   - [Using LXC inside a Distrobox](useful_tips.md#using-lxc-inside-a-distrobox)
+  - [Using Waydroid inside a Distrobox](useful_tips.md#using-waydroid-inside-a-distrobox)
   - [Using host's Podman or Docker inside a Distrobox](useful_tips.md#using-hosts-podman-or-docker-inside-a-distrobox)
   - [Using distrobox as main cli](useful_tips.md#using-distrobox-as-main-cli)
   - [Using a different architecture](useful_tips.md#using-a-different-architecture)
