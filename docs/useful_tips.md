@@ -96,7 +96,7 @@ Another use case, what if you want or need to run distrobox with the root user, 
 shell?
 
 Before the 1.4.3 release, it wasn't possible. We couldn't make a distinction between someone
-running distrobox vi `sudo` from someone logged in as the root user in a shell. Now things are
+running distrobox via `sudo` from someone logged in as the root user in a shell. Now things are
 as easy as it would be if you were creating a rootless container:
 
 ```console
