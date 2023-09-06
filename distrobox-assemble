@@ -274,13 +274,18 @@ run_distrobox() (
 	fi
 	if [ -n "${init_hooks}" ]; then
 		IFS="¤"
-		args=":"
+		args=": ;"
+		separator=""
 		for arg in ${init_hooks}; do
-			if ! echo "${arg}" | grep -q ';*$' &&
-				! echo "${arg}" | grep -q '&&*$'; then
-				args="${args} && ${arg}"
+			args="${args} ${separator} ${arg}"
+
+			# Prepare for the next line, if we already have a ';' or '&&', do nothing
+			# else prefer adding '&&'
+			if ! echo "${arg}" | grep -q ';[[:space:]]\{0,1\}$' &&
+				! echo "${arg}" | grep -q '&&[[:space:]]\{0,1\}$'; then
+				separator="&&"
 			else
-				args="${args} ${arg}"
+				separator=""
 			fi
 		done
 		result_command="${result_command} --init-hooks $(sanitize_variable "${args}")"
@@ -288,13 +293,18 @@ run_distrobox() (
 	# Replicable flags
 	if [ -n "${pre_init_hooks}" ]; then
 		IFS="¤"
-		args=":"
+		args=": ;"
+		separator=""
 		for arg in ${pre_init_hooks}; do
-			if ! echo "${arg}" | grep -q ';*$' &&
-				! echo "${arg}" | grep -q '&&*$'; then
-				args="${args} && ${arg}"
+			args="${args} ${separator} ${arg}"
+
+			# Prepare for the next line, if we already have a ';' or '&&', do nothing
+			# else prefer adding '&&'
+			if ! echo "${arg}" | grep -q ';[[:space:]]\{0,1\}$' &&
+				! echo "${arg}" | grep -q '&&[[:space:]]\{0,1\}$'; then
+				separator="&&"
 			else
-				args="${args} ${arg}"
+				separator=""
 			fi
 		done
 		result_command="${result_command} --pre-init-hooks $(sanitize_variable "${args}")"
