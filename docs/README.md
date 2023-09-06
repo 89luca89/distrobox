@@ -178,7 +178,7 @@ Fedora Silverblue for the [uBlue](https://github.com/ublue-os) project
 ## Why
 
 - Provide a mutable environment on an immutable OS, like [Endless OS,
-  Fedora Silverblue, OpenSUSE MicroOS, ChromeOS](compatibility.md#host-distros)  or [SteamOS3](posts/install_rootless.md)
+  Fedora Silverblue, OpenSUSE MicroOS, ChromeOS](compatibility.md#host-distros)  or [SteamOS3](posts/install_podman_static.md)
 - Provide a locally privileged environment for sudoless setups
   (eg. company-provided laptops, security reasons, etc...)
 - To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat)
@@ -337,8 +337,6 @@ Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30),
 [alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli),
 [AtilaSaraiva](https://github.com/AtilaSaraiva), [michel-slm](https://github.com/michel-slm)
 
-You can also [follow the guide to install in a rootless manner](posts/install_rootless.md)
-
 ## Alternative methods
 
 Here is a list of alternative ways to install distrobox
@@ -408,7 +406,7 @@ Please look in the [Compatibility Table](compatibility.md#host-distros) for your
 distribution notes.
 
 There are ways to install [Podman without root privileges and in home.](compatibility.md#install-podman-in-a-static-manner)
-This should play well with completely sudoless setups and with devices like the Steam Deck.
+This should play well with completely sudoless setups and with devices like the Steam Deck (SteamOS).
 
 ---
 
