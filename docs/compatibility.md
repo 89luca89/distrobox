@@ -2,9 +2,8 @@
   - [Compatibility](#compatibility)
     - [Supported container managers](#supported-container-managers)
     - [Host Distros](#host-distros)
-      - [Install Podman in a static manner](#install-podman-in-a-static-manner)
-        - [Compatibility notes](#compatibility-notes)
-        - [Non shared mounts](#non-shared-mounts)
+      - [Compatibility notes](#compatibility-notes)
+      - [Non shared mounts](#non-shared-mounts)
       - [List of distributions including distrobox in their repositories](#list-of-distributions-including-distrobox-in-their-repositories)
       - [New Host Distro support](#new-host-distro-support)
     - [Containers Distros](#containers-distros)
@@ -72,14 +71,14 @@ Distrobox has been successfully tested on:
 | Vanilla OS | 22.10 <br> Orchid | `distrobox` should be installed in the home directory using the official script |
 | Void Linux | glibc | |
 
-#### Compatibility notes
+### Compatibility notes
 
 If your container is not able to connect to your host xserver, make sure to
 install `xhost` on the host machine and run `xhost +si:localuser:$USER`.
 If you wish to enable this functionality on future reboots add it to your `~/.xinitrc`
 or somewhere else tailored to your use case where it would be ran on every startup.
 
-#### Non shared mounts
+### Non shared mounts
 
 Note also that in some distributions, root filesystem is **not** mounted as a shared mount,
 this will give an error like:
@@ -98,7 +97,7 @@ mount --make-rshared /
 
 To make it permanent, you can place it in `/etc/rc.local`.
 
-### List of distributions including distrobox in their repositories
+## List of distributions including distrobox in their repositories
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/distrobox.svg)](https://repology.org/project/distrobox/versions)
 
