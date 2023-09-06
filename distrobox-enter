@@ -463,12 +463,12 @@ if [ "${container_status}" = "unknown" ]; then
 				create_command="${create_command} --root"
 			fi
 
-			create_command="${create_command} -i ${container_image_default} -n ${container_name}"
+			create_command="${create_command} --yes -i ${container_image_default} -n ${container_name}"
 
 			printf >&2 "Creating the container %s\n" "${container_name}"
 
 			if [ "${dryrun}" -ne 1 ]; then
-				eval "${create_command}" 2> /dev/null > /dev/null
+				eval "${create_command}"
 			fi
 			;;
 		n | N | No | no | NO)
