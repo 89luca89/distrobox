@@ -779,7 +779,6 @@ EOF
 			bash-completion
 			bc
 			bzip2
-			curl
 			diffutils
 			dnf-plugins-core
 			findutils
