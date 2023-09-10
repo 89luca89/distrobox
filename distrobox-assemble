@@ -366,8 +366,8 @@ run_distrobox() (
 # Outputs:
 #   a value string with the comments removed
 remove_comments() {
-  line="${1}"
-  filtered_line=$(echo "${line}" | awk '
+	line="${1}"
+	filtered_line=$(echo "${line}" | awk '
     # Configure awk to treat each character as a separate field
     BEGIN { FS="" }
     {
@@ -386,7 +386,7 @@ remove_comments() {
       }
     }
   ')
-  echo "${filtered_line}"
+	echo "${filtered_line}"
 }
 
 # Sanitize an input, add single/double quotes and escapes
