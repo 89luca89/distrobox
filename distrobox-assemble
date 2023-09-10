@@ -360,6 +360,35 @@ run_distrobox() (
 	fi
 )
 
+# Remove comments from ini file line. Respects quoted instances of `#`.
+# Arguments:
+#   a value string
+# Outputs:
+#   a value string with the comments removed
+remove_comments() {
+  line="${1}"
+  filtered_line=$(echo "${line}" | awk '
+    # Configure awk to treat each character as a separate field
+    BEGIN { FS="" }
+    {
+      # Loop through each character of the line
+      for(i = 1; i <= NF; i++){
+        # If character is a quote, toggle the quoting flag
+        if ($i == "\"") {
+          q = !q
+        }
+        # If character is a hash and we are outside of quotes, stop processing
+        if (!q && $i == "#") {
+          exit
+        }
+        # Print the current character
+        printf("%s", $i)
+      }
+    }
+  ')
+  echo "${filtered_line}"
+}
+
 # Sanitize an input, add single/double quotes and escapes
 # Arguments:
 #   a value string
@@ -397,7 +426,7 @@ parse_file() (
 			continue
 		fi
 		# Remove comments and trailing spaces
-		line="$(echo "${line}" | sed 's/#.*//g' | sed 's/\s*$//g')"
+		line="$(remove_comments "${line}" | sed 's/\s*$//g')"
 
 		# Detect start of new section
 		if [ "$(echo "${line}" | cut -c 1)" = '[' ]; then
