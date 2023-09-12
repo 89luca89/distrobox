@@ -9,12 +9,15 @@
   - [Duplicate an existing distrobox](#duplicate-an-existing-distrobox)
   - [Export to the host](#export-to-the-host)
   - [Execute commands on the host](#execute-commands-on-the-host)
+  - [Resolve "Error cannot open display: :0"](#resolve-error-cannot-open-display-0)
   - [Enable SSH X-Forwarding when SSH-ing in a distrobox](#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using Docker inside a Distrobox](#using-docker-inside-a-distrobox)
   - [Using Podman inside a Distrobox](#using-podman-inside-a-distrobox)
   - [Using LXC inside a Distrobox](#using-lxc-inside-a-distrobox)
   - [Using Waydroid inside a Distrobox](#using-waydroid-inside-a-distrobox)
+    - [Manual Installation](#manual-installation)
+    - [Automated Installation](#automated-installation)
   - [Using host's Podman or Docker inside a Distrobox](#using-hosts-podman-or-docker-inside-a-distrobox)
   - [Using distrobox as main cli](#using-distrobox-as-main-cli)
   - [Using a different architecture](#using-a-different-architecture)
@@ -197,6 +200,18 @@ Distrobox supports exporting to the host either binaries or applications.
 ## Execute commands on the host
 
 You can check this little post about [executing commands on the host.](posts/execute_commands_on_host.md)
+
+## Resolve "Error cannot open display: :0"
+
+If your container is not able to connect to your host xserver, make sure to
+install `xhost` on the host machine and run `xhost +si:localuser:$USER`.
+If you wish to enable this functionality on future reboots add the above command
+to your `~/.distroboxrc`
+
+```console
+-$ cat ~/.distroboxrc
+xhost +si:localuser:$USER`
+```
 
 ## Enable SSH X-Forwarding when SSH-ing in a distrobox
 
