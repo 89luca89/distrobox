@@ -53,7 +53,7 @@ graphical apps (X11/Wayland), and audio.
 - [Compatibility](compatibility.md)
   - [Supported container managers](compatibility.md#supported-container-managers)
   - [Host Distros](compatibility.md#host-distros)
-      - [Install on the Steamdeck](posts/steamdeck_guide.md)
+    - [Install on the Steamdeck](posts/steamdeck_guide.md)
   - [Containers Distros](compatibility.md#containers-distros)
 - [Usage](usage/usage.md)
   - [Outside the distrobox](usage/usage.md#outside-the-distrobox)

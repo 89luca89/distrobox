@@ -7,12 +7,13 @@ inside the `$HOME` so that containers will survive updates.
 
 To install podman, [refer to the install guide](install_podman_static.md#):
 
-- Download the latest release of `podman-launcher` and place it in your home and rename it to `podman`, this example will use `~/.local/bin`
+- Download the latest release of `podman-launcher` and place it in your home and rename it to `podman`,
+  this example will use `~/.local/bin`
 - Setup `deck` user password using:
   - `passwd`
-- Setup `deck` user uidmap
-   - `sudo touch /etc/subuid /etc/subgid`
-   - `sudo usermod --add-subuid 100000-165535 --add-subgid 100000-165535 deck`
+- Setup `deck` user uidmap:
+  - `sudo touch /etc/subuid /etc/subgid`
+  - `sudo usermod --add-subuid 100000-165535 --add-subgid 100000-165535 deck`
 
 And `podman` is ready to use!
 
@@ -21,7 +22,7 @@ And `podman` is ready to use!
 Installing distrobox in HOME is quite straightforward:
 
 - Install `distrobox` in your HOME following the `curl` instructions:
-   - [INSTALL](../README.md#curl-or-wget)
+  - [INSTALL](../README.md#curl-or-wget)
 
 ## Setup ~/.distroboxrc
 
@@ -44,7 +45,7 @@ is not working correctly inside the container, and it's a SteamOS specific issue
 `PATH` is needed to ensure distrobox can find the `podman` binary we previously
 downloaded.
 
-# Start using it!
+## Start using it
 
 You can now start using `distrobox` on the deck, open the terminal and go:
 
