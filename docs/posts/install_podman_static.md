@@ -19,14 +19,3 @@ Provided the only dependency on the host (`newuidmap/newgidmap`, of the package 
 you should be good to go.
 
 To uninstall, just delete the binary.
-
-On some systems, like SteamOS, you might have to enable this command in order to have graphical applications working:
-[SEE THESE NOTES](../compatibility.md#compatibility-notes)
-
-To resolve add this line to your `~/.distroboxrc`:
-
-  `xhost +si:localuser:$USER`
-
----
-
-After this, you can open a new terminal, and have Distrobox working!
