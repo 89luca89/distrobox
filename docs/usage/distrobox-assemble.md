@@ -115,6 +115,9 @@ This is a list of available options with the corresponding type:
 | root | bool
 | unshare_ipc | bool
 | unshare_netns | bool
+| unshare_process | bool
+| unshare_devsys | bool
+| unshare_all | bool
 
 boolean options default to false if not specified.
 string options can be broken in multiple declarations additively in order to improve

@@ -47,6 +47,9 @@ root=""
 start_now=""
 unshare_ipc=""
 unshare_netns=""
+unshare_process=""
+unshare_devsys=""
+unshare_all=""
 volume=""
 exported_apps=""
 exported_bins=""
@@ -268,6 +271,15 @@ run_distrobox() (
 	fi
 	if [ -n "${unshare_ipc}" ] && [ "${unshare_ipc}" -eq 1 ]; then
 		result_command="${result_command} --unshare-ipc"
+	fi
+	if [ -n "${unshare_process}" ] && [ "${unshare_process}" -eq 1 ]; then
+		result_command="${result_command} --unshare-process"
+	fi
+	if [ -n "${unshare_devsys}" ] && [ "${unshare_devsys}" -eq 1 ]; then
+		result_command="${result_command} --unshare-devsys"
+	fi
+	if [ -n "${unshare_all}" ] && [ "${unshare_all}" -eq 1 ]; then
+		result_command="${result_command} --unshare-all"
 	fi
 	if [ -n "${home}" ]; then
 		result_command="${result_command} --home $(sanitize_variable "${home}")"
