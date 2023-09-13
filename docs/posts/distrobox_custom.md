@@ -1,5 +1,4 @@
 - [Distrobox](README.md)
-  - [Useful tips](useful_tips.md)
 
 ---
 

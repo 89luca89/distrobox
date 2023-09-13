@@ -102,6 +102,7 @@ graphical apps (X11/Wayland), and audio.
   - [Pre-installing additional package repositories](useful_tips.md#pre-installing-additional-package-repositories)
   - [Apply resource limitation on the fly](useful_tips.md#apply-resource-limitation-on-the-fly)
 - [Posts](posts/posts.md)
+  - [Create a dedicated distrobox container](posts/distrobox_custom.md)
   - [Execute a command on the Host](posts/execute_commands_on_host.md)
   - [Install Podman in HOME](posts/install_podman_static.md)
   - [Install on Steamdeck](posts/steamdeck_guide.md)

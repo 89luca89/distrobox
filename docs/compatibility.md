@@ -188,7 +188,7 @@ A work around this is to use the `vsyscall=emulate` flag in the bootloader of th
 host.
 
 Keep also in mind that mirrors could be down for such old releases, so you will
-need to build a [custom distrobox image to ensure basic dependencies are met](./distrobox_custom.md).
+need to build a [custom distrobox image to ensure basic dependencies are met](./posts/distrobox_custom.md).
 
 ### GPU Acceleration support
 
