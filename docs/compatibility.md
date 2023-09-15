@@ -113,18 +113,18 @@ Distrobox guests tested successfully with the following container images:
 
 |    Distro  |    Version | Images    |
 | --- | --- | --- |
-| AlmaLinux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/almalinux-toolbox:8 <br> quay.io/toolbx-images/almalinux-toolbox:9 |
-| Alpine (Toolbox) | 3.16 <br> 3.17 <br> 3.18 <br> edge | quay.io/toolbx-images/alpine-toolbox:3.16 <br> quay.io/toolbx-images/alpine-toolbox:3.17 <br> quay.io/toolbx-images/alpine-toolbox:3.18 <br> quay.io/toolbx-images/alpine-toolbox:edge |
-| AmazonLinux (Toolbox) | 2 <br> 2022 | quay.io/toolbx-images/amazonlinux-toolbox:2 <br> quay.io/toolbx-images/amazonlinux-toolbox:2023 |
-| Archlinux (Toolbox) | | quay.io/toolbx-images/archlinux-toolbox |
+| AlmaLinux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/almalinux-toolbox:8 <br> quay.io/toolbx-images/almalinux-toolbox:9 <br> quay.io/toolbx-images/almalinux-toolbox:latest |
+| Alpine (Toolbox) | 3.16 <br> 3.17 <br> 3.18 <br> edge | quay.io/toolbx-images/alpine-toolbox:3.16 <br> quay.io/toolbx-images/alpine-toolbox:3.17 <br> quay.io/toolbx-images/alpine-toolbox:3.18 <br> quay.io/toolbx-images/alpine-toolbox:edge <br> quay.io/toolbx-images/alpine-toolbox:latest |
+| AmazonLinux (Toolbox) | 2 <br> 2022 | quay.io/toolbx-images/amazonlinux-toolbox:2 <br> quay.io/toolbx-images/amazonlinux-toolbox:2023 <br> quay.io/toolbx-images/amazonlinux-toolbox:latest |
+| Archlinux (Toolbox) | | quay.io/toolbx-images/archlinux-toolbox:latest |
 | Bazzite Arch | | ghcr.io/ublue-os/bazzite-arch:latest <br> ghcr.io/ublue-os/bazzite-arch-gnome:latest |
-| Centos (Toolbox) | stream8 <br> stream9 | quay.io/toolbx-images/centos-toolbox:stream8 <br> quay.io/toolbx-images/centos-toolbox:stream9 |
-| Debian (Toolbox) | 10 <br> 11 <br> 12 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:10 <br> quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br>  quay.io/toolbx-images/debian-toolbox:testing <br>  quay.io/toolbx-images/debian-toolbox:unstable |
-| Fedora (Toolbox) | 36 <br> 37 <br> 38 <br> 39 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox: 37 <br> registry.fedoraproject.org/fedora-toolbox:38 <br> registry.fedoraproject.org/fedora-toolbox:39 |
-| openSUSE (Toolbox) | | registry.opensuse.org/opensuse/distrobox:latest <br> quay.io/toolbx-images/opensuse-toolbox:latest |
-| RedHat (Toolbox) | 8 <br> 9 | registry.access.redhat.com/ubi8/toolbox <br> registry.access.redhat.com/ubi9/toolbox |
-| Rocky Linux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/rockylinux-toolbox:8 <br> quay.io/toolbx-images/rockylinux-toolbox:9 |
-| Ubuntu (Toolbox) | 16.04 <br> 18.04 <br> 20.04 <br> 22.04 | quay.io/toolbx-images/ubuntu-toolbox:16.04 <br> quay.io/toolbx-images/ubuntu-toolbox:18.04 <br> quay.io/toolbx-images/ubuntu-toolbox:20.04 <br> quay.io/toolbx-images/ubuntu-toolbox:22.04 |
+| Centos (Toolbox) | stream8 <br> stream9 | quay.io/toolbx-images/centos-toolbox:stream8 <br> quay.io/toolbx-images/centos-toolbox:stream9 <br> quay.io/toolbx-images/centos-toolbox:latest |
+| Debian (Toolbox) | 10 <br> 11 <br> 12 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:10 <br> quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br> quay.io/toolbx-images/debian-toolbox:testing <br> quay.io/toolbx-images/debian-toolbox:unstable <br> quay.io/toolbx-images/debian-toolbox:latest |
+| Fedora (Toolbox) | 36 <br> 37 <br> 38 <br> 39 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox:37 <br> registry.fedoraproject.org/fedora-toolbox:38 <br> registry.fedoraproject.org/fedora-toolbox:39 <br> registry.fedoraproject.org/fedora-toolbox:latest |
+| openSUSE (Toolbox) | | registry.opensuse.org/opensuse/distrobox:latest <br> quay.io/toolbx-images/opensuse-toolbox:tumbleweed <br> quay.io/toolbx-images/opensuse-toolbox:latest |
+| RedHat (Toolbox) | 8 <br> 9 | registry.access.redhat.com/ubi8/toolbox <br> registry.access.redhat.com/ubi9/toolbox <br> quay.io/toolbx-images/rhel-toolbox:latest |
+| Rocky Linux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/rockylinux-toolbox:8 <br> quay.io/toolbx-images/rockylinux-toolbox:9 <br> quay.io/toolbx-images/rockylinux-toolbox:latest |
+| Ubuntu (Toolbox) | 16.04 <br> 18.04 <br> 20.04 <br> 22.04 | quay.io/toolbx-images/ubuntu-toolbox:16.04 <br> quay.io/toolbx-images/ubuntu-toolbox:18.04 <br> quay.io/toolbx-images/ubuntu-toolbox:20.04 <br> quay.io/toolbx-images/ubuntu-toolbox:22.04 <br> quay.io/toolbx-images/ubuntu-toolbox:latest |
 |  |  |  |
 | AlmaLinux (UBI) | 8 | quay.io/almalinux/8-base:8 <br> quay.io/almalinux/8-init:8 |
 | AlmaLinux | 8 <br> 8-minimal <br> 9 <br> 9-minimal | quay.io/almalinux/almalinux:8 <br> quay.io/almalinux/almalinux:9 <br> quay.io/almalinux/almalinux:9-minimal |
@@ -157,8 +157,8 @@ Distrobox guests tested successfully with the following container images:
 | Vanilla OS | VSO | ghcr.io/vanilla-os/vso:main |
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64 |
 
-Images marked with **Toolbox** are tailored images, so they are more indicated
-for desktop use, and first setup will take less time.
+Images marked with **Toolbox** are tailored images made by the community efforts in [toolbx-images/images](https://github.com/toolbx-images/images),
+so they are more indicated for desktop use, and first setup will take less time.
 Note however that if you use a non-toolbox preconfigured image,
 the **first** `distrobox-enter` you'll perform
 can take a while as it will download and install the missing dependencies.
