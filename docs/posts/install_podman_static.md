@@ -12,8 +12,8 @@ between updates, then you could use this script to install `podman` in your `$HO
 This is particularly indicated also for completely *sudoless* setups, where you don't
 have any superuser access to the system, like for example company provided computers.
 
-Download the latest release of [podman-launcher](https://github.com/89luca89/podman-launcher/releases)
-and put it somewhere in your $PATH
+Download the latest release of [podman-launcher](https://github.com/89luca89/podman-launcher/releases),
+make it executable and put it somewhere in your $PATH
 
 Provided the only dependency on the host (`newuidmap/newgidmap`, of the package `uidmap` or `shadow`),
 you should be good to go.

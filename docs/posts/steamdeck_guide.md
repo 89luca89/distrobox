@@ -1,4 +1,4 @@
-# Install Distrobox on the Steamdecl
+# Install Distrobox on the Steamdeck
 
 To install Distrobox on the steamdeck, we can install both `podman` and `distrobox`
 inside the `$HOME` so that containers will survive updates.
@@ -9,6 +9,8 @@ To install podman, [refer to the install guide](install_podman_static.md#):
 
 - Download the latest release of `podman-launcher` and place it in your home and rename it to `podman`,
   this example will use `~/.local/bin`
+- Make the `podman` binary executable:
+  - `chmod +x ~/.local/bin/podman`
 - Setup `deck` user password using:
   - `passwd`
 - Setup `deck` user uidmap:
