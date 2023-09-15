@@ -169,7 +169,7 @@ while :; do
 done
 
 # Check we're running inside a container and not on the host
-if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ] && [ -z "${container}" ]; then
+if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ] && [ -z "${container:-}" ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
 	printf >&2 "distrobox-init should only be used as an entrypoint for a distrobox!\n\n"
 	printf >&2 "This is not intended to be used manually, but instead used by distrobox-enter\n"
