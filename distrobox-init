@@ -197,7 +197,7 @@ fi
 #
 # if /run/.nopasswd is present, let's treat the init as rootless, this is not
 # a good thing, users behold!
-if stat /run/host/etc/shadow &&
+if stat /run/host/etc/shadow > /dev/null &&
 	[ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] &&
 	[ ! -e /run/.nopasswd ]; then
 	rootful=1
@@ -386,7 +386,7 @@ dependencies="
 	${shell_pkg}
 "
 for dep in ${dependencies}; do
-	! command -v "${dep}" && missing_packages=1 && break
+	! command -v "${dep}" > /dev/null && missing_packages=1 && break
 done
 
 # Check if dependencies are met for the script to run.
