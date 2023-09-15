@@ -212,7 +212,7 @@ elif [ -e /.dockerenv ]; then
 	# we're in docker, let's use this trick
 	container_name=$(grep "memory:/" < /proc/self/cgroup | sed 's|.*/||')
 elif [ -e /run/.containerenv ]; then
-	# we're in podman, use this other trick
+	# we're in podman or lilipod, use this other trick
 	container_name=$(grep "name=" /run/.containerenv | cut -d'=' -f2- | tr -d '"')
 fi
 # If one of the previous methods didn't work

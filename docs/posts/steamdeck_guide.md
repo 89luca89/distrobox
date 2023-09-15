@@ -17,6 +17,20 @@ To install podman, [refer to the install guide](install_podman_static.md#):
 
 And `podman` is ready to use!
 
+### Alternative Install Lilipod
+
+To install podman, [refer to the install guide](install_lilipod_static.md#):
+
+- Download the latest release of `podman-launcher` and place it in your home and rename it to `podman`,
+  this example will use `~/.local/bin`
+- Setup `deck` user password using:
+  - `passwd`
+- Setup `deck` user uidmap:
+  - `sudo touch /etc/subuid /etc/subgid`
+  - `sudo usermod --add-subuid 100000-165535 --add-subgid 100000-165535 deck`
+
+And `lilipod` is ready to use!
+
 ## Install Distrobox
 
 Installing distrobox in HOME is quite straightforward:

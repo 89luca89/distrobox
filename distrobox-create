@@ -164,7 +164,7 @@ Options:
 	--name/-n:		name for the distrobox		default: ${container_name_default}
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
-	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--clone/-c:		name of the distrobox container to use as base for a new container
@@ -437,32 +437,42 @@ if [ "$(printf "%s" "${container_name}.$(uname -n)" | wc -m)" -gt 64 ]; then
 fi
 
 # We depend on a container manager let's be sure we have it
-# First we use podman, else docker
+# First we use podman, else docker, else lilipod
 case "${container_manager}" in
 	autodetect)
 		if command -v podman > /dev/null; then
 			container_manager="podman"
+		elif command -v podman-launcher > /dev/null; then
+			container_manager="podman-launcher"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
+		elif command -v lilipod > /dev/null; then
+			container_manager="lilipod"
 		fi
 		;;
 	podman)
 		container_manager="podman"
+		;;
+	podman-launcher)
+		container_manager="podman-launcher"
+		;;
+	lilipod)
+		container_manager="lilipod"
 		;;
 	docker)
 		container_manager="docker"
 		;;
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
+		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker', 'lilipod'\n"
 		;;
 esac
 
 # Be sure we have a container manager to work with.
 if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
-	# Error: we need at least one between docker or podman.
+	# Error: we need at least one between docker, podman or lilipod.
 	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
+	printf >&2 "Please install one of podman,  docker or lilipod.\n"
 	printf >&2 "You can follow the documentation on:\n"
 	printf >&2 "\tman distrobox-compatibility\n"
 	printf >&2 "or:\n"
@@ -474,7 +484,7 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program-} ${container_manager}"
 fi
@@ -538,7 +548,7 @@ clone_container() {
 # Arguments:
 #   None
 # Outputs:
-#   prints the podman or docker command to create the distrobox container
+#   prints the podman, docker or lilipod command to create the distrobox container
 generate_command() {
 	# Set the container hostname the same as the container name.
 	result_command="${container_manager} create"
@@ -612,6 +622,7 @@ generate_command() {
 			--cgroupns host"
 	fi
 	if [ "${init}" -eq 1 ] && echo "${container_manager}" | grep -vq "podman"; then
+		# In case of all other non-podman container managers, we can do this
 		result_command="${result_command}
 			--stop-signal SIGRTMIN+3
 			--mount type=tmpfs,destination=/run
@@ -670,7 +681,7 @@ generate_command() {
 			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
 	fi
 
-	# Ensure that both podman and docker support forwarding of RedHat subscription-manager
+	# Ensure that both all container managers (not only podman) support forwarding of RedHat subscription-manager
 	# This is needed in order to have a working subscription forwarded into the container,
 	# this will ensure that rhel-9-for-x86_64-appstream-rpms and rhel-9-for-x86_64-baseos-rpms repos
 	# will be available in the container, so that distrobox-init will be able to

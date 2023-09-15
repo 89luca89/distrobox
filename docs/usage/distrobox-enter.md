@@ -22,7 +22,7 @@ If using it inside a script, an application, or a service, you can specify the
 	--no-workdir/-nw:	always start the container from container's home directory
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
-	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--dry-run/-d:		only print the container manager command generated
@@ -40,7 +40,7 @@ Enter a distrobox specifying a command
 	distrobox-enter --name fedora-toolbox-35 -- bash -l
 	distrobox-enter my-alpine-container -- sh -l
 
-Use additional podman/docker flags while entering a distrobox
+Use additional podman/docker/lilipod flags while entering a distrobox
 
 	distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
 
@@ -77,7 +77,7 @@ This is possible also using normal env variables:
 	my_var=test
 
 If you'd like to enter a rootful container having distrobox use a program other than 'sudo' to
-run podman/docker as root, such as 'pkexec' or 'doas', you may specify it with the
+run podman/docker/lilipod as root, such as 'pkexec' or 'doas', you may specify it with the
 `DBX_SUDO_PROGRAM` environment variable. For example, to use 'doas' to enter a rootful container:
 
 	DBX_SUDO_PROGRAM="doas" distrobox enter -n container --root

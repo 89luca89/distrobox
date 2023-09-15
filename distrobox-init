@@ -1271,7 +1271,7 @@ EOF
 		sed -i 's/.*solver.onlyRequires.*/solver.onlyRequires = false/g' /etc/zypp/zypp.conf
 		sed -i 's/.*rpm.install.excludedocs.*/rpm.install.excludedocs = no/g' /etc/zypp/zypp.conf
 		# With recommended packages, something might try to pull in
-		# parallel-printer-support which can't be installed in rootless podman.
+		# parallel-printer-support which can't be installed in rootless containers.
 		# Since we very much likely never need it, just lock it
 		zypper al parallel-printer-support
 		# Check if shell_pkg is available in distro's repo. If not we
@@ -1379,7 +1379,7 @@ printf "distrobox: Setting up devpts mounts...\n"
 # and make easier in case of initful containers to have a separate /dev/console
 #
 # Podman supports a mount option to do this at creation time, but we're doing it
-# here to support also docker which does not support that flag
+# here to support also other containe rmanagers which does not support that flag
 mount -t devpts devpts -o noexec,nosuid,newinstance,ptmxmode=0666,mode=0620 /dev/pts/
 mount --bind /dev/pts/ptmx /dev/ptmx
 

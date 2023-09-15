@@ -16,7 +16,7 @@ current logo credits [David Lapshin](https://github.com/daudix-UFO)<sub>
 Use any Linux distribution inside your terminal. Enable both backward and forward
 compatibility with software and freedom to use whatever distribution you’re more
 comfortable with.
-Distrobox uses `podman` or `docker` to create containers using the Linux distribution
+Distrobox uses `podman`, `docker` or `lilipod` to create containers using the Linux distribution
 of your choice.
 The created container will be tightly integrated with the host, allowing sharing
 of the HOME directory of the user, external storage, external USB devices and
@@ -105,6 +105,7 @@ graphical apps (X11/Wayland), and audio.
   - [Create a dedicated distrobox container](posts/distrobox_custom.md)
   - [Execute a command on the Host](posts/execute_commands_on_host.md)
   - [Install Podman in HOME](posts/install_podman_static.md)
+  - [Install Lilipod in HOME](posts/install_lilipod_static.md)
   - [Install on Steamdeck](posts/steamdeck_guide.md)
   - [Integrate VSCode and Distrobox](posts/integrate_vscode_distrobox.md)
   - [Run Libvirt using distrobox](posts/run_libvirt_in_distrobox.md)
@@ -139,7 +140,7 @@ graphical apps (X11/Wayland), and audio.
 
 ## What it does
 
-Simply put it's a fancy wrapper around `podman` or `docker` to create and start
+Simply put it's a fancy wrapper around `podman`, `docker` or `lilipod` to create and start
 containers highly integrated with the hosts.
 
 The distrobox environment is based on an OCI image.
@@ -188,7 +189,7 @@ Fedora Silverblue for the [uBlue](https://github.com/ublue-os) project
 ## Why
 
 - Provide a mutable environment on an immutable OS, like [Endless OS,
-  Fedora Silverblue, OpenSUSE MicroOS, ChromeOS](compatibility.md#host-distros)  or [SteamOS3](posts/install_podman_static.md)
+  Fedora Silverblue, OpenSUSE MicroOS, ChromeOS](compatibility.md#host-distros)  or [SteamOS3](posts/steamdeck_guide.md)
 - Provide a locally privileged environment for sudoless setups
   (eg. company-provided laptops, security reasons, etc...)
 - To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat)
@@ -203,7 +204,7 @@ Refer to the compatibility list for an overview of supported host's distro
 ### Aims
 
 This project aims to bring **any distro userland to any other distro**
-supporting podman or docker.
+supporting podman, docker or lilipod.
 It has been written in POSIX sh to be as portable as possible and not have
 problems with dependencies and glibc version's compatibility.
 
@@ -231,12 +232,12 @@ The container will have complete access to your home, pen drives and so on,
 so do not expect it to be highly sandboxed like a plain
 docker/podman container or a flatpak.
 
-⚠️ **BE CAREFUL**:⚠️  if you use docker, or you use podman with the `--root/-r` flag,
+⚠️ **BE CAREFUL**:⚠️  if you use docker, or you use podman/lilipod with the `--root/-r` flag,
 the containers will run as root, so **root inside the rootful container can modify
 system stuff outside the container**,
 Be also aware that **In rootful mode, you'll be asked to setup user's password**, this will
 ensure at least that the container is not a passwordless gate to root,
-but if you have security concern for this, **use podman that runs in rootless mode**.
+but if you have security concern for this, **use podman or lilipod that runs in rootless mode**.
 Rootless docker is still not working as intended and will be included in the future
 when it will be complete.
 
@@ -410,12 +411,13 @@ distro-specific instructions.
 ## Dependencies
 
 Distrobox depends on a container manager to work, you can choose to install
-either podman or docker.
+either podman, docker or lilipod.
 
 Please look in the [Compatibility Table](compatibility.md#host-distros) for your
 distribution notes.
 
-There are ways to install [Podman without root privileges and in home.](compatibility.md#install-podman-in-a-static-manner)
+There are ways to install [Podman without root privileges and in home.](compatibility.md#install-podman-in-a-static-manner) or
+[Lilipod without root privileges and in home.](compatibility.md#install-lilipod-in-a-static-manner)
 This should play well with completely sudoless setups and with devices like the Steam Deck (SteamOS).
 
 ---
