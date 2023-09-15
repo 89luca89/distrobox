@@ -210,7 +210,7 @@ IFS='
 GREEN=""
 YELLOW=""
 CLEAR=""
-if [ -t 0 ] && [ "${no_color}" -ne 1 ]; then
+if [ -t 0 ] && [ -t 1 ] && [ "${no_color}" -ne 1 ]; then
 	# we're in a tty, use colors
 	GREEN='\033[32m'
 	YELLOW='\033[33m'

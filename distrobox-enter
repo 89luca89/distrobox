@@ -299,8 +299,8 @@ generate_command() {
 	# the container.
 	# To work around this, --headless let's you skip the --tty flag and make it
 	# work in tty-less situations.
-	# Disable tty also if we're NOT in a tty (test -t 0).
-	if [ "${headless}" -eq 0 ] && [ -t 0 ]; then
+	# Disable tty also if we're NOT in a tty (test -t 0, test -t 1).
+	if [ "${headless}" -eq 0 ] && [ -t 0 ] && [ -t 1 ]; then
 		result_command="${result_command}
 			--tty"
 	fi
