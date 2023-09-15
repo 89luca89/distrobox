@@ -37,6 +37,8 @@ if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
 	exit 1
 fi
 
+trap cleanup TERM INT HUP
+
 name=$(mktemp -u distrobox-XXXXXXXXXX)
 container_command=""
 create_flags=""
@@ -163,7 +165,7 @@ if [ "${verbose}" -ne 0 ]; then
 	extra_flags="${extra_flags} --verbose"
 fi
 
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
 fi
@@ -199,12 +201,20 @@ generate_command() {
 	printf "%s" "${result_command}"
 }
 
+cleanup() {
+	# shellcheck disable=SC2086
+	"${distrobox_path}"/distrobox-stop ${extra_flags} "${name}" --yes
+	# shellcheck disable=SC2086
+	"${distrobox_path}"/distrobox-rm ${extra_flags} --force "${name}" --yes
+}
+
 cmd="$(generate_command)"
 # shellcheck disable=SC2086
 eval ${cmd}
 # shellcheck disable=SC2086
 "${distrobox_path}"/distrobox-enter ${extra_flags} "${name}" ${container_command}
-# shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-stop ${extra_flags} "${name}" --yes
-# shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-rm  ${extra_flags} --force "${name}" --yes
+exit_code="$?"
+
+cleanup
+
+exit "${exit_code}"
