@@ -416,7 +416,8 @@ either podman, docker or lilipod.
 Please look in the [Compatibility Table](compatibility.md#host-distros) for your
 distribution notes.
 
-There are ways to install [Podman without root privileges and in home.](compatibility.md#install-podman-in-a-static-manner) or
+There are ways to install
+[Podman without root privileges and in home.](compatibility.md#install-podman-in-a-static-manner) or
 [Lilipod without root privileges and in home.](compatibility.md#install-lilipod-in-a-static-manner)
 This should play well with completely sudoless setups and with devices like the Steam Deck (SteamOS).
 

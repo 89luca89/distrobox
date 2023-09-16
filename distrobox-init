@@ -1379,7 +1379,7 @@ printf "distrobox: Setting up devpts mounts...\n"
 # and make easier in case of initful containers to have a separate /dev/console
 #
 # Podman supports a mount option to do this at creation time, but we're doing it
-# here to support also other containe rmanagers which does not support that flag
+# here to support also other container rmanagers which does not support that flag
 mount -t devpts devpts -o noexec,nosuid,newinstance,ptmxmode=0666,mode=0620 /dev/pts/
 mount --bind /dev/pts/ptmx /dev/ptmx
 

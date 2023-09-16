@@ -223,7 +223,7 @@ fi
 # If all, just set container_name to the list of names in distrobox-list
 if [ "${all}" -ne 0 ]; then
 
-# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
+	# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
 	# shellcheck disable=SC2086,2248
 	container_name="$("${distrobox_path}"/distrobox-list ${distrobox_flags} --no-color |
 		tail -n +2 | cut -d'|' -f2 | tr -d ' ')"
