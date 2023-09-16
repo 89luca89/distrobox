@@ -408,8 +408,14 @@ parse_file() (
 			# blank line, skip
 			continue
 		fi
+
 		# Remove comments and trailing spaces
-		line="$(echo "${line}" | sed 's/#.*//g' | sed 's/\s*$//g')"
+		line="$(echo "${line}" |
+			sed 's/\t/ /g' |
+			sed 's/^#.*//g' |
+			sed 's/].*#.*//g' |
+			sed 's/ #.*//g' |
+			sed 's/\s*$//g')"
 
 		# Detect start of new section
 		if [ "$(echo "${line}" | cut -c 1)" = '[' ]; then
