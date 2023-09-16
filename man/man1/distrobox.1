@@ -351,8 +351,8 @@ basic user management utilities (\f[V]usermod, passwd\f[R]), and
 \f[V]sudo\f[R] correctly set.
 .SS SUPPORTED CONTAINER MANAGERS
 .PP
-\f[V]distrobox\f[R] can run on either \f[V]podman\f[R] or
-\f[V]docker\f[R]
+\f[V]distrobox\f[R] can run on either \f[V]podman\f[R], \f[V]docker\f[R]
+or \f[V]lilipod\f[R]
 .PP
 It depends either on \f[V]podman\f[R] configured in
 \f[V]rootless mode\f[R] or on \f[V]docker\f[R] configured without sudo
@@ -362,6 +362,8 @@ instructions (https://docs.docker.com/engine/install/linux-postinstall/))
 Minimum podman version: \f[B]2.1.0\f[R]
 .IP \[bu] 2
 Minimum docker client version: \f[B]19.03.15\f[R]
+.IP \[bu] 2
+Minimum lilipod version: \f[B]v0.0.1\f[R]
 .PP
 Follow the official installation guide here:
 .IP \[bu] 2
@@ -393,6 +395,7 @@ T}@T{
 T}@T{
 quay.io/toolbx-images/almalinux-toolbox:8
 quay.io/toolbx-images/almalinux-toolbox:9
+quay.io/toolbx-images/almalinux-toolbox:latest
 T}
 T{
 Alpine (Toolbox)
@@ -403,6 +406,7 @@ quay.io/toolbx-images/alpine-toolbox:3.16
 quay.io/toolbx-images/alpine-toolbox:3.17
 quay.io/toolbx-images/alpine-toolbox:3.18
 quay.io/toolbx-images/alpine-toolbox:edge
+quay.io/toolbx-images/alpine-toolbox:latest
 T}
 T{
 AmazonLinux (Toolbox)
@@ -410,13 +414,14 @@ T}@T{
 2 2022
 T}@T{
 quay.io/toolbx-images/amazonlinux-toolbox:2
-quay.io/toolbx-images/amazonlinux-toolbox:2022
+quay.io/toolbx-images/amazonlinux-toolbox:2023
+quay.io/toolbx-images/amazonlinux-toolbox:latest
 T}
 T{
 Archlinux (Toolbox)
 T}@T{
 T}@T{
-quay.io/toolbx-images/archlinux-toolbox
+quay.io/toolbx-images/archlinux-toolbox:latest
 T}
 T{
 Bazzite Arch
@@ -432,6 +437,7 @@ stream8 stream9
 T}@T{
 quay.io/toolbx-images/centos-toolbox:stream8
 quay.io/toolbx-images/centos-toolbox:stream9
+quay.io/toolbx-images/centos-toolbox:latest
 T}
 T{
 Debian (Toolbox)
@@ -443,21 +449,24 @@ quay.io/toolbx-images/debian-toolbox:11
 quay.io/toolbx-images/debian-toolbox:12
 quay.io/toolbx-images/debian-toolbox:testing
 quay.io/toolbx-images/debian-toolbox:unstable
+quay.io/toolbx-images/debian-toolbox:latest
 T}
 T{
 Fedora (Toolbox)
 T}@T{
 36 37 38 39 Rawhide
 T}@T{
-registry.fedoraproject.org/fedora-toolbox: 37
+registry.fedoraproject.org/fedora-toolbox:37
 registry.fedoraproject.org/fedora-toolbox:38
 registry.fedoraproject.org/fedora-toolbox:39
+registry.fedoraproject.org/fedora-toolbox:latest
 T}
 T{
 openSUSE (Toolbox)
 T}@T{
 T}@T{
 registry.opensuse.org/opensuse/distrobox:latest
+quay.io/toolbx-images/opensuse-toolbox:tumbleweed
 quay.io/toolbx-images/opensuse-toolbox:latest
 T}
 T{
@@ -467,6 +476,7 @@ T}@T{
 T}@T{
 registry.access.redhat.com/ubi8/toolbox
 registry.access.redhat.com/ubi9/toolbox
+quay.io/toolbx-images/rhel-toolbox:latest
 T}
 T{
 Rocky Linux (Toolbox)
@@ -475,6 +485,7 @@ T}@T{
 T}@T{
 quay.io/toolbx-images/rockylinux-toolbox:8
 quay.io/toolbx-images/rockylinux-toolbox:9
+quay.io/toolbx-images/rockylinux-toolbox:latest
 T}
 T{
 Ubuntu (Toolbox)
@@ -485,6 +496,7 @@ quay.io/toolbx-images/ubuntu-toolbox:16.04
 quay.io/toolbx-images/ubuntu-toolbox:18.04
 quay.io/toolbx-images/ubuntu-toolbox:20.04
 quay.io/toolbx-images/ubuntu-toolbox:22.04
+quay.io/toolbx-images/ubuntu-toolbox:latest
 T}
 T{
 T}@T{
@@ -516,11 +528,11 @@ T}
 T{
 AmazonLinux
 T}@T{
-1 2 2022
+1 2 2023
 T}@T{
 public.ecr.aws/amazonlinux/amazonlinux:1
 public.ecr.aws/amazonlinux/amazonlinux:2
-public.ecr.aws/amazonlinux/amazonlinux:2022.0.20220531.0
+public.ecr.aws/amazonlinux/amazonlinux:2023
 T}
 T{
 Archlinux
@@ -725,8 +737,10 @@ ghcr.io/void-linux/void-linux:latest-full-x86_64
 T}
 .TE
 .PP
-Images marked with \f[B]Toolbox\f[R] are tailored images, so they are
-more indicated for desktop use, and first setup will take less time.
+Images marked with \f[B]Toolbox\f[R] are tailored images made by the
+community efforts in
+toolbx-images/images (https://github.com/toolbx-images/images), so they
+are more indicated for desktop use, and first setup will take less time.
 Note however that if you use a non-toolbox preconfigured image, the
 \f[B]first\f[R] \f[V]distrobox-enter\f[R] you\[cq]ll perform can take a
 while as it will download and install the missing dependencies.
@@ -815,7 +829,7 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --name/-n:      name for the distrobox      default: ${container_name_default}
 --pull/-p:      pull the image even if it exists locally (implies --yes)
 --yes/-Y:       non-interactive, pull images without asking
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --clone/-c:     name of the distrobox container to use as base for a new container
@@ -1209,7 +1223,7 @@ specify the \[en]headless mode to disable tty and interactivity.
 --no-workdir/-nw:   always start the container from container\[aq]s home directory
 --additional-flags/-a:  additional flags to pass to the container manager command
 --help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --dry-run/-d:       only print the container manager command generated
@@ -1236,7 +1250,7 @@ distrobox-enter my-alpine-container -- sh -l
 \f[R]
 .fi
 .PP
-Use additional podman/docker flags while entering a distrobox
+Use additional podman/docker/lilipod flags while entering a distrobox
 .IP
 .nf
 \f[C]
@@ -1298,9 +1312,9 @@ my_var=test
 .fi
 .PP
 If you\[cq]d like to enter a rootful container having distrobox use a
-program other than `sudo' to run podman/docker as root, such as `pkexec'
-or `doas', you may specify it with the \f[V]DBX_SUDO_PROGRAM\f[R]
-environment variable.
+program other than `sudo' to run podman/docker/lilipod as root, such as
+`pkexec' or `doas', you may specify it with the
+\f[V]DBX_SUDO_PROGRAM\f[R] environment variable.
 For example, to use `doas' to enter a rootful container:
 .IP
 .nf
@@ -1349,7 +1363,7 @@ destroyed when the command is terminated.
 .IP
 .nf
 \f[C]
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
@@ -1854,8 +1868,8 @@ distrobox-list
 .SH DESCRIPTION
 .PP
 distrobox-list lists available distroboxes.
-It detects them and lists them separately from the rest of normal podman
-or docker containers.
+It detects them and lists them separately from the rest of normal
+containers.
 .SH SYNOPSIS
 .PP
 \f[B]distrobox list\f[R]
@@ -1864,7 +1878,7 @@ or docker containers.
 \f[C]
 --help/-h:      show this message
 --no-color:     disable color formatting
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
@@ -1934,7 +1948,7 @@ distrobox-rm delete one of the available distroboxes.
 --all/-a:       delete all distroboxes
 --force/-f:     force deletion
 --rm-home:      remove the mounted home if it differs from the host user\[aq]s one
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --help/-h:      show this message
@@ -2010,7 +2024,7 @@ This is how they can be stopped.
 --all/-a:       stop all distroboxes
 --yes/-Y:       non-interactive, stop without asking
 --help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
@@ -2083,7 +2097,7 @@ perform an upgrade using the container\[cq]s package manager.
 --help/-h:      show this message
 --all/-a:       perform for all distroboxes
 --running:      perform only on running distroboxes
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
