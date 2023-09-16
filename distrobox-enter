@@ -226,6 +226,9 @@ if [ -z "${container_name}" ]; then
 	container_name="${container_name_default}"
 fi
 
+if [ ! -t 0 ] || [ ! -t 1 ]; then
+	headless=1
+fi
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker, else lilipod
 case "${container_manager}" in
@@ -300,7 +303,7 @@ generate_command() {
 	# To work around this, --headless let's you skip the --tty flag and make it
 	# work in tty-less situations.
 	# Disable tty also if we're NOT in a tty (test -t 0, test -t 1).
-	if [ "${headless}" -eq 0 ] && [ -t 0 ] && [ -t 1 ]; then
+	if [ "${headless}" -eq 0 ]; then
 		result_command="${result_command}
 			--tty"
 	fi
