@@ -195,25 +195,33 @@ case "${container_manager}" in
 	autodetect)
 		if command -v podman > /dev/null; then
 			container_manager="podman"
+			container_manager_cp_command="podman cp"
 		elif command -v podman-launcher > /dev/null; then
 			container_manager="podman-launcher"
+			container_manager_cp_command="podman-launcher cp"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
+			container_manager_cp_command="docker cp -L"
 		elif command -v lilipod > /dev/null; then
 			container_manager="lilipod"
+			container_manager_cp_command="lilipod cp"
 		fi
 		;;
 	podman)
 		container_manager="podman"
+		container_manager_cp_command="podman cp"
 		;;
 	podman-launcher)
 		container_manager="podman-launcher"
+		container_manager_cp_command="podman-launcher cp"
 		;;
 	lilipod)
 		container_manager="lilipod"
+		container_manager_cp_command="lilipod cp"
 		;;
 	docker)
 		container_manager="docker"
+		container_manager_cp_command="docker cp -L"
 		;;
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
