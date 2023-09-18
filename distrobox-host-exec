@@ -140,12 +140,6 @@ elif  command -v wget > /dev/null 2>&1; then
 	download_command="wget -qO"
 fi
 
-# This makes host-spawn work on initful containers, where the dbus session is
-# separate from the host, we point the dbus session straight to the host's socket
-# in order to talk with the org.freedesktop.Flatpak.Development.HostCommand on the host
-XDG_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR}"
-DBUS_SESSION_BUS_ADDRESS="unix:path=/run/host/$(echo "${DBUS_SESSION_BUS_ADDRESS}" | cut -d '=' -f2-)"
-
 # Setup host-spawn as a way to execute commands back on the host
 if ! command -v host-spawn > /dev/null ||
 	[ "$(printf "%s\n%s\n" "${host_spawn_version}" "$(host-spawn --version)" |
@@ -188,6 +182,12 @@ if ! command -v host-spawn > /dev/null ||
 	esac
 
 fi
+
+# This makes host-spawn work on initful containers, where the dbus session is
+# separate from the host, we point the dbus session straight to the host's socket
+# in order to talk with the org.freedesktop.Flatpak.Development.HostCommand on the host
+XDG_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR}"
+DBUS_SESSION_BUS_ADDRESS="unix:path=/run/host/$(echo "${DBUS_SESSION_BUS_ADDRESS}" | cut -d '=' -f2-)"
 
 ###
 # This workaround is needed because of a bug in gio (used by xdg-open) where
