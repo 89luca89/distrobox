@@ -27,7 +27,7 @@ if [ ! -t 1 ] ||
 	non_interactive=1
 fi
 distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
-host_spawn_version="1.4.2"
+host_spawn_version="1.5.0"
 download_command=""
 sudo_command=""
 verbose=0
@@ -117,7 +117,7 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 # Check we're running inside a container and not on the host
-if [ -z "${CONTAINER_ID:-}" ]; then
+if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ] && [ -z "${container:-}" ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
 	exit 126
 fi
@@ -126,10 +126,12 @@ if [ -z "${host_command}" ]; then
 	host_command="${distrobox_host_exec_default_command}"
 fi
 
-if [ "$(id -ru)" -ne 0 ] && command -v sudo 2> /dev/null > /dev/null; then
-	sudo_command="sudo"
-else
-	sudo_command="su -l -c"
+if [ "$(id -ru)" -ne 0 ]; then
+	if command -v sudo 2> /dev/null > /dev/null; then
+		sudo_command="sudo"
+	else
+		sudo_command="su -l -c"
+	fi
 fi
 
 if  command -v curl > /dev/null 2>&1; then
@@ -180,6 +182,12 @@ if ! command -v host-spawn > /dev/null ||
 	esac
 
 fi
+
+# This makes host-spawn work on initful containers, where the dbus session is
+# separate from the host, we point the dbus session straight to the host's socket
+# in order to talk with the org.freedesktop.Flatpak.Development.HostCommand on the host
+XDG_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR}"
+DBUS_SESSION_BUS_ADDRESS="unix:path=/run/host/$(echo "${DBUS_SESSION_BUS_ADDRESS}" | cut -d '=' -f2-)"
 
 ###
 # This workaround is needed because of a bug in gio (used by xdg-open) where

@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ENTER" "1" "Aug 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-ENTER" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -44,7 +44,7 @@ specify the \[en]headless mode to disable tty and interactivity.
 --no-workdir/-nw:   always start the container from container\[aq]s home directory
 --additional-flags/-a:  additional flags to pass to the container manager command
 --help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --dry-run/-d:       only print the container manager command generated
@@ -71,7 +71,7 @@ distrobox-enter my-alpine-container -- sh -l
 \f[R]
 .fi
 .PP
-Use additional podman/docker flags while entering a distrobox
+Use additional podman/docker/lilipod flags while entering a distrobox
 .IP
 .nf
 \f[C]
@@ -133,9 +133,9 @@ my_var=test
 .fi
 .PP
 If you\[cq]d like to enter a rootful container having distrobox use a
-program other than `sudo' to run podman/docker as root, such as `pkexec'
-or `doas', you may specify it with the \f[V]DBX_SUDO_PROGRAM\f[R]
-environment variable.
+program other than `sudo' to run podman/docker/lilipod as root, such as
+`pkexec' or `doas', you may specify it with the
+\f[V]DBX_SUDO_PROGRAM\f[R] environment variable.
 For example, to use `doas' to enter a rootful container:
 .IP
 .nf

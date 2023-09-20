@@ -16,6 +16,7 @@ The manifest file by default is `./distrobox.ini`, but can be specified using th
 **distrobox assemble**
 
 	--file:			path to the distrobox manifest/ini file
+	--name/-n:			run against a single entry in the manifest/ini file
 	--replace/-R:		replace already existing distroboxes with matching names
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
@@ -48,7 +49,7 @@ This is an example manifest file to create two containers:
 	pull=true
 	root=false
 	replace=false
-	volume=/tmp/test:/run/a /tmp/test:/run/b
+	volume="/tmp/test:/run/a /tmp/test:/run/b"
 
 **Create**
 
@@ -114,6 +115,9 @@ This is a list of available options with the corresponding type:
 | root | bool
 | unshare_ipc | bool
 | unshare_netns | bool
+| unshare_process | bool
+| unshare_devsys | bool
+| unshare_all | bool
 
 boolean options default to false if not specified.
 string options can be broken in multiple declarations additively in order to improve

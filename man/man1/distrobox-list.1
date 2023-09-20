@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-LIST" "1" "Aug 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-LIST" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -27,8 +27,8 @@ distrobox-list
 .SH DESCRIPTION
 .PP
 distrobox-list lists available distroboxes.
-It detects them and lists them separately from the rest of normal podman
-or docker containers.
+It detects them and lists them separately from the rest of normal
+containers.
 .SH SYNOPSIS
 .PP
 \f[B]distrobox list\f[R]
@@ -37,7 +37,7 @@ or docker containers.
 \f[C]
 --help/-h:      show this message
 --no-color:     disable color formatting
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity

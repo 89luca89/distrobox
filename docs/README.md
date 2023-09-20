@@ -16,7 +16,7 @@ current logo credits [David Lapshin](https://github.com/daudix-UFO)<sub>
 Use any Linux distribution inside your terminal. Enable both backward and forward
 compatibility with software and freedom to use whatever distribution you’re more
 comfortable with.
-Distrobox uses `podman` or `docker` to create containers using the Linux distribution
+Distrobox uses `podman`, `docker` or `lilipod` to create containers using the Linux distribution
 of your choice.
 The created container will be tightly integrated with the host, allowing sharing
 of the HOME directory of the user, external storage, external USB devices and
@@ -39,6 +39,10 @@ graphical apps (X11/Wayland), and audio.
     - [See it in action](#see-it-in-action)
   - [Why?](#why)
     - [Aims](#aims)
+      - [Security implications](#security-implications)
+- [Quick Start](#quick-start)
+- [Assemble Distrobox](#assemble-distrobox)
+- [Configure Distrobox](#configure-distrobox)
 - [Installation](#installation)
   - [Alternative methods](#alternative-methods)
     - [Curl or Wget](#curl-or-wget)
@@ -49,6 +53,7 @@ graphical apps (X11/Wayland), and audio.
 - [Compatibility](compatibility.md)
   - [Supported container managers](compatibility.md#supported-container-managers)
   - [Host Distros](compatibility.md#host-distros)
+    - [Install on the Steamdeck](posts/steamdeck_guide.md)
   - [Containers Distros](compatibility.md#containers-distros)
 - [Usage](usage/usage.md)
   - [Outside the distrobox](usage/usage.md#outside-the-distrobox)
@@ -72,29 +77,39 @@ graphical apps (X11/Wayland), and audio.
   - [Mount additional volumes in a distrobox](useful_tips.md#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](useful_tips.md#use-a-different-shell-than-the-host)
   - [Run the container with real root](useful_tips.md#run-the-container-with-real-root)
-  - [Run Debian/Ubuntu container behind proxy](useful_tips.md#run-debian-ubuntu-container-behind-proxy)
+  - [Run Debian/Ubuntu container behind proxy](useful_tips.md#run-debianubuntu-container-behind-proxy)
   - [Using a command other than sudo to run a rootful container](useful_tips.md#using-a-command-other-than-sudo-to-run-a-rootful-container)
   - [Duplicate an existing distrobox](useful_tips.md#duplicate-an-existing-distrobox)
   - [Export to the host](useful_tips.md#export-to-the-host)
   - [Execute commands on the host](useful_tips.md#execute-commands-on-the-host)
+  - [Resolve "Error cannot open display: :0"](useful_tips.md#resolve-error-cannot-open-display-0)
   - [Enable SSH X-Forwarding when SSH-ing in a distrobox](useful_tips.md#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
-  - [Using podman or docker inside a distrobox](useful_tips.md#using-podman-or-docker-inside-a-distrobox)
   - [Using init system inside a distrobox](useful_tips.md#using-init-system-inside-a-distrobox)
+  - [Using Docker inside a Distrobox](useful_tips.md#using-docker-inside-a-distrobox)
+  - [Using Podman inside a Distrobox](useful_tips.md#using-podman-inside-a-distrobox)
+  - [Using LXC inside a Distrobox](useful_tips.md#using-lxc-inside-a-distrobox)
+  - [Using Waydroid inside a Distrobox](useful_tips.md#using-waydroid-inside-a-distrobox)
+    - [Manual Installation](useful_tips.md#manual-installation)
+    - [Automated Installation](useful_tips.md#automated-installation)
+  - [Using host's Podman or Docker inside a Distrobox](useful_tips.md#using-hosts-podman-or-docker-inside-a-distrobox)
   - [Using distrobox as main cli](useful_tips.md#using-distrobox-as-main-cli)
   - [Using a different architecture](useful_tips.md#using-a-different-architecture)
   - [Using the GPU inside the container](useful_tips.md#using-the-gpu-inside-the-container)
-  - [Using nvidia-container-toolkit](useful_tips.md#using-nvidia-container-toolkit)
+    - [Using nvidia-container-toolkit](useful_tips.md#using-nvidia-container-toolkit)
   - [Slow creation on podman and image size getting bigger with distrobox create](useful_tips.md#slow-creation-on-podman-and-image-size-getting-bigger-with-distrobox-create)
   - [Container save and restore](useful_tips.md#container-save-and-restore)
   - [Check used resources](useful_tips.md#check-used-resources)
   - [Pre-installing additional package repositories](useful_tips.md#pre-installing-additional-package-repositories)
   - [Apply resource limitation on the fly](useful_tips.md#apply-resource-limitation-on-the-fly)
 - [Posts](posts/posts.md)
+  - [Create a dedicated distrobox container](posts/distrobox_custom.md)
+  - [Execute a command on the Host](posts/execute_commands_on_host.md)
+  - [Install Podman in HOME](posts/install_podman_static.md)
+  - [Install Lilipod in HOME](posts/install_lilipod_static.md)
+  - [Install on Steamdeck](posts/steamdeck_guide.md)
+  - [Integrate VSCode and Distrobox](posts/integrate_vscode_distrobox.md)
   - [Run Libvirt using distrobox](posts/run_libvirt_in_distrobox.md)
   - [Run latest GNOME and KDE Plasma using distrobox](posts/run_latest_gnome_kde_on_distrobox.md)
-  - [Integrate VSCode and Distrobox](posts/integrate_vscode_distrobox.md)
-  - [Execute a command on the Host](posts/execute_commands_on_host.md)
-  - [Apply resource limitation on the fly](useful_tips.md#apply-resource-limitation-on-the-fly)
 - [Featured Articles](featured_articles.md)
   - [Articles](featured_articles.md#articles)
     - [Run Distrobox on Fedora Linux - Fedora Magazine](https://fedoramagazine.org/run-distrobox-on-fedora-linux/)
@@ -125,7 +140,7 @@ graphical apps (X11/Wayland), and audio.
 
 ## What it does
 
-Simply put it's a fancy wrapper around `podman` or `docker` to create and start
+Simply put it's a fancy wrapper around `podman`, `docker` or `lilipod` to create and start
 containers highly integrated with the hosts.
 
 The distrobox environment is based on an OCI image.
@@ -174,7 +189,7 @@ Fedora Silverblue for the [uBlue](https://github.com/ublue-os) project
 ## Why
 
 - Provide a mutable environment on an immutable OS, like [Endless OS,
-  Fedora Silverblue, OpenSUSE MicroOS](compatibility.md#host-distros)  or [SteamOS3](posts/install_rootless.md)
+  Fedora Silverblue, OpenSUSE MicroOS, ChromeOS](compatibility.md#host-distros)  or [SteamOS3](posts/steamdeck_guide.md)
 - Provide a locally privileged environment for sudoless setups
   (eg. company-provided laptops, security reasons, etc...)
 - To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat)
@@ -189,7 +204,7 @@ Refer to the compatibility list for an overview of supported host's distro
 ### Aims
 
 This project aims to bring **any distro userland to any other distro**
-supporting podman or docker.
+supporting podman, docker or lilipod.
 It has been written in POSIX sh to be as portable as possible and not have
 problems with dependencies and glibc version's compatibility.
 
@@ -217,12 +232,12 @@ The container will have complete access to your home, pen drives and so on,
 so do not expect it to be highly sandboxed like a plain
 docker/podman container or a flatpak.
 
-⚠️ **BE CAREFUL**:⚠️  if you use docker, or you use podman with the `--root/-r` flag,
+⚠️ **BE CAREFUL**:⚠️  if you use docker, or you use podman/lilipod with the `--root/-r` flag,
 the containers will run as root, so **root inside the rootful container can modify
 system stuff outside the container**,
 Be also aware that **In rootful mode, you'll be asked to setup user's password**, this will
 ensure at least that the container is not a passwordless gate to root,
-but if you have security concern for this, **use podman that runs in rootless mode**.
+but if you have security concern for this, **use podman or lilipod that runs in rootless mode**.
 Rootless docker is still not working as intended and will be included in the future
 when it will be complete.
 
@@ -236,6 +251,10 @@ as discussed here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/is
 **Create a new distrobox:**
 
 `distrobox create -n test`
+
+**Create a new distrobox with Systemd (acts similar to an LXC):**
+
+`distrobox create --name test --init --image debian:latest --additional-packages "systemd libpam-systemd"`
 
 **Enter created distrobox:**
 
@@ -329,8 +348,6 @@ Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30),
 [alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli),
 [AtilaSaraiva](https://github.com/AtilaSaraiva), [michel-slm](https://github.com/michel-slm)
 
-You can also [follow the guide to install in a rootless manner](posts/install_rootless.md)
-
 ## Alternative methods
 
 Here is a list of alternative ways to install distrobox
@@ -394,13 +411,15 @@ distro-specific instructions.
 ## Dependencies
 
 Distrobox depends on a container manager to work, you can choose to install
-either podman or docker.
+either podman, docker or lilipod.
 
 Please look in the [Compatibility Table](compatibility.md#host-distros) for your
 distribution notes.
 
-There are ways to install [Podman without root privileges and in home.](compatibility.md#install-podman-in-a-static-manner)
-This should play well with completely sudoless setups and with devices like the Steam Deck.
+There are ways to install
+[Podman without root privileges and in home.](compatibility.md#install-podman-in-a-static-manner) or
+[Lilipod without root privileges and in home.](compatibility.md#install-lilipod-in-a-static-manner)
+This should play well with completely sudoless setups and with devices like the Steam Deck (SteamOS).
 
 ---
 
