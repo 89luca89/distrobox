@@ -502,9 +502,11 @@ if [ "${upgrade}" -ne 0 ] ||
 		fi
 
 	elif command -v apt-get; then
+		# If we have a vanilla prompt, see CONTAINER_ID in it
+		export debian_chroot="${CONTAINER_ID:-distrobox}"
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
-			apt-get update
+			apt-get update -y
 			apt-get upgrade -y
 			exit
 		fi
@@ -514,7 +516,7 @@ if [ "${upgrade}" -ne 0 ] ||
 		rm -f /etc/dpkg/dpkg.cfg.d/excludes
 
 		export DEBIAN_FRONTEND=noninteractive
-		apt-get update
+		apt-get update -o 'Acquire::AllowReleaseInfoChange::Suite=true' -y
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
@@ -1676,13 +1678,14 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ] && [ "${init}" -eq 0 ]; then
 	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
 		printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
 	done
-
 	# Also we put a hook to clear some critical paths that do not play well
 	# with read only filesystems, like Systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
 		printf "distrobox: Setting up apt hooks...\n"
 		printf 'DPkg::Pre-Invoke {/etc/distrobox-pre-hook.sh};\n' > /etc/apt/apt.conf.d/00_distrobox
 		printf 'DPkg::Post-Invoke {/etc/distrobox-post-hook.sh};\n' >> /etc/apt/apt.conf.d/00_distrobox
+		# let distrobox upgrade succeed even if a transition from stable to oldstable happens
+		printf 'Acquire::AllowReleaseInfoChange::Suite "true";' >> /etc/apt/apt.conf.d/00_distrobox
 	fi
 fi
 
