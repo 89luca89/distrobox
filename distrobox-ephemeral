@@ -37,7 +37,7 @@ if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
 	exit 1
 fi
 
-trap cleanup TERM INT HUP
+trap cleanup TERM INT HUP EXIT
 
 name=$(mktemp -u distrobox-XXXXXXXXXX)
 container_command=""
@@ -214,7 +214,5 @@ eval ${cmd}
 # shellcheck disable=SC2086
 "${distrobox_path}"/distrobox-enter ${extra_flags} "${name}" ${container_command}
 exit_code="$?"
-
-cleanup
 
 exit "${exit_code}"
