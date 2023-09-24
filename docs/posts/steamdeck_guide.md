@@ -21,9 +21,9 @@ And `podman` is ready to use!
 
 ### Alternative Install Lilipod
 
-To install podman, [refer to the install guide](install_lilipod_static.md#):
+To install [lilipod](https://github.com/89luca89/lilipod), [refer to the install guide](install_lilipod_static.md#):
 
-- Download the latest release of `podman-launcher` and place it in your home and rename it to `podman`,
+- Download the latest release of `lilipod` and place it in your home and rename it to `lilipod`,
   this example will use `~/.local/bin`
 - Setup `deck` user password using:
   - `passwd`

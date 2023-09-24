@@ -28,7 +28,7 @@ utilities (`usermod, passwd`), and `sudo` correctly set.
 
 ## Supported container managers
 
-`distrobox` can run on either `podman`, `docker` or `lilipod`
+`distrobox` can run on either `podman`, `docker` or [`lilipod`](https://github.com/89luca89/lilipod)
 
 It depends either on `podman` configured in `rootless mode`
 or on `docker` configured without sudo (follow [THESE instructions](https://docs.docker.com/engine/install/linux-postinstall/))

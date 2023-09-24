@@ -16,7 +16,7 @@ current logo credits [David Lapshin](https://github.com/daudix-UFO)<sub>
 Use any Linux distribution inside your terminal. Enable both backward and forward
 compatibility with software and freedom to use whatever distribution you’re more
 comfortable with.
-Distrobox uses `podman`, `docker` or `lilipod` to create containers using the Linux distribution
+Distrobox uses `podman`, `docker` or [`lilipod`](https://github.com/89luca89/lilipod) to create containers using the Linux distribution
 of your choice.
 The created container will be tightly integrated with the host, allowing sharing
 of the HOME directory of the user, external storage, external USB devices and
@@ -411,7 +411,7 @@ distro-specific instructions.
 ## Dependencies
 
 Distrobox depends on a container manager to work, you can choose to install
-either podman, docker or lilipod.
+either podman, docker or [lilipod](https://github.com/89luca89/lilipod).
 
 Please look in the [Compatibility Table](compatibility.md#host-distros) for your
 distribution notes.
