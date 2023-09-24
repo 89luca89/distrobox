@@ -26,7 +26,7 @@
 # containers.
 #
 # SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
-if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+if { [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; } && [ "$(id -ru)" -eq 0 ]; then
 	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
 	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
