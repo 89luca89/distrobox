@@ -33,7 +33,7 @@ trap cleanup TERM INT HUP EXIT
 cleanup() {
 	rm -f "${HOME}/.cache/.${container_name}.fifo"
 	if [ -n "${logs_pid:-}" ]; then
-		kill "${logs_pid:-}" 2> /dev/null
+		kill "${logs_pid:-}" 2> /dev/null || :
 	fi
 	if [ "${verbose}" -eq 1 ]; then
 		${container_manager} logs "${container_name}"

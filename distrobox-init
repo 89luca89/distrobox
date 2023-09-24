@@ -1490,7 +1490,7 @@ if [ "${nvidia}" -eq 1 ]; then
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
 
-        mount_bind "${nvidia_file}" "${dest_file}" ro
+		mount_bind "${nvidia_file}" "${dest_file}" ro
 	done
 
 	NVIDIA_DIRS="$(find /run/host/etc /run/host/usr -iname "*nvidia*" -type d || :)"
