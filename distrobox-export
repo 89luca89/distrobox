@@ -323,11 +323,25 @@ export_binary() {
 #	or error code.
 export_application() {
 	canon_dirs=""
-	[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
-	[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
-	[ -d /var/lib/flatpak/exports/share/applications ] &&
-		canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
-	[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
+
+    IFS=":"
+	if [ -n "${XDG_DATA_DIRS}" ]; then
+		for xdg_data_home in ${XDG_DATA_HOME}; do
+			[ -d "${xdg_data_home}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_home}/applications"
+		done
+	else
+		[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
+		[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
+		[ -d /var/lib/flatpak/exports/share/applications ] && canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
+	fi
+	if [ -n "${XDG_DATA_HOME}" ]; then
+		for xdg_data_dir in ${XDG_DATA_DIRS}; do
+			[ -d "${xdg_data_dir}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_dir}/applications"
+		done
+	else
+		[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
+	fi
+	unset IFS
 
 	# In this phase we search for applications to export.
 	# First find command will grep through all files in the canonical directories
