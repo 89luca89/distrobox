@@ -324,7 +324,7 @@ export_binary() {
 export_application() {
 	canon_dirs=""
 
-    IFS=":"
+	IFS=":"
 	if [ -n "${XDG_DATA_DIRS}" ]; then
 		for xdg_data_home in ${XDG_DATA_HOME}; do
 			[ -d "${xdg_data_home}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_home}/applications"

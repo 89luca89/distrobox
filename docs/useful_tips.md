@@ -626,6 +626,29 @@ Note that this is necessary only on Kernel version older than `5.11` .
 From version `5.11` onwards native `overlayfs` is supported and reports noticeable
 gains in performance as explained [HERE](https://www.redhat.com/sysadmin/podman-rootless-overlay)
 
+## Permission problems when using VirtualBox
+
+If you have VirtualBox installed on your host, you may encounter some permission
+problems using **rootless Podman**:
+
+```log
+Error: unable to start container "XYZ": runc: runc create failed: unable to start container process: error during container init: error mounting "/dev/vboxusb/002/005" to rootfs at "/dev/vboxusb/002/005": lstat /..../dev/vboxusb/002: permission denied: OCI permission denied
+```
+
+This is because a rootless container done with `runc` will not port the host's groups
+into the container.
+
+The solution is to install `crun` from your package manager, and recreate your container.
+
+crun supports the flag
+
+```sh
+run.oci.keep_original_groups=1
+```
+
+Which will allow porting the host's group inside the container, thus making it possible
+for the rootless container to read vbox files.
+
 ## Container save and restore
 
 To save, export and reuse an already configured container, you can leverage
