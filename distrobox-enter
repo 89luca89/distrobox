@@ -28,7 +28,17 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
-trap 'rm -f ${HOME}/.cache/.${container_name}.fifo ${HOME}/.cache/.${container_name}.status; if [ "${verbose}" -eq 1 ]; then ${container_manager} logs "${container_name}"; fi' EXIT
+trap cleanup TERM INT HUP EXIT
+
+cleanup() {
+	rm -f "${HOME}/.cache/.${container_name}.fifo"
+	if [ -n "${logs_pid:-}" ]; then
+		kill "${logs_pid:-}" 2> /dev/null
+	fi
+	if [ "${verbose}" -eq 1 ]; then
+		${container_manager} logs "${container_name}"
+	fi
+}
 
 # Despite of running this script via SUDO/DOAS being not supported (the
 # script itself will call the appropriate tool when necessary), we still want
@@ -503,7 +513,6 @@ if [ "${container_status}" != "running" ]; then
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
 	#
-	log_timestamp="$(date +%FT%T.%N%:z)"
 	${container_manager} start "${container_name}" > /dev/null
 	# Check if the container is going in error status earlier than the
 	# entrypoint
@@ -512,22 +521,22 @@ if [ "${container_status}" != "running" ]; then
 		--format "{{.State.Status}}" "${container_name}")" != "running" ]; then
 
 		printf >&2 "\033[31m Error: could not start entrypoint.\n\033[0m"
-		container_manager_log="$(${container_manager} logs \
-			--since "${log_timestamp}" "${container_name}")"
+		container_manager_log="$(${container_manager} logs "${container_name}")"
 		printf >&2 "%s\n" "${container_manager_log}"
 		exit 1
 	fi
 
 	printf >&2 "%-40s\t" "Starting container..."
 	mkdir -p "${HOME}/.cache/"
-	touch "${HOME}/.cache/.${container_name}.fifo"
-	touch "${HOME}/.cache/.${container_name}.status"
+	rm -f "${HOME}/.cache/.${container_name}.fifo"
+	mkfifo "${HOME}/.cache/.${container_name}.fifo"
 	while true; do
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
-		log_timestamp_new="$(date +%FT%T.%N%:z)"
-		${container_manager} logs \
-			--since "${log_timestamp}" "${container_name}" 2> /dev/null > "${HOME}/.cache/.${container_name}.fifo"
+		${container_manager} logs -f "${container_name}" 2> /dev/null \
+			> "${HOME}/.cache/.${container_name}.fifo" &
+		logs_pid="$!"
+
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
 			case "${line}" in
@@ -541,25 +550,19 @@ if [ "${container_status}" != "running" ]; then
 				*"distrobox:"*)
 					current_line="$(echo "${line}" | cut -d' ' -f2-)"
 					# Save current line in the status, to avoid printing the same line multiple times
-					if ! grep -q "${current_line}" "${HOME}/.cache/.${container_name}.status"; then
-						printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "${current_line}"
-						printf "%s\n" "${current_line}" > "${HOME}/.cache/.${container_name}.status"
-					fi
+					printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "${current_line}"
 					;;
 				*"container_setup_done"*)
 					printf >&2 "\033[32m [ OK ]\n\033[0m"
+					kill "${logs_pid}" > /dev/null 2>&1
 					break 2
 					;;
 				*) ;;
 			esac
 		done < "${HOME}/.cache/.${container_name}.fifo"
-
-		# Register new timestamp where to start logs from.
-		log_timestamp="${log_timestamp_new}"
 	done
 	# cleanup fifo
 	rm -f "${HOME}/.cache/.${container_name}.fifo"
-	rm -f "${HOME}/.cache/.${container_name}.status"
 	printf >&2 "\nContainer Setup Complete!\n"
 fi
 
