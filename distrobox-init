@@ -237,13 +237,13 @@ get_locked_mount_flags() (
 	done
 
 	for flag in nodev noexec nosuid; do
-		if echo "${flags}" | grep -q "${flag}"; then
+		if printf "%s" "${flags}" | grep -q "${flag}"; then
 			# Locked flag found, append to list while avoiding leading/trailing commas
 			locked_flags="${locked_flags:+${locked_flags},}${flag}"
 		fi
 	done
 
-	echo "${locked_flags}"
+	printf "%s" "${locked_flags}"
 )
 
 # init_readlink is a simplistic implementation for
@@ -278,7 +278,7 @@ mount_bind() (
 	# Adjust source_dir in order to point to /run/host if it's a symlink
 	if [ -L "${source_dir}" ]; then
 		source_dir="$(init_readlink "${source_dir}")"
-		if ! echo "${source_dir}" | grep -q "/run/host"; then
+		if ! printf "%s" "${source_dir}" | grep -q "/run/host"; then
 			source_dir="/run/host${source_dir}"
 		fi
 	fi
@@ -502,11 +502,9 @@ if [ "${upgrade}" -ne 0 ] ||
 		fi
 
 	elif command -v apt-get; then
-		# If we have a vanilla prompt, see CONTAINER_ID in it
-		export debian_chroot="${CONTAINER_ID:-distrobox}"
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
-			apt-get update -y
+			apt-get update
 			apt-get upgrade -y
 			exit
 		fi
@@ -516,7 +514,7 @@ if [ "${upgrade}" -ne 0 ] ||
 		rm -f /etc/dpkg/dpkg.cfg.d/excludes
 
 		export DEBIAN_FRONTEND=noninteractive
-		apt-get update -o 'Acquire::AllowReleaseInfoChange::Suite=true' -y
+		apt-get update
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
@@ -1481,23 +1479,54 @@ done
 if [ "${nvidia}" -eq 1 ]; then
 	printf "distrobox: Setting up host's nvidia integration...\n"
 
+	# Find where the system expects libraries to be put
+	lib32_dir="/usr/lib/"
+	lib64_dir="/usr/lib/"
+	if [ -e "/usr/lib/x86_64-linux-gnu" ]; then
+		lib64_dir="/usr/lib/x86_64-linux-gnu/"
+	elif [ -e "/usr/lib64" ]; then
+		lib64_dir="/usr/lib64/"
+	fi
+	if [ -e "/usr/lib/i386-linux-gnu" ]; then
+		lib32_dir="/usr/lib/i386-linux-gnu/"
+	elif [ -e "/usr/lib32" ]; then
+		lib32_dir="/usr/lib32/"
+	fi
+
 	# First we find all non-lib files we need, this includes
 	#	- binaries
 	#	- confs
 	#	- egl files
 	#	- icd files
-	NVIDIA_FILES="$(find /run/host/etc /run/host/usr/ \
-		-path "/run/host/usr/lib*" -prune -o \
-		-type f -iname "*nvidia*" -print || :)"
+	#	Excluding here the libs, we will threat them later specifically
+	NVIDIA_FILES="$(find /run/host/etc/ /run/host/usr/ \
+		-path "/run/host/usr/lib/i386-linux-gnu/*" -prune -o \
+		-path "/run/host/usr/lib/x86_64-linux-gnu/*" -prune -o \
+		-path "/run/host/usr/lib32/*" -prune -o \
+		-path "/run/host/usr/lib64/*" -prune -o \
+		-iname "*nvidia*" -not -type d -print 2> /dev/null || :)"
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
 
 		mount_bind "${nvidia_file}" "${dest_file}" ro
 	done
 
-	NVIDIA_DIRS="$(find /run/host/etc /run/host/usr -iname "*nvidia*" -type d || :)"
+	# Then we find all directories with nvidia in the name and just mount them
+	NVIDIA_DIRS="$(find /run/host/etc /run/host/usr -iname "*nvidia*" -type d 2> /dev/null || :)"
 	for nvidia_dir in ${NVIDIA_DIRS}; do
-		dest_dir="$(printf "%s" "${nvidia_dir}" | sed 's|/run/host||g')"
+		# /usr/lib64 is common in Arch or RPM based distros, while /usr/lib/x86_64-linux-gnu is
+		# common on Debian derivatives, so we need to adapt between the two nomenclatures.
+		if printf "%s" "${nvidia_dir}" | grep -Eq "lib32|lib64|x86_64-linux-gnu|i386-linux-gnu"; then
+
+			# Remove origin so we plug our own
+			dest_dir="$(printf "%s" "${nvidia_dir}" |
+				sed "s|/run/host/usr/lib/x86_64-linux-gnu/|${lib64_dir}|g" |
+				sed "s|/run/host/usr/lib/i386-linux-gnu/|${lib32_dir}|g" |
+				sed "s|/run/host/usr/lib64/|${lib64_dir}|g" |
+				sed "s|/run/host/usr/lib32/|${lib32_dir}|g")"
+		else
+			dest_dir="$(printf "%s" "${nvidia_dir}" | sed 's|/run/host||g')"
+		fi
 
 		mount_bind "${nvidia_dir}" "${dest_dir}" ro
 	done
@@ -1505,86 +1534,37 @@ if [ "${nvidia}" -eq 1 ]; then
 	# Then we find all the ".so" libraries, there are searched separately
 	# because we need to extract the relative path to mount them in the
 	# correct path based on the guest's setup
-	NVIDIA_LIBS="$(find /run/host/usr/lib* \
+	#
+	# /usr/lib64 is common in Arch or RPM based distros, while /usr/lib/x86_64-linux-gnu is
+	# common on Debian derivatives, so we need to adapt between the two nomenclatures.
+	NVIDIA_LIBS="$(find \
+		/run/host/usr/lib/i386-linux-gnu/ \
+		/run/host/usr/lib/x86_64-linux-gnu/ \
+		/run/host/usr/lib32/ \
+		/run/host/usr/lib64/ \
 		-iname "*nvidia*.so*" \
 		-o -iname "libcuda*.so*" \
 		-o -iname "libnvcuvid*.so*" \
-		-o -iname "libnvoptix*.so*" ||
-		:)"
+		-o -iname "libnvoptix*.so*" 2> /dev/null || :)"
 	for nvidia_lib in ${NVIDIA_LIBS}; do
 		dest_file="$(printf "%s" "${nvidia_lib}" |
-			sed 's|/run/host/usr/lib/x86_64-linux-gnu/||g' |
-			sed 's|/run/host/usr/lib/i386-linux-gnu/||g' |
-			sed 's|/run/host/usr/lib64/||g' |
-			sed 's|/run/host/usr/lib/||g')"
+			sed "s|/run/host/usr/lib/x86_64-linux-gnu/|${lib64_dir}|g" |
+			sed "s|/run/host/usr/lib/i386-linux-gnu/|${lib32_dir}|g" |
+			sed "s|/run/host/usr/lib64/|${lib64_dir}|g" |
+			sed "s|/run/host/usr/lib32/|${lib32_dir}|g")"
 
 		type="file"
 		if [ -L "${nvidia_lib}" ]; then
 			type="link"
 		fi
 
-		# In case we're dealing with a 32bit library, we should try to put
-		# it in a compelling path
-		if file "${nvidia_lib}" | grep -q "32-bit"; then
-			if [ -e "/usr/lib/i386-linux-gnu/" ]; then
-				if [ "${type}" = "link" ]; then
-					mkdir -p "$(dirname "/usr/lib/i386-linux-gnu/${dest_file}")"
-					cp -d "${nvidia_lib}" "/usr/lib/i386-linux-gnu/${dest_file}"
-					continue
-				fi
-
-				mount_bind "${nvidia_lib}" "/usr/lib/i386-linux-gnu/${dest_file}" ro
-				# /usr/lib64 is common in rpm based distros
-			elif [ -e "/usr/lib32" ]; then
-				if [ "${type}" = "link" ]; then
-					mkdir -p "$(dirname "/usr/lib32/${dest_file}")"
-					cp -d "${nvidia_lib}" "/usr/lib32/${dest_file}"
-					continue
-				fi
-
-				mount_bind "${nvidia_lib}" "/usr/lib32/${dest_file}" ro
-				# fallback to /usr/lib if none of the previous
-			else
-				if [ "${type}" = "link" ]; then
-					mkdir -p "$(dirname "/usr/lib/${dest_file}")"
-					cp -d "${nvidia_lib}" "/usr/lib/${dest_file}"
-					continue
-				fi
-
-				mount_bind "${nvidia_lib}" "/usr/lib/${dest_file}" ro
-			fi
+		if [ "${type}" = "link" ]; then
+			mkdir -p "$(dirname "${dest_file}")"
+			cp -d "${nvidia_lib}" "${dest_file}"
 			continue
 		fi
 
-		# In the guest we need to adjust the destination path, so if we're on
-		# debian based containers, we need to target /usr/lib/x86_64-linux-gnu/
-		if [ -e "/usr/lib/x86_64-linux-gnu/" ]; then
-			if [ "${type}" = "link" ]; then
-				mkdir -p "$(dirname "/usr/lib/x86_64-linux-gnu/${dest_file}")"
-				cp -d "${nvidia_lib}" "/usr/lib/x86_64-linux-gnu/${dest_file}"
-				continue
-			fi
-
-			mount_bind "${nvidia_lib}" "/usr/lib/x86_64-linux-gnu/${dest_file}" ro
-			# /usr/lib64 is common in rpm based distros
-		elif [ -e "/usr/lib64" ]; then
-			if [ "${type}" = "link" ]; then
-				mkdir -p "$(dirname "/usr/lib64/${dest_file}")"
-				cp -d "${nvidia_lib}" "/usr/lib64/${dest_file}"
-				continue
-			fi
-
-			mount_bind "${nvidia_lib}" "/usr/lib64/${dest_file}" ro
-			# fallback to /usr/lib if none of the previous
-		else
-			if [ "${type}" = "link" ]; then
-				mkdir -p "$(dirname "/usr/lib/${dest_file}")"
-				cp -d "${nvidia_lib}" "/usr/lib/${dest_file}"
-				continue
-			fi
-
-			mount_bind "${nvidia_lib}" "/usr/lib/${dest_file}" ro
-		fi
+		mount_bind "${nvidia_lib}" "${dest_file}" ro
 	done
 
 	# Refresh ldconfig cache, also detect if there are empty files remaining
@@ -1593,7 +1573,8 @@ if [ "${nvidia}" -eq 1 ]; then
 	empty_libs="$(ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2)"
 	if [ -n "${empty_libs}" ]; then
 		# shellcheck disable=SC2086
-		find ${empty_libs} -delete || :
+		find ${empty_libs} -delete 2> /dev/null || :
+		find /usr/ /etc/ -empty -iname "*nvidia*" -delete 2> /dev/null || :
 	fi
 fi
 
@@ -1678,14 +1659,13 @@ if [ -d "/etc/dpkg/dpkg.cfg.d/" ] && [ "${init}" -eq 0 ]; then
 	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
 		printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
 	done
+
 	# Also we put a hook to clear some critical paths that do not play well
 	# with read only filesystems, like Systemd.
 	if [ -d "/etc/apt/apt.conf.d/" ]; then
 		printf "distrobox: Setting up apt hooks...\n"
 		printf 'DPkg::Pre-Invoke {/etc/distrobox-pre-hook.sh};\n' > /etc/apt/apt.conf.d/00_distrobox
 		printf 'DPkg::Post-Invoke {/etc/distrobox-post-hook.sh};\n' >> /etc/apt/apt.conf.d/00_distrobox
-		# let distrobox upgrade succeed even if a transition from stable to oldstable happens
-		printf 'Acquire::AllowReleaseInfoChange::Suite "true";' >> /etc/apt/apt.conf.d/00_distrobox
 	fi
 fi
 
@@ -2046,7 +2026,7 @@ if [ "${init}" -eq 0 ]; then
 					if [ -L "${file_watch_src}" ]; then
 						file_watch_src="$(init_readlink "/run/host${file_watch}")"
 						# if it's an absolute link, we need to append /run/host ourselves.
-						if ! echo "${file_watch_src}" | grep -q "/run/host"; then
+						if ! printf "%s" "${file_watch_src}" | grep -q "/run/host"; then
 							file_watch_src="/run/host${file_watch_src}"
 						fi
 					fi
