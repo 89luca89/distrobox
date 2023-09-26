@@ -73,6 +73,7 @@ Options:
 	--bin/-b:		absolute path of the binary to export
 	--delete/-d:		delete exported application or binary
 	--export-label/-el:	label to add to exported application name.
+				Use "none" to disable.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
@@ -238,6 +239,11 @@ fi
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${start_shell} "
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
+elif [ "${exported_app_label}" = "none" ]; then
+	exported_app_label=""
+else
+	# Add a leading space so that we can have "NAME LABEL" in the entry
+	exported_app_label=" ${exported_app_label}"
 fi
 
 # Print generated script from template
@@ -456,7 +462,7 @@ export_application() {
 			sed "s|\(%.*\)|${extra_flags} \1|g" |
 			sed "/^TryExec=.*/d" |
 			sed "/^DBusActivatable=true/d" |
-			sed "s|Name.*|& ${exported_app_label}|g" \
+			sed "s|Name.*|&${exported_app_label}|g" \
 				> "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 		# in the end we add the final quote we've opened in the "container_command_prefix"
 

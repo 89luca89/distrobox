@@ -22,6 +22,7 @@ automatically be launched from the container it is exported from.
 	--bin/-b:		absolute path of the binary to export
 	--delete/-d:		delete exported application or binary
 	--export-label/-el:	label to add to exported application name.
+				Use "none" to disable.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
