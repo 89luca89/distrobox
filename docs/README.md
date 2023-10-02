@@ -388,6 +388,10 @@ curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -
 wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
 ```
 
+#### Upgrading
+
+Just run the `curl` or `wget` command again.
+
 > **Warning**
 > Remember to add prefix-path-you-choose/bin to your PATH, to make it work.
 
