@@ -570,8 +570,9 @@ if [ "${upgrade}" -ne 0 ] ||
 			xauth
 			xz-utils
 			zip
-			libegl1-mesa
-			libgl1-mesa-glx
+			libgl1
+			libegl1
+			libglx-mesa0
 			libvulkan1
 			mesa-vulkan-drivers
 		"
