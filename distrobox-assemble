@@ -203,6 +203,7 @@ run_distrobox() (
 
 	# Skip item if --name used and no match is found
 	if [ "${boxname}" != "" ] && [ "${boxname}" != "${name}" ]; then
+		rm -f "${tmpfile}"
 		return
 	fi
 
