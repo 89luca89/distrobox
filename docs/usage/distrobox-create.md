@@ -34,11 +34,11 @@ graphical apps (X11/Wayland), and audio.
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container. (assumes --unshare-process)
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--unshare-all:          activate all the unshare flags below
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-ipc:          do not share ipc namemspace with host
 	--unshare-netns:        do not share the net namespace with host
 	--unshare-process:          do not share process namemspace with host
-	--unshare-all:          activate all the unshare flags below
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
