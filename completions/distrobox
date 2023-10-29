@@ -44,7 +44,7 @@ _generate_from_help() {
 		[[ ${command} != *"list"* ]] && [[ ${command} != *"assemble"* ]]; then
 		while IFS= read -r line; do
 			list+="$line "
-		done < <(distrobox-list --no-color | tail -n+2 | awk '{print $3}')
+		done < <(distrobox-list --no-color | tail -n+2 | cut -d'|' -f2)
 		COMPREPLY=($(compgen -W "${list}" "${cur}"))
 		return 0
 	fi
