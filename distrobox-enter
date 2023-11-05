@@ -28,7 +28,17 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
-trap 'rm -f ${HOME}/.cache/.${container_name}.fifo ${HOME}/.cache/.${container_name}.status' EXIT
+trap cleanup TERM INT HUP EXIT
+
+cleanup() {
+	rm -f "${HOME}/.cache/.${container_name}.fifo"
+	if [ -n "${logs_pid:-}" ]; then
+		kill "${logs_pid:-}" 2> /dev/null || :
+	fi
+	if [ "${verbose}" -eq 1 ]; then
+		${container_manager} logs "${container_name}"
+	fi
+}
 
 # Despite of running this script via SUDO/DOAS being not supported (the
 # script itself will call the appropriate tool when necessary), we still want
@@ -36,7 +46,7 @@ trap 'rm -f ${HOME}/.cache/.${container_name}.fifo ${HOME}/.cache/.${container_n
 # containers.
 #
 # SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
-if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+if { [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; } && [ "$(id -ru)" -eq 0 ]; then
 	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
 	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
@@ -126,7 +136,7 @@ Options:
 	--no-workdir/-nw:	always start the container from container's home directory
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
-	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--dry-run/-d:		only print the container manager command generated
@@ -226,33 +236,46 @@ if [ -z "${container_name}" ]; then
 	container_name="${container_name_default}"
 fi
 
+if [ ! -t 0 ] || [ ! -t 1 ]; then
+	headless=1
+fi
 # We depend on a container manager let's be sure we have it
-# First we use podman, else docker
+# First we use podman, else docker, else lilipod
 case "${container_manager}" in
 	autodetect)
 		if command -v podman > /dev/null; then
 			container_manager="podman"
+		elif command -v podman-launcher > /dev/null; then
+			container_manager="podman-launcher"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
+		elif command -v lilipod > /dev/null; then
+			container_manager="lilipod"
 		fi
 		;;
 	podman)
 		container_manager="podman"
+		;;
+	podman-launcher)
+		container_manager="podman-launcher"
+		;;
+	lilipod)
+		container_manager="lilipod"
 		;;
 	docker)
 		container_manager="docker"
 		;;
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
+		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker', 'lilipod'\n"
 		;;
 esac
 
 # Be sure we have a container manager to work with.
 if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
-	# Error: we need at least one between docker or podman.
+	# Error: we need at least one between docker, podman or lilipod.
 	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
+	printf >&2 "Please install one of podman,  docker or lilipod.\n"
 	printf >&2 "You can follow the documentation on:\n"
 	printf >&2 "\tman distrobox-compatibility\n"
 	printf >&2 "or:\n"
@@ -265,16 +288,16 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program-} ${container_manager}"
 fi
 
-# Generate Podman or Docker command to execute.
+# Generate Podman, Docker or Lilipod command to execute.
 # Arguments:
 #   None
 # Outputs:
-#   prints the podman or docker command to enter the distrobox container
+#   prints the podman, docker or lilipod command to enter the distrobox container
 generate_command() {
 	result_command="${container_manager} exec"
 	result_command="${result_command}
@@ -289,8 +312,8 @@ generate_command() {
 	# the container.
 	# To work around this, --headless let's you skip the --tty flag and make it
 	# work in tty-less situations.
-	# Disable tty also if we're NOT in a tty (test -t 0).
-	if [ "${headless}" -eq 0 ] && [ -t 0 ]; then
+	# Disable tty also if we're NOT in a tty (test -t 0, test -t 1).
+	if [ "${headless}" -eq 0 ]; then
 		result_command="${result_command}
 			--tty"
 	fi
@@ -336,21 +359,23 @@ generate_command() {
 	container_paths="${container_path:-""}"
 	# Ensure the standard FHS program paths are in PATH environment
 	standard_paths="/usr/local/sbin /usr/local/bin /usr/sbin /usr/bin /sbin /bin"
-	# add to the PATH after the existing paths, and only if not already present
+	# collect standard paths not existing from host PATH
 	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${standard_path}:${container_paths}"
+		pattern="(:|^)${standard_path}(:|$)"
+		if ! echo "${PATH}" | grep -Eq "${pattern}"; then
+			if [ -z "${container_paths}" ]; then
+				container_paths="${standard_path}"
+			else
+				container_paths="${container_paths}:${standard_path}"
+			fi
 		fi
 	done
-	# Ensure the $PATH entries from the host are appended as well
-	ORIG_IFS="${IFS}"
-	IFS=:
-	for standard_path in ${PATH}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
-			container_paths="${standard_path}:${container_paths}"
-		fi
-	done
-	IFS="${ORIG_IFS}"
+	# append additional standard paths to host PATH to get final container_paths
+	if [ -n "${container_paths}" ]; then
+		container_paths="${container_paths}:${PATH}"
+	else
+		container_paths="${PATH}"
+	fi
 	result_command="${result_command}
 		--env \"PATH=${container_paths}\""
 
@@ -359,19 +384,34 @@ generate_command() {
 	container_paths="${XDG_DATA_DIRS:=}"
 	# add to the XDG_DATA_DIRS only after the host's paths, and only if not already present.
 	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
+		pattern="(:|^)${standard_path}(:|$)"
+		if [ -z "${container_paths}" ]; then
+			container_paths="${standard_path}"
+		elif ! echo "${container_paths}" | grep -Eq "${pattern}"; then
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
 	result_command="${result_command}
 		--env \"XDG_DATA_DIRS=${container_paths}\""
 
+	# This correctly sets the XDG_* dirs to the container_home
+	# it will be $HOME if using regular home dirs
+	# if will be $container_home if using a custom home during create
+	result_command="${result_command}
+		--env \"XDG_CACHE_HOME=${container_home}/.cache\"
+		--env \"XDG_CONFIG_HOME=${container_home}/.config\"
+		--env \"XDG_DATA_HOME=${container_home}/.local/share\"
+		--env \"XDG_STATE_HOME=${container_home}/.local/state\""
+
 	# Ensure the standard FHS program paths are in XDG_CONFIG_DIRS environment
 	standard_paths="/etc/xdg"
 	container_paths="${XDG_CONFIG_DIRS:=}"
 	# add to the XDG_CONFIG_DIRS only after the host's paths, and only if not already present.
 	for standard_path in ${standard_paths}; do
-		if [ -n "${container_paths##*:"${standard_path}"*}" ]; then
+		pattern="(:|^)${standard_path}(:|$)"
+		if [ -z "${container_paths}" ]; then
+			container_paths="${standard_path}"
+		elif ! echo "${container_paths}" | grep -Eq "${pattern}"; then
 			container_paths="${container_paths}:${standard_path}"
 		fi
 	done
@@ -419,15 +459,15 @@ fi
 
 # Now inspect the container we're working with.
 container_status="unknown"
-eval "$(${container_manager} inspect --type container "${container_name}" --format \
+eval "$(${container_manager} inspect --type container --format \
 	'container_status={{.State.Status}};
 	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
-	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}')"
+	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
+	"${container_name}")"
 
 # Check if the container is even there
 if [ "${container_status}" = "unknown" ]; then
 	# If not, prompt to create it first
-	printf >&2 "Cannot find container %s\n" "${container_name}"
 	# If we're not-interactive, just don't ask questions
 	if [ "${non_interactive}" -eq 1 ]; then
 		response="yes"
@@ -445,9 +485,11 @@ if [ "${container_status}" = "unknown" ]; then
 			if [ "${rootful}" -ne 0 ]; then
 				create_command="${create_command} --root"
 			fi
-			create_command="${create_command} -i ${container_image_default} -n ${container_name}"
-			printf >&2 "Creating the container with command:\n"
-			printf >&2 "  %s\n" "${create_command}"
+
+			create_command="${create_command} --yes -i ${container_image_default} -n ${container_name}"
+
+			printf >&2 "Creating the container %s\n" "${container_name}"
+
 			if [ "${dryrun}" -ne 1 ]; then
 				eval "${create_command}"
 			fi
@@ -470,37 +512,31 @@ if [ "${container_status}" != "running" ]; then
 	# If container is not running, start it first
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
-
-	printf >&2 "Container %s is not running.\n" "${container_name}"
-	printf >&2 "Starting container %s\n" "${container_name}"
-	printf >&2 "run this command to follow along:\n\n"
-	printf >&2 " %s logs -f %s\n\n" "${container_manager}" "${container_name}"
-
-	log_timestamp="$(date +%FT%T.%N%:z)"
+	#
 	${container_manager} start "${container_name}" > /dev/null
 	# Check if the container is going in error status earlier than the
 	# entrypoint
 	if [ "$(${container_manager} inspect \
-		--type container "${container_name}" \
-		--format "{{.State.Status}}")" != "running" ]; then
+		--type container \
+		--format "{{.State.Status}}" "${container_name}")" != "running" ]; then
 
 		printf >&2 "\033[31m Error: could not start entrypoint.\n\033[0m"
-		container_manager_log="$(${container_manager} logs \
-			--since "${log_timestamp}" "${container_name}")"
+		container_manager_log="$(${container_manager} logs "${container_name}")"
 		printf >&2 "%s\n" "${container_manager_log}"
 		exit 1
 	fi
 
-	printf >&2 "%-40s\t" " Starting container..."
+	printf >&2 "%-40s\t" "Starting container..."
 	mkdir -p "${HOME}/.cache/"
-	touch "${HOME}/.cache/.${container_name}.fifo"
-	touch "${HOME}/.cache/.${container_name}.status"
+	rm -f "${HOME}/.cache/.${container_name}.fifo"
+	mkfifo "${HOME}/.cache/.${container_name}.fifo"
 	while true; do
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
-		log_timestamp_new="$(date +%FT%T.%N%:z)"
-		${container_manager} logs \
-			--since "${log_timestamp}" "${container_name}" 2> /dev/null > "${HOME}/.cache/.${container_name}.fifo"
+		${container_manager} logs -f "${container_name}" 2> /dev/null \
+			> "${HOME}/.cache/.${container_name}.fifo" &
+		logs_pid="$!"
+
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
 			case "${line}" in
@@ -512,27 +548,21 @@ if [ "${container_status}" != "running" ]; then
 					printf >&2 "\n\033[33m %s\033[0m" "${line}"
 					;;
 				*"distrobox:"*)
-					current_line="$(echo "${line}" | cut -d':' -f2-)"
+					current_line="$(echo "${line}" | cut -d' ' -f2-)"
 					# Save current line in the status, to avoid printing the same line multiple times
-					if ! grep -q "${current_line}" "${HOME}/.cache/.${container_name}.status"; then
-						printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "${current_line}"
-						printf "%s\n" "${current_line}" > "${HOME}/.cache/.${container_name}.status"
-					fi
+					printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "${current_line}"
 					;;
 				*"container_setup_done"*)
 					printf >&2 "\033[32m [ OK ]\n\033[0m"
+					kill "${logs_pid}" > /dev/null 2>&1
 					break 2
 					;;
 				*) ;;
 			esac
 		done < "${HOME}/.cache/.${container_name}.fifo"
-
-		# Register new timestamp where to start logs from.
-		log_timestamp="${log_timestamp_new}"
 	done
 	# cleanup fifo
 	rm -f "${HOME}/.cache/.${container_name}.fifo"
-	rm -f "${HOME}/.cache/.${container_name}.status"
 	printf >&2 "\nContainer Setup Complete!\n"
 fi
 

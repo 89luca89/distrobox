@@ -26,7 +26,7 @@
 # containers.
 #
 # SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
-if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+if { [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; } && [ "$(id -ru)" -eq 0 ]; then
 	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
 	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
@@ -190,20 +190,34 @@ elif command -v wget > /dev/null 2>&1; then
 fi
 
 # We depend on a container manager let's be sure we have it
-# First we use podman, else docker
+# First we use podman, else docker, else lilipod
 case "${container_manager}" in
 	autodetect)
 		if command -v podman > /dev/null; then
 			container_manager="podman"
 			container_manager_cp_command="podman cp"
+		elif command -v podman-launcher > /dev/null; then
+			container_manager="podman-launcher"
+			container_manager_cp_command="podman-launcher cp"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
 			container_manager_cp_command="docker cp -L"
+		elif command -v lilipod > /dev/null; then
+			container_manager="lilipod"
+			container_manager_cp_command="lilipod cp"
 		fi
 		;;
 	podman)
 		container_manager="podman"
 		container_manager_cp_command="podman cp"
+		;;
+	podman-launcher)
+		container_manager="podman-launcher"
+		container_manager_cp_command="podman-launcher cp"
+		;;
+	lilipod)
+		container_manager="lilipod"
+		container_manager_cp_command="lilipod cp"
 		;;
 	docker)
 		container_manager="docker"
@@ -211,15 +225,15 @@ case "${container_manager}" in
 		;;
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
+		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker', 'lilipod'\n"
 		;;
 esac
 
 # Be sure we have a container manager to work with.
 if ! command -v "${container_manager}" > /dev/null; then
-	# Error: we need at least one between docker or podman.
+	# Error: we need at least one between docker, podman or lilipod.
 	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
+	printf >&2 "Please install one of podman,  docker or lilipod.\n"
 	printf >&2 "You can follow the documentation on:\n"
 	printf >&2 "\tman distrobox-compatibility\n"
 	printf >&2 "or:\n"
@@ -233,7 +247,7 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager_cp_command="${container_manager_cp_command} --log-level debug"
 fi
 
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
 	container_manager="${distrobox_sudo_program:-"sudo"} ${container_manager}"
@@ -273,6 +287,7 @@ if [ "${icon}" = "auto" ]; then
 		rhel:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/redhat-distrobox.png
 		rocky:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/rocky-distrobox.png
 		ubuntu:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/ubuntu-distrobox.png
+		vanilla:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/vanilla-distrobox.png
 		void:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/void-distrobox.png
 	"
 	# Try to detect container's distribution by using /etc/os-release

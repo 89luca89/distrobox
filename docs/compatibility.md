@@ -2,9 +2,8 @@
   - [Compatibility](#compatibility)
     - [Supported container managers](#supported-container-managers)
     - [Host Distros](#host-distros)
-      - [Install Podman in a static manner](#install-podman-in-a-static-manner)
-        - [Compatibility notes](#compatibility-notes)
-        - [Non shared mounts](#non-shared-mounts)
+      - [Compatibility notes](#compatibility-notes)
+      - [Non shared mounts](#non-shared-mounts)
       - [List of distributions including distrobox in their repositories](#list-of-distributions-including-distrobox-in-their-repositories)
       - [New Host Distro support](#new-host-distro-support)
     - [Containers Distros](#containers-distros)
@@ -29,13 +28,14 @@ utilities (`usermod, passwd`), and `sudo` correctly set.
 
 ## Supported container managers
 
-`distrobox` can run on either `podman` or `docker`
+`distrobox` can run on either `podman`, `docker` or [`lilipod`](https://github.com/89luca89/lilipod)
 
 It depends either on `podman` configured in `rootless mode`
 or on `docker` configured without sudo (follow [THESE instructions](https://docs.docker.com/engine/install/linux-postinstall/))
 
 - Minimum podman version: **2.1.0**
 - Minimum docker client version: **19.03.15**
+- Minimum lilipod version: **v0.0.1**
 
 Follow the official installation guide here:
 
@@ -51,8 +51,10 @@ Distrobox has been successfully tested on:
 | --- | --- | --- |
 | Alpine Linux | | To setup rootless podman, look [HERE](https://wiki.alpinelinux.org/wiki/Podman) |
 | Arch Linux | | `distrobox` and `distrobox-git` are available in AUR (thanks [M0Rf30](https://github.com/M0Rf30)!). <br> To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
+| Bazzite | 38 | `distrobox-git` is preinstalled. |
 | CentOS | 8 <br> 8 Stream <br> 9 Stream | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
-| Debian | 11 <br> Testing <br> Unstable | `distrobox` is available in default repos in `testing` and `unstable` (thanks [michel-slm!](https://github.com/michel-slm!)!) |
+| ChromeOS | Debian 11 (docker with make-shared workaround #non-shared-mounts) <br> Debian 12 (podman) | using built-in Linux on ChromeOS mode which is debian-based, which can be [upgraded](https://wiki.debian.org/DebianUpgrade) from 11 bullseye to 12 bookworm (in fact 12 is recommended) |
+| Debian | 11 <br> 12 <br> Testing <br> Unstable | `distrobox` is available in default repos starting from version 12 (thanks [michel-slm!](https://github.com/michel-slm!)!) |
 | deepin | 23 <br> Testing <br> Unstable | `distrobox` is available in default repos in `testing` and `unstable` |
 | EndlessOS | 4.0.0 | |
 | Fedora Silverblue/Kinoite | 35 <br> 36 <br> 37 <br> Rawhide | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
@@ -64,49 +66,15 @@ Distrobox has been successfully tested on:
 | openSUSE | Leap 15.4 <br> Leap 15.3 <br> Leap 15.2 | Packages are available [here](https://software.opensuse.org/download/package?package=distrobox&project=home%3Adfaggioli%3Amicroos-desktop) (thanks [dfaggioli](https://github.com/dfaggioli)!).<br> To install on openSUSE Leap 15, Use the following repository links in the `zypper addrepo` command: [15.4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.4/home:dfaggioli:microos-desktop.repo), [15.3](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.3/home:dfaggioli:microos-desktop.repo), [15.2](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.2/home:dfaggioli:microos-desktop.repo). Then: <br>  `zypper refresh && zypper install distrobox`. <br> `Podman` under SUSE Leap, cannot initialize correctly the containers managed by ``distrobox`` until [this openSUSE bug](https://bugzilla.opensuse.org/show_bug.cgi?id=1199871) is fixed, or ``podman`` logging is configured properly. |
 | openSUSE | Tumbleweed <br> MicroOS | `distrobox` is available in default repos (thanks [dfaggioli](https://github.com/dfaggioli)!) <br> For Tumbleweed, do: `zypper install distrobox`. <br> For MicroOS, **distrobox is installed by default**. |
 | SUSE Linux Enterprise Server | 15&nbsp;Service&nbsp;Pack&nbsp;4 <br> 15&nbsp;Service&nbsp;Pack&nbsp;3 <br> 15&nbsp;Service&nbsp;Pack&nbsp;2 | Same procedure as the one for openSUSE (Leap, respective versions, of course). Use the following repository links in the `zypper addrepo` command: [SLE-15-SP4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.4/home:dfaggioli:microos-desktop.repo), [SLE-15-SP3](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/15.3/home:dfaggioli:microos-desktop.repo), [SLE-15-SP4](https://download.opensuse.org/repositories/home:dfaggioli:microos-desktop/SLE_15_SP2/home:dfaggioli:microos-desktop.repo). Then: <br>  `zypper refresh && zypper install distrobox`. <br> `Podman` under SUSE Leap, cannot initialize correctly the containers managed by ``distrobox`` until [this openSUSE bug](https://bugzilla.opensuse.org/show_bug.cgi?id=1199871) is fixed, or ``podman`` logging is configured properly. |
-| SteamOS 3 | | You can use `steamos-readonly disable` and follow `Arch Linux` instructions. This will **NOT** survive updates.<br>Alternatively you can follow the [Install Podman in a static manner](posts/install_rootless.md) guide, this will install it in your $HOME and it will survive updates.|
+| SteamOS | | You can follow the [Install Podman in a static manner](posts/install_podman_static.md) or [Install Lilipod in a static manner](posts/install_lilipod_static.md) guide, this will install it in your $HOME and it will survive updates. |
 | RedHat | 8 <br> 9  | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
 | Ubuntu | 18.04 <br> 20.04 <br> 22.04 <br> 22.10 <br> 23.04 <br>| Older versions based on 20.04 or earlier may need external repos to install newer Podman and Docker releases. <br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. <br> [Now PPA available!](https://launchpad.net/~michel-slm/+archive/ubuntu/distrobox), also `distrobox` is available in default repos from `22.10` onward (thanks [michel-slm](https://github.com/michel-slm)!)  |
+| Vanilla OS | 22.10 <br> Orchid | `distrobox` should be installed in the home directory using the official script |
 | Void Linux | glibc | |
 
-### Install Podman in a static manner
+### Compatibility notes
 
-If on your distribution (eg. SteamOS) can be difficult to install something and keep it
-between updates, then you could use this script to install `podman` in your `$HOME`.
-
-This has some limitations, for starters, it won't work in `rootful` mode for now,
-but otherwise it's working for normal use.
-
-This is particularly indicated also for completely *sudoless* setups, where you don't
-have any superuser access to the system, like for example company provided computers.
-
-Run:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/extras/install-podman | sh -s -- --prefix ~/.local
-```
-
-Provided the only dependency on the host (`newuidmap/newgidmap`, of the package `uidmap`),
-you should be good to go.
-
-To uninstall:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/extras/install-podman | sh -s -- --prefix ~/.local --remove
-```
-
-> **Warning**
-> Remember to add ~/.local/podman/bin to your PATH, to make it work.
-> Remember to add ~/.local/podman/bin to your ~/.distroboxrc also.
-
-#### Compatibility notes
-
-If your container is not able to connect to your host xserver, make sure to
-install `xhost` on the host machine and run `xhost +si:localuser:$USER`.
-If you wish to enable this functionality on future reboots add it to your `~/.xinitrc`
-or somewhere else tailored to your use case where it would be ran on every startup.
-
-#### Non shared mounts
+### Non shared mounts
 
 Note also that in some distributions, root filesystem is **not** mounted as a shared mount,
 this will give an error like:
@@ -125,7 +93,7 @@ mount --make-rshared /
 
 To make it permanent, you can place it in `/etc/rc.local`.
 
-### List of distributions including distrobox in their repositories
+## List of distributions including distrobox in their repositories
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/distrobox.svg)](https://repology.org/project/distrobox/versions)
 
@@ -145,22 +113,23 @@ Distrobox guests tested successfully with the following container images:
 
 |    Distro  |    Version | Images    |
 | --- | --- | --- |
-| AlmaLinux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/almalinux-toolbox:8 <br> quay.io/toolbx-images/almalinux-toolbox:9 |
-| Alpine (Toolbox) | 3.16 <br> 3.17 <br> 3.18 <br> edge | quay.io/toolbx-images/alpine-toolbox:3.16 <br> quay.io/toolbx-images/alpine-toolbox:3.17 <br> quay.io/toolbx-images/alpine-toolbox:3.18 <br> quay.io/toolbx-images/alpine-toolbox:edge |
-| AmazonLinux (Toolbox) | 2 <br> 2022 | quay.io/toolbx-images/amazonlinux-toolbox:2 <br> quay.io/toolbx-images/amazonlinux-toolbox:2022 |
-| Archlinux (Toolbox) | | quay.io/toolbx-images/archlinux-toolbox |
-| Centos (Toolbox) | stream8 <br> stream9 | quay.io/toolbx-images/centos-toolbox:stream8 <br> quay.io/toolbx-images/centos-toolbox:stream9 |
-| Debian (Toolbox) | 10 <br> 11 <br> 12 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:10 <br> quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br>  quay.io/toolbx-images/debian-toolbox:testing <br>  quay.io/toolbx-images/debian-toolbox:unstable |
-| Fedora (Toolbox) | 36 <br> 37 <br> 38 <br> 39 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox: 37 <br> registry.fedoraproject.org/fedora-toolbox:38 <br> registry.fedoraproject.org/fedora-toolbox:39 |
-| openSUSE (Toolbox) | | registry.opensuse.org/opensuse/distrobox:latest <br> quay.io/toolbx-images/opensuse-toolbox:latest |
-| RedHat (Toolbox) | 8 <br> 9 | registry.access.redhat.com/ubi8/toolbox <br> registry.access.redhat.com/ubi9/toolbox |
-| Rocky Linux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/rockylinux-toolbox:8 <br> quay.io/toolbx-images/rockylinux-toolbox:9 |
-| Ubuntu (Toolbox) | 16.04 <br> 18.04 <br> 20.04 <br> 22.04 | quay.io/toolbx-images/ubuntu-toolbox:16.04 <br> quay.io/toolbx-images/ubuntu-toolbox:18.04 <br> quay.io/toolbx-images/ubuntu-toolbox:20.04 <br> quay.io/toolbx-images/ubuntu-toolbox:22.04 |
+| AlmaLinux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/almalinux-toolbox:8 <br> quay.io/toolbx-images/almalinux-toolbox:9 <br> quay.io/toolbx-images/almalinux-toolbox:latest |
+| Alpine (Toolbox) | 3.16 <br> 3.17 <br> 3.18 <br> edge | quay.io/toolbx-images/alpine-toolbox:3.16 <br> quay.io/toolbx-images/alpine-toolbox:3.17 <br> quay.io/toolbx-images/alpine-toolbox:3.18 <br> quay.io/toolbx-images/alpine-toolbox:edge <br> quay.io/toolbx-images/alpine-toolbox:latest |
+| AmazonLinux (Toolbox) | 2 <br> 2022 | quay.io/toolbx-images/amazonlinux-toolbox:2 <br> quay.io/toolbx-images/amazonlinux-toolbox:2023 <br> quay.io/toolbx-images/amazonlinux-toolbox:latest |
+| Archlinux (Toolbox) | | quay.io/toolbx-images/archlinux-toolbox:latest |
+| Bazzite Arch | | ghcr.io/ublue-os/bazzite-arch:latest <br> ghcr.io/ublue-os/bazzite-arch-gnome:latest |
+| Centos (Toolbox) | stream8 <br> stream9 | quay.io/toolbx-images/centos-toolbox:stream8 <br> quay.io/toolbx-images/centos-toolbox:stream9 <br> quay.io/toolbx-images/centos-toolbox:latest |
+| Debian (Toolbox) | 10 <br> 11 <br> 12 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:10 <br> quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br> quay.io/toolbx-images/debian-toolbox:testing <br> quay.io/toolbx-images/debian-toolbox:unstable <br> quay.io/toolbx-images/debian-toolbox:latest |
+| Fedora (Toolbox) | 36 <br> 37 <br> 38 <br> 39 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox:37 <br> registry.fedoraproject.org/fedora-toolbox:38 <br> registry.fedoraproject.org/fedora-toolbox:39 <br> registry.fedoraproject.org/fedora-toolbox:latest |
+| openSUSE (Toolbox) | | registry.opensuse.org/opensuse/distrobox:latest <br> quay.io/toolbx-images/opensuse-toolbox:tumbleweed <br> quay.io/toolbx-images/opensuse-toolbox:latest |
+| RedHat (Toolbox) | 8 <br> 9 | registry.access.redhat.com/ubi8/toolbox <br> registry.access.redhat.com/ubi9/toolbox <br> quay.io/toolbx-images/rhel-toolbox:latest |
+| Rocky Linux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/rockylinux-toolbox:8 <br> quay.io/toolbx-images/rockylinux-toolbox:9 <br> quay.io/toolbx-images/rockylinux-toolbox:latest |
+| Ubuntu (Toolbox) | 16.04 <br> 18.04 <br> 20.04 <br> 22.04 | quay.io/toolbx-images/ubuntu-toolbox:16.04 <br> quay.io/toolbx-images/ubuntu-toolbox:18.04 <br> quay.io/toolbx-images/ubuntu-toolbox:20.04 <br> quay.io/toolbx-images/ubuntu-toolbox:22.04 <br> quay.io/toolbx-images/ubuntu-toolbox:latest |
 |  |  |  |
 | AlmaLinux (UBI) | 8 | quay.io/almalinux/8-base:8 <br> quay.io/almalinux/8-init:8 |
 | AlmaLinux | 8 <br> 8-minimal <br> 9 <br> 9-minimal | quay.io/almalinux/almalinux:8 <br> quay.io/almalinux/almalinux:9 <br> quay.io/almalinux/almalinux:9-minimal |
 | Alpine Linux    | 3.15 <br> 3.16 | docker.io/library/alpine:3.15 <br> docker.io/library/alpine:3.16 <br> docker.io/library/alpine:latest |
-| AmazonLinux | 1 <br> 2 <br> 2022 | public.ecr.aws/amazonlinux/amazonlinux:1 <br> public.ecr.aws/amazonlinux/amazonlinux:2 <br>  public.ecr.aws/amazonlinux/amazonlinux:2022.0.20220531.0 |
+| AmazonLinux | 1 <br> 2 <br> 2023 | public.ecr.aws/amazonlinux/amazonlinux:1 <br> public.ecr.aws/amazonlinux/amazonlinux:2 <br>  public.ecr.aws/amazonlinux/amazonlinux:2023 |
 | Archlinux     | | docker.io/library/archlinux:latest    |
 | CentOS Stream | 8 <br> 9 | quay.io/centos/centos:stream8 <br> quay.io/centos/centos:stream9  |
 | CentOS | 7 | quay.io/centos/centos:7  |
@@ -177,7 +146,6 @@ Distrobox guests tested successfully with the following container images:
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Mint | 21.1 | docker.io/linuxmintd/mint21.1-amd64 |
 | Neurodebian | nd100 | docker.io/library/neurodebian:nd100 |
-| openEULER |  | docker.io/openeuler/openeuler:latest |
 | openSUSE | Leap | registry.opensuse.org/opensuse/leap:latest    |
 | openSUSE | Tumbleweed | registry.opensuse.org/opensuse/tumbleweed:latest  <br>  registry.opensuse.org/opensuse/toolbox:latest    |
 | Oracle Linux | 7 <br> 7-slim <br> 8 <br> 8-slim <br> 9 <br> 9-slim |container-registry.oracle.com/os/oraclelinux:7 <br> container-registry.oracle.com/os/oraclelinux:7-slim <br> container-registry.oracle.com/os/oraclelinux:8 <br> container-registry.oracle.com/os/oraclelinux:8-slim <br> container-registry.oracle.com/os/oraclelinux:9 <br> container-registry.oracle.com/os/oraclelinux:9-slim  |
@@ -186,10 +154,11 @@ Distrobox guests tested successfully with the following container images:
 | Scientific Linux | 7 | docker.io/library/sl:7    |
 | Slackware | 14.2 | docker.io/vbatts/slackware:14.2    |
 | Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 23.04 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04 |
+| Vanilla OS | VSO | ghcr.io/vanilla-os/vso:main |
 | Void Linux | | ghcr.io/void-linux/void-linux:latest-full-x86_64 |
 
-Images marked with **Toolbox** are tailored images, so they are more indicated
-for desktop use, and first setup will take less time.
+Images marked with **Toolbox** are tailored images made by the community efforts in [toolbx-images/images](https://github.com/toolbx-images/images),
+so they are more indicated for desktop use, and first setup will take less time.
 Note however that if you use a non-toolbox preconfigured image,
 the **first** `distrobox-enter` you'll perform
 can take a while as it will download and install the missing dependencies.
@@ -220,7 +189,7 @@ A work around this is to use the `vsyscall=emulate` flag in the bootloader of th
 host.
 
 Keep also in mind that mirrors could be down for such old releases, so you will
-need to build a [custom distrobox image to ensure basic dependencies are met](./distrobox_custom.md).
+need to build a [custom distrobox image to ensure basic dependencies are met](./posts/distrobox_custom.md).
 
 ### GPU Acceleration support
 

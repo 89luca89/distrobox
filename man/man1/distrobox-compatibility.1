@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX" "1" "Aug 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH COMPATIBILITY
 .PP
@@ -36,8 +36,8 @@ basic user management utilities (\f[V]usermod, passwd\f[R]), and
 \f[V]sudo\f[R] correctly set.
 .SS SUPPORTED CONTAINER MANAGERS
 .PP
-\f[V]distrobox\f[R] can run on either \f[V]podman\f[R] or
-\f[V]docker\f[R]
+\f[V]distrobox\f[R] can run on either \f[V]podman\f[R], \f[V]docker\f[R]
+or \f[V]lilipod\f[R] (https://github.com/89luca89/lilipod)
 .PP
 It depends either on \f[V]podman\f[R] configured in
 \f[V]rootless mode\f[R] or on \f[V]docker\f[R] configured without sudo
@@ -47,6 +47,8 @@ instructions (https://docs.docker.com/engine/install/linux-postinstall/))
 Minimum podman version: \f[B]2.1.0\f[R]
 .IP \[bu] 2
 Minimum docker client version: \f[B]19.03.15\f[R]
+.IP \[bu] 2
+Minimum lilipod version: \f[B]v0.0.1\f[R]
 .PP
 Follow the official installation guide here:
 .IP \[bu] 2
@@ -78,6 +80,7 @@ T}@T{
 T}@T{
 quay.io/toolbx-images/almalinux-toolbox:8
 quay.io/toolbx-images/almalinux-toolbox:9
+quay.io/toolbx-images/almalinux-toolbox:latest
 T}
 T{
 Alpine (Toolbox)
@@ -88,6 +91,7 @@ quay.io/toolbx-images/alpine-toolbox:3.16
 quay.io/toolbx-images/alpine-toolbox:3.17
 quay.io/toolbx-images/alpine-toolbox:3.18
 quay.io/toolbx-images/alpine-toolbox:edge
+quay.io/toolbx-images/alpine-toolbox:latest
 T}
 T{
 AmazonLinux (Toolbox)
@@ -95,13 +99,21 @@ T}@T{
 2 2022
 T}@T{
 quay.io/toolbx-images/amazonlinux-toolbox:2
-quay.io/toolbx-images/amazonlinux-toolbox:2022
+quay.io/toolbx-images/amazonlinux-toolbox:2023
+quay.io/toolbx-images/amazonlinux-toolbox:latest
 T}
 T{
 Archlinux (Toolbox)
 T}@T{
 T}@T{
-quay.io/toolbx-images/archlinux-toolbox
+quay.io/toolbx-images/archlinux-toolbox:latest
+T}
+T{
+Bazzite Arch
+T}@T{
+T}@T{
+ghcr.io/ublue-os/bazzite-arch:latest
+ghcr.io/ublue-os/bazzite-arch-gnome:latest
 T}
 T{
 Centos (Toolbox)
@@ -110,6 +122,7 @@ stream8 stream9
 T}@T{
 quay.io/toolbx-images/centos-toolbox:stream8
 quay.io/toolbx-images/centos-toolbox:stream9
+quay.io/toolbx-images/centos-toolbox:latest
 T}
 T{
 Debian (Toolbox)
@@ -121,21 +134,24 @@ quay.io/toolbx-images/debian-toolbox:11
 quay.io/toolbx-images/debian-toolbox:12
 quay.io/toolbx-images/debian-toolbox:testing
 quay.io/toolbx-images/debian-toolbox:unstable
+quay.io/toolbx-images/debian-toolbox:latest
 T}
 T{
 Fedora (Toolbox)
 T}@T{
 36 37 38 39 Rawhide
 T}@T{
-registry.fedoraproject.org/fedora-toolbox: 37
+registry.fedoraproject.org/fedora-toolbox:37
 registry.fedoraproject.org/fedora-toolbox:38
 registry.fedoraproject.org/fedora-toolbox:39
+registry.fedoraproject.org/fedora-toolbox:latest
 T}
 T{
 openSUSE (Toolbox)
 T}@T{
 T}@T{
 registry.opensuse.org/opensuse/distrobox:latest
+quay.io/toolbx-images/opensuse-toolbox:tumbleweed
 quay.io/toolbx-images/opensuse-toolbox:latest
 T}
 T{
@@ -145,6 +161,7 @@ T}@T{
 T}@T{
 registry.access.redhat.com/ubi8/toolbox
 registry.access.redhat.com/ubi9/toolbox
+quay.io/toolbx-images/rhel-toolbox:latest
 T}
 T{
 Rocky Linux (Toolbox)
@@ -153,6 +170,7 @@ T}@T{
 T}@T{
 quay.io/toolbx-images/rockylinux-toolbox:8
 quay.io/toolbx-images/rockylinux-toolbox:9
+quay.io/toolbx-images/rockylinux-toolbox:latest
 T}
 T{
 Ubuntu (Toolbox)
@@ -163,6 +181,7 @@ quay.io/toolbx-images/ubuntu-toolbox:16.04
 quay.io/toolbx-images/ubuntu-toolbox:18.04
 quay.io/toolbx-images/ubuntu-toolbox:20.04
 quay.io/toolbx-images/ubuntu-toolbox:22.04
+quay.io/toolbx-images/ubuntu-toolbox:latest
 T}
 T{
 T}@T{
@@ -194,11 +213,11 @@ T}
 T{
 AmazonLinux
 T}@T{
-1 2 2022
+1 2 2023
 T}@T{
 public.ecr.aws/amazonlinux/amazonlinux:1
 public.ecr.aws/amazonlinux/amazonlinux:2
-public.ecr.aws/amazonlinux/amazonlinux:2022.0.20220531.0
+public.ecr.aws/amazonlinux/amazonlinux:2023
 T}
 T{
 Archlinux
@@ -317,12 +336,6 @@ T}@T{
 docker.io/library/neurodebian:nd100
 T}
 T{
-openEULER
-T}@T{
-T}@T{
-docker.io/openeuler/openeuler:latest
-T}
-T{
 openSUSE
 T}@T{
 Leap
@@ -395,6 +408,13 @@ docker.io/library/ubuntu:18.04 docker.io/library/ubuntu:20.04
 docker.io/library/ubuntu:22.04
 T}
 T{
+Vanilla OS
+T}@T{
+VSO
+T}@T{
+ghcr.io/vanilla-os/vso:main
+T}
+T{
 Void Linux
 T}@T{
 T}@T{
@@ -402,8 +422,10 @@ ghcr.io/void-linux/void-linux:latest-full-x86_64
 T}
 .TE
 .PP
-Images marked with \f[B]Toolbox\f[R] are tailored images, so they are
-more indicated for desktop use, and first setup will take less time.
+Images marked with \f[B]Toolbox\f[R] are tailored images made by the
+community efforts in
+toolbx-images/images (https://github.com/toolbx-images/images), so they
+are more indicated for desktop use, and first setup will take less time.
 Note however that if you use a non-toolbox preconfigured image, the
 \f[B]first\f[R] \f[V]distrobox-enter\f[R] you\[cq]ll perform can take a
 while as it will download and install the missing dependencies.

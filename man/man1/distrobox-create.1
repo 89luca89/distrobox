@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Aug 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -41,7 +41,7 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --name/-n:      name for the distrobox      default: ${container_name_default}
 --pull/-p:      pull the image even if it exists locally (implies --yes)
 --yes/-Y:       non-interactive, pull images without asking
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --clone/-c:     name of the distrobox container to use as base for a new container
@@ -54,10 +54,13 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --init-hooks:       additional commands to execute during container initialization
 --pre-init-hooks:   additional commands to execute prior to container initialization
 --init/-I:      use init system (like systemd) inside the container.
-            this will make host\[aq]s processes not visible from within the container.
+            this will make host\[aq]s processes not visible from within the container. (assumes --unshare-process)
 --nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
---unshare-netns:        do not share the net namespace with host
+--unshare-devsys:          do not share host devices and sysfs dirs from host
 --unshare-ipc:          do not share ipc namemspace with host
+--unshare-netns:        do not share the net namespace with host
+--unshare-process:          do not share process namemspace with host
+--unshare-all:          activate all the unshare flags below
 --compatibility/-C: show list of compatible images
 --help/-h:      show this message
 --no-entry:     do not generate a container entry in the application list
@@ -153,11 +156,53 @@ distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hoo
 \f[R]
 .fi
 .PP
+Use init to create a Systemd container (acts similar to an LXC):
+.IP
+.nf
+\f[C]
+distrobox create -i ubuntu:latest --name test --additional-packages \[dq]systemd libpam-systemd\[dq] --init
+\f[R]
+.fi
+.PP
+Use init to create a OpenRC container (acts similar to an LXC):
+.IP
+.nf
+\f[C]
+distrobox create -i alpine:latest --name test --additional-packages \[dq]openrc\[dq] --init
+\f[R]
+.fi
+.PP
 Use host\[cq]s NVidia drivers integration
 .IP
 .nf
 \f[C]
 distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
+\f[R]
+.fi
+.PP
+Do not use host\[cq]s IP inside the container:
+.IP
+.nf
+\f[C]
+distrobox create --image ubuntu:latest --name test --unshare-netns
+\f[R]
+.fi
+.PP
+Create a more isolated container, where only the $HOME, basic sockets
+and host\[cq]s FS (in /run/host) is shared:
+.IP
+.nf
+\f[C]
+distrobox create --name unshared-test --unshare-all
+\f[R]
+.fi
+.PP
+Create a more isolated container, with it\[cq]s own init system, this
+will act very similar to a full LXC container:
+.IP
+.nf
+\f[C]
+distrobox create --name unshared-init-test --unshare-all --init --image fedora:latest
 \f[R]
 .fi
 .PP
@@ -167,14 +212,6 @@ manager:
 .nf
 \f[C]
 DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
-\f[R]
-.fi
-.PP
-Do not use host\[cq]s IP inside the container:
-.IP
-.nf
-\f[C]
-distrobox create --image ubuntu:latest --name test --unshare-netns
 \f[R]
 .fi
 .SH ENVIRONMENT VARIABLES
@@ -281,6 +318,25 @@ integration\f[R].
 From within the container you will not be able to see and manage
 host\[cq]s processes.
 This is needed because \f[V]/sbin/init\f[R] must be pid 1.
+.PP
+If you want to use a non-pre-create image, you\[cq]ll need to add the
+additional package:
+.IP
+.nf
+\f[C]
+distrobox create -i alpine:latest --init --additional-packages \[dq]openrc\[dq] -n test
+distrobox create -i debian:stable --init --additional-packages \[dq]systemd libpam-systemd\[dq] -n test
+distrobox create -i ubuntu:22.04 --init --additional-packages \[dq]systemd libpam-systemd\[dq] -n test
+distrobox create -i archlinux:latest --init --additional-packages \[dq]systemd\[dq] -n test
+distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages \[dq]systemd\[dq] -n test
+distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-packages \[dq]systemd\[dq] -n test
+\f[R]
+.fi
+.PP
+The \f[V]--init\f[R] flag is useful to create system containers, where
+the container acts more similar to a full VM than an
+application-container.
+Inside you\[cq]ll have a separate init, user-session, daemons and so on.
 .PP
 The \f[V]--home\f[R] flag let\[cq]s you specify a custom HOME for the
 container.

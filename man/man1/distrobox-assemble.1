@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ASSEMBLE" "1" "Aug 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-ASSEMBLE" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -38,6 +38,7 @@ specified using the \f[V]--file\f[R] flag.
 .nf
 \f[C]
 --file:         path to the distrobox manifest/ini file
+--name/-n:          run against a single entry in the manifest/ini file
 --replace/-R:       replace already existing distroboxes with matching names
 --dry-run/-d:       only print the container manager command generated
 --verbose/-v:       show more verbosity
@@ -73,7 +74,7 @@ pre_init_hooks=\[dq]touch /pre-init\[dq]
 pull=true
 root=false
 replace=false
-volume=/tmp/test:/run/a /tmp/test:/run/b
+volume=\[dq]/tmp/test:/run/a /tmp/test:/run/b\[dq]
 \f[R]
 .fi
 .PP
@@ -241,6 +242,21 @@ bool
 T}
 T{
 unshare_netns
+T}@T{
+bool
+T}
+T{
+unshare_process
+T}@T{
+bool
+T}
+T{
+unshare_devsys
+T}@T{
+bool
+T}
+T{
+unshare_all
 T}@T{
 bool
 T}

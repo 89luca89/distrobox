@@ -39,7 +39,7 @@
 # containers.
 #
 # SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
-if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+if { [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; } && [ "$(id -ru)" -eq 0 ]; then
 	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
 	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
@@ -72,6 +72,8 @@ nvidia=0
 nopasswd=0
 unshare_ipc=0
 unshare_netns=0
+unshare_process=0
+unshare_devsys=0
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
 # "realpath" would break situations like Nix or similar symlink based package
@@ -130,7 +132,7 @@ fi
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
-[ -n "${DBX_container_generate_entry}" ] && container_generate_entry="${DBX_container_generate_entry}"
+[ -n "${DBX_CONTAINER_GENERATE_ENTRY}" ] && container_generate_entry="${DBX_CONTAINER_GENERATE_ENTRY}"
 
 # Print usage to stdout.
 # Arguments:
@@ -162,7 +164,7 @@ Options:
 	--name/-n:		name for the distrobox		default: ${container_name_default}
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
-	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--clone/-c:		name of the distrobox container to use as base for a new container
@@ -175,10 +177,13 @@ Options:
 	--init-hooks:		additional commands to execute during container initialization
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
-				this will make host's processes not visible from within the container.
+				this will make host's processes not visible from within the container. (assumes --unshare-process)
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--unshare-devsys:          do not share host devices and sysfs dirs from host
+	--unshare-ipc:          do not share ipc namespace with host
 	--unshare-netns:        do not share the net namespace with host
-	--unshare-ipc:          do not share ipc namemspace with host
+	--unshare-process:          do not share process namespace with host
+	--unshare-all:          activate all the unshare flags below
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
@@ -262,14 +267,30 @@ while :; do
 		-I | --init)
 			shift
 			init=1
+			unshare_process=1
+			;;
+		--unshare-ipc)
+			shift
+			unshare_ipc=1
 			;;
 		--unshare-netns)
 			shift
 			unshare_netns=1
 			;;
-		--unshare-ipc)
+		--unshare-process)
+			shift
+			unshare_process=1
+			;;
+		--unshare-devsys)
+			shift
+			unshare_devsys=1
+			;;
+		--unshare-all)
 			shift
 			unshare_ipc=1
+			unshare_netns=1
+			unshare_process=1
+			unshare_devsys=1
 			;;
 		-C | --compatibility)
 			show_compatibility
@@ -405,33 +426,53 @@ if [ -z "${container_name}" ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/[:.]/-/g')"
 fi
 
+# container_name is later set as hostname
+# let's check if the hostname is less than 64chars or we will have problems later
+# in setting the container's hostname.
+if [ "$(printf "%s" "${container_name}.$(uname -n)" | wc -m)" -gt 64 ]; then
+	printf >&2 "ERROR: Invalid name '%s'\n" "${container_name}"
+	printf >&2 "ERROR: This will result in hostname: '%s'\n" "${container_name}.$(uname -n)"
+	printf >&2 "ERROR: Hostname too long.\n"
+	exit 1
+fi
+
 # We depend on a container manager let's be sure we have it
-# First we use podman, else docker
+# First we use podman, else docker, else lilipod
 case "${container_manager}" in
 	autodetect)
 		if command -v podman > /dev/null; then
 			container_manager="podman"
+		elif command -v podman-launcher > /dev/null; then
+			container_manager="podman-launcher"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
+		elif command -v lilipod > /dev/null; then
+			container_manager="lilipod"
 		fi
 		;;
 	podman)
 		container_manager="podman"
+		;;
+	podman-launcher)
+		container_manager="podman-launcher"
+		;;
+	lilipod)
+		container_manager="lilipod"
 		;;
 	docker)
 		container_manager="docker"
 		;;
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
+		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker', 'lilipod'\n"
 		;;
 esac
 
 # Be sure we have a container manager to work with.
 if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
-	# Error: we need at least one between docker or podman.
+	# Error: we need at least one between docker, podman or lilipod.
 	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
+	printf >&2 "Please install one of podman,  docker or lilipod.\n"
 	printf >&2 "You can follow the documentation on:\n"
 	printf >&2 "\tman distrobox-compatibility\n"
 	printf >&2 "or:\n"
@@ -443,7 +484,7 @@ if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
 fi
 
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program-} ${container_manager}"
 fi
@@ -486,7 +527,7 @@ clone_container() {
 	# Now we can extract the container ID and commit it to use as source image
 	# for the new container.
 	container_source_id="$(${container_manager} inspect --type container \
-		"${container_clone}" --format '{{.Id}}')"
+		"${container_clone}" --format '{{.ID}}')"
 	container_commit_tag="$(echo "${container_clone}:$(date +%F)" | tr '[:upper:]' '[:lower:]')"
 
 	# Commit current container state to a new image tag
@@ -507,7 +548,7 @@ clone_container() {
 # Arguments:
 #   None
 # Outputs:
-#   prints the podman or docker command to create the distrobox container
+#   prints the podman, docker or lilipod command to create the distrobox container
 generate_command() {
 	# Set the container hostname the same as the container name.
 	result_command="${container_manager} create"
@@ -517,6 +558,7 @@ generate_command() {
 		--name \"${container_name}\"
 		--privileged
 		--security-opt label=disable
+		--security-opt apparmor=unconfined
 		--user root:root"
 
 	if [ "${unshare_ipc}" -eq 0 ]; then
@@ -529,7 +571,7 @@ generate_command() {
 			--network host"
 	fi
 
-	if [ "${init}" -eq 0 ]; then
+	if [ "${unshare_process}" -eq 0 ]; then
 		result_command="${result_command}
 			--pid host"
 	fi
@@ -547,14 +589,61 @@ generate_command() {
 		--label \"manager=distrobox\"
 		--env \"SHELL=$(basename "${SHELL:-"/bin/bash"}")\"
 		--env \"HOME=${container_user_home}\"
+		--env \"container=${container_manager}\"
 		--volume /:/run/host:rslave
-		--volume /dev:/dev:rslave
-		--volume /sys:/sys:rslave
 		--volume /tmp:/tmp:rslave
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
 		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+
+	if [ "${unshare_devsys}" -eq 0 ]; then
+		result_command="${result_command}
+			--volume /dev:/dev:rslave
+			--volume /sys:/sys:rslave"
+	fi
+
+	# In case of initful containers, we implement a series of mountpoint in order
+	# for systemd to work properly inside a container.
+	# The following are a flag-based implementation of what podman's --systemd flag
+	# does under the hood, as explained in their docs here:
+	#   https://docs.podman.io/en/latest/markdown/options/systemd.html
+	#
+	# set the default stop signal to SIGRTMIN+3.
+	# mount tmpfs file systems on the following directories
+	#	/run
+	#	/run/lock
+	#	/tmp
+	#	/var/lib/journal
+	#	/sys/fs/cgroup/systemd <- this one is done by cgroupns=host
+	if [ "${init}" -eq 1 ] && echo "${container_manager}" | grep -q "docker"; then
+		# In case of docker we're actually rootful, so we need to use hosts cgroups
+		result_command="${result_command}
+			--cgroupns host"
+	fi
+	if [ "${init}" -eq 1 ] && echo "${container_manager}" | grep -vq "podman"; then
+		# In case of all other non-podman container managers, we can do this
+		result_command="${result_command}
+			--stop-signal SIGRTMIN+3
+			--mount type=tmpfs,destination=/run
+			--mount type=tmpfs,destination=/run/lock
+			--mount type=tmpfs,destination=/var/lib/journal"
+	fi
+
+	# This fix is needed so that the container can have a separate devpts instance
+	# inside
+	# This will mount an empty /dev/pts, and the init will take care of mounting
+	# a new devpts with the proper flags set
+	# Mounting an empty volume there, is needed in order to ensure that no package
+	# manager tries to fiddle with /dev/pts/X that would not be writable by them
+	#
+	# This implementation is done this way in order to be compatible with both
+	# docker and podman
+	if [ "${unshare_devsys}" -eq 0 ]; then
+		result_command="${result_command}
+			--volume /dev/pts
+			--volume /dev/null:/dev/ptmx"
+	fi
 
 	# This fix is needed as on Selinux systems, the host's selinux sysfs directory
 	# will be mounted inside the rootless container.
@@ -587,9 +676,24 @@ generate_command() {
 	# to /run/shm, instead of the other way around.
 	# Resolve this detecting if /dev/shm is a symlink and mount original
 	# source also in the container.
-	if [ -L "/dev/shm" ]; then
+	if [ -L "/dev/shm" ] && [ "${unshare_ipc}" -eq 0 ]; then
 		result_command="${result_command}
 			--volume $(realpath /dev/shm):$(realpath /dev/shm)"
+	fi
+
+	# Ensure that both all container managers (not only podman) support forwarding of RedHat subscription-manager
+	# This is needed in order to have a working subscription forwarded into the container,
+	# this will ensure that rhel-9-for-x86_64-appstream-rpms and rhel-9-for-x86_64-baseos-rpms repos
+	# will be available in the container, so that distrobox-init will be able to
+	# install properly all the dependencies like mesa drivers.
+	#
+	# /run/secrets is a standard location for RHEL containers, that is being pointed by
+	# /etc/rhsm-host by default.
+	if [ -e /etc/rhsm ]; then
+		result_command="${result_command}
+			--volume /etc/pki/entitlement/:/run/secrets/etc-pki-entitlement:ro
+			--volume /etc/rhsm/:/run/secrets/rhsm:ro
+			--volume /etc/yum.repos.d/redhat.repo:/run/secrets/redhat.repo:ro"
 	fi
 
 	# If we have a home prefix to use,
@@ -669,24 +773,18 @@ generate_command() {
 	if echo "${container_manager}" | grep -q "podman"; then
 		result_command="${result_command}
 			--ulimit host
-			--annotation run.oci.keep_original_groups=1
-			--mount type=devpts,destination=/dev/pts"
+			--annotation run.oci.keep_original_groups=1"
+
 		if [ "${init}" -eq 1 ]; then
 			result_command="${result_command}
 				--systemd=always"
 		fi
+
 		# Use keep-id only if going rootless.
 		if [ "${rootful}" -eq 0 ]; then
 			result_command="${result_command}
 				--userns keep-id"
 		fi
-	fi
-
-	# In rootful mode this will allow container's cgroups to work
-	# nicely with init system inside
-	if [ "${rootful}" -eq 1 ]; then
-		result_command="${result_command}
-				--cgroupns host"
 	fi
 
 	# Add additional flags

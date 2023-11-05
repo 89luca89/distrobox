@@ -73,6 +73,7 @@ Options:
 	--bin/-b:		absolute path of the binary to export
 	--delete/-d:		delete exported application or binary
 	--export-label/-el:	label to add to exported application name.
+				Use "none" to disable.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
@@ -167,7 +168,7 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 # Check we're running inside a container and not on the host.
-if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ]; then
+if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ] && [ -z "${container:-}" ]; then
 	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
 	exit 126
 fi
@@ -212,7 +213,7 @@ elif [ -e /.dockerenv ]; then
 	# we're in docker, let's use this trick
 	container_name=$(grep "memory:/" < /proc/self/cgroup | sed 's|.*/||')
 elif [ -e /run/.containerenv ]; then
-	# we're in podman, use this other trick
+	# we're in podman or lilipod, use this other trick
 	container_name=$(grep "name=" /run/.containerenv | cut -d'=' -f2- | tr -d '"')
 fi
 # If one of the previous methods didn't work
@@ -238,6 +239,11 @@ fi
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${start_shell} "
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
+elif [ "${exported_app_label}" = "none" ]; then
+	exported_app_label=""
+else
+	# Add a leading space so that we can have "NAME LABEL" in the entry
+	exported_app_label=" ${exported_app_label}"
 fi
 
 # Print generated script from template
@@ -253,6 +259,8 @@ generate_script() {
 if [ -z "\${CONTAINER_ID}" ]; then
 	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} -- \
 		${start_shell} ${exported_bin} ${extra_flags} "\$@"
+elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
+	exec distrobox-host-exec ${dest_path}/$(basename "${exported_bin}") ${extra_flags} "\$@"
 else
 	exec ${exported_bin} "\$@"
 fi
@@ -321,11 +329,25 @@ export_binary() {
 #	or error code.
 export_application() {
 	canon_dirs=""
-	[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
-	[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
-	[ -d /var/lib/flatpak/exports/share/applications ] &&
-		canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
-	[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
+
+	IFS=":"
+	if [ -n "${XDG_DATA_DIRS}" ]; then
+		for xdg_data_home in ${XDG_DATA_HOME}; do
+			[ -d "${xdg_data_home}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_home}/applications"
+		done
+	else
+		[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
+		[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
+		[ -d /var/lib/flatpak/exports/share/applications ] && canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
+	fi
+	if [ -n "${XDG_DATA_HOME}" ]; then
+		for xdg_data_dir in ${XDG_DATA_DIRS}; do
+			[ -d "${xdg_data_dir}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_dir}/applications"
+		done
+	else
+		[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
+	fi
+	unset IFS
 
 	# In this phase we search for applications to export.
 	# First find command will grep through all files in the canonical directories
@@ -440,7 +462,7 @@ export_application() {
 			sed "s|\(%.*\)|${extra_flags} \1|g" |
 			sed "/^TryExec=.*/d" |
 			sed "/^DBusActivatable=true/d" |
-			sed "s|Name.*|& ${exported_app_label}|g" \
+			sed "s|Name.*|&${exported_app_label}|g" \
 				> "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 		# in the end we add the final quote we've opened in the "container_command_prefix"
 

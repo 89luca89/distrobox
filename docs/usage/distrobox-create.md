@@ -19,7 +19,7 @@ graphical apps (X11/Wayland), and audio.
 	--name/-n:		name for the distrobox		default: ${container_name_default}
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
-	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--clone/-c:		name of the distrobox container to use as base for a new container
@@ -32,10 +32,13 @@ graphical apps (X11/Wayland), and audio.
 	--init-hooks:		additional commands to execute during container initialization
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
-				this will make host's processes not visible from within the container.
+				this will make host's processes not visible from within the container. (assumes --unshare-process)
 	--nvidia:		try to integrate host's nVidia drivers in the guest
-	--unshare-netns:        do not share the net namespace with host
+	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-ipc:          do not share ipc namemspace with host
+	--unshare-netns:        do not share the net namespace with host
+	--unshare-process:          do not share process namemspace with host
+	--unshare-all:          activate all the unshare flags below
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
 	--no-entry:		do not generate a container entry in the application list
@@ -90,17 +93,33 @@ Use pre-init-hooks to perform an action at the beginning of the container startu
 
 	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
 
+Use init to create a Systemd container (acts similar to an LXC):
+
+	distrobox create -i ubuntu:latest --name test --additional-packages "systemd libpam-systemd" --init
+
+Use init to create a OpenRC container (acts similar to an LXC):
+
+	distrobox create -i alpine:latest --name test --additional-packages "openrc" --init
+
 Use host's NVidia drivers integration
 
 	distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
 
-Use environment variables to specify container name, image and container manager:
-
-	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
-
 Do not use host's IP inside the container:
 
 	distrobox create --image ubuntu:latest --name test --unshare-netns
+
+Create a more isolated container, where only the $HOME, basic sockets and host's FS (in /run/host) is shared:
+
+	distrobox create --name unshared-test --unshare-all
+
+Create a more isolated container, with it's own init system, this will act very similar to a full LXC container:
+
+	distrobox create --name unshared-init-test --unshare-all --init --image fedora:latest
+
+Use environment variables to specify container name, image and container manager:
+
+	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
 # ENVIRONMENT VARIABLES
 
@@ -168,6 +187,19 @@ Inside the container we will be able to use normal systemd units:
 Note that enabling `--init` **will disable host's process integration**.
 From within the container you will not be able to see and manage host's processes.
 This is needed because `/sbin/init` must be pid 1.
+
+If you want to use a non-pre-create image, you'll need to add the additional package:
+
+	distrobox create -i alpine:latest --init --additional-packages "openrc" -n test
+	distrobox create -i debian:stable --init --additional-packages "systemd libpam-systemd" -n test
+	distrobox create -i ubuntu:22.04 --init --additional-packages "systemd libpam-systemd" -n test
+	distrobox create -i archlinux:latest --init --additional-packages "systemd" -n test
+	distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages "systemd" -n test
+	distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-packages "systemd" -n test
+
+The `--init` flag is useful to create system containers, where the container acts
+more similar to a full VM than an application-container.
+Inside you'll have a separate init, user-session, daemons and so on.
 
 The `--home` flag let's you specify a custom HOME for the container.
 Note that this will NOT prevent the mount of the host's home directory,

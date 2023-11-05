@@ -32,7 +32,7 @@
 # containers.
 #
 # SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
-if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+if { [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; } && [ "$(id -ru)" -eq 0 ]; then
 	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
 	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
@@ -112,7 +112,7 @@ Options:
 	--all/-a:		delete all distroboxes
 	--force/-f:		force deletion
 	--rm-home:		remove the mounted home if it differs from the host user's one
-	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--help/-h:		show this message
@@ -187,32 +187,42 @@ if [ "${verbose}" -ne 0 ]; then
 fi
 
 # We depend on a container manager let's be sure we have it
-# First we use podman, else docker
+# First we use podman, else docker, else lilipod
 case "${container_manager}" in
 	autodetect)
 		if command -v podman > /dev/null; then
 			container_manager="podman"
+		elif command -v podman-launcher > /dev/null; then
+			container_manager="podman-launcher"
 		elif command -v docker > /dev/null; then
 			container_manager="docker"
+		elif command -v lilipod > /dev/null; then
+			container_manager="lilipod"
 		fi
 		;;
 	podman)
 		container_manager="podman"
+		;;
+	podman-launcher)
+		container_manager="podman-launcher"
+		;;
+	lilipod)
+		container_manager="lilipod"
 		;;
 	docker)
 		container_manager="docker"
 		;;
 	*)
 		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker'\n"
+		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker', 'lilipod'\n"
 		;;
 esac
 
 # Be sure we have a container manager to work with.
 if ! command -v "${container_manager}" > /dev/null; then
-	# Error: we need at least one between docker or podman.
+	# Error: we need at least one between docker, podman or lilipod.
 	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman or docker.\n"
+	printf >&2 "Please install one of podman,  docker or lilipod.\n"
 	printf >&2 "You can follow the documentation on:\n"
 	printf >&2 "\tman distrobox-compatibility\n"
 	printf >&2 "or:\n"
@@ -229,7 +239,7 @@ if [ "${force}" -ne 0 ]; then
 	force_flag="--force"
 fi
 
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program-} ${container_manager}"
 	distrobox_flags="--root"
@@ -237,7 +247,7 @@ fi
 
 # If all, just set container_name to the list of names in distrobox-list
 if [ "${all}" -ne 0 ]; then
-	# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+	# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
 	# shellcheck disable=SC2086,2248
 	container_name_list="$("${distrobox_path}"/distrobox-list ${distrobox_flags} --no-color |
 		tail -n +2 | cut -d'|' -f2 | tr -d ' ' | tr '\n' ' ')"
@@ -257,7 +267,7 @@ delete_container() {
 	container_name="$1"
 	# Inspect the container we're working with.
 	container_status="$(${container_manager} inspect --type container \
-		"${container_name}" --format '{{.State.Status}}' || :)"
+		--format '{{.State.Status}}' "${container_name}" || :)"
 	# Does the container exist? check if inspect reported errors
 	if [ -z "${container_status}" ]; then
 		# If not, prompt to create it first
@@ -267,8 +277,8 @@ delete_container() {
 
 	# Retrieve container's HOME, and check if it's different from host's one. In
 	# this case we prompt for deletion of the custom home.
-	container_home=$(${container_manager} inspect "${container_name}" --format \
-		'{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}')
+	container_home=$(${container_manager} inspect --format \
+		'{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}' "${container_name}")
 	# Prompt for confirmation
 	if [ "${container_home}" != "${HOME}" ]; then
 		if [ "${non_interactive}" -eq 0 ] &&
