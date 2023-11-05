@@ -71,6 +71,7 @@ Distrobox has been successfully tested on:
 | Ubuntu | 18.04 <br> 20.04 <br> 22.04 <br> 22.10 <br> 23.04 <br>| Older versions based on 20.04 or earlier may need external repos to install newer Podman and Docker releases. <br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. <br> [Now PPA available!](https://launchpad.net/~michel-slm/+archive/ubuntu/distrobox), also `distrobox` is available in default repos from `22.10` onward (thanks [michel-slm](https://github.com/michel-slm)!)  |
 | Vanilla OS | 22.10 <br> Orchid | `distrobox` should be installed in the home directory using the official script |
 | Void Linux | glibc | |
+| Windows | Oracle Linux 9 | using built-in Windows Subsystem for Linux |
 
 ### Compatibility notes
 
