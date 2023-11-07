@@ -227,7 +227,7 @@ if [ "${is_login}" -ne 0 ]; then
 	if [ "${is_sudo}" -ne 0 ]; then
 		start_shell="$(command -v sudo) -i"
 	else
-		start_shell="$(command -v sudo) -u ${USER} -i"
+		start_shell="$(command -v sudo) -u $(id --user --name) -i"
 	fi
 elif [ "${is_sudo}" -ne 0 ]; then
 	start_shell="$(command -v sudo)"

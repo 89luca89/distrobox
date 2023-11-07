@@ -57,7 +57,7 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-init --name ${USER} --user $(id -ru) --group $(id -rg) --home ${HOME}
+	distrobox-init --name $(id --user --name) --user $(id -ru) --group $(id -rg) --home ${HOME}
 
 Options:
 
