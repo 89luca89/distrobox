@@ -205,35 +205,31 @@ fi
 
 # Print mount flags considered "locked".
 # Arguments:
-# 	source_dir
+# 	source (path to the file/directory)
 # Outputs:
 # 	Comma-separated list of locked mount flags
 get_locked_mount_flags() (
-	source_dir="$1"
-	prev_dir=""
+	source="$1"
+	prev=""
 	locked_flags=""
 
-	if [ ! -d "${source_dir}" ]; then
+	# If we can't read the file/directory, exit
+	if ! ls "${source}" 2> /dev/null > /dev/null; then
 		return 0
 	fi
 
-	# If we can't read the directory, exit
-	if ! ls "${source_dir}" 2> /dev/null > /dev/null; then
-		return 0
-	fi
-
-	# Get mount flags of given directory, using nearest mountpoint.
+	# Get mount flags of given file/directory, using nearest mountpoint.
 	# Earlier versions of findmnt did not check parents until it found a mountpoint,
 	# so we use a workaround with dirname.
 	while true; do
-		flags="$(findmnt --noheadings --output OPTIONS --target "${source_dir}" || :)"
+		flags="$(findmnt --noheadings --output OPTIONS --target "${source}" || :)"
 		# shellcheck disable=SC2181
 		if [ -n "${flags}" ]; then
 			break
 		fi
-		prev_dir="${source_dir}"
-		source_dir="$(dirname "${source_dir}")"
-		[ "${source_dir}" = "${prev_dir}" ] && return 1
+		prev="${source}"
+		source="$(dirname "${source}")"
+		[ "${source}" = "${prev}" ] && return 1
 	done
 
 	for flag in nodev noexec nosuid; do
