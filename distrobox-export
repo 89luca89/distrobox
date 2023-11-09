@@ -384,17 +384,16 @@ export_application() {
 		icon_name="$(grep Icon= "${desktop_file}" | cut -d'=' -f2- | paste -sd "@" -)"
 
 		for icon in ${icon_name}; do
-			# In case it's an hard path, conserve it and continue
 			if [ -e "${icon_name}" ]; then
+				# In case it's an hard path, conserve it and continue
 				icon_files="${icon_files}@${icon_name}"
-				continue
+			else
+				# If it's not an hard path, find all files in the canonical paths.
+				icon_files="${icon_files}@$(find \
+					/usr/share/icons \
+					/usr/share/pixmaps \
+					/var/lib/flatpak/exports/share/icons -iname "*${icon}*")"
 			fi
-
-			# If it's not an hard path, find all files in the canonical paths.
-			icon_files="${icon_files}@$(find \
-				/usr/share/icons \
-				/usr/share/pixmaps \
-				/var/lib/flatpak/exports/share/icons -iname "*${icon}*")"
 		done
 
 		# remove leading delimiter
