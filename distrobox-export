@@ -39,7 +39,7 @@ host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
 dest_path="${host_home}/.local/bin"
 is_sudo=0
 rootful=""
-start_shell=""
+start_shell="/bin/sh -l -c"
 verbose=0
 version="1.5.0.2"
 
@@ -217,10 +217,12 @@ if [ -z "${container_name}" ]; then
 fi
 
 #
-if [ "${is_sudo}" -ne 0 ]; then
-	start_shell="$(command -v sudo) -i"
-else
-	start_shell="$(command -v sudo) -u ${USER} -i"
+if  [ "${is_sudo}" -ne 0 ]; then
+	if command -v su-exec > /dev/null >&1; then
+		start_shell="su-exec root su - root ${start_shell}"
+	elif command -v sudo > /dev/null 2>&1; then
+		start_shell="$(command -v sudo) -i ${start_shell}"
+	fi
 fi
 
 # Prefix to add to an existing command to work through the container
@@ -246,7 +248,7 @@ generate_script() {
 # name: ${container_name}
 if [ -z "\${CONTAINER_ID}" ]; then
 	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} -- \
-		${start_shell} ${exported_bin} ${extra_flags} "\$@"
+		${start_shell} '${exported_bin} ${extra_flags} \$@' -- "\$@"
 elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
 	exec distrobox-host-exec ${dest_path}/$(basename "${exported_bin}") ${extra_flags} "\$@"
 else
