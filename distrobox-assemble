@@ -290,6 +290,10 @@ run_distrobox() (
 		args=": ;"
 		separator=""
 		for arg in ${init_hooks}; do
+			if [ -z "${arg}" ]; then
+				continue
+			fi
+
 			args="${args} ${separator} ${arg}"
 
 			# Prepare for the next line, if we already have a ';' or '&&', do nothing
@@ -309,12 +313,16 @@ run_distrobox() (
 		args=": ;"
 		separator=""
 		for arg in ${pre_init_hooks}; do
+			if [ -z "${arg}" ]; then
+				continue
+			fi
+
 			args="${args} ${separator} ${arg}"
 
 			# Prepare for the next line, if we already have a ';' or '&&', do nothing
 			# else prefer adding '&&'
-			if ! echo "${arg}" | grep -q ';[[:space:]]\{0,1\}$' &&
-				! echo "${arg}" | grep -q '&&[[:space:]]\{0,1\}$'; then
+			if ! echo "${arg}" | grep -E ';[[:space:]]\{0,1\}$' &&
+				! echo "${arg}" | grep -E '&&[[:space:]]\{0,1\}$'; then
 				separator="&&"
 			else
 				separator=""
