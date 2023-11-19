@@ -31,7 +31,7 @@ boxname=""
 # quoting and escaping
 tmpfile="$(mktemp -u)"
 verbose=0
-version="1.5.0.2"
+version="1.6.0"
 # initializing block of variables used in the manifest
 additional_flags=""
 additional_packages=""
