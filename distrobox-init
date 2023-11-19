@@ -1552,6 +1552,14 @@ if [ "${nvidia}" -eq 1 ]; then
 			sed "s|/run/host/usr/lib64/|${lib64_dir}|g" |
 			sed "s|/run/host/usr/lib32/|${lib32_dir}|g")"
 
+		# If file exists, just continue
+		# this may happen for directories like /usr/lib/nvidia/xorg/foo.so
+		# where the directory is already bind mounted (ro) and we don't need
+		# to mount further files in it.
+		if [ -e "${nvidia_lib}" ]; then
+			continue
+		fi
+
 		type="file"
 		if [ -L "${nvidia_lib}" ]; then
 			type="link"
