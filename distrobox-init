@@ -724,7 +724,7 @@ if [ "${upgrade}" -ne 0 ] ||
 			less
 			ncurses
 			net-misc/curl
-			pinentry
+			app-crypt/pinentry
 			procps
 			shadow
 			sudo
