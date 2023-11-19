@@ -663,7 +663,7 @@ with podman:
 
 ```sh
 podman container commit -p distrobox_name image_name_you_choose
-podman save image_name_you_choose:latest | gzip > image_name_you_choose.tar.gz
+podman save image_name_you_choose:latest | bzip2 > image_name_you_choose.tar.bz
 ```
 
 with docker:
@@ -681,7 +681,7 @@ Now you can backup that archive or transfer it to another host, and to restore i
 just run
 
 ```sh
-podman load < image_name_you_choose.tar.gz
+podman load < image_name_you_choose.tar.bz2
 ```
 
 or
