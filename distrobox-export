@@ -381,21 +381,23 @@ export_application() {
 			continue
 		fi
 
-		icon_name="$(grep Icon= "${desktop_file}" | cut -d'=' -f2- | tr '\n' '@')"
+		icon_name="$(grep Icon= "${desktop_file}" | cut -d'=' -f2- | paste -sd "@" -)"
 
-		# In case it's an hard path, conserve it and continue
-		if [ -e "${icon_name}" ]; then
-			icon_files="${icon_files}@${icon_name}"
-			continue
-		fi
 		for icon in ${icon_name}; do
-			# If it's not an hard path, find all files in the canonical paths.
-			icon_files="${icon_files}@$(find \
-				/usr/share/icons \
-				/usr/share/pixmaps \
-				/var/lib/flatpak/exports/share/icons -iname "*${icon}*" \
-				-printf "%p@" 2> /dev/null || :)"
+			if [ -e "${icon_name}" ]; then
+				# In case it's an hard path, conserve it and continue
+				icon_files="${icon_files}@${icon_name}"
+			else
+				# If it's not an hard path, find all files in the canonical paths.
+				icon_files="${icon_files}@$(find \
+					/usr/share/icons \
+					/usr/share/pixmaps \
+					/var/lib/flatpak/exports/share/icons -iname "*${icon}*")"
+			fi
 		done
+
+		# remove leading delimiter
+		icon_files=${icon_files#@}
 	done
 
 	# create applications dir if not existing
