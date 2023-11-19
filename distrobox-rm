@@ -351,7 +351,7 @@ delete_container() {
 
 # Prompt for confirmation
 if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
-	printf "Do you really want to delete containers: %s? [Y/n]: " "${container_name_list}"
+	printf "Do you really want to delete containers:%s? [Y/n]: " "${container_name_list}"
 	read -r response
 	response="${response:-"Y"}"
 else

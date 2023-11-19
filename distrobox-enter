@@ -275,7 +275,7 @@ esac
 if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
 	# Error: we need at least one between docker, podman or lilipod.
 	printf >&2 "Missing dependency: we need a container manager.\n"
-	printf >&2 "Please install one of podman,  docker or lilipod.\n"
+	printf >&2 "Please install one of podman, docker or lilipod.\n"
 	printf >&2 "You can follow the documentation on:\n"
 	printf >&2 "\tman distrobox-compatibility\n"
 	printf >&2 "or:\n"
