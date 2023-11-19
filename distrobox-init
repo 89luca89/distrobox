@@ -567,6 +567,8 @@ if [ "${upgrade}" -ne 0 ] ||
 			xz-utils
 			zip
 			libgl1
+			libegl1-mesa
+			libgl1-mesa-glx
 			libegl1
 			libglx-mesa0
 			libvulkan1
