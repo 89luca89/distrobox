@@ -37,7 +37,6 @@ extra_flags=""
 #	with custom --home directory
 host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
 dest_path="${host_home}/.local/bin"
-is_login=0
 is_sudo=0
 rootful=""
 start_shell=""
@@ -77,7 +76,6 @@ Options:
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-	--login/-l		run the exported item in a login shell
 	--sudo/-S:		specify if the exported item should be run as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
@@ -116,10 +114,6 @@ while :; do
 				shift
 				shift
 			fi
-			;;
-		-l | --login)
-			is_login=1
-			shift
 			;;
 		-S | --sudo)
 			is_sudo=1
@@ -223,16 +217,10 @@ if [ -z "${container_name}" ]; then
 fi
 
 #
-if [ "${is_login}" -ne 0 ]; then
-	if [ "${is_sudo}" -ne 0 ]; then
-		start_shell="$(command -v sudo) -i"
-	else
-		start_shell="$(command -v sudo) -u ${USER} -i"
-	fi
-elif [ "${is_sudo}" -ne 0 ]; then
-	start_shell="$(command -v sudo)"
+if [ "${is_sudo}" -ne 0 ]; then
+	start_shell="$(command -v sudo) -i"
 else
-	start_shell=""
+	start_shell="$(command -v sudo) -u ${USER} -i"
 fi
 
 # Prefix to add to an existing command to work through the container
