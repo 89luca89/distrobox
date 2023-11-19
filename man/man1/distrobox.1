@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ASSEMBLE" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-ASSEMBLE" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -282,6 +282,10 @@ If you\[cq]re doing multiple hooks (init or pre_init) in multiple lines,
 end the line with a semicolon (;) in order to execute them one after the
 other.
 .PP
+For an explanation of each of the option in the list, take a look at the
+distrobox create usage, each option corresponds to one of the
+\f[V]create\f[R] flags.
+.PP
 \f[B]Advanced example\f[R]
 .IP
 .nf
@@ -330,7 +334,7 @@ exported_bins_path=\[dq]\[ti]/.local/bin\[dq]
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH COMPATIBILITY
 .PP
@@ -662,6 +666,7 @@ openSUSE
 T}@T{
 Tumbleweed
 T}@T{
+registry.opensuse.org/opensuse/distrobox:latest
 registry.opensuse.org/opensuse/tumbleweed:latest
 registry.opensuse.org/opensuse/toolbox:latest
 T}
@@ -802,7 +807,7 @@ up the integration independently from the distrobox\[cq]s own flag.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -845,9 +850,9 @@ usb devices and graphical apps (X11/Wayland), and audio.
             this will make host\[aq]s processes not visible from within the container. (assumes --unshare-process)
 --nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
 --unshare-devsys:          do not share host devices and sysfs dirs from host
---unshare-ipc:          do not share ipc namemspace with host
+--unshare-ipc:          do not share ipc namespace with host
 --unshare-netns:        do not share the net namespace with host
---unshare-process:          do not share process namemspace with host
+--unshare-process:          do not share process namespace with host
 --unshare-all:          activate all the unshare flags below
 --compatibility/-C: show list of compatible images
 --help/-h:      show this message
@@ -1193,7 +1198,7 @@ Void Linux (glibc)
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ENTER" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-ENTER" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1343,7 +1348,7 @@ run distrobox commands involving rootful containers using `doas'.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EPHEMERAL" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-EPHEMERAL" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1415,7 +1420,7 @@ a list of supported environment variables to use.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EXPORT" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-EXPORT" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1443,10 +1448,10 @@ will automatically be launched from the container it is exported from.
 --bin/-b:       absolute path of the binary to export
 --delete/-d:        delete exported application or binary
 --export-label/-el: label to add to exported application name.
+            Use \[dq]none\[dq] to disable.
             Defaults to (on \[rs]$container_name)
 --export-path/-ep:  path where to export the binary
 --extra-flags/-ef:  extra flags to add to the command
---login/-l      run the exported item in a login shell
 --sudo/-S:      specify if the exported item should be run as sudo
 --help/-h:      show this message
 --verbose/-v:       show more verbosity
@@ -1532,12 +1537,6 @@ distrobox-export --bin /usr/bin/vim --export-path \[ti]/.local/bin --delete
 .PP
 The option \[lq]\[en]sudo\[rq] will launch the exported item as root
 inside the distrobox.
-.PP
-\f[B]Run inside a login shell\f[R]
-.PP
-The option \[lq]\[en]login\[rq] will launch the exported item inside a
-login shell, allowing access to variables sourced at login in the
-container (e.g: /etc/profile).
 .PP
 \f[B]Exporting apps from rootful containers\f[R]
 .PP
@@ -1635,7 +1634,7 @@ option to provide a series of flags, for example:
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-GENERATE-ENTRY" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-GENERATE-ENTRY" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1713,7 +1712,7 @@ distrobox generate-entry container-name --delete
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-HOST-EXEC" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-HOST-EXEC" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1787,7 +1786,7 @@ distrobox-host-exec podman ps -a
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-INIT" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-INIT" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1855,7 +1854,7 @@ distrobox-init --upgrade
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-LIST" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-LIST" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1926,7 +1925,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-RM" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-RM" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1998,7 +1997,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-STOP" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-STOP" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -2075,7 +2074,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-UPGRADE" "1" "Sep 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-UPGRADE" "1" "Nov 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
