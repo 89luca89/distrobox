@@ -169,6 +169,7 @@ jobs:
 
       # Ensure distrobox export works:
       - name: Distrobox export - sudo
+        if: matrix.container_manager != 'docker'
         shell: 'script -q -e -c "bash {0}"'
         run: |
           image=${{ matrix.distribution }}
@@ -181,6 +182,13 @@ jobs:
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
           fi
+
+      # Ensure distrobox upgrade works:
+      - name: Distrobox upgrade
+        run: |
+          image=${{ matrix.distribution }}
+          container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
+          ./distrobox upgrade "${container_name}"
 
       # Ensure distrobox list works:
       - name: Distrobox list

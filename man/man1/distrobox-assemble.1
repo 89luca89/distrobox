@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ASSEMBLE" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-ASSEMBLE" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -38,6 +38,7 @@ specified using the \f[V]--file\f[R] flag.
 .nf
 \f[C]
 --file:         path to the distrobox manifest/ini file
+--name/-n:          run against a single entry in the manifest/ini file
 --replace/-R:       replace already existing distroboxes with matching names
 --dry-run/-d:       only print the container manager command generated
 --verbose/-v:       show more verbosity
@@ -51,7 +52,7 @@ This is an example manifest file to create two containers:
 .nf
 \f[C]
 [ubuntu]
-additional_packages=git vim tmux nodejs
+additional_packages=\[dq]git vim tmux nodejs\[dq]
 image=ubuntu:latest
 init=false
 nvidia=false
@@ -62,7 +63,7 @@ start_now=false
 
 # You can add comments using this #
 [arch] # also inline comments are supported
-additional_packages=git vim tmux nodejs
+additional_packages=\[dq]git vim tmux nodejs\[dq]
 home=/tmp/home
 image=archlinux:latest
 init=false
@@ -73,7 +74,7 @@ pre_init_hooks=\[dq]touch /pre-init\[dq]
 pull=true
 root=false
 replace=false
-volume=/tmp/test:/run/a /tmp/test:/run/b
+volume=\[dq]/tmp/test:/run/a /tmp/test:/run/b\[dq]
 \f[R]
 .fi
 .PP
@@ -190,6 +191,21 @@ T}@T{
 string
 T}
 T{
+exported_apps
+T}@T{
+string
+T}
+T{
+exported_bins
+T}@T{
+string
+T}
+T{
+exported_bins_path
+T}@T{
+string
+T}
+T{
 entry
 T}@T{
 bool
@@ -229,6 +245,21 @@ unshare_netns
 T}@T{
 bool
 T}
+T{
+unshare_process
+T}@T{
+bool
+T}
+T{
+unshare_devsys
+T}@T{
+bool
+T}
+T{
+unshare_all
+T}@T{
+bool
+T}
 .TE
 .PP
 boolean options default to false if not specified.
@@ -239,11 +270,17 @@ order to improve readability of the file:
 \f[C]
 [ubuntu]
 image=ubuntu:latest
-additional_packages=git vim tmux nodejs
-additional_packages=htop iftop iotop
-additional_packages=zsh fish
+additional_packages=\[dq]git vim tmux nodejs\[dq]
+additional_packages=\[dq]htop iftop iotop\[dq]
+additional_packages=\[dq]zsh fish\[dq]
 \f[R]
 .fi
+.PP
+Be aware that if you\[cq]re doing lines with spaces, you need to quote
+them.
+If you\[cq]re doing multiple hooks (init or pre_init) in multiple lines,
+end the line with a semicolon (;) in order to execute them one after the
+other.
 .PP
 \f[B]Advanced example\f[R]
 .IP
@@ -259,17 +296,20 @@ additional_packages=\[dq]patterns-devel-base-devel_basis\[dq]
 additional_packages=\[dq]ShellCheck ansible-lint clang clang-tools codespell ctags desktop-file-utils gcc golang jq python3\[dq]
 additional_packages=\[dq]python3-bashate python3-flake8 python3-mypy python3-pipx python3-pycodestyle python3-pyflakes python3-pylint python3-python-lsp-server python3-rstcheck python3-yapf python3-yamllint rustup shfmt\[dq]
 additional_packages=\[dq]kubernetes-client helm\[dq]
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint\[at]latest
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo\[at]latest
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports\[at]latest
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/gopls\[at]latest
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install sigs.k8s.io/kind\[at]latest
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/conmon
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/crun
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker-compose
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/flatpak
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/podman
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/gopls\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install sigs.k8s.io/kind\[at]latest;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/conmon;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/crun;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker-compose;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/flatpak;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/podman;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open;
+exported_apps=\[dq]htop\[dq]
+exported_bins=\[dq]/usr/bin/htop /usr/bin/git\[dq]
+exported_bins_path=\[dq]\[ti]/.local/bin\[dq]
 \f[R]
 .fi

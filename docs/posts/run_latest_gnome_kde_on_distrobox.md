@@ -83,7 +83,7 @@ This is needed for the XWayland session to work properly which right now is
 necessary to run gnome-shell even on wayland.
 
 Then we need to add a desktop file for the session on the **host's** file system,
-so that it appears on your login manager (Be it SSDM or GDM)
+so that it appears on your login manager (Be it SDDM or GDM)
 
 ```shell
 [Desktop Entry]

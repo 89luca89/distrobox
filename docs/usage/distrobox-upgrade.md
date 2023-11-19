@@ -14,7 +14,8 @@ an upgrade using the container's package manager.
 
 	--help/-h:		show this message
 	--all/-a:		perform for all distroboxes
-	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+	--running:		perform only on running distroboxes
+	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--verbose/-v:		show more verbosity
@@ -25,6 +26,10 @@ an upgrade using the container's package manager.
 Upgrade all distroboxes
 
 	distrobox-upgrade --all
+
+Upgrade all running distroboxes
+
+	distrobox-upgrade --all --running
 
 Upgrade a specific distrobox
 
@@ -61,4 +66,4 @@ this example shows how to run it daily:
 	[Install]
 	WantedBy=timers.target
 
-Then simply do a `systemctl --user daemon reload && systemctl --user enable --now distrobox-upgrade.timer`
+Then simply do a `systemctl --user daemon-reload && systemctl --user enable --now distrobox-upgrade.timer`

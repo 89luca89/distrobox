@@ -26,6 +26,7 @@ distrobox_path="$(dirname "${0}")"
 dryrun=0
 input_file=""
 replace=0
+boxname=""
 # tmpfile will be used as a little buffer to pass variables without messing up
 # quoting and escaping
 tmpfile="$(mktemp -u)"
@@ -46,7 +47,13 @@ root=""
 start_now=""
 unshare_ipc=""
 unshare_netns=""
+unshare_process=""
+unshare_devsys=""
+unshare_all=""
 volume=""
+exported_apps=""
+exported_bins=""
+exported_bins_path="${HOME}/.local/bin"
 
 # Cleanup tmpfiles on exit
 trap 'rm -f ${tmpfile}' EXIT
@@ -83,6 +90,7 @@ Usage:
 Options:
 
 	--file:			path to the distrobox manifest/ini file
+	--name/-n:		run against a single entry in the manifest/ini file
 	--replace/-R:		replace already existing distroboxes with matching names
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
@@ -105,6 +113,14 @@ while :; do
 			# Call a "show_help" function to display a synopsis, then exit.
 			if [ -n "$2" ]; then
 				input_file="${2}"
+				shift
+				shift
+			fi
+			;;
+		-n | --name)
+			# Call a "show_help" function to display a synopsis, then exit.
+			if [ -n "$2" ]; then
+				boxname="${2}"
 				shift
 				shift
 			fi
@@ -185,6 +201,12 @@ fi
 run_distrobox() (
 	name="${1}"
 
+	# Skip item if --name used and no match is found
+	if [ "${boxname}" != "" ] && [ "${boxname}" != "${name}" ]; then
+		rm -f "${tmpfile}"
+		return
+	fi
+
 	# Source the current block variables
 	if [ -e "${tmpfile}" ]; then
 		# shellcheck disable=SC1090
@@ -195,12 +217,14 @@ run_distrobox() (
 	if [ "${delete}" -ne 0 ] || [ "${replace}" -ne 0 ]; then
 		printf " - Deleting %s... \n" "${name}"
 
-		# Execute the distrobox-create command
 		if [ "${dryrun}" -eq 0 ]; then
-			"${distrobox_path}"/distrobox rm -f "${name}" > /dev/null || :
+			if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
+				"${distrobox_path}"/distrobox rm --root -f "${name}" > /dev/null || :
+			else
+				"${distrobox_path}"/distrobox rm -f "${name}" > /dev/null || :
+			fi
 		fi
 
-		# In case we're just deleting, return
 		if [ "${delete}" -ne 0 ]; then
 			return
 		fi
@@ -211,7 +235,7 @@ run_distrobox() (
 
 	# If distrobox already exist, and we have replace enabled, destroy the container
 	# we have to recreate it.
-	if "${distrobox_path}"/distrobox-list | grep -qw "${name}"; then
+	if "${distrobox_path}"/distrobox-list | grep -qw "${name} " && [ "${dryrun}" -eq 0 ]; then
 		printf >&2 "%s already exists\n" "${name}"
 		return 0
 	fi
@@ -249,40 +273,71 @@ run_distrobox() (
 	if [ -n "${unshare_ipc}" ] && [ "${unshare_ipc}" -eq 1 ]; then
 		result_command="${result_command} --unshare-ipc"
 	fi
+	if [ -n "${unshare_process}" ] && [ "${unshare_process}" -eq 1 ]; then
+		result_command="${result_command} --unshare-process"
+	fi
+	if [ -n "${unshare_devsys}" ] && [ "${unshare_devsys}" -eq 1 ]; then
+		result_command="${result_command} --unshare-devsys"
+	fi
+	if [ -n "${unshare_all}" ] && [ "${unshare_all}" -eq 1 ]; then
+		result_command="${result_command} --unshare-all"
+	fi
 	if [ -n "${home}" ]; then
 		result_command="${result_command} --home $(sanitize_variable "${home}")"
 	fi
 	if [ -n "${init_hooks}" ]; then
-		IFS="|"
-		args=":"
+		IFS="¤"
+		args=": ;"
+		separator=""
 		for arg in ${init_hooks}; do
-			args="${args} && ${arg}"
+			args="${args} ${separator} ${arg}"
+
+			# Prepare for the next line, if we already have a ';' or '&&', do nothing
+			# else prefer adding '&&'
+			if ! echo "${arg}" | grep -q ';[[:space:]]\{0,1\}$' &&
+				! echo "${arg}" | grep -q '&&[[:space:]]\{0,1\}$'; then
+				separator="&&"
+			else
+				separator=""
+			fi
 		done
 		result_command="${result_command} --init-hooks $(sanitize_variable "${args}")"
 	fi
 	# Replicable flags
 	if [ -n "${pre_init_hooks}" ]; then
-		IFS="|"
-		args=":"
+		IFS="¤"
+		args=": ;"
+		separator=""
 		for arg in ${pre_init_hooks}; do
-			args="${args} && ${arg}"
+			args="${args} ${separator} ${arg}"
+
+			# Prepare for the next line, if we already have a ';' or '&&', do nothing
+			# else prefer adding '&&'
+			if ! echo "${arg}" | grep -q ';[[:space:]]\{0,1\}$' &&
+				! echo "${arg}" | grep -q '&&[[:space:]]\{0,1\}$'; then
+				separator="&&"
+			else
+				separator=""
+			fi
 		done
 		result_command="${result_command} --pre-init-hooks $(sanitize_variable "${args}")"
 	fi
 	if [ -n "${additional_packages}" ]; then
-		IFS="|"
+		IFS="¤"
+		args=""
 		for packages in ${additional_packages}; do
-			result_command="${result_command} --additional-packages $(sanitize_variable "${packages}")"
+			args="${args} ${packages}"
 		done
+		result_command="${result_command} --additional-packages $(sanitize_variable "${args}")"
 	fi
 	if [ -n "${volume}" ]; then
-		IFS="|"
+		IFS="¤"
 		for vol in ${volume}; do
 			result_command="${result_command} --volume $(sanitize_variable "${vol}")"
 		done
 	fi
 	if [ -n "${additional_flags}" ]; then
-		IFS="|"
+		IFS="¤"
 		for flag in ${additional_flags}; do
 			result_command="${result_command} --additional-flags $(sanitize_variable "${flag}")"
 		done
@@ -299,6 +354,24 @@ run_distrobox() (
 	# is ready to be entered.
 	if [ -n "${start_now}" ] && [ "${start_now}" -eq 1 ]; then
 		"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
+	fi
+
+	# if there are exported bins and apps declared, let's export them
+	if [ -n "${exported_apps}" ] || [ -n "${exported_bins}" ]; then
+		# First we start the container
+		"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
+
+		IFS="¤"
+		for app in ${exported_apps}; do
+			app="$(echo "${app}" | tr -d '[:space:]')"
+			"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --app "${app}"
+		done
+
+		IFS="¤"
+		for bin in ${exported_bins}; do
+			bin="$(echo "${bin}" | tr -d '[:space:]')"
+			"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
+		done
 	fi
 )
 
@@ -338,8 +411,14 @@ parse_file() (
 			# blank line, skip
 			continue
 		fi
+
 		# Remove comments and trailing spaces
-		line="$(echo "${line}" | sed 's/#.*//g' | sed 's/\s*$//g')"
+		line="$(echo "${line}" |
+			sed 's/\t/ /g' |
+			sed 's/^#.*//g' |
+			sed 's/].*#.*//g' |
+			sed 's/ #.*//g' |
+			sed 's/\s*$//g')"
 
 		# Detect start of new section
 		if [ "$(echo "${line}" | cut -c 1)" = '[' ]; then
@@ -369,8 +448,8 @@ parse_file() (
 		# Save options to tempfile, to source it later
 		touch "${tmpfile}"
 		if [ -n "${key}" ] && [ -n "${value}" ]; then
-			if grep -q "${key}" "${tmpfile}"; then
-				value="$(echo "${value}" | sed "s|\"|\" \${${key}} |")"
+			if grep -q "${key}=" "${tmpfile}"; then
+				value="$(echo "${value}" | sed "s|\"|\" \${${key}}¤|")"
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
 		fi

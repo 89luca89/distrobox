@@ -31,11 +31,13 @@
 # containers.
 #
 # SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
-if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
+if { [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; } && [ "$(id -ru)" -eq 0 ]; then
 	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
 	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
 fi
+
+trap cleanup TERM INT HUP
 
 name=$(mktemp -u distrobox-XXXXXXXXXX)
 container_command=""
@@ -67,7 +69,7 @@ Usage:
 
 Options:
 
-	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--verbose/-v:		show more verbosity
@@ -163,7 +165,7 @@ if [ "${verbose}" -ne 0 ]; then
 	extra_flags="${extra_flags} --verbose"
 fi
 
-# prepend sudo (or the specified sudo program) if we want podman or docker to be rootful
+# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
 if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
 fi
@@ -199,12 +201,20 @@ generate_command() {
 	printf "%s" "${result_command}"
 }
 
+cleanup() {
+	# shellcheck disable=SC2086
+	"${distrobox_path}"/distrobox-stop ${extra_flags} "${name}" --yes
+	# shellcheck disable=SC2086
+	"${distrobox_path}"/distrobox-rm ${extra_flags} --force "${name}" --yes
+}
+
 cmd="$(generate_command)"
 # shellcheck disable=SC2086
 eval ${cmd}
 # shellcheck disable=SC2086
 "${distrobox_path}"/distrobox-enter ${extra_flags} "${name}" ${container_command}
-# shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-stop ${extra_flags} "${name}" --yes
-# shellcheck disable=SC2086
-"${distrobox_path}"/distrobox-rm  ${extra_flags} --force "${name}" --yes
+exit_code="$?"
+
+cleanup
+
+exit "${exit_code}"

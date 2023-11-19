@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ASSEMBLE" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-ASSEMBLE" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -38,6 +38,7 @@ specified using the \f[V]--file\f[R] flag.
 .nf
 \f[C]
 --file:         path to the distrobox manifest/ini file
+--name/-n:          run against a single entry in the manifest/ini file
 --replace/-R:       replace already existing distroboxes with matching names
 --dry-run/-d:       only print the container manager command generated
 --verbose/-v:       show more verbosity
@@ -51,7 +52,7 @@ This is an example manifest file to create two containers:
 .nf
 \f[C]
 [ubuntu]
-additional_packages=git vim tmux nodejs
+additional_packages=\[dq]git vim tmux nodejs\[dq]
 image=ubuntu:latest
 init=false
 nvidia=false
@@ -62,7 +63,7 @@ start_now=false
 
 # You can add comments using this #
 [arch] # also inline comments are supported
-additional_packages=git vim tmux nodejs
+additional_packages=\[dq]git vim tmux nodejs\[dq]
 home=/tmp/home
 image=archlinux:latest
 init=false
@@ -73,7 +74,7 @@ pre_init_hooks=\[dq]touch /pre-init\[dq]
 pull=true
 root=false
 replace=false
-volume=/tmp/test:/run/a /tmp/test:/run/b
+volume=\[dq]/tmp/test:/run/a /tmp/test:/run/b\[dq]
 \f[R]
 .fi
 .PP
@@ -190,6 +191,21 @@ T}@T{
 string
 T}
 T{
+exported_apps
+T}@T{
+string
+T}
+T{
+exported_bins
+T}@T{
+string
+T}
+T{
+exported_bins_path
+T}@T{
+string
+T}
+T{
 entry
 T}@T{
 bool
@@ -229,6 +245,21 @@ unshare_netns
 T}@T{
 bool
 T}
+T{
+unshare_process
+T}@T{
+bool
+T}
+T{
+unshare_devsys
+T}@T{
+bool
+T}
+T{
+unshare_all
+T}@T{
+bool
+T}
 .TE
 .PP
 boolean options default to false if not specified.
@@ -239,11 +270,17 @@ order to improve readability of the file:
 \f[C]
 [ubuntu]
 image=ubuntu:latest
-additional_packages=git vim tmux nodejs
-additional_packages=htop iftop iotop
-additional_packages=zsh fish
+additional_packages=\[dq]git vim tmux nodejs\[dq]
+additional_packages=\[dq]htop iftop iotop\[dq]
+additional_packages=\[dq]zsh fish\[dq]
 \f[R]
 .fi
+.PP
+Be aware that if you\[cq]re doing lines with spaces, you need to quote
+them.
+If you\[cq]re doing multiple hooks (init or pre_init) in multiple lines,
+end the line with a semicolon (;) in order to execute them one after the
+other.
 .PP
 \f[B]Advanced example\f[R]
 .IP
@@ -259,18 +296,21 @@ additional_packages=\[dq]patterns-devel-base-devel_basis\[dq]
 additional_packages=\[dq]ShellCheck ansible-lint clang clang-tools codespell ctags desktop-file-utils gcc golang jq python3\[dq]
 additional_packages=\[dq]python3-bashate python3-flake8 python3-mypy python3-pipx python3-pycodestyle python3-pyflakes python3-pylint python3-python-lsp-server python3-rstcheck python3-yapf python3-yamllint rustup shfmt\[dq]
 additional_packages=\[dq]kubernetes-client helm\[dq]
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint\[at]latest
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo\[at]latest
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports\[at]latest
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/gopls\[at]latest
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install sigs.k8s.io/kind\[at]latest
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/conmon
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/crun
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker-compose
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/flatpak
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/podman
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/gopls\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install sigs.k8s.io/kind\[at]latest;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/conmon;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/crun;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker-compose;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/flatpak;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/podman;
+init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open;
+exported_apps=\[dq]htop\[dq]
+exported_bins=\[dq]/usr/bin/htop /usr/bin/git\[dq]
+exported_bins_path=\[dq]\[ti]/.local/bin\[dq]
 \f[R]
 .fi
 '\" t
@@ -290,7 +330,7 @@ init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH COMPATIBILITY
 .PP
@@ -311,8 +351,8 @@ basic user management utilities (\f[V]usermod, passwd\f[R]), and
 \f[V]sudo\f[R] correctly set.
 .SS SUPPORTED CONTAINER MANAGERS
 .PP
-\f[V]distrobox\f[R] can run on either \f[V]podman\f[R] or
-\f[V]docker\f[R]
+\f[V]distrobox\f[R] can run on either \f[V]podman\f[R], \f[V]docker\f[R]
+or \f[V]lilipod\f[R] (https://github.com/89luca89/lilipod)
 .PP
 It depends either on \f[V]podman\f[R] configured in
 \f[V]rootless mode\f[R] or on \f[V]docker\f[R] configured without sudo
@@ -322,6 +362,8 @@ instructions (https://docs.docker.com/engine/install/linux-postinstall/))
 Minimum podman version: \f[B]2.1.0\f[R]
 .IP \[bu] 2
 Minimum docker client version: \f[B]19.03.15\f[R]
+.IP \[bu] 2
+Minimum lilipod version: \f[B]v0.0.1\f[R]
 .PP
 Follow the official installation guide here:
 .IP \[bu] 2
@@ -353,21 +395,40 @@ T}@T{
 T}@T{
 quay.io/toolbx-images/almalinux-toolbox:8
 quay.io/toolbx-images/almalinux-toolbox:9
+quay.io/toolbx-images/almalinux-toolbox:latest
 T}
 T{
 Alpine (Toolbox)
 T}@T{
-3.16 3.17 edge
+3.16 3.17 3.18 edge
 T}@T{
 quay.io/toolbx-images/alpine-toolbox:3.16
 quay.io/toolbx-images/alpine-toolbox:3.17
+quay.io/toolbx-images/alpine-toolbox:3.18
 quay.io/toolbx-images/alpine-toolbox:edge
+quay.io/toolbx-images/alpine-toolbox:latest
+T}
+T{
+AmazonLinux (Toolbox)
+T}@T{
+2 2022
+T}@T{
+quay.io/toolbx-images/amazonlinux-toolbox:2
+quay.io/toolbx-images/amazonlinux-toolbox:2023
+quay.io/toolbx-images/amazonlinux-toolbox:latest
 T}
 T{
 Archlinux (Toolbox)
 T}@T{
 T}@T{
-quay.io/toolbx-images/archlinux-toolbox
+quay.io/toolbx-images/archlinux-toolbox:latest
+T}
+T{
+Bazzite Arch
+T}@T{
+T}@T{
+ghcr.io/ublue-os/bazzite-arch:latest
+ghcr.io/ublue-os/bazzite-arch-gnome:latest
 T}
 T{
 Centos (Toolbox)
@@ -376,31 +437,36 @@ stream8 stream9
 T}@T{
 quay.io/toolbx-images/centos-toolbox:stream8
 quay.io/toolbx-images/centos-toolbox:stream9
+quay.io/toolbx-images/centos-toolbox:latest
 T}
 T{
 Debian (Toolbox)
 T}@T{
-10 11 testing unstable
+10 11 12 testing unstable
 T}@T{
 quay.io/toolbx-images/debian-toolbox:10
 quay.io/toolbx-images/debian-toolbox:11
+quay.io/toolbx-images/debian-toolbox:12
 quay.io/toolbx-images/debian-toolbox:testing
 quay.io/toolbx-images/debian-toolbox:unstable
+quay.io/toolbx-images/debian-toolbox:latest
 T}
 T{
 Fedora (Toolbox)
 T}@T{
 36 37 38 39 Rawhide
 T}@T{
-registry.fedoraproject.org/fedora-toolbox: 37
+registry.fedoraproject.org/fedora-toolbox:37
 registry.fedoraproject.org/fedora-toolbox:38
 registry.fedoraproject.org/fedora-toolbox:39
+registry.fedoraproject.org/fedora-toolbox:latest
 T}
 T{
 openSUSE (Toolbox)
 T}@T{
 T}@T{
 registry.opensuse.org/opensuse/distrobox:latest
+quay.io/toolbx-images/opensuse-toolbox:tumbleweed
 quay.io/toolbx-images/opensuse-toolbox:latest
 T}
 T{
@@ -410,6 +476,7 @@ T}@T{
 T}@T{
 registry.access.redhat.com/ubi8/toolbox
 registry.access.redhat.com/ubi9/toolbox
+quay.io/toolbx-images/rhel-toolbox:latest
 T}
 T{
 Rocky Linux (Toolbox)
@@ -418,6 +485,7 @@ T}@T{
 T}@T{
 quay.io/toolbx-images/rockylinux-toolbox:8
 quay.io/toolbx-images/rockylinux-toolbox:9
+quay.io/toolbx-images/rockylinux-toolbox:latest
 T}
 T{
 Ubuntu (Toolbox)
@@ -428,6 +496,7 @@ quay.io/toolbx-images/ubuntu-toolbox:16.04
 quay.io/toolbx-images/ubuntu-toolbox:18.04
 quay.io/toolbx-images/ubuntu-toolbox:20.04
 quay.io/toolbx-images/ubuntu-toolbox:22.04
+quay.io/toolbx-images/ubuntu-toolbox:latest
 T}
 T{
 T}@T{
@@ -459,11 +528,11 @@ T}
 T{
 AmazonLinux
 T}@T{
-1 2 2022
+1 2 2023
 T}@T{
 public.ecr.aws/amazonlinux/amazonlinux:1
 public.ecr.aws/amazonlinux/amazonlinux:2
-public.ecr.aws/amazonlinux/amazonlinux:2022.0.20220531.0
+public.ecr.aws/amazonlinux/amazonlinux:2023
 T}
 T{
 Archlinux
@@ -507,10 +576,11 @@ T}
 T{
 Debian
 T}@T{
-7 8 9 10 11
+7 8 9 10 11 12
 T}@T{
-docker.io/debian/eol:wheezy docker.io/library/debian:10
-docker.io/library/debian:stable
+docker.io/debian/eol:wheezy docker.io/library/debian:buster-backports
+docker.io/library/debian:bullseye-backports
+docker.io/library/debian:bookworm-backports
 docker.io/library/debian:stable-backports
 T}
 T{
@@ -551,18 +621,20 @@ T}@T{
 docker.io/gentoo/stage3:latest
 T}
 T{
+KDE neon
+T}@T{
+Latest Testing Unstable
+T}@T{
+invent-registry.kde.org/neon/docker-images/plasma:latest
+invent-registry.kde.org/neon/docker-images/plasma:testing
+invent-registry.kde.org/neon/docker-images/plasma:unstable
+T}
+T{
 Kali Linux
 T}@T{
 rolling
 T}@T{
 docker.io/kalilinux/kali-rolling:latest
-T}
-T{
-Mageia
-T}@T{
-8
-T}@T{
-docker.io/library/mageia
 T}
 T{
 Mint
@@ -577,12 +649,6 @@ T}@T{
 nd100
 T}@T{
 docker.io/library/neurodebian:nd100
-T}
-T{
-openEULER
-T}@T{
-T}@T{
-docker.io/openeuler/openeuler:latest
 T}
 T{
 openSUSE
@@ -657,16 +723,24 @@ docker.io/library/ubuntu:18.04 docker.io/library/ubuntu:20.04
 docker.io/library/ubuntu:22.04
 T}
 T{
+Vanilla OS
+T}@T{
+VSO
+T}@T{
+ghcr.io/vanilla-os/vso:main
+T}
+T{
 Void Linux
 T}@T{
 T}@T{
 ghcr.io/void-linux/void-linux:latest-full-x86_64
-ghcr.io/void-linux/void-linux:latest-full-x86_64-musl
 T}
 .TE
 .PP
-Images marked with \f[B]Toolbox\f[R] are tailored images, so they are
-more indicated for desktop use, and first setup will take less time.
+Images marked with \f[B]Toolbox\f[R] are tailored images made by the
+community efforts in
+toolbx-images/images (https://github.com/toolbx-images/images), so they
+are more indicated for desktop use, and first setup will take less time.
 Note however that if you use a non-toolbox preconfigured image, the
 \f[B]first\f[R] \f[V]distrobox-enter\f[R] you\[cq]ll perform can take a
 while as it will download and install the missing dependencies.
@@ -728,7 +802,7 @@ up the integration independently from the distrobox\[cq]s own flag.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -751,11 +825,11 @@ usb devices and graphical apps (X11/Wayland), and audio.
 .IP
 .nf
 \f[C]
---image/-i:     image to use for the container
---name/-n:      name for the distrobox
+--image/-i:     image to use for the container  default: ${container_image_default}
+--name/-n:      name for the distrobox      default: ${container_name_default}
 --pull/-p:      pull the image even if it exists locally (implies --yes)
 --yes/-Y:       non-interactive, pull images without asking
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --clone/-c:     name of the distrobox container to use as base for a new container
@@ -768,16 +842,21 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --init-hooks:       additional commands to execute during container initialization
 --pre-init-hooks:   additional commands to execute prior to container initialization
 --init/-I:      use init system (like systemd) inside the container.
-            this will make host\[aq]s processes not visible from within the container.
+            this will make host\[aq]s processes not visible from within the container. (assumes --unshare-process)
 --nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
---unshare-netns:        do not share the net namespace with host
+--unshare-devsys:          do not share host devices and sysfs dirs from host
 --unshare-ipc:          do not share ipc namemspace with host
+--unshare-netns:        do not share the net namespace with host
+--unshare-process:          do not share process namemspace with host
+--unshare-all:          activate all the unshare flags below
 --compatibility/-C: show list of compatible images
 --help/-h:      show this message
 --no-entry:     do not generate a container entry in the application list
 --dry-run/-d:       only print the container manager command generated
 --verbose/-v:       show more verbosity
 --version/-V:       show version
+
+--absolutely-disable-root-password-i-am-really-positively-sure: \[u26A0]\[uFE0F] \[u26A0]\[uFE0F]  when setting up a rootful distrobox, this will skip user password setup, leaving it blank. \[u26A0]\[uFE0F] \[u26A0]\[uFE0F]
 \f[R]
 .fi
 .SH COMPATIBILITY
@@ -865,11 +944,53 @@ distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hoo
 \f[R]
 .fi
 .PP
+Use init to create a Systemd container (acts similar to an LXC):
+.IP
+.nf
+\f[C]
+distrobox create -i ubuntu:latest --name test --additional-packages \[dq]systemd libpam-systemd\[dq] --init
+\f[R]
+.fi
+.PP
+Use init to create a OpenRC container (acts similar to an LXC):
+.IP
+.nf
+\f[C]
+distrobox create -i alpine:latest --name test --additional-packages \[dq]openrc\[dq] --init
+\f[R]
+.fi
+.PP
 Use host\[cq]s NVidia drivers integration
 .IP
 .nf
 \f[C]
 distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
+\f[R]
+.fi
+.PP
+Do not use host\[cq]s IP inside the container:
+.IP
+.nf
+\f[C]
+distrobox create --image ubuntu:latest --name test --unshare-netns
+\f[R]
+.fi
+.PP
+Create a more isolated container, where only the $HOME, basic sockets
+and host\[cq]s FS (in /run/host) is shared:
+.IP
+.nf
+\f[C]
+distrobox create --name unshared-test --unshare-all
+\f[R]
+.fi
+.PP
+Create a more isolated container, with it\[cq]s own init system, this
+will act very similar to a full LXC container:
+.IP
+.nf
+\f[C]
+distrobox create --name unshared-init-test --unshare-all --init --image fedora:latest
 \f[R]
 .fi
 .PP
@@ -879,14 +1000,6 @@ manager:
 .nf
 \f[C]
 DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
-\f[R]
-.fi
-.PP
-Do not use host\[cq]s IP inside the container:
-.IP
-.nf
-\f[C]
-distrobox create --image ubuntu:latest --name test --unshare-netns
 \f[R]
 .fi
 .SH ENVIRONMENT VARIABLES
@@ -994,10 +1107,42 @@ From within the container you will not be able to see and manage
 host\[cq]s processes.
 This is needed because \f[V]/sbin/init\f[R] must be pid 1.
 .PP
+If you want to use a non-pre-create image, you\[cq]ll need to add the
+additional package:
+.IP
+.nf
+\f[C]
+distrobox create -i alpine:latest --init --additional-packages \[dq]openrc\[dq] -n test
+distrobox create -i debian:stable --init --additional-packages \[dq]systemd libpam-systemd\[dq] -n test
+distrobox create -i ubuntu:22.04 --init --additional-packages \[dq]systemd libpam-systemd\[dq] -n test
+distrobox create -i archlinux:latest --init --additional-packages \[dq]systemd\[dq] -n test
+distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages \[dq]systemd\[dq] -n test
+distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-packages \[dq]systemd\[dq] -n test
+\f[R]
+.fi
+.PP
+The \f[V]--init\f[R] flag is useful to create system containers, where
+the container acts more similar to a full VM than an
+application-container.
+Inside you\[cq]ll have a separate init, user-session, daemons and so on.
+.PP
 The \f[V]--home\f[R] flag let\[cq]s you specify a custom HOME for the
 container.
 Note that this will NOT prevent the mount of the host\[cq]s home
 directory, but will ensure that configs and dotfiles will not litter it.
+.PP
+The \f[V]--root\f[R] flag will let you create a container with real root
+privileges.
+At first \f[V]enter\f[R] the user will be required to setup a password.
+This is done in order to not enable passwordless sudo/su, in a
+\f[B]rootful\f[R] container, this is needed because \f[B]in this mode,
+root inside the container is also root outside the container!\f[R]
+.PP
+The
+\f[V]--absolutely-disable-root-password-i-am-really-positively-sure\f[R]
+will skip user password setup, leaving it blank.
+\f[B]This is genuinely dangerous and you really, positively should NOT
+enable this\f[R].
 .PP
 From version 1.4.0 of distrobox, when you create a new container, it
 will also generate an entry in the applications list.
@@ -1048,7 +1193,7 @@ Void Linux (glibc)
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ENTER" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-ENTER" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1078,7 +1223,7 @@ specify the \[en]headless mode to disable tty and interactivity.
 --no-workdir/-nw:   always start the container from container\[aq]s home directory
 --additional-flags/-a:  additional flags to pass to the container manager command
 --help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --dry-run/-d:       only print the container manager command generated
@@ -1105,7 +1250,7 @@ distrobox-enter my-alpine-container -- sh -l
 \f[R]
 .fi
 .PP
-Use additional podman/docker flags while entering a distrobox
+Use additional podman/docker/lilipod flags while entering a distrobox
 .IP
 .nf
 \f[C]
@@ -1167,9 +1312,9 @@ my_var=test
 .fi
 .PP
 If you\[cq]d like to enter a rootful container having distrobox use a
-program other than `sudo' to run podman/docker as root, such as `pkexec'
-or `doas', you may specify it with the \f[V]DBX_SUDO_PROGRAM\f[R]
-environment variable.
+program other than `sudo' to run podman/docker/lilipod as root, such as
+`pkexec' or `doas', you may specify it with the
+\f[V]DBX_SUDO_PROGRAM\f[R] environment variable.
 For example, to use `doas' to enter a rootful container:
 .IP
 .nf
@@ -1198,7 +1343,7 @@ run distrobox commands involving rootful containers using `doas'.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EPHEMERAL" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-EPHEMERAL" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1218,7 +1363,7 @@ destroyed when the command is terminated.
 .IP
 .nf
 \f[C]
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
@@ -1242,8 +1387,8 @@ ephemeral container to run.
 .IP
 .nf
 \f[C]
-man distrobox-create
 distrobox-create --help
+man distrobox-create
 \f[R]
 .fi
 .SH ENVIRONMENT VARIABLES
@@ -1270,7 +1415,7 @@ a list of supported environment variables to use.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EXPORT" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-EXPORT" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1490,7 +1635,7 @@ option to provide a series of flags, for example:
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-GENERATE-ENTRY" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-GENERATE-ENTRY" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1568,7 +1713,7 @@ distrobox generate-entry container-name --delete
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-HOST-EXEC" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-HOST-EXEC" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1642,7 +1787,7 @@ distrobox-host-exec podman ps -a
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-INIT" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-INIT" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1710,7 +1855,7 @@ distrobox-init --upgrade
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-LIST" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-LIST" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1723,8 +1868,8 @@ distrobox-list
 .SH DESCRIPTION
 .PP
 distrobox-list lists available distroboxes.
-It detects them and lists them separately from the rest of normal podman
-or docker containers.
+It detects them and lists them separately from the rest of normal
+containers.
 .SH SYNOPSIS
 .PP
 \f[B]distrobox list\f[R]
@@ -1733,7 +1878,7 @@ or docker containers.
 \f[C]
 --help/-h:      show this message
 --no-color:     disable color formatting
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
@@ -1781,7 +1926,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-RM" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-RM" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1800,10 +1945,10 @@ distrobox-rm delete one of the available distroboxes.
 .IP
 .nf
 \f[C]
---name/-n:      name for the distrobox
+--all/-a:       delete all distroboxes
 --force/-f:     force deletion
 --rm-home:      remove the mounted home if it differs from the host user\[aq]s one
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --help/-h:      show this message
@@ -1815,8 +1960,7 @@ distrobox-rm delete one of the available distroboxes.
 .IP
 .nf
 \f[C]
-distrobox-rm --name container-name [--force]
-distrobox-rm container-name [-f]
+distrobox-rm container-name [--force] [--all]
 \f[R]
 .fi
 .PP
@@ -1854,7 +1998,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-STOP" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-STOP" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1877,10 +2021,10 @@ This is how they can be stopped.
 .IP
 .nf
 \f[C]
---name/-n:      name for the distrobox
+--all/-a:       stop all distroboxes
 --yes/-Y:       non-interactive, stop without asking
 --help/-h:      show this message
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
@@ -1891,8 +2035,9 @@ This is how they can be stopped.
 .IP
 .nf
 \f[C]
-distrobox-stop --name container-name
+distrobox-stop container-name1 container-name2
 distrobox-stop container-name
+distrobox-stop --all
 \f[R]
 .fi
 .PP
@@ -1930,7 +2075,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-UPGRADE" "1" "Jun 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-UPGRADE" "1" "Sep 2023" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1951,7 +2096,8 @@ perform an upgrade using the container\[cq]s package manager.
 \f[C]
 --help/-h:      show this message
 --all/-a:       perform for all distroboxes
---root/-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+--running:      perform only on running distroboxes
+--root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
@@ -1965,6 +2111,14 @@ Upgrade all distroboxes
 .nf
 \f[C]
 distrobox-upgrade --all
+\f[R]
+.fi
+.PP
+Upgrade all running distroboxes
+.IP
+.nf
+\f[C]
+distrobox-upgrade --all --running
 \f[R]
 .fi
 .PP
@@ -2020,4 +2174,4 @@ WantedBy=timers.target
 .fi
 .PP
 Then simply do a
-\f[V]systemctl --user daemon reload && systemctl --user enable --now distrobox-upgrade.timer\f[R]
+\f[V]systemctl --user daemon-reload && systemctl --user enable --now distrobox-upgrade.timer\f[R]

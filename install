@@ -21,7 +21,7 @@
 
 next=0
 verbose=0
-version=1.5.0
+version=1.5.0.2
 
 # Print usage to stdout.
 # Arguments:
@@ -53,10 +53,8 @@ while :; do
 			verbose=1
 			;;
 		-N | --next)
-			if [ -n "$2" ]; then
-				shift
-				next=1
-			fi
+			shift
+			next=1
 			;;
 		-P | --prefix)
 			if [ -n "$2" ]; then

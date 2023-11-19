@@ -16,6 +16,7 @@ The manifest file by default is `./distrobox.ini`, but can be specified using th
 **distrobox assemble**
 
 	--file:			path to the distrobox manifest/ini file
+	--name/-n:			run against a single entry in the manifest/ini file
 	--replace/-R:		replace already existing distroboxes with matching names
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
@@ -26,7 +27,7 @@ The manifest file by default is `./distrobox.ini`, but can be specified using th
 This is an example manifest file to create two containers:
 
 	[ubuntu]
-	additional_packages=git vim tmux nodejs
+	additional_packages="git vim tmux nodejs"
 	image=ubuntu:latest
 	init=false
 	nvidia=false
@@ -37,7 +38,7 @@ This is an example manifest file to create two containers:
 
 	# You can add comments using this #
 	[arch] # also inline comments are supported
-	additional_packages=git vim tmux nodejs
+	additional_packages="git vim tmux nodejs"
 	home=/tmp/home
 	image=archlinux:latest
 	init=false
@@ -48,7 +49,7 @@ This is an example manifest file to create two containers:
 	pull=true
 	root=false
 	replace=false
-	volume=/tmp/test:/run/a /tmp/test:/run/b
+	volume="/tmp/test:/run/a /tmp/test:/run/b"
 
 **Create**
 
@@ -103,6 +104,9 @@ This is a list of available options with the corresponding type:
 | init_hooks | string
 | pre_init_hooks | string
 | volume | string
+| exported_apps | string
+| exported_bins | string
+| exported_bins_path | string
 | entry | bool
 | start_now | bool
 | init | bool
@@ -111,6 +115,9 @@ This is a list of available options with the corresponding type:
 | root | bool
 | unshare_ipc | bool
 | unshare_netns | bool
+| unshare_process | bool
+| unshare_devsys | bool
+| unshare_all | bool
 
 boolean options default to false if not specified.
 string options can be broken in multiple declarations additively in order to improve
@@ -118,9 +125,13 @@ readability of the file:
 
 	[ubuntu]
 	image=ubuntu:latest
-	additional_packages=git vim tmux nodejs
-	additional_packages=htop iftop iotop
-	additional_packages=zsh fish
+	additional_packages="git vim tmux nodejs"
+	additional_packages="htop iftop iotop"
+	additional_packages="zsh fish"
+
+Be aware that if you're doing lines with spaces, you need to quote them.
+If you're doing multiple hooks (init or pre_init) in multiple lines, end the line with a semicolon (;)
+in order to execute them one after the other.
 
 **Advanced example**
 
@@ -134,15 +145,18 @@ readability of the file:
 	additional_packages="ShellCheck ansible-lint clang clang-tools codespell ctags desktop-file-utils gcc golang jq python3"
 	additional_packages="python3-bashate python3-flake8 python3-mypy python3-pipx python3-pycodestyle python3-pyflakes python3-pylint python3-python-lsp-server python3-rstcheck python3-yapf python3-yamllint rustup shfmt"
 	additional_packages="kubernetes-client helm"
-	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo@latest
-	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports@latest
-	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install golang.org/x/tools/gopls@latest
-	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install sigs.k8s.io/kind@latest
-	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/conmon
-	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/crun
-	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker
-	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker-compose
-	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/flatpak
-	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/podman
-	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
+	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest;
+	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo@latest;
+	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports@latest;
+	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install golang.org/x/tools/gopls@latest;
+	init_hooks=GOPATH="${HOME}/.local/share/system-go" GOBIN=/usr/local/bin go install sigs.k8s.io/kind@latest;
+	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/conmon;
+	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/crun;
+	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker;
+	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker-compose;
+	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/flatpak;
+	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/podman;
+	init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open;
+	exported_apps="htop"
+	exported_bins="/usr/bin/htop /usr/bin/git"
+	exported_bins_path="~/.local/bin"
