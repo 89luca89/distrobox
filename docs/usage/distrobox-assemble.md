@@ -133,6 +133,9 @@ Be aware that if you're doing lines with spaces, you need to quote them.
 If you're doing multiple hooks (init or pre_init) in multiple lines, end the line with a semicolon (;)
 in order to execute them one after the other.
 
+For an explanation of each of the option in the list, take a look at the [distrobox create usage](distrobox-create.md#synopsis),
+each option corresponds to one of the `create` flags.
+
 **Advanced example**
 
 	[tumbleweed_distrobox]
