@@ -330,7 +330,7 @@ run_distrobox() (
 		result_command="${result_command} --additional-packages $(sanitize_variable "${args}")"
 	fi
 	if [ -n "${volume}" ]; then
-		IFS=" "
+		IFS="¤"
 		for vol in ${volume}; do
 			result_command="${result_command} --volume $(sanitize_variable "${vol}")"
 		done
