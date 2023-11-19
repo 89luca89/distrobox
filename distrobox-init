@@ -573,7 +573,7 @@ if [ "${upgrade}" -ne 0 ] ||
 		"
 		install_pkg=""
 		for dep in ${deps}; do
-			if apt-cache show "${dep}" | grep -q Package; then
+			if apt-cache policy "${dep}" | grep Candidate | grep -qv none; then
 				install_pkg="${install_pkg} ${dep}"
 			fi
 		done
