@@ -1556,7 +1556,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		# this may happen for directories like /usr/lib/nvidia/xorg/foo.so
 		# where the directory is already bind mounted (ro) and we don't need
 		# to mount further files in it.
-		if [ -e "${nvidia_lib}" ]; then
+		if [ -e "${dest_file}" ]; then
 			continue
 		fi
 
