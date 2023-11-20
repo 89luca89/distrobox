@@ -31,7 +31,7 @@ host_spawn_version="1.5.0"
 download_command=""
 sudo_command=""
 verbose=0
-version="1.6.0"
+version="1.6.0.1"
 
 # Print usage to stdout.
 # Arguments:
