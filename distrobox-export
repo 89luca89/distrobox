@@ -348,7 +348,7 @@ export_application() {
 	# by its launcher name.
 	desktop_files=$(
 		# shellcheck disable=SC2086,SC2038
-		find ${canon_dirs} -type f -o -type l -printf '"%p"\n' |
+		find ${canon_dirs} -type f -printf "%p\n" -o -type l -printf '"%p"\n' |
 			xargs -I{} grep -le "Exec=.*${exported_app}.*" -le "Name=.*${exported_app}.*" "{}" |
 			xargs -I{} grep -Le "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox-enter"}.*" "{}" |
 			xargs -I{} printf "%s@" {}
@@ -382,7 +382,8 @@ export_application() {
 				icon_files="${icon_files}@$(find \
 					/usr/share/icons \
 					/usr/share/pixmaps \
-					/var/lib/flatpak/exports/share/icons -iname "*${icon}*")"
+					/var/lib/flatpak/exports/share/icons -iname "*${icon}*" \
+					-printf "%p@" 2> /dev/null || :)"
 			fi
 		done
 
@@ -482,7 +483,7 @@ export_application() {
 	# Update the desktop files database to ensure exported applications will
 	# show up in the taskbar/desktop menu/whatnot right after running this
 	# script.
-	/usr/bin/distrobox-host-exec --yes update-desktop-database "${host_home}/.local/share/applications" 2> /dev/null || :
+	/usr/bin/distrobox-host-exec --yes update-desktop-database "${host_home}/.local/share/applications" > /dev/null 2>&1 || :
 
 	if [ "${exported_delete}" -ne 0 ]; then
 		printf "Application %s successfully un-exported.\nOK!\n" "${exported_app}"
