@@ -344,7 +344,7 @@ generate_command() {
 	set +o xtrace
 	# disable logging for this snippet, or it will be too talkative.
 	for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
-		grep -Ev '^(HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_.*_DIRS|^_)'); do
+		grep -Ev '^(HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)'); do
 		# We filter the environment so that we do not have strange variables,
 		# multiline or containing spaces.
 		# We also NEED to ignore the HOME variable, as this is set at create time
@@ -568,7 +568,7 @@ if [ "${container_status}" != "running" ]; then
 		printf >&2 "Waiting for systemd startup...\n"
 		WAIT_COUNTER=0
 		while true; do
-			if ${container_manager} exec "${container_name}" systemctl is-system-running | grep -vq offline > /dev/null 2>&1; then
+			if ${container_manager} exec "${container_name}" systemctl is-system-running 2>&1 | grep -qE 'running|degraded'; then
 				printf >&2 "Systemd Startup Complete!\n"
 				break
 			fi
@@ -580,6 +580,14 @@ if [ "${container_status}" != "running" ]; then
 				break
 			fi
 		done
+		# create a long running pam_systemd session and assign seat0 to it.
+		# this is necessary for subsequent sessions to be assigned a new
+		# session id and for everything to work across multiple login sessions
+		${container_manager} exec \
+			--env "XDG_SEAT=${XDG_SEAT:-seat0}" \
+			--env "XDG_VTNR=${XDG_VTNR:-7}" \
+			"${container_name}" \
+			sudo --user "${USER}" --login sh -c 'sleep 10000d &'
 	fi
 fi
 
