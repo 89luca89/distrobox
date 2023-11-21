@@ -562,8 +562,25 @@ if [ "${container_status}" != "running" ]; then
 	# cleanup fifo
 	rm -f "${HOME}/.cache/.${container_name}.fifo"
 	printf >&2 "\nContainer Setup Complete!\n"
-	printf >&2 "\nWaiting for init!\n"
-	sleep 1
+	# check if container was created with init/systemd, so we can
+	# wait until the system has been booted up before entering
+	if ${container_manager} inspect "${container_name}" --format "{{.Args}}" | grep -q 'init 1' && ${container_manager} exec "${container_name}" sh -c 'command -v systemctl' > /dev/null 2>&1; then
+		printf >&2 "Waiting for systemd startup...\n"
+		WAIT_COUNTER=0
+		while true; do
+			if ${container_manager} exec "${container_name}" systemctl is-system-running | grep -vq offline > /dev/null 2>&1; then
+				printf >&2 "Systemd Startup Complete!\n"
+				break
+			fi
+			sleep 0.1
+			WAIT_COUNTER=$((WAIT_COUNTER + 1))
+			# do not wait more than 10s
+			if [ "${WAIT_COUNTER}" -gt 100 ]; then
+				printf >&2 "Timeout waiting for systemd startup.\n"
+				break
+			fi
+		done
+	fi
 fi
 
 # Generate the exec command and run it
