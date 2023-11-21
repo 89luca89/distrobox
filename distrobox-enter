@@ -304,8 +304,6 @@ generate_command() {
 		--interactive"
 	result_command="${result_command}
 		--detach-keys=\"\""
-	result_command="${result_command}
-		--user=\"${USER}\""
 
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
@@ -440,7 +438,7 @@ generate_command() {
 		# if no command was specified, let's execute a command that will find
 		# and run the default shell for the user
 		result_command="${result_command}
-			sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l"\"
+			sudo --user ${USER} --login"
 	fi
 
 	# Return generated command.
@@ -564,6 +562,8 @@ if [ "${container_status}" != "running" ]; then
 	# cleanup fifo
 	rm -f "${HOME}/.cache/.${container_name}.fifo"
 	printf >&2 "\nContainer Setup Complete!\n"
+	printf >&2 "\nWaiting for init!\n"
+	sleep 1
 fi
 
 # Generate the exec command and run it
