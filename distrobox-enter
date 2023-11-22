@@ -564,7 +564,8 @@ if [ "${container_status}" != "running" ]; then
 	printf >&2 "\nContainer Setup Complete!\n"
 	# check if container was created with init/systemd, so we can
 	# wait until the system has been booted up before entering
-	if ${container_manager} inspect "${container_name}" --format "{{.Args}}" | grep -q 'init 1' && ${container_manager} exec "${container_name}" sh -c 'command -v systemctl' > /dev/null 2>&1; then
+	if ${container_manager} inspect "${container_name}" --format "{{.Args}}" | grep -q 'init 1' && \
+	${container_manager} exec "${container_name}" sh -c 'command -v systemctl' > /dev/null 2>&1; then
 		printf >&2 "Waiting for systemd startup...\n"
 		WAIT_COUNTER=0
 		while true; do
