@@ -305,7 +305,7 @@ generate_command() {
 	result_command="${result_command}
 		--detach-keys=\"\""
 	result_command="${result_command}
-		--user=\"${USER}\""
+		--user='root'"
 
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
