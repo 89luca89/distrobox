@@ -304,6 +304,8 @@ generate_command() {
 		--interactive"
 	result_command="${result_command}
 		--detach-keys=\"\""
+	result_command="${result_command}
+		--user=\"${USER}\""
 
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
@@ -343,16 +345,14 @@ generate_command() {
 	# and export them to the container.
 	set +o xtrace
 	# disable logging for this snippet, or it will be too talkative.
-	ENV_LIST=""
 	for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
-		grep -Ev '^(HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)'); do
+		grep -Ev '^(HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_.*_DIRS|^_)'); do
 		# We filter the environment so that we do not have strange variables,
 		# multiline or containing spaces.
 		# We also NEED to ignore the HOME variable, as this is set at create time
 		# and needs to stay that way to use custom home dirs.
 		result_command="${result_command}
 			--env \"${i}\""
-		ENV_LIST="${ENV_LIST:-}$(echo "${i}" | sed 's/=.*//'),"
 	done
 
 	# Start with the $PATH set in the container's config
@@ -435,12 +435,12 @@ generate_command() {
 
 	if [ -n "${container_command}" ]; then
 		result_command="${result_command}
-			sudo --user ${USER} --login --preserve-env='\"${ENV_LIST}\"' ${container_command}"
+			su ${USER} -c '${container_command}'"
 	else
 		# if no command was specified, let's execute a command that will find
 		# and run the default shell for the user
 		result_command="${result_command}
-			sudo --user ${USER} --login --preserve-env='\"${ENV_LIST}\"'"
+			su ${USER}"
 	fi
 
 	# Return generated command.
@@ -583,14 +583,6 @@ if [ "${container_status}" != "running" ]; then
 				break
 			fi
 		done
-		# create a long running pam_systemd session and assign seat0 to it.
-		# this is necessary for subsequent sessions to be assigned a new
-		# session id and for everything to work across multiple login sessions
-		${container_manager} exec \
-			--env "XDG_SEAT=${XDG_SEAT:-seat0}" \
-			--env "XDG_VTNR=${XDG_VTNR:-7}" \
-			"${container_name}" \
-			sudo --user "${USER}" --login sh -c 'sleep 10000d &'
 	fi
 fi
 
