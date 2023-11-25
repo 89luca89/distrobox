@@ -39,7 +39,6 @@ host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
 dest_path="${host_home}/.local/bin"
 is_sudo=0
 rootful=""
-start_shell="/bin/sh -l -c"
 verbose=0
 version="1.6.0.1"
 
@@ -216,17 +215,13 @@ if [ -z "${container_name}" ]; then
 	container_name=$(uname -n | cut -d'.' -f1)
 fi
 
-#
+# Check if exported application/binary should be run with sudo privileges
 if  [ "${is_sudo}" -ne 0 ]; then
-	if command -v su-exec > /dev/null >&1; then
-		start_shell="su-exec root su - root ${start_shell}"
-	elif command -v sudo > /dev/null 2>&1; then
-		start_shell="$(command -v sudo) -i ${start_shell}"
-	fi
+	sudo_prefix="sudo -S"
 fi
 
 # Prefix to add to an existing command to work through the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${start_shell} "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${sudo_prefix:-} "
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
 elif [ "${exported_app_label}" = "none" ]; then
@@ -247,7 +242,7 @@ generate_script() {
 # distrobox_binary
 # name: ${container_name}
 if [ -z "\${CONTAINER_ID}" ]; then
-	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} -- \
+	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} -- ${sudo_prefix:-} \
 		'${exported_bin} ${extra_flags}' "\$@"
 elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
 	exec distrobox-host-exec ${dest_path}/$(basename "${exported_bin}") ${extra_flags} "\$@"
