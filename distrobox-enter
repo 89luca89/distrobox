@@ -28,7 +28,7 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
-app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}
+app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
 
 trap cleanup TERM INT HUP EXIT
 

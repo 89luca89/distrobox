@@ -94,7 +94,7 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 verbose=0
 version="1.6.0.1"
 
-app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}
+app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
