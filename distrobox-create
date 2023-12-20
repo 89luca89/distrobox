@@ -783,7 +783,7 @@ generate_command() {
 		# Use keep-id only if going rootless.
 		if [ "${rootful}" -eq 0 ]; then
 			result_command="${result_command}
-				--userns keep-id"
+				--userns=keep-id:uid=$(id -u),gid=$(id -g)"
 		fi
 	fi
 
