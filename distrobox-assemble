@@ -374,8 +374,6 @@ run_distrobox() (
 			# Split the string by spaces
 			IFS=" "
 			for app in ${apps}; do
-				# Remove spaces
-				app="$(echo "${app}" | tr -d '[:space:]')"
 				# Export the app
 				"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --app "${app}"
 			done
@@ -386,8 +384,6 @@ run_distrobox() (
 			# Split the string by spaces
 			IFS=" "
 			for bin in ${bins}; do
-				# Remove spaces
-				bin="$(echo "${bin}" | tr -d '[:space:]')"
 				# Export the bin
 				"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
 			done
