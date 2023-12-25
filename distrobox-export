@@ -248,7 +248,7 @@ generate_script() {
 # name: ${container_name}
 if [ -z "\${CONTAINER_ID}" ]; then
 	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} -- \
-		${start_shell} '${exported_bin} ${extra_flags} \$@' -- "\$@"
+		${start_shell} '${exported_bin} ${extra_flags} "\$@"' -- "\$@"
 elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
 	exec distrobox-host-exec ${dest_path}/$(basename "${exported_bin}") ${extra_flags} "\$@"
 else
