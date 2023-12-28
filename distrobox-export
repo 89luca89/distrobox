@@ -77,6 +77,7 @@ Options:
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
 	--sudo/-S:		specify if the exported item should be run as sudo
+        --start-shell/-s:       shell used to run the exported application or binary
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -118,6 +119,13 @@ while :; do
 		-S | --sudo)
 			is_sudo=1
 			shift
+			;;
+		-s | --start-shell)
+			if [ -n "$2" ]; then
+				start_shell="$2"
+				shift
+				shift
+			fi
 			;;
 		-el | --export-label)
 			if [ -n "$2" ]; then
