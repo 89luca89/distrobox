@@ -242,10 +242,10 @@ if [ -n "${enter_flags}" ]; then
 	# Inform user that certain flags are redundant
 	while [ $# -gt 0 ]; do
 		case "$1" in
-			--root|-r)
+			--root | -r)
 				printf >&2 "Warning: %s argument will be set automatically and should be removed.\n" "${1}"
 				;;
-			--name|-n)
+			--name | -n)
 				printf >&2 "Warning: %s argument will be set automatically and should be removed.\n" "${1}"
 				shift
 				;;
