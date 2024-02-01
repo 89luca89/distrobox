@@ -374,15 +374,23 @@ run_distrobox() (
 		"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
 
 		IFS="¤"
-		for app in ${exported_apps}; do
-			app="$(echo "${app}" | tr -d '[:space:]')"
-			"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --app "${app}"
+		for apps in ${exported_apps}; do
+			# Split the string by spaces
+			IFS=" "
+			for app in ${apps}; do
+				# Export the app
+				"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --app "${app}"
+			done
 		done
 
 		IFS="¤"
-		for bin in ${exported_bins}; do
-			bin="$(echo "${bin}" | tr -d '[:space:]')"
-			"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
+		for bins in ${exported_bins}; do
+			# Split the string by spaces
+			IFS=" "
+			for bin in ${bins}; do
+				# Export the bin
+				"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
+			done
 		done
 	fi
 )
