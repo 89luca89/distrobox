@@ -217,8 +217,6 @@ fi
 # Command to execute
 container_command_suffix="${exported_bin} ${extra_flags} \"\$@\""
 
-sudo_prefix="sudo -S -u ${USER}"
-
 # Edge case for systems without sudo
 if command -v su-exec > /dev/null >&1; then
 	sudo_prefix="su-exec ${USER}"
