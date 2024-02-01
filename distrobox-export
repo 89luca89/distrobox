@@ -32,6 +32,7 @@ exported_app_label=""
 exported_bin=""
 exported_delete=0
 extra_flags=""
+enter_flags=""
 # Use DBX_HOST_HOME if defined, else fallback to HOME
 #	DBX_HOST_HOME is set in case container is created
 #	with custom --home directory
@@ -62,8 +63,8 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --bin /path/to/bin [--export-path ~/.local/bin] [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --app mpv [--extra-flags "flags"] [--enter-flags "flags"] [--delete] [--sudo]
+	distrobox-export --bin /path/to/bin [--export-path ~/.local/bin] [--extra-flags "flags"] [--enter-flags "flags"] [--delete] [--sudo]
 
 Options:
 
@@ -75,6 +76,7 @@ Options:
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
+	--enter-flags/-nf:	flags to add to distrobox-enter
 	--sudo/-S:		specify if the exported item should be run as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
@@ -135,6 +137,13 @@ while :; do
 		-ef | --extra-flags)
 			if [ -n "$2" ]; then
 				extra_flags="$2"
+				shift
+				shift
+			fi
+			;;
+		-nf | --enter-flags)
+			if [ -n "$2" ]; then
+				enter_flags="$2"
 				shift
 				shift
 			fi
@@ -234,8 +243,32 @@ if [ "${is_sudo}" -ne 0 ]; then
 	fi
 fi
 
+# Filter enter_flags and remove redundant options
+if [ -n "${enter_flags}" ]; then
+	# shellcheck disable=SC2086
+	set -- ${enter_flags}
+	filtered_flags=""
+	# Inform user that certain flags are redundant
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--root | -r)
+				printf >&2 "Warning: %s argument will be set automatically and should be removed.\n" "${1}"
+				;;
+			--name | -n)
+				printf >&2 "Warning: %s argument will be set automatically and should be removed.\n" "${1}"
+				shift
+				;;
+			*)
+				filtered_flags="${filtered_flags} $1"
+				;;
+		esac
+		shift
+	done
+	enter_flags="${filtered_flags}"
+fi
+
 # Prefix to add to an existing command to work through the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${sudo_prefix:-} "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix:-} "
 
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
@@ -257,7 +290,7 @@ generate_script() {
 # distrobox_binary
 # name: ${container_name}
 if [ -z "\${CONTAINER_ID}" ]; then
-	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} -- ${sudo_prefix:-} ${container_command_suffix}
+	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix:-} ${container_command_suffix}
 elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
 	exec distrobox-host-exec ${dest_path}/$(basename "${exported_bin}") ${extra_flags} "\$@"
 else
