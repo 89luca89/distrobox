@@ -423,10 +423,7 @@ parse_file() (
 	file="${1}"
 	name=""
 
-	IFS='
-	'
-	# shellcheck disable=SC2013
-	for line in $(cat "${file}"); do
+	while IFS="" read -r line || [ -n "$line" ]; do
 		if [ -z "${line}" ]; then
 			# blank line, skip
 			continue
@@ -473,7 +470,7 @@ parse_file() (
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
 		fi
-	done
+	done < "${file}"
 	#	# Execute now one last time for the last block
 	run_distrobox "${name}"
 )
