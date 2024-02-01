@@ -55,7 +55,7 @@ self_dir="$(dirname "$(realpath "$0")")"
 nix_config_file="$(realpath "${self_dir}/../share/distrobox/distrobox.conf")"
 
 config_files="
-	$nix_config_file
+	${nix_config_file}
 	/usr/share/distrobox/distrobox.conf
 	/usr/share/defaults/distrobox/distrobox.conf
 	/usr/etc/distrobox/distrobox.conf
