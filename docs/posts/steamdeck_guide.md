@@ -1,4 +1,22 @@
-# Install Distrobox on the Steamdeck
+Latest SteamOS (version 3.5 and later) already pre-installed `distrobox` and `podman`.
+
+To run GUI application, add following line to `~/.distroboxrc`.
+```sh
+xhost +si:localuser:$USER
+```
+This is needed to ensure the graphical apps can talk to the Xwayland session.
+
+You can now start using `distrobox` on the deck, open the terminal and go:
+
+```sh
+distrobox create && distrobox enter
+```
+
+Refer to the [quickstart guide](../README.md#quick-start) and to the [usage docs](../usage/usage.md)
+And don't forget the [useful tips](../useful_tips.md)!
+
+
+## SteamOS 3.4 and earlier
 
 To install Distrobox on the steamdeck, we can install both `podman` and `distrobox`
 inside the `$HOME` so that containers will survive updates.

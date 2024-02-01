@@ -255,7 +255,7 @@ distrobox create -i debian:stable --init --additional-packages "systemd libpam-s
 distrobox create -i ubuntu:22.04 --init --additional-packages "systemd libpam-systemd" -n test
 distrobox create -i archlinux:latest --init --additional-packages "systemd" -n test
 distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages "systemd" -n test
-distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-packages "systemd" -n test
+distrobox create -i registry.fedoraproject.org/fedora:39 --init --additional-packages "systemd" -n test
 ```
 
 Note however that in this mode, you'll not be able to access host's processes

@@ -53,7 +53,7 @@ container_clone=""
 container_generate_entry=1
 container_home_prefix=""
 container_image=""
-container_image_default="registry.fedoraproject.org/fedora-toolbox:38"
+container_image_default="registry.fedoraproject.org/fedora-toolbox:39"
 container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
@@ -74,6 +74,7 @@ unshare_ipc=0
 unshare_netns=0
 unshare_process=0
 unshare_devsys=0
+
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
 # "realpath" would break situations like Nix or similar symlink based package
@@ -94,10 +95,19 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 verbose=0
 version="1.6.0.1"
 
+app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
+
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
 # leave priority to environment variables.
+#
+# On NixOS, for the distrobox derivation to pick up a static config file shipped
+# by the package maintainer the path must be relative to the script itself.
+self_dir="$(dirname "$(realpath "$0")")"
+nix_config_file="$(realpath "${self_dir}/../share/distrobox/distrobox.conf")"
+
 config_files="
+	$nix_config_file
 	/usr/share/distrobox/distrobox.conf
 	/usr/share/defaults/distrobox/distrobox.conf
 	/usr/etc/distrobox/distrobox.conf
@@ -146,12 +156,12 @@ distrobox version: ${version}
 Usage:
 
 	distrobox create --image alpine:latest --name test --init-hooks "touch /var/tmp/test1 && touch /var/tmp/test2"
-	distrobox create --image fedora:38 --name test --additional-flags "--env MY_VAR-value"
-	distrobox create --image fedora:38 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
+	distrobox create --image fedora:39 --name test --additional-flags "--env MY_VAR-value"
+	distrobox create --image fedora:39 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags "--pids-limit -1"
 	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
-	distrobox create --clone fedora-38 --name fedora-38-copy
+	distrobox create --clone fedora-39 --name fedora-39-copy
 	distrobox create --image alpine my-alpine-container
-	distrobox create --image registry.fedoraproject.org/fedora-toolbox:38 --name fedora-toolbox-38
+	distrobox create --image registry.fedoraproject.org/fedora-toolbox:39 --name fedora-toolbox-39
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
 	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim"
 	distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
@@ -178,6 +188,7 @@ Options:
 	--pre-init-hooks:	additional commands to execute prior to container initialization
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container. (assumes --unshare-process)
+				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
 	--nvidia:		try to integrate host's nVidia drivers in the guest
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-ipc:          do not share ipc namespace with host
@@ -209,9 +220,9 @@ EOF
 # Outputs:
 #   print usage with examples.
 show_compatibility() {
-	if [ ! -e "${HOME}/.cache/distrobox-compatibility-${version}" ] ||
-		[ ! -s "${HOME}/.cache/distrobox-compatibility-${version}" ]; then
-		mkdir -p "${HOME}/.cache"
+	if [ ! -e "${app_cache_dir}/distrobox-compatibility-${version}" ] ||
+		[ ! -s "${app_cache_dir}/distrobox-compatibility-${version}" ]; then
+		mkdir -p "${app_cache_dir}"
 
 		# If we don't have a cache file, we need connectivity. Ensure we have
 		# one and return error if not.
@@ -227,9 +238,9 @@ show_compatibility() {
 			cut -d '|' -f 4 |
 			sed 's|<br>|\n|g' |
 			tr -d ' ' |
-			sort -u > "${HOME}/.cache/distrobox-compatibility-${version}"
+			sort -u > "${app_cache_dir}/distrobox-compatibility-${version}"
 	fi
-	cat "${HOME}/.cache/distrobox-compatibility-${version}"
+	cat "${app_cache_dir}/distrobox-compatibility-${version}"
 }
 
 # Parse arguments
@@ -420,7 +431,7 @@ fi
 # Examples:
 #	alpine -> alpine
 #	ubuntu:20.04 -> ubuntu-20.04
-#	registry.fedoraproject.org/fedora-toolbox:38 -> fedora-toolbox-38
+#	registry.fedoraproject.org/fedora-toolbox:39 -> fedora-toolbox-39
 #	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
 if [ -z "${container_name}" ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/[:.]/-/g')"

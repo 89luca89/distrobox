@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ASSEMBLE" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-ASSEMBLE" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -334,7 +334,7 @@ exported_bins_path=\[dq]\[ti]/.local/bin\[dq]
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH COMPATIBILITY
 .PP
@@ -458,12 +458,12 @@ T}
 T{
 Fedora (Toolbox)
 T}@T{
-36 37 38 39 Rawhide
+37 38 39 Rawhide
 T}@T{
 registry.fedoraproject.org/fedora-toolbox:37
 registry.fedoraproject.org/fedora-toolbox:38
 registry.fedoraproject.org/fedora-toolbox:39
-registry.fedoraproject.org/fedora-toolbox:latest
+registry.fedoraproject.org/fedora-toolbox:rawhide
 T}
 T{
 openSUSE (Toolbox)
@@ -614,8 +614,9 @@ Fedora
 T}@T{
 36 37 38 39 Rawhide
 T}@T{
-quay.io/fedora/fedora:36 registry.fedoraproject.org/fedora:37
+quay.io/fedora/fedora:36 quay.io/fedora/fedora:37
 quay.io/fedora/fedora:38 quay.io/fedora/fedora:39
+quay.io/fedora/fedora:rawhide
 T}
 T{
 Gentoo Linux
@@ -807,7 +808,7 @@ up the integration independently from the distrobox\[cq]s own flag.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1122,7 +1123,7 @@ distrobox create -i debian:stable --init --additional-packages \[dq]systemd libp
 distrobox create -i ubuntu:22.04 --init --additional-packages \[dq]systemd libpam-systemd\[dq] -n test
 distrobox create -i archlinux:latest --init --additional-packages \[dq]systemd\[dq] -n test
 distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages \[dq]systemd\[dq] -n test
-distrobox create -i registry.fedoraproject.org/fedora:38 --init --additional-packages \[dq]systemd\[dq] -n test
+distrobox create -i registry.fedoraproject.org/fedora:39 --init --additional-packages \[dq]systemd\[dq] -n test
 \f[R]
 .fi
 .PP
@@ -1198,7 +1199,7 @@ Void Linux (glibc)
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ENTER" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-ENTER" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1348,7 +1349,7 @@ run distrobox commands involving rootful containers using `doas'.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EPHEMERAL" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-EPHEMERAL" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1420,7 +1421,7 @@ a list of supported environment variables to use.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EXPORT" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-EXPORT" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1634,7 +1635,7 @@ option to provide a series of flags, for example:
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-GENERATE-ENTRY" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-GENERATE-ENTRY" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1712,7 +1713,7 @@ distrobox generate-entry container-name --delete
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-HOST-EXEC" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-HOST-EXEC" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1786,7 +1787,7 @@ distrobox-host-exec podman ps -a
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-INIT" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-INIT" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1854,7 +1855,7 @@ distrobox-init --upgrade
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-LIST" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-LIST" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1925,7 +1926,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-RM" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-RM" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1997,7 +1998,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-STOP" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-STOP" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -2074,7 +2075,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-UPGRADE" "1" "Nov 2023" "Distrobox" "User Manual"
+.TH "DISTROBOX-UPGRADE" "1" "Feb 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
