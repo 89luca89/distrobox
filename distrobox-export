@@ -460,7 +460,7 @@ export_application() {
 		# Add closing quote
 		# If a TryExec is present, we have to fake it as it will not work
 		# through the container separation
-		sed "s|^Exec=|Exec=${container_command_prefix} |g" "${desktop_file}" |
+		sed "s|^Exec=\(.*\)|Exec=${container_command_prefix} '\1' |g" "${desktop_file}" |
 			sed "s|\(%.*\)|${extra_flags} \1|g" |
 			sed "/^TryExec=.*/d" |
 			sed "/^DBusActivatable=true/d" |
