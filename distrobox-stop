@@ -246,11 +246,14 @@ fi
 # check if we have containers to delete
 if [ -z "${container_name_list}" ]; then
 	container_name_list="${container_name_default}"
+else
+	# strip leading whitespace from container name
+	container_name_list="$(echo "${container_name_list}" | sed -E 's/^[[:space:]]+//')"
 fi
 
 if [ "${non_interactive}" -eq 0 ]; then
 	# Prompt to stop the container.
-	printf "Do you really want to stop%s? [Y/n]: " "${container_name_list}"
+	printf "Do you really want to stop %s? [Y/n]: " "${container_name_list}"
 	read -r response
 	response="${response:-"Y"}"
 else

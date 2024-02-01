@@ -131,7 +131,7 @@ Usage:
 Options:
 
 	--name/-n:		name for the distrobox						default: my-distrobox
-	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
+	--/-e:			end arguments execute the rest as command to execute at login	default: su ${USER}
 	--no-tty/-T:		do not instantiate a tty
 	--no-workdir/-nw:	always start the container from container's home directory
 	--additional-flags/-a:	additional flags to pass to the container manager command
@@ -305,7 +305,7 @@ generate_command() {
 	result_command="${result_command}
 		--detach-keys=\"\""
 	result_command="${result_command}
-		--user=\"${USER}\""
+		--user='root'"
 
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
@@ -346,7 +346,7 @@ generate_command() {
 	set +o xtrace
 	# disable logging for this snippet, or it will be too talkative.
 	for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
-		grep -Ev '^(HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_.*_DIRS|^_)'); do
+		grep -Ev '^(HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)'); do
 		# We filter the environment so that we do not have strange variables,
 		# multiline or containing spaces.
 		# We also NEED to ignore the HOME variable, as this is set at create time
@@ -435,12 +435,12 @@ generate_command() {
 
 	if [ -n "${container_command}" ]; then
 		result_command="${result_command}
-			${container_command}"
+			su ${USER} -c \"${container_command}\""
 	else
 		# if no command was specified, let's execute a command that will find
 		# and run the default shell for the user
 		result_command="${result_command}
-			sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l"\"
+			su ${USER}"
 	fi
 
 	# Return generated command.

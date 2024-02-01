@@ -39,7 +39,6 @@ host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
 dest_path="${host_home}/.local/bin"
 is_sudo=0
 rootful=""
-start_shell="/bin/sh -l -c"
 verbose=0
 version="1.6.0.1"
 
@@ -180,8 +179,7 @@ fi
 
 # Ensure the foundamental variables are set and not empty, we will not proceed
 # if they are not all set.
-if [ -z "${exported_app}" ] &&
-	[ -z "${exported_bin}" ]; then
+if [ -z "${exported_app}" ] && [ -z "${exported_bin}" ]; then
 	printf >&2 "Error: Invalid arguments.\n"
 	printf >&2 "Error: missing export target. Run\n"
 	printf >&2 "\tdistrobox-export --help\n"
@@ -216,17 +214,29 @@ if [ -z "${container_name}" ]; then
 	container_name=$(uname -n | cut -d'.' -f1)
 fi
 
-#
-if  [ "${is_sudo}" -ne 0 ]; then
+# Command to execute
+container_command_suffix="${exported_bin} ${extra_flags} \"\$@\""
+
+# Edge case for systems without sudo
+if command -v su-exec > /dev/null >&1; then
+	sudo_prefix="su-exec ${USER}"
+	container_command_suffix="sh -l -c \"${exported_bin} ${extra_flags} \$*\""
+fi
+
+# Check if exported application/binary should be run with sudo privileges
+if [ "${is_sudo}" -ne 0 ]; then
+	sudo_prefix="sudo -S"
+
+	# Edge case for systems without sudo
 	if command -v su-exec > /dev/null >&1; then
-		start_shell="su-exec root su - root ${start_shell}"
-	elif command -v sudo > /dev/null 2>&1; then
-		start_shell="$(command -v sudo) -i ${start_shell}"
+		sudo_prefix="su-exec root"
+		container_command_suffix="sh -l -c \"${exported_bin} ${extra_flags} \$*\""
 	fi
 fi
 
 # Prefix to add to an existing command to work through the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${start_shell} "
+container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} -- ${sudo_prefix:-} "
+
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
 elif [ "${exported_app_label}" = "none" ]; then
@@ -247,8 +257,7 @@ generate_script() {
 # distrobox_binary
 # name: ${container_name}
 if [ -z "\${CONTAINER_ID}" ]; then
-	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} -- \
-		${start_shell} '${exported_bin} ${extra_flags} \$@' -- "\$@"
+	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} -- ${sudo_prefix:-} ${container_command_suffix}
 elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
 	exec distrobox-host-exec ${dest_path}/$(basename "${exported_bin}") ${extra_flags} "\$@"
 else

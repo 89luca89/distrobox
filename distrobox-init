@@ -1713,7 +1713,7 @@ fi
 ###############################################################################
 
 ###############################################################################
-printf  "distrobox: Setting up distrobox profile...\n"
+printf "distrobox: Setting up distrobox profile...\n"
 
 # This ensures compatibility with prompts and tools between toolbx and distrobox
 touch /run/.toolboxenv
@@ -1768,8 +1768,8 @@ fi
 ###############################################################################
 
 ###############################################################################
-printf  "distrobox: Setting up sudo...\n"
-mkdir  -p /etc/sudoers.d
+printf "distrobox: Setting up sudo...\n"
+mkdir -p /etc/sudoers.d
 # Ensure we're using the user's password for sudo, not root
 if [ -e /etc/sudoers ]; then
 	sed -i "s|^Defaults targetpw.*||g" /etc/sudoers
@@ -1778,11 +1778,28 @@ fi
 # Do not check fqdn when doing sudo, it will not work anyways
 # Also allow canonical groups to use sudo
 cat << EOF > /etc/sudoers.d/sudoers
+Defaults !targetpw
 Defaults !fqdn
 %wheel ALL=(ALL:ALL) ALL
 %sudo ALL=(ALL:ALL) ALL
 %root ALL=(ALL:ALL) ALL
 EOF
+
+# PAM config for "su" command
+if [ ! -e /etc/pam.d/su ]; then
+	mkdir -p /etc/pam.d
+	cat << EOF > /etc/pam.d/su
+auth            sufficient      pam_rootok.so
+auth            required        pam_unix.so
+account	        required        pam_unix.so
+session         required        pam_unix.so
+-session        optional        pam_systemd.so
+EOF
+fi
+
+if ! grep -q "pam_systemd.so" /etc/pam.d/su; then
+	printf "%s" '-session   optional   pam_systemd.so' >> /etc/pam.d/su
+fi
 
 # If we're running this script as root in a login shell (sudoless), we don't
 # have to bother setting up sudo.
@@ -1923,7 +1940,7 @@ if [ "$(getent passwd "${container_user_name}" | cut -d: -f6)" != "${container_u
 fi
 
 # If we're rootless, delete password for root and user
-if  [ ! -e /etc/passwd.done ]; then
+if [ ! -e /etc/passwd.done ]; then
 	temporary_password="$(cat /proc/sys/kernel/random/uuid)"
 	# We generate a random password to initialize the entry for the user.
 	printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
@@ -1965,7 +1982,7 @@ if [ "${rootful}" -eq 1 ] &&
 fi
 
 # Now we're done
-touch  /etc/passwd.done
+touch /etc/passwd.done
 ###############################################################################
 
 ###############################################################################
@@ -2078,16 +2095,16 @@ fi
 # Instantiate a new pty to mount over /dev/console
 # this way we will have init output right of the logs
 [ -e /dev/console ] || touch /dev/console
-rm  -f /var/console
-mkfifo  /var/console
-script  -c "cat /var/console" /dev/null &
+rm -f /var/console
+mkfifo /var/console
+script -c "cat /var/console" /dev/null &
 
 # Ensure the pty is created
-sleep  0.5
+sleep 0.5
 
 # Mount the created pty over /dev/console in order to have systemd logs
 # right into container logs
-if  ! mount --bind /dev/pts/0 /dev/console; then
+if ! mount --bind /dev/pts/0 /dev/console; then
 	# Fallback to older behaviour or fake plaintext file in case it fails
 	# this ensures rootful + initful boxes do not interfere with host's /dev/console
 	rm -f /var/console
@@ -2175,8 +2192,6 @@ fi
 printf "distrobox: Firing up init system...\n"
 
 if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
-	printf "container_setup_done\n"
-
 	# Start user Systemd unit, this will attempt until Systemd is ready
 	sh -c "while true; do \
 		sleep 1; \
@@ -2185,8 +2200,15 @@ if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 		exit 0; \
 	done" &
 
+	sh -c "	while true; do \
+	    systemctl is-system-running && break; \
+	    printf >&2 'waiting for systemd to come up...\n' && sleep 1; \
+	done; \
+	printf container_setup_done" &
+
 	[ -e /usr/lib/systemd/systemd ] && exec /usr/lib/systemd/systemd --system --log-target=console --unit=multi-user.target
 	[ -e /lib/systemd/systemd ] && exec /lib/systemd/systemd --system --log-target=console --unit=multi-user.target
+
 elif [ -e /sbin/init ]; then
 	printf "container_setup_done\n"
 

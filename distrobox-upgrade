@@ -240,7 +240,7 @@ fi
 for container in ${container_name}; do
 	printf >&2 "\033[1;31m Upgrading %s...\n\033[0m" "${container}"
 	# shellcheck disable=SC2086,SC2248
-	"${distrobox_path}"/distrobox-enter --additional-flags "--user root:root" \
+	"${distrobox_path}"/distrobox-enter \
 		${distrobox_flags} ${container} -- \
-		/usr/bin/entrypoint --upgrade
+		"command -v su-exec 2>/dev/null && su-exec root /usr/bin/entrypoint --upgrade || sudo -S -i /usr/bin/entrypoint --upgrade"
 done

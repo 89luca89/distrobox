@@ -74,7 +74,7 @@ Options:
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
 	--verbose/-v:		show more verbosity
 	--help/-h:		show this message
-	--/-e:			end arguments execute the rest as command to execute at login	default: bash -l
+	--/-e:			end arguments execute the rest as command to execute at login	default: su ${USER}
 	--version/-V:		show version
 
 See also:
