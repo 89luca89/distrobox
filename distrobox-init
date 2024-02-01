@@ -735,7 +735,7 @@ if [ "${upgrade}" -ne 0 ] ||
 		"
 		install_pkg=""
 		for dep in ${deps}; do
-			if [ "$(emerge --search "${dep}" | grep "Applications found" | grep -Eo "[0-9]")" -gt 0 ]; then
+			if [ "$(emerge --ask=n --search "${dep}" | grep "Applications found" | grep -Eo "[0-9]")" -gt 0 ]; then
 				# shellcheck disable=SC2086
 				install_pkg="${install_pkg} ${dep}"
 			fi
