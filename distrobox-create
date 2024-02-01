@@ -700,12 +700,17 @@ generate_command() {
 	#
 	# /run/secrets is a standard location for RHEL containers, that is being pointed by
 	# /etc/rhsm-host by default.
-	if [ -e /etc/rhsm ]; then
-		result_command="${result_command}
-			--volume /etc/pki/entitlement/:/run/secrets/etc-pki-entitlement:ro
-			--volume /etc/rhsm/:/run/secrets/rhsm:ro
-			--volume /etc/yum.repos.d/redhat.repo:/run/secrets/redhat.repo:ro"
-	fi
+	RHEL_SUBSCRIPTION_FILES="
+		/etc/pki/entitlement/:/run/secrets/etc-pki-entitlement:ro
+		/etc/rhsm/:/run/secrets/rhsm:ro
+		/etc/yum.repos.d/redhat.repo:/run/secrets/redhat.repo:ro
+	"
+	for rhel_file in ${RHEL_SUBSCRIPTION_FILES}; do
+		if [ -e "$(echo "${rhel_file}" | cut -d':' -f1)" ]; then
+			result_command="${result_command}
+				--volume ${rhel_file}"
+		fi
+	done
 
 	# If we have a home prefix to use,
 	#	1- override the HOME env variable
