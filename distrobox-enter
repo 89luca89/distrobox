@@ -28,10 +28,12 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
+app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
+
 trap cleanup TERM INT HUP EXIT
 
 cleanup() {
-	rm -f "${HOME}/.cache/.${container_name}.fifo"
+	rm -f "${app_cache_dir}/.${container_name}.fifo"
 	if [ -n "${logs_pid:-}" ]; then
 		kill "${logs_pid:-}" 2> /dev/null || :
 	fi
@@ -527,14 +529,14 @@ if [ "${container_status}" != "running" ]; then
 	fi
 
 	printf >&2 "%-40s\t" "Starting container..."
-	mkdir -p "${HOME}/.cache/"
-	rm -f "${HOME}/.cache/.${container_name}.fifo"
-	mkfifo "${HOME}/.cache/.${container_name}.fifo"
+	mkdir -p "${app_cache_dir}"
+	rm -f "${app_cache_dir}/.${container_name}.fifo"
+	mkfifo "${app_cache_dir}/.${container_name}.fifo"
 	while true; do
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
 		${container_manager} logs -f "${container_name}" 2> /dev/null \
-			> "${HOME}/.cache/.${container_name}.fifo" &
+			> "${app_cache_dir}/.${container_name}.fifo" &
 		logs_pid="$!"
 
 		# read logs from log_timestamp to now, line by line
@@ -559,10 +561,10 @@ if [ "${container_status}" != "running" ]; then
 					;;
 				*) ;;
 			esac
-		done < "${HOME}/.cache/.${container_name}.fifo"
+		done < "${app_cache_dir}/.${container_name}.fifo"
 	done
 	# cleanup fifo
-	rm -f "${HOME}/.cache/.${container_name}.fifo"
+	rm -f "${app_cache_dir}/.${container_name}.fifo"
 	printf >&2 "\nContainer Setup Complete!\n"
 fi
 

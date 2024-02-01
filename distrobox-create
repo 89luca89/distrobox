@@ -94,6 +94,8 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 verbose=0
 version="1.6.0.1"
 
+app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
+
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
 # leave priority to environment variables.
@@ -210,9 +212,9 @@ EOF
 # Outputs:
 #   print usage with examples.
 show_compatibility() {
-	if [ ! -e "${HOME}/.cache/distrobox-compatibility-${version}" ] ||
-		[ ! -s "${HOME}/.cache/distrobox-compatibility-${version}" ]; then
-		mkdir -p "${HOME}/.cache"
+	if [ ! -e "${app_cache_dir}/distrobox-compatibility-${version}" ] ||
+		[ ! -s "${app_cache_dir}/distrobox-compatibility-${version}" ]; then
+		mkdir -p "${app_cache_dir}"
 
 		# If we don't have a cache file, we need connectivity. Ensure we have
 		# one and return error if not.
@@ -228,9 +230,9 @@ show_compatibility() {
 			cut -d '|' -f 4 |
 			sed 's|<br>|\n|g' |
 			tr -d ' ' |
-			sort -u > "${HOME}/.cache/distrobox-compatibility-${version}"
+			sort -u > "${app_cache_dir}/distrobox-compatibility-${version}"
 	fi
-	cat "${HOME}/.cache/distrobox-compatibility-${version}"
+	cat "${app_cache_dir}/distrobox-compatibility-${version}"
 }
 
 # Parse arguments
