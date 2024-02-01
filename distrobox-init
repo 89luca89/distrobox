@@ -1786,6 +1786,7 @@ EOF
 
 # PAM config for "su" command
 if [ ! -e /etc/pam.d/su ]; then
+	mkdir -p /etc/pam.d
 	cat << EOF > /etc/pam.d/su
 auth            sufficient      pam_rootok.so
 auth            required        pam_unix.so
