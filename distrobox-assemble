@@ -361,7 +361,11 @@ run_distrobox() (
 	# If we need to start immediately, do it, so that the container
 	# is ready to be entered.
 	if [ -n "${start_now}" ] && [ "${start_now}" -eq 1 ]; then
-		"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
+		if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
+			"${distrobox_path}"/distrobox enter --root "${name}" -- touch /dev/null
+		else
+			"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
+		fi
 	fi
 
 	# if there are exported bins and apps declared, let's export them
