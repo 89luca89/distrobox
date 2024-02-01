@@ -1778,6 +1778,7 @@ fi
 # Do not check fqdn when doing sudo, it will not work anyways
 # Also allow canonical groups to use sudo
 cat << EOF > /etc/sudoers.d/sudoers
+Defaults !targetpw
 Defaults !fqdn
 %wheel ALL=(ALL:ALL) ALL
 %sudo ALL=(ALL:ALL) ALL
