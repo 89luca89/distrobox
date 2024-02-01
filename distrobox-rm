@@ -308,7 +308,7 @@ delete_container() {
 
 	IFS='@'
 	# Remove exported binaries from this container in default path
-	binary_files="$(grep -rl "# distrobox_binary" "${HOME}/.local/bin" |
+	binary_files="$(grep -rl "# distrobox_binary" "${HOME}/.local/bin" 2> /dev/null |
 		xargs -I{} grep -le "# name: ${container_name}$" "{}" |
 		xargs -I{} printf "%s@" {} 2> /dev/null || :)"
 	for file in ${binary_files}; do
