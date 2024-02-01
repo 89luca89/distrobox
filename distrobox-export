@@ -217,7 +217,7 @@ fi
 # Command to execute
 container_command_suffix="${exported_bin} ${extra_flags} \"\$@\""
 
-sudo_prefix="sudo -S -i -u ${USER}"
+sudo_prefix="sudo -S -u ${USER}"
 
 # Edge case for systems without sudo
 if command -v su-exec > /dev/null >&1; then
@@ -227,7 +227,7 @@ fi
 
 # Check if exported application/binary should be run with sudo privileges
 if [ "${is_sudo}" -ne 0 ]; then
-	sudo_prefix="sudo -S -i"
+	sudo_prefix="sudo -S"
 
 	# Edge case for systems without sudo
 	if command -v su-exec > /dev/null >&1; then
