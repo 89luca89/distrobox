@@ -51,7 +51,7 @@ container_manager="autodetect"
 # On NixOS, for the distrobox derivation to pick up a static config file shipped
 # by the package maintainer the path must be relative to the script itself.
 self_dir="$(dirname "$(realpath "$0")")"
-nix_config_file="$(realpath "${self_dir}/../share/distrobox/distrobox.conf")"
+nix_config_file="${self_dir}/../share/distrobox/distrobox.conf"
 
 config_files="
 	${nix_config_file}
@@ -67,7 +67,7 @@ for config_file in ${config_files}; do
 	# Shellcheck will give error for sourcing a variable file as it cannot follow
 	# it. We don't care so let's disable this linting for now.
 	# shellcheck disable=SC1090
-	[ -e "${config_file}" ] && . "${config_file}"
+	[  -e "${config_file}" ] && . "$(realpath "${config_file}")"
 done
 # If we're running this script as root -- as in logged in in the shell as root
 # user, and not via SUDO/DOAS --, we don't need to set distrobox_sudo_program
