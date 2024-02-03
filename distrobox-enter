@@ -540,6 +540,11 @@ if [ "${container_status}" != "running" ]; then
 	rm -f "${app_cache_dir}/.${container_name}.fifo"
 	mkfifo "${app_cache_dir}/.${container_name}.fifo"
 	while true; do
+		# Exit early in case of crashed/stopped container during setup
+		if [ "$(${container_manager} inspect --type container --format '{{.State.Status}}' "${container_name}")" != "running" ]; then
+			printf >&2 "\nContainer Setup Failure!\n"
+			exit 1
+		fi
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
 		${container_manager} logs -f "${container_name}" 2> /dev/null \
