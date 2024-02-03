@@ -381,7 +381,7 @@ generate_command() {
 	done
 	# append additional standard paths to host PATH to get final container_paths
 	if [ -n "${container_paths}" ]; then
-		container_paths="${container_paths}:${PATH}"
+		container_paths="${PATH}:${container_paths}"
 	else
 		container_paths="${PATH}"
 	fi
