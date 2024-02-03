@@ -1752,7 +1752,6 @@ if [ -e "/etc/fish/config.fish" ]; then
 test -z "\$USER" && set -gx USER "\$(id -un 2> /dev/null)"
 test -z "\$UID"  && set -gx UID "\$(id -ur 2> /dev/null)"
 test -z "\$EUID" && set -gx EUID "\$(id -u  2> /dev/null)"
-test -z "\$MARONNE" && set -gx MARONNE "\$(id -u  2> /dev/null)"
 set -gx SHELL "\$(getent passwd "\$USER" | cut -f 7 -d :)"
 
 # This will ensure we have a first-shell password setup for an user if needed.
