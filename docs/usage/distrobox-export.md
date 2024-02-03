@@ -26,6 +26,7 @@ automatically be launched from the container it is exported from.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
+	--enter-flags/-nf:	flags to add to distrobox-enter
 	--sudo/-S:		specify if the exported item should be run as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity

@@ -16,7 +16,7 @@ The manifest file by default is `./distrobox.ini`, but can be specified using th
 **distrobox assemble**
 
 	--file:			path to the distrobox manifest/ini file
-	--name/-n:			run against a single entry in the manifest/ini file
+	--name/-n:		run against a single entry in the manifest/ini file
 	--replace/-R:		replace already existing distroboxes with matching names
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
