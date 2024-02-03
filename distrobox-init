@@ -2004,7 +2004,7 @@ if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 			cp "${skel_file}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}"
 		fi
 	done
-    chown -R  "${container_user_uid}":"${container_user_gid}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}"
+	chown -R "${container_user_uid}":"${container_user_gid}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}"
 fi
 ###############################################################################
 
