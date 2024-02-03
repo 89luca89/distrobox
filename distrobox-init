@@ -2192,7 +2192,7 @@ printf "distrobox: Firing up init system...\n"
 if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	# Start user Systemd unit, this will attempt until Systemd is ready
 	sh -c "while true; do \
-		sleep 1; \
+		sleep 5; \
 		systemctl start user@${container_user_name}.service 2>/dev/null && \
 		systemctl start user-integration@${container_user_name}.service 2>/dev/null && \
 		exit 0; \
@@ -2200,7 +2200,7 @@ if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 
 	sh -c "	while true; do \
 	    systemctl is-system-running && break; \
-	    printf >&2 'waiting for systemd to come up...\n' && sleep 1; \
+	    printf >&2 'waiting for systemd to come up...\n' && sleep 5; \
 	done; \
 	printf container_setup_done" &
 
