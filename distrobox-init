@@ -347,20 +347,25 @@ fi
 
 # Check dependencies in a list, and install all if one is missing
 missing_packages=0
-dependencies="
+core_dependencies="
+	${shell_pkg}
+	bash
+	find
+	findmnt
+	mount
+	sudo
+	umount
+"
+additional_dependencies="
 	bc
 	bzip2
 	chpasswd
-	curl
 	diff
-	find
-	findmnt
 	gpg
 	hostname
 	less
 	lsof
 	man
-	mount
 	passwd
 	pigz
 	pinentry
@@ -369,18 +374,23 @@ dependencies="
 	rsync
 	script
 	ssh
-	sudo
 	time
 	tree
-	umount
 	unzip
 	useradd
 	wc
 	wget
 	xauth
 	zip
-	${shell_pkg}
 "
+
+# Exclude additional dependencies from Alpine
+if command -v apk; then
+	dependencies="${core_dependencies}"
+else
+	dependencies="${core_dependencies}""${additional_dependencies}"
+fi
+
 for dep in ${dependencies}; do
 	! command -v "${dep}" > /dev/null && missing_packages=1 && break
 done
@@ -411,58 +421,14 @@ if [ "${upgrade}" -ne 0 ] ||
 			${shell_pkg}
 			alpine-base
 			bash
-			bash-completion
-			bc
-			bzip2
+			busybox
 			coreutils
 			curl
-			diffutils
-			docs
 			findmnt
-			findutils
-			gcompat
-			gnupg
-			gpg
-			iproute2
-			iputils
-			keyutils
-			less
-			libc-utils
-			libcap
-			lsof
-			man-pages
-			mandoc
 			mount
 			musl-utils
-			ncurses
-			ncurses-terminfo
-			net-tools
-			openssh-client
-			pigz
-			pinentry
-			posix-libc-utils
-			procps
-			rsync
-			shadow
 			su-exec
-			sudo
-			tar
-			tcpdump
-			tree
-			tzdata
 			umount
-			unzip
-			util-linux
-			util-linux-misc
-			vte3
-			wget
-			which
-			xauth
-			xz
-			zip
-			$(apk search -q mesa-dri)
-			$(apk search -q mesa-vulkan)
-			vulkan-loader
 		"
 		install_pkg=""
 		for dep in ${deps}; do
@@ -1732,8 +1698,8 @@ export SHELL="\$(getent passwd "\${USER}" | cut -f 7 -d :)"
 # toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
 # this will ensure greater compatibility between the two implementations
 if [ -f /run/.toolboxenv ]; then
-    [ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\h \W]\$ "
-    [ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@%m]%~%# "
+	[ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\h \W]\$ "
+	[ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@%m]%~%# "
 fi
 
 # This will ensure we have a first-shell password setup for an user if needed.
@@ -1834,7 +1800,7 @@ if [ -d "/run/host/var/kerberos" ] &&
 	cat << EOF > /etc/krb5.conf.d/kcm_default_ccache
 # # To disable the KCM credential cache, comment out the following lines.
 [libdefaults]
-    default_ccache_name = KCM:
+	default_ccache_name = KCM:
 EOF
 fi
 
@@ -2199,8 +2165,8 @@ if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	done" &
 
 	sh -c "	while true; do \
-	    systemctl is-system-running && break; \
-	    printf >&2 'waiting for systemd to come up...\n' && sleep 5; \
+		systemctl is-system-running && break; \
+		printf >&2 'waiting for systemd to come up...\n' && sleep 5; \
 	done; \
 	printf container_setup_done" &
 
