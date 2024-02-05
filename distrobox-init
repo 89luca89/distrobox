@@ -2164,6 +2164,25 @@ fi
 #
 # This will ensure the basic integration for x11/wayland/pipewire/keyring
 if [ -e /usr/lib/systemd/system/user@.service ]; then
+	cat << EOF > /usr/local/bin/user-integration
+#!/bin/sh
+sleep 1
+ln -sf /run/host/run/user/\$(id -ru)/wayland-* /run/user/\$(id -ru)/
+ln -sf /run/host/run/user/\$(id -ru)/pipewire-* /run/user/\$(id -ru)/
+find /run/host/run/user/\$(id -ru)/ -maxdepth 1 -type f -exec sh -c 'grep -qlE COOKIE \\\$0 && ln -sf \\\$0 /run/user/\$(id -ru)/\\\$(basename \\\$0)' {} \;
+mkdir -p /run/user/\$(id -ru)/app && ln -sf /run/host/run/user/\$(id -ru)/app/* /run/user/\$(id -ru)/app/
+mkdir -p /run/user/\$(id -ru)/at-spi && ln -sf /run/host/run/user/\$(id -ru)/at-spi/* /run/user/\$(id -ru)/at-spi/
+mkdir -p /run/user/\$(id -ru)/dbus-1 && ln -sf /run/host/run/user/\$(id -ru)/dbus-1/* /run/user/\$(id -ru)/dbus-1/
+mkdir -p /run/user/\$(id -ru)/dconf && ln -sf /run/host/run/user/\$(id -ru)/dconf/* /run/user/\$(id -ru)/dconf/
+mkdir -p /run/user/\$(id -ru)/gnupg && ln -sf /run/host/run/user/\$(id -ru)/gnupg/* /run/user/\$(id -ru)/gnupg/
+mkdir -p /run/user/\$(id -ru)/keyring && ln -sf /run/host/run/user/\$(id -ru)/keyring/* /run/user/\$(id -ru)/keyring/
+mkdir -p /run/user/\$(id -ru)/p11-kit && ln -sf /run/host/run/user/\$(id -ru)/p11-kit/* /run/user/\$(id -ru)/p11-kit/
+mkdir -p /run/user/\$(id -ru)/pulse && ln -sf /run/host/run/user/\$(id -ru)/pulse/* /run/user/\$(id -ru)/pulse/
+find /run/user/\$(id -ru) -maxdepth 2 -xtype l -delete
+EOF
+
+chmod +x /usr/local/bin/user-integration
+
 	cat << EOF > /usr/lib/systemd/system/user-integration@.service
 [Unit]
 Description=User runtime integration for UID %i
@@ -2173,19 +2192,7 @@ Requires=user-runtime-dir@%i.service
 [Service]
 User=%i
 Type=oneshot
-ExecStart=/bin/sh -c "sleep 1; \
-	ln -sf /run/host/run/user/\$(id -ru)/wayland-* /run/user/\$(id -ru)/ ; \
-	ln -sf /run/host/run/user/\$(id -ru)/pipewire-* /run/user/\$(id -ru)/ ; \
-	for f in \$(find /run/host/run/user/\$(id -ru)/ -maxdepth 1 -type f -exec grep -lE 'ICE|COOKIE' {} \;); do ln -sf \$f /run/user/\$(id -ru)/\$(basename \$f) ; done ; \
-	mkdir -p /run/user/\$(id -ru)/app && ln -sf /run/host/run/user/\$(id -ru)/app/* /run/user/\$(id -ru)/app/ ; \
-	mkdir -p /run/user/\$(id -ru)/at-spi && ln -sf /run/host/run/user/\$(id -ru)/at-spi/* /run/user/\$(id -ru)/at-spi/ ; \
-	mkdir -p /run/user/\$(id -ru)/dbus-1 && ln -sf /run/host/run/user/\$(id -ru)/dbus-1/* /run/user/\$(id -ru)/dbus-1/ ; \
-	mkdir -p /run/user/\$(id -ru)/dconf && ln -sf /run/host/run/user/\$(id -ru)/dconf/* /run/user/\$(id -ru)/dconf/ ; \
-	mkdir -p /run/user/\$(id -ru)/gnupg && ln -sf /run/host/run/user/\$(id -ru)/gnupg/* /run/user/\$(id -ru)/gnupg/ ; \
-	mkdir -p /run/user/\$(id -ru)/keyring && ln -sf /run/host/run/user/\$(id -ru)/keyring/* /run/user/\$(id -ru)/keyring/ ; \
-	mkdir -p /run/user/\$(id -ru)/p11-kit && ln -sf /run/host/run/user/\$(id -ru)/p11-kit/* /run/user/\$(id -ru)/p11-kit/ ; \
-	mkdir -p /run/user/\$(id -ru)/pulse && ln -sf /run/host/run/user/\$(id -ru)/pulse/* /run/user/\$(id -ru)/pulse/ ; \
-	find /run/user/\$(id -ru) -maxdepth 2 -xtype l -delete"
+ExecStart=/usr/local/bin/user-integration
 
 Slice=user-%i.slice
 EOF
@@ -2196,18 +2203,13 @@ printf "distrobox: Firing up init system...\n"
 
 if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	# Start user Systemd unit, this will attempt until Systemd is ready
-	sh -c "while true; do \
-		sleep 5; \
-		systemctl start user@${container_user_name}.service 2>/dev/null && \
-		systemctl start user-integration@${container_user_name}.service 2>/dev/null && \
-		exit 0; \
-	done" &
-
 	sh -c "	while true; do \
 	    systemctl is-system-running && break; \
-	    printf >&2 'waiting for systemd to come up...\n' && sleep 5; \
-	done; \
-	printf container_setup_done" &
+	    echo 'waiting for systemd to come up...\n' && sleep 1; \
+	done && \
+	systemctl start user@${container_user_name}.service && \
+	systemctl start user-integration@${container_user_name}.service && \
+	echo container_setup_done" &
 
 	[ -e /usr/lib/systemd/systemd ] && exec /usr/lib/systemd/systemd --system --log-target=console --unit=multi-user.target
 	[ -e /lib/systemd/systemd ] && exec /lib/systemd/systemd --system --log-target=console --unit=multi-user.target
