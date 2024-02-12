@@ -1478,6 +1478,17 @@ done
 if [ "${nvidia}" -eq 1 ]; then
 	printf "distrobox: Setting up host's nvidia integration...\n"
 
+
+	# Refresh ldconfig cache, also detect if there are empty files remaining
+	# and clean them.
+	# This could happen when upgrading drivers and changing versions.
+	empty_libs="$(ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2)"
+	if [ -n "${empty_libs}" ]; then
+		# shellcheck disable=SC2086
+                find ${empty_libs} -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
+                find /usr/ /etc/ -empty -iname "*nvidia*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
+	fi
+
 	# Find where the system expects libraries to be put
 	lib32_dir="/usr/lib/"
 	lib64_dir="/usr/lib/"
@@ -1575,15 +1586,9 @@ if [ "${nvidia}" -eq 1 ]; then
 		mount_bind "${nvidia_lib}" "${dest_file}" ro
 	done
 
-	# Refresh ldconfig cache, also detect if there are empty files remaining
-	# and clean them.
-	# This could happen when upgrading drivers and changing versions.
-	empty_libs="$(ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2)"
-	if [ -n "${empty_libs}" ]; then
-		# shellcheck disable=SC2086
-		find ${empty_libs} -delete 2> /dev/null || :
-		find /usr/ /etc/ -empty -iname "*nvidia*" -delete 2> /dev/null || :
-	fi
+        # Refresh ldconfig cache
+        ldconfig 2>&1 /dev/null
+
 fi
 
 ###############################################################################
