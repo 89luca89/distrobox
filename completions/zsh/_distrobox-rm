@@ -1,0 +1,11 @@
+#compdef distrobox-rm
+
+_arguments \
+  '(--all -a)'{-a,--all}'[delete all distroboxes]' \
+  '(--force -f)'{-f,--force}'[force deletion]' \
+  '--rm-home[remove the mounted home if it differs from the host users one]' \
+  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
+  '(--help -h)'{-h,--help}'[show this message]' \
+  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+  '(--version -V)'{-V,--version}'[show version]' \
+  '*:container name:_files'

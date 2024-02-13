@@ -1,0 +1,11 @@
+#compdef distrobox-generate-entry
+
+_arguments -s \
+  ':container name:_files' \
+  '(--help -h)'{-h,--help}'[show this message]' \
+  '(--all -a)'{-a,--all}'[perform for all distroboxes]' \
+  '(--delete -d)'{-d,--delete}'[delete the entry]' \
+  '(--icon -i)'{-i,--icon=}'[specify a custom icon (default auto)]:icon path:_files' \
+  '(--root -r)'{-r,--root}'[perform on rootful distroboxes]' \
+  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+  '(--version -V)'{-V,--version}'[show version]'

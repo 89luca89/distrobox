@@ -1,0 +1,11 @@
+#compdef distrobox-stop
+
+_arguments \
+  '--name=[specify container name]:container name:' \
+  '(--all -a)'{-a,--all}'[stop all distroboxes]' \
+  '(--yes -Y)'{-Y,--yes}'[non-interactive, stop without asking]' \
+  '(--help -h)'{-h,--help}'[show this message]' \
+  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
+  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+  '(--version -V)'{-V,--version}'[show version]' \
+  ':container name:_files'

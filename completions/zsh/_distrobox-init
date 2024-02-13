@@ -1,0 +1,16 @@
+#compdef distrobox-init
+
+_arguments \
+  '(--name -n)'{-n,--name=}'[user name]:user name:' \
+  '(--user -u)'{-u,--user=}'[uid of the user]:uid:' \
+  '(--group -g)'{-g,--group=}'[gid of the user]:gid:' \
+  '(--home -d)'{-d,--home=}'[path/to/home of the user]:home path:_files' \
+  '(--help -h)'{-h,--help}'[show this message]' \
+  '--additional-packages[packages to install in addition]:packages:' \
+  '(--init -I)'{-I,--init}'[whether to use or not init]' \
+  '--pre-init-hooks[commands to execute prior to init]:commands:' \
+  '--nvidia[try to integrate hosts nVidia drivers in the guest]' \
+  '(--upgrade -U)'{-U,--upgrade}'[run init in upgrade mode]' \
+  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+  '(--version -V)'{-V,--version}'[show version]' \
+  '--:[end arguments execute the rest as command to execute during init]:command:_command'

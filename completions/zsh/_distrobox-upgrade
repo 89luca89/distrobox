@@ -1,0 +1,10 @@
+#compdef distrobox-upgrade
+
+_arguments \
+  '(--help -h)'{-h,--help}'[show this message]' \
+  '(--all -a)'{-a,--all}'[perform for all distroboxes]' \
+  '--running[perform only for running distroboxes]' \
+  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
+  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+  '(--version -V)'{-V,--version}'[show version]' \
+  ':container name:_files'

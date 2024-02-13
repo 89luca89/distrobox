@@ -1,0 +1,29 @@
+#compdef distrobox-create
+
+_arguments -s \
+  '(--image -i)'{-i,--image=}'[image to use for the container]:image:_files' \
+  '(--name -n)'{-n,--name=}'[name for the distrobox]:name:' \
+  '(--pull -p)'{-p,--pull}'[pull the image even if it exists locally (implies --yes)]' \
+  '(--yes -Y)'{-Y,--yes}'[non-interactive, pull images without asking]' \
+  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
+  '(--clone -c)'{-c,--clone=}'[name of the distrobox container to use as base for a new container]:clone container name:' \
+  '(--home -H)'{-H,--home=}'[select a custom HOME directory for the container]:path:_files -/' \
+  '--volume[additional volumes to add to the container]:volume:_files' \
+  '(--additional-flags -a)'{-a,--additional-flags=}'[additional flags to pass to the container manager command]:flags:' \
+  '(--additional-packages -ap)'{-ap,--additional-packages=}'[additional packages to install during initial container setup]:package:' \
+  '--init-hooks[additional commands to execute during container initialization]:command:' \
+  '--pre-init-hooks[additional commands to execute prior to container initialization]:command:' \
+  '(--init -I)'{-I,--init}'[use init system inside the container]' \
+  '--nvidia[try to integrate host nVidia drivers in the guest]' \
+  '--unshare-devsys[do not share host devices and sysfs dirs from host]' \
+  '--unshare-ipc[do not share ipc namespace with host]' \
+  '--unshare-netns[do not share the net namespace with host]' \
+  '--unshare-process[do not share process namespace with host]' \
+  '--unshare-all[activate all the unshare flags]' \
+  '(--compatibility -C)'{-C,--compatibility}'[show list of compatible images]' \
+  '(--help -h)'{-h,--help}'[show this message]' \
+  '--no-entry[do not generate a container entry in the application list]' \
+  '(--dry-run -d)'{-d,--dry-run}'[only print the container manager command generated]' \
+  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+  '(--version -V)'{-V,--version}'[show version]' \
+  '--absolutely-disable-root-password-i-am-really-positively-sure[skip user password setup, leaving it blank]'
