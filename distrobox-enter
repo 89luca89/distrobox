@@ -442,14 +442,20 @@ generate_command() {
 	result_command="${result_command}
 		${container_name}"
 
+	# We use `su` to become the designed user, this triggers a proper login
+	# and we instantiate a proper pty with it
+	su_pty=""
+	if [ "${headless}" -eq 0 ]; then
+		su_pty="--pty"
+	fi
 	if [ -n "${container_command}" ]; then
 		result_command="${result_command}
-			su ${USER} -c \"${container_command}\""
+			su ${su_pty} ${USER} -c \"${container_command}\""
 	else
 		# if no command was specified, let's execute a command that will find
 		# and run the default shell for the user
 		result_command="${result_command}
-			su ${USER}"
+			su ${su_pty} ${USER} -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
 	fi
 
 	# Return generated command.
