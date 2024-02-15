@@ -379,7 +379,11 @@ run_distrobox() (
 			IFS=" "
 			for app in ${apps}; do
 				# Export the app
-				"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --app "${app}"
+				if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
+					"${distrobox_path}"/distrobox enter --root "${name}" -- distrobox-export --app "${app}"
+				else
+					"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --app "${app}"
+				fi
 			done
 		done
 
@@ -389,7 +393,11 @@ run_distrobox() (
 			IFS=" "
 			for bin in ${bins}; do
 				# Export the bin
-				"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
+				if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
+					"${distrobox_path}"/distrobox enter --root "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
+				else
+					"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
+				fi
 			done
 		done
 	fi
