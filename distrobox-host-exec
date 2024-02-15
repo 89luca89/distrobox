@@ -186,6 +186,8 @@ fi
 # This makes host-spawn work on initful containers, where the dbus session is
 # separate from the host, we point the dbus session straight to the host's socket
 # in order to talk with the org.freedesktop.Flatpak.Development.HostCommand on the host
+[ -z "${XDG_RUNTIME_DIR:-}" ] && XDG_RUNTIME_DIR="/run/user/$(id -ru)"
+[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -ru)/bus"
 XDG_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR}"
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/host/$(echo "${DBUS_SESSION_BUS_ADDRESS}" | cut -d '=' -f2-)"
 
