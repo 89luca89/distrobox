@@ -77,13 +77,16 @@ jobs:
       max-parallel: 8
       matrix:
         distribution: ${{fromJSON(needs.setup.outputs.targets)}}
-        container_manager: ["podman", "docker"]
+        container_manager: ["podman"] #, "docker"]
     env:
       DBX_CONTAINER_MANAGER: ${{ matrix.container_manager }}
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+
+      - name: Maximize build space
+        uses: ublue-os/remove-unwanted-software@v6
 
       # Ensure distrobox create works:
       - name: Distrobox create
@@ -92,16 +95,16 @@ jobs:
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           ${DBX_CONTAINER_MANAGER} pull "${image}"
-          ./distrobox create --yes --absolutely-disable-root-password-i-am-really-positively-sure -i "${image}" --name "${container_name}"
-          #case "${container_name}" in
-          #  *init*)
-          #    echo "SYSTEMD DETECTED: creating container with --init..."
-          #    ./distrobox create --yes -i "${image}" --name "${container_name}" --init
-          #    ;;
-          #  *)
-          #    ./distrobox create --yes -i "${image}" --name "${container_name}"
-          #    ;;
-          # esac
+          # ./distrobox create --yes --absolutely-disable-root-password-i-am-really-positively-sure -i "${image}" --name "${container_name}"
+          case "${container_name}" in
+            *init*)
+              echo "SYSTEMD DETECTED: creating container with --init..."
+              ./distrobox create --yes -i "${image}" --name "${container_name}" --init --unshare-all
+              ;;
+            *)
+              ./distrobox create --yes -i "${image}" --name "${container_name}"
+              ;;
+          esac
 
       # Ensure distrobox enter and init works:
       - name: Distrobox enter - init
@@ -109,20 +112,20 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          ./distrobox enter --name "${container_name}" -- whoami
+          # ./distrobox enter --name "${container_name}" -- whoami
           # Temporary disable systemd init on github runners, it seems to be incompatible
           # with runner services:
           #   Failed to create /system.slice/runner-provisioner.service/init.scope control group: Permission denied
           # works fine otherwise.
-          # case "${container_name}" in
-          #   *init*)
-          #     echo "SYSTEMD DETECTED: performing systemctl check..."
-          #     ./distrobox enter --name "${container_name}" -- systemctl status --no-pager
-          #     ;;
-          #   *)
-          #     ./distrobox enter --name "${container_name}" -- whoami
-          #     ;;
-          # esac
+          case "${container_name}" in
+            *init*)
+              echo "SYSTEMD DETECTED: performing systemctl check..."
+              ./distrobox enter --name "${container_name}" -- systemctl is-system-running
+              ;;
+            *)
+              ./distrobox enter --name "${container_name}" -- whoami
+              ;;
+          esac
 
       # Ensure distrobox enter and init works:
       - name: Distrobox enter - user
