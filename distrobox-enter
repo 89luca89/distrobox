@@ -55,6 +55,7 @@ if { [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; } && [ "$(id -ru)" -eq 0 ];
 fi
 
 # Defaults
+container_command_prefix="sh -c"
 container_command=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:39"
 container_manager="autodetect"
@@ -140,7 +141,7 @@ Usage:
 Options:
 
 	--name/-n:		name for the distrobox						default: my-distrobox
-	--/-e:			end arguments execute the rest as command to execute at login	default: su ${USER}
+	--/-e:			end arguments execute the rest as command to execute at login	default: default ${USER}'s shell
 	--no-tty/-T:		do not instantiate a tty
 	--no-workdir/-nw:	always start the container from container's home directory
 	--additional-flags/-a:	additional flags to pass to the container manager command
@@ -313,8 +314,21 @@ generate_command() {
 		--interactive"
 	result_command="${result_command}
 		--detach-keys=\"\""
-	result_command="${result_command}
-		--user='root'"
+
+	if [ "${unshare_groups:-0}" -eq 1 ]; then
+		result_command="${result_command}
+			--user='root'"
+		# We use `su` to become the designed user, this triggers a proper login
+		# and we instantiate a proper pty with it
+		if [ "${headless}" -eq 0 ]; then
+			container_command_prefix="su --pty ${USER} -c"
+		else
+			container_command_prefix="su ${USER} -c"
+		fi
+	else
+		result_command="${result_command}
+		--user=\"${USER}"\"
+	fi
 
 	# For some usage, like use in service, or launched by non-terminal
 	# eg. from desktop files, TTY can fail to instantiate, and fail to enter
@@ -442,20 +456,14 @@ generate_command() {
 	result_command="${result_command}
 		${container_name}"
 
-	# We use `su` to become the designed user, this triggers a proper login
-	# and we instantiate a proper pty with it
-	su_pty=""
-	if [ "${headless}" -eq 0 ]; then
-		su_pty="--pty"
-	fi
 	if [ -n "${container_command}" ]; then
 		result_command="${result_command}
-			su ${su_pty} ${USER} -c \"${container_command}\""
+			${container_command_prefix} \"${container_command}\""
 	else
 		# if no command was specified, let's execute a command that will find
 		# and run the default shell for the user
 		result_command="${result_command}
-			su ${su_pty} ${USER} -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
+			${container_command_prefix} \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
 	fi
 
 	# Return generated command.
@@ -464,6 +472,16 @@ generate_command() {
 
 container_home="${HOME}"
 container_path="${PATH}"
+unshare_groups=0
+# Now inspect the container we're working with.
+container_status="unknown"
+eval "$(${container_manager} inspect --type container --format \
+	'container_status={{.State.Status}};
+	unshare_groups={{ index .Config.Labels "distrobox.unshare_groups" }};
+	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
+	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
+	"${container_name}")"
+
 # dry run mode, just generate the command and print it. No execution.
 if [ "${dryrun}" -ne 0 ]; then
 	cmd="$(generate_command)"
@@ -471,14 +489,6 @@ if [ "${dryrun}" -ne 0 ]; then
 	printf "%s\n" "${cmd}"
 	exit 0
 fi
-
-# Now inspect the container we're working with.
-container_status="unknown"
-eval "$(${container_manager} inspect --type container --format \
-	'container_status={{.State.Status}};
-	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
-	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
-	"${container_name}")"
 
 # Check if the container is even there
 if [ "${container_status}" = "unknown" ]; then

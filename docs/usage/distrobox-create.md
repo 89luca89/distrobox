@@ -36,6 +36,7 @@ graphical apps (X11/Wayland), and audio.
 				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
 	--nvidia:		try to integrate host's nVidia drivers in the guest
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
+	--unshare-groups:          do not forward user's additional groups into the container
 	--unshare-ipc:          do not share ipc namespace with host
 	--unshare-netns:        do not share the net namespace with host
 	--unshare-process:          do not share process namespace with host

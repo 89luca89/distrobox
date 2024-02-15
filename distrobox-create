@@ -71,6 +71,7 @@ non_interactive=0
 nvidia=0
 nopasswd=0
 unshare_ipc=0
+unshare_groups=0
 unshare_netns=0
 unshare_process=0
 unshare_devsys=0
@@ -191,6 +192,7 @@ Options:
 				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
 	--nvidia:		try to integrate host's nVidia drivers in the guest
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
+	--unshare-groups:          do not forward user's additional groups into the container
 	--unshare-ipc:          do not share ipc namespace with host
 	--unshare-netns:        do not share the net namespace with host
 	--unshare-process:          do not share process namespace with host
@@ -278,11 +280,16 @@ while :; do
 		-I | --init)
 			shift
 			init=1
+			unshare_groups=1
 			unshare_process=1
 			;;
 		--unshare-ipc)
 			shift
 			unshare_ipc=1
+			;;
+		--unshare-groups)
+			shift
+			unshare_groups=1
 			;;
 		--unshare-netns)
 			shift
@@ -298,10 +305,11 @@ while :; do
 			;;
 		--unshare-all)
 			shift
+			unshare_devsys=1
+			unshare_groups=1
 			unshare_ipc=1
 			unshare_netns=1
 			unshare_process=1
-			unshare_devsys=1
 			;;
 		-C | --compatibility)
 			show_compatibility
@@ -599,6 +607,7 @@ generate_command() {
 	# utilities.
 	result_command="${result_command}
 		--label \"manager=distrobox\"
+		--label \"distrobox.unshare_groups=${unshare_groups}\"
 		--env \"SHELL=$(basename "${SHELL:-"/bin/bash"}")\"
 		--env \"HOME=${container_user_home}\"
 		--env \"container=${container_manager}\"
@@ -790,6 +799,7 @@ generate_command() {
 	# container manager is podman.
 	if echo "${container_manager}" | grep -q "podman"; then
 		result_command="${result_command}
+			--annotation run.oci.keep_original_groups=1
 			--ulimit host"
 
 		if [ "${init}" -eq 1 ]; then
