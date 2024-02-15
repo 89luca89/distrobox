@@ -833,6 +833,7 @@ usb devices and graphical apps (X11/Wayland), and audio.
             may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
 --nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
 --unshare-devsys:          do not share host devices and sysfs dirs from host
+--unshare-groups:          do not forward user\[aq]s additional groups into the container
 --unshare-ipc:          do not share ipc namespace with host
 --unshare-netns:        do not share the net namespace with host
 --unshare-process:          do not share process namespace with host
@@ -1206,7 +1207,7 @@ specify the \[en]headless mode to disable tty and interactivity.
 .nf
 \f[C]
 --name/-n:      name for the distrobox                      default: my-distrobox
---/-e:          end arguments execute the rest as command to execute at login   default: su ${USER}
+--/-e:          end arguments execute the rest as command to execute at login   default: default $USER\[aq]s shell
 --no-tty/-T:        do not instantiate a tty
 --no-workdir/-nw:   always start the container from container\[aq]s home directory
 --additional-flags/-a:  additional flags to pass to the container manager command
@@ -1356,7 +1357,7 @@ destroyed when the command is terminated.
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 --verbose/-v:       show more verbosity
 --help/-h:      show this message
---/-e:          end arguments execute the rest as command to execute at login   default: su ${USER}
+--/-e:          end arguments execute the rest as command to execute at login   default: default $USER\[aq]s shell
 --version/-V:       show version
 \f[R]
 .fi
