@@ -202,6 +202,7 @@ generate_command() {
 }
 
 cleanup() {
+	trap - TERM INT HUP
 	# shellcheck disable=SC2086
 	"${distrobox_path}"/distrobox-stop ${extra_flags} "${name}" --yes
 	# shellcheck disable=SC2086
