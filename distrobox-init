@@ -503,6 +503,8 @@ if [ "${upgrade}" -ne 0 ] ||
 		fi
 
 	elif command -v apt-get; then
+		export DEBIAN_FRONTEND=noninteractive
+
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
 			apt-get update
@@ -514,7 +516,6 @@ if [ "${upgrade}" -ne 0 ] ||
 		# So, let's enable them.
 		rm -f /etc/dpkg/dpkg.cfg.d/excludes
 
-		export DEBIAN_FRONTEND=noninteractive
 		apt-get update
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
@@ -849,7 +850,7 @@ EOF
 		# images blank the zoneinfo directory, so we reinstall the package to
 		# ensure population
 		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			microdnf reinstall -y tzdata
+			microdnf reinstall -y tzdata || microdnf install -y tzdata
 		fi
 
 		# Install additional packages passed at distrbox-create time
@@ -2205,7 +2206,7 @@ mkdir -p /run/user/\$(id -ru)/pulse && ln -sf /run/host/run/user/\$(id -ru)/puls
 find /run/user/\$(id -ru) -maxdepth 2 -xtype l -delete
 EOF
 
-chmod +x /usr/local/bin/user-integration
+	chmod +x /usr/local/bin/user-integration
 
 	cat << EOF > /usr/lib/systemd/system/user-integration@.service
 [Unit]
