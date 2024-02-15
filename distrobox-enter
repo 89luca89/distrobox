@@ -522,6 +522,7 @@ if [ "${container_status}" != "running" ]; then
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
 	#
+	log_timestamp="$(date +%FT%T.%N%:z)"
 	${container_manager} start "${container_name}" > /dev/null
 	# Check if the container is going in error status earlier than the
 	# entrypoint
@@ -547,7 +548,7 @@ if [ "${container_status}" != "running" ]; then
 		fi
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
-		${container_manager} logs -f "${container_name}" 2> /dev/null \
+		${container_manager} logs --since "${log_timestamp}" -f "${container_name}" 2> /dev/null \
 			> "${app_cache_dir}/.${container_name}.fifo" &
 		logs_pid="$!"
 
