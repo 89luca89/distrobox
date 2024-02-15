@@ -1753,10 +1753,16 @@ touch /run/.toolboxenv
 # Ensure we copy only if the dotfile is not already present.
 mkdir -p /etc/profile.d
 cat << EOF > /etc/profile.d/distrobox_profile.sh
-test -z "\$USER" && USER="\$(id -un 2> /dev/null)"
-test -z "\$UID"  && readonly  UID="\$(id -ur 2> /dev/null)"
+test -z "\$USER" && export USER="\$(id -un 2> /dev/null)"
+test -z "\$UID"  && readonly UID="\$(id -ur 2> /dev/null)"
 test -z "\$EUID" && readonly EUID="\$(id -u  2> /dev/null)"
 export SHELL="\$(getent passwd "\${USER}" | cut -f 7 -d :)"
+
+# Ensure we have these two variables from the host, so that graphical apps
+# also work in case we use a login session
+test -z \$DISPLAY && export DISPLAY="\$(host-spawn sh -c "echo \\\$DISPLAY")"
+test -z \$XAUTHORITY && export XAUTHORITY="\$(host-spawn sh -c "echo \\\$XAUTHORITY")"
+test -z \$XAUTHLOCALHOSTNAME && export XAUTHLOCALHOSTNAME="\$(host-spawn sh -c "echo \\\$XAUTHLOCALHOSTNAME")"
 
 # This will ensure a default prompt for a container, this will be remineshent of
 # toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
