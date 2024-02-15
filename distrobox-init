@@ -385,6 +385,9 @@ for dep in ${dependencies}; do
 	! command -v "${dep}" > /dev/null && missing_packages=1 && break
 done
 
+# Ensure we have the least minimal path of standard Linux File System set
+PATH="${PATH}:/bin:/sbin:/usr/bin:/usr/sbin"
+
 # Check if dependencies are met for the script to run.
 if [ "${upgrade}" -ne 0 ] ||
 	[ "${missing_packages}" -ne 0 ] ||
@@ -398,6 +401,7 @@ if [ "${upgrade}" -ne 0 ] ||
 	if command -v apk; then
 		# If we need to upgrade, do it and exit, no further action required.
 		if [ "${upgrade}" -ne 0 ]; then
+			apk update
 			apk upgrade
 			exit
 		fi
@@ -454,6 +458,7 @@ if [ "${upgrade}" -ne 0 ] ||
 			unzip
 			util-linux
 			util-linux-misc
+			util-linux-login
 			vte3
 			wget
 			which
@@ -1370,6 +1375,25 @@ if ! command -v xdg-open; then
 	ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
 fi
 ###############################################################################
+
+# Ensure compatibility with older versions of su, this will allow to specify
+# the --pty flag
+#
+# This won't work well on very old distros with no flag support, but will give
+# an usable shell nonetheless
+if ! su --help | grep -q pty; then
+	cat << EOF > /usr/local/bin/su
+#!/bin/sh
+
+for i do
+  [ "\$i" = --pty ] || set -- "\$@" "\$i"
+  shift
+done
+
+/bin/su "\$@"
+EOF
+	chmod +x /usr/local/bin/su
+fi
 
 ###############################################################################
 printf "distrobox: Setting up devpts mounts...\n"
