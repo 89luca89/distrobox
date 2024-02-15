@@ -1,0 +1,63 @@
+#compdef distrobox
+
+local curcontext="$curcontext" state line
+typeset -A opt_args
+
+_distrobox_commands() {
+  local -a commands
+  commands=(
+    'assemble:Handle distrobox assembly tasks'
+    'create:Create a new distrobox container'
+    'enter:Enter an existing distrobox container'
+    'list:List all distrobox containers'
+    'ls:Alias for list'
+    'rm:Remove a distrobox container'
+    'stop:Stop a running distrobox container'
+    'upgrade:Upgrade a distrobox container'
+    'ephemeral:Create a temporary distrobox container'
+    'generate-entry:Generate a desktop entry for a distrobox container'
+    'version:Show distrobox version'
+  )
+  _describe -t commands 'distrobox command' commands
+}
+
+_arguments -C \
+  '1: :_distrobox_commands' \
+  '*:: :->args'
+
+case $state in
+  args)
+    case $line[1] in
+      assemble)
+        _distrobox-assemble
+        ;;
+      create)
+        _distrobox-create
+        ;;
+      enter)
+        _distrobox-enter
+        ;;
+      list|ls)
+        _distrobox-list
+        ;;
+      rm)
+        _distrobox-rm
+        ;;
+      stop)
+        _distrobox-stop
+        ;;
+      upgrade)
+        _distrobox-upgrade
+        ;;
+      ephemeral)
+        _distrobox-ephemeral
+        ;;
+      generate-entry)
+        _distrobox-generate-entry
+        ;;
+      version)
+        # No additional completions needed for version
+        ;;
+    esac
+esac
+
