@@ -59,7 +59,8 @@ to integrate VSCode installed via **Flatpak** with Distrobox.
 ### First step install it
 
 ```shell
-~$ flatpak install --user app/com.visualstudio.code
+~$ flatpak install --user app/com.visualstudio.code com.visualstudio.code.tool.podman
+~$ flatpak override --user --filesystem=xdg-run/podman com.visualstudio.code
 ```
 
 ### Second step, extensions
@@ -74,31 +75,81 @@ Being in a Flatpak, we will need access to host's `podman` (or `docker`) to be
 able to use the containers. Place this in your `~/.local/bin/podman-host`
 
 ```shell
-#!/bin/bash
-set -x
+#!/bin/sh
+
+id="$(echo "$@" | grep -Eo ' [a-zA-Z0-9]{64} ' | tr -d ' ')"
+PODMAN_COMMAND="$(command -v podman 2> /dev/null)"
+DISTROBOX_COMMAND="$(command -v distrobox 2> /dev/null)"
+
+# if we're in a flatpak, use podman-remote
+# else we fallback to host-spawn
+if [ -n "$FLATPAK_ID" ]; then
+    if command -v podman-remote > /dev/null 2>&1; then
+        PODMAN_COMMAND="podman-remote"
+    else
+        PODMAN_COMMAND="flatpak-spawn --host podman"
+    fi
+    DISTROBOX_COMMAND="flatpak-spawn --host distrobox"
+fi
 
 # This little workaround is used to ensure
-# we use our $USER inside the containers, without
-# resorting to creating devcontainer.json or similar stuff
-arr=("$@")
-for i in "${!arr[@]}"; do
-    if [[ ${arr[$i]} == *"root:root"* ]]; then
-        arr[$i]="$(echo "${arr[$i]}" | sed "s|root:root|$USER:$USER|g")"
-    fi
-done
+# we use our distrobox to properly enter the container
+if echo "$@" | grep -q 'exec'; then
+    # if exec && distrobox -> use distrobox-enter --
+    if [ "$($PODMAN_COMMAND inspect --type container --format '{{ index .Config.Labels "manager" }}' "${id}")" = "distrobox" ]; then
 
-flatpak-spawn --host podman "${arr[@]}"
+        # Ensure that our distrobox containers will use different vscode-servers by symlinking to different paths
+        if [ -n "${id}" ]; then
+            $PODMAN_COMMAND exec -u "$USER" "${id}" /bin/sh -c '
+            if [ ! -L "${HOME}/.vscode-server" ]; then
+                [ -e "${HOME}/.vscode-server" ] && mv "${HOME}/.vscode-server" /var/tmp
+                [ -d /var/tmp/.vscode-server ] && mkdir /var/tmp/.vscode-server
+                ln -sf /var/tmp/.vscode-server "$HOME"
+            elif [ ! -e "${HOME}/.vscode-server" ]; then
+                mkdir /var/tmp/.vscode-server
+            fi
+        '
+        fi
+
+        # Remove everything from $@ and leave only the execution part, we start
+        # capturing after we meet our ID
+        dbox_args="-e A=B"
+        capture="false"
+        for i; do
+            if [ $capture = "true" ]; then
+                set -- "$@" "$i"
+            elif echo "$i" | grep -q "VSCODE"; then
+                dbox_args="$dbox_args -e $i"
+            elif echo "$i" | grep -q "\-w"; then
+                dbox_args="$dbox_args -w $2"
+            fi
+            if [ "$i" = "${id}" ]; then
+                capture="true"
+            fi
+            shift
+        done
+
+        $DISTROBOX_COMMAND enter --additional-flags "${dbox_args}" "${id}" -- "$@"
+        exit $?
+    fi
+fi
+
+$PODMAN_COMMAND "$@"
 ```
 
 and make it executable: `chmod +x ~/.local/bin/podman-host`.
 
 Open VSCode settings (Ctrl+,) and head to `Remote>Containers>Docker Path` and
-set it to the path of `podman-host`, like in the example
+set it to the path of `/home/<your-user>/.local/bin/podman-host`, like in the example
 
 ![image](https://user-images.githubusercontent.com/598882/149208525-5ad630c9-fcbc-4ee6-9d77-e50d2c782a56.png)
 
 This will give a way to execute host's container manager from within the
 flatpak app.
+
+**This works for Distrobox both inside and outside a flatpak**
+This will act only for containers created with Distrobox, you can still use regular devcontainers
+without transparently if needed.
 
 ## Final Result
 
