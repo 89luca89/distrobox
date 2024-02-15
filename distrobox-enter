@@ -55,7 +55,8 @@ if { [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; } && [ "$(id -ru)" -eq 0 ];
 fi
 
 # Defaults
-container_command_prefix="sh -c"
+container_command_login="/bin/sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
+container_command_prefix="/bin/sh -c"
 container_command=""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:39"
 container_manager="autodetect"
@@ -322,8 +323,10 @@ generate_command() {
 		# and we instantiate a proper pty with it
 		if [ "${headless}" -eq 0 ]; then
 			container_command_prefix="su --pty ${USER} -c"
+			container_command_login="su --pty ${USER}"
 		else
 			container_command_prefix="su ${USER} -c"
+			container_command_login="su ${USER}"
 		fi
 	else
 		result_command="${result_command}
@@ -463,7 +466,7 @@ generate_command() {
 		# if no command was specified, let's execute a command that will find
 		# and run the default shell for the user
 		result_command="${result_command}
-			${container_command_prefix} \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
+			${container_command_login}"
 	fi
 
 	# Return generated command.
