@@ -315,9 +315,9 @@ delete_container() {
 
 	IFS='@'
 	# Remove exported binaries from this container in default path
-	binary_files="$(grep -rl "# distrobox_binary" "${HOME}/.local/bin" 2> /dev/null |
-		xargs -I{} grep -le "# name: ${container_name}$" "{}" |
-		xargs -I{} printf "%s@" {} 2> /dev/null || :)"
+	binary_files="$(grep -rl "# distrobox_binary" "${HOME}/.local/bin" 2> /dev/null | sed 's/./\\&/g' |
+		xargs -I{} grep -le "# name: ${container_name}$" "{}" | sed 's/./\\&/g' |
+		xargs -I{} printf "%s@" "{}" 2> /dev/null || :)"
 	for file in ${binary_files}; do
 		printf "Removing exported binary %s...\n" "${file}"
 		rm -f "${file}"
@@ -325,9 +325,9 @@ delete_container() {
 
 	# Remove exported gui apps from this container in default path
 	# shellcheck disable=SC2086,SC2038
-	desktop_files="$(find "${HOME}/.local/share/applications/${container_name}"* -type f -o -type l 2> /dev/null |
-		xargs -I{} grep -le "Exec=.*${container_name} " "{}" |
-		xargs -I{} printf "%s@" {} 2> /dev/null || :)"
+	desktop_files="$(find "${HOME}/.local/share/applications/${container_name}"* -type f -o -type l 2> /dev/null | sed 's/./\\&/g' |
+		xargs -I{} grep -le "Exec=.*${container_name} " "{}" | sed 's/./\\&/g' |
+		xargs -I{} printf "%s@" "{}" 2> /dev/null || :)"
 	for file in ${desktop_files}; do
 		if [ -e "${file}" ]; then
 			app="$(grep -Eo "Name=.*" "${file}" | head -n 1 | cut -d' ' -f1 | cut -d'=' -f2)"
