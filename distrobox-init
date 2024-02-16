@@ -2210,6 +2210,7 @@ mkdir -p /run/user/\$(id -ru)/keyring && ln -sf /run/host/run/user/\$(id -ru)/ke
 mkdir -p /run/user/\$(id -ru)/p11-kit && ln -sf /run/host/run/user/\$(id -ru)/p11-kit/* /run/user/\$(id -ru)/p11-kit/
 mkdir -p /run/user/\$(id -ru)/pulse && ln -sf /run/host/run/user/\$(id -ru)/pulse/* /run/user/\$(id -ru)/pulse/
 find /run/user/\$(id -ru) -maxdepth 2 -xtype l -delete
+loginctl enable-linger \$(id -ru)
 EOF
 
 	chmod +x /usr/local/bin/user-integration
