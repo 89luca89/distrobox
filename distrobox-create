@@ -723,21 +723,10 @@ generate_command() {
 		fi
 	done
 
-	# If we have a home prefix to use,
-	#	1- override the HOME env variable
-	#	2- export the DISTROBOX_HOST_HOME env variable pointing to original HOME
-	# 	3- mount the home inside the container.
+	# If we have a home prefix to use, ano no custom home set, then we set
+	# the custom home to be PREFIX/CONTAINER_NAME
 	if [ -n "${container_home_prefix}" ] && [ -z "${container_user_custom_home}" ]; then
-		if [ ! -d "${container_home_prefix}/${container_name}" ]; then
-			if ! mkdir -p "${container_home_prefix}/${container_name}"; then
-				printf >&2 "Do you have permission to write to %s?\n" "${container_home_prefix}"
-				exit 1
-			fi
-		fi
-		result_command="${result_command}
-			--env \"HOME=${container_home_prefix}/${container_name}\"
-			--env \"DISTROBOX_HOST_HOME=${container_user_home}\"
-			--volume ${container_home_prefix}/${container_name}:${container_home_prefix}/${container_name}:rslave"
+		container_user_custom_home="${container_home_prefix}/${container_name}"
 	fi
 
 	# If we have a custom home to use,
