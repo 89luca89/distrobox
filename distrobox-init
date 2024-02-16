@@ -2200,7 +2200,7 @@ if [ -e /usr/lib/systemd/system/user@.service ]; then
 sleep 1
 ln -sf /run/host/run/user/\$(id -ru)/wayland-* /run/user/\$(id -ru)/
 ln -sf /run/host/run/user/\$(id -ru)/pipewire-* /run/user/\$(id -ru)/
-find /run/host/run/user/\$(id -ru)/ -maxdepth 1 -type f -exec sh -c 'grep -qlE COOKIE \\\$0 && ln -sf \\\$0 /run/user/\$(id -ru)/\\\$(basename \\\$0)' {} \;
+find /run/host/run/user/\$(id -ru)/ -maxdepth 1 -type f -exec sh -c 'grep -qlE COOKIE \$0 && ln -sf \$0 /run/user/\$(id -ru)/\$(basename \$0)' {} \;
 mkdir -p /run/user/\$(id -ru)/app && ln -sf /run/host/run/user/\$(id -ru)/app/* /run/user/\$(id -ru)/app/
 mkdir -p /run/user/\$(id -ru)/at-spi && ln -sf /run/host/run/user/\$(id -ru)/at-spi/* /run/user/\$(id -ru)/at-spi/
 mkdir -p /run/user/\$(id -ru)/dbus-1 && ln -sf /run/host/run/user/\$(id -ru)/dbus-1/* /run/user/\$(id -ru)/dbus-1/
@@ -2240,6 +2240,7 @@ if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	done && \
 	systemctl start user@${container_user_name}.service && \
 	systemctl start user-integration@${container_user_name}.service && \
+	loginctl enable-linger ${container_user_name} && \
 	echo container_setup_done" &
 
 	[ -e /usr/lib/systemd/systemd ] && exec /usr/lib/systemd/systemd --system --log-target=console --unit=multi-user.target
