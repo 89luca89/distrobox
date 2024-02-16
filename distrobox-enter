@@ -570,13 +570,16 @@ if [ "${container_status}" != "running" ]; then
 		fi
 		# save starting loop timestamp in temp variable, we'll use it
 		# after to let logs command minimize possible holes
-		${container_manager} logs --since "${log_timestamp}" -f "${container_name}" 2> /dev/null \
-			> "${app_cache_dir}/.${container_name}.fifo" &
+		${container_manager} logs --since "${log_timestamp}" -f "${container_name}" \
+			> "${app_cache_dir}/.${container_name}.fifo" 2>&1 &
 		logs_pid="$!"
 
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
 			case "${line}" in
+				*"printf"*)
+					# Ignoring logging commands
+					;;
 				*"Error:"*)
 					printf >&2 "\033[31m %s\n\033[0m" "${line}"
 					exit 1
