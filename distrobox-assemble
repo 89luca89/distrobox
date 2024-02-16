@@ -24,9 +24,10 @@ default_input_file="./distrobox.ini"
 delete=-1
 distrobox_path="$(dirname "${0}")"
 dryrun=0
+boxname=""
 input_file=""
 replace=0
-boxname=""
+root_flag=""
 # tmpfile will be used as a little buffer to pass variables without messing up
 # quoting and escaping
 tmpfile="$(mktemp -u)"
@@ -213,16 +214,17 @@ run_distrobox() (
 		. "${tmpfile}" && rm -f "${tmpfile}"
 	fi
 
+	if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
+		root_flag="--root"
+	fi
+
 	# We're going to delete, not create!
 	if [ "${delete}" -ne 0 ] || [ "${replace}" -ne 0 ]; then
 		printf " - Deleting %s... \n" "${name}"
 
 		if [ "${dryrun}" -eq 0 ]; then
-			if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
-				"${distrobox_path}"/distrobox rm --root -f "${name}" > /dev/null || :
-			else
-				"${distrobox_path}"/distrobox rm -f "${name}" > /dev/null || :
-			fi
+			# shellcheck disable=SC2086,2248
+			"${distrobox_path}"/distrobox rm ${root_flag} -f "${name}" > /dev/null || :
 		fi
 
 		if [ "${delete}" -ne 0 ]; then
@@ -361,11 +363,8 @@ run_distrobox() (
 	# If we need to start immediately, do it, so that the container
 	# is ready to be entered.
 	if [ -n "${start_now}" ] && [ "${start_now}" -eq 1 ]; then
-		if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
-			"${distrobox_path}"/distrobox enter --root "${name}" -- touch /dev/null
-		else
-			"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
-		fi
+		# shellcheck disable=SC2086,2248
+		"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null
 	fi
 
 	# if there are exported bins and apps declared, let's export them
@@ -379,11 +378,8 @@ run_distrobox() (
 			IFS=" "
 			for app in ${apps}; do
 				# Export the app
-				if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
-					"${distrobox_path}"/distrobox enter --root "${name}" -- distrobox-export --app "${app}"
-				else
-					"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --app "${app}"
-				fi
+				# shellcheck disable=SC2086,2248
+				"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --app "${app}"
 			done
 		done
 
@@ -393,11 +389,8 @@ run_distrobox() (
 			IFS=" "
 			for bin in ${bins}; do
 				# Export the bin
-				if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
-					"${distrobox_path}"/distrobox enter --root "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
-				else
-					"${distrobox_path}"/distrobox enter "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
-				fi
+				# shellcheck disable=SC2086,2248
+				"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
 			done
 		done
 	fi
