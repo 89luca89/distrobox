@@ -142,14 +142,14 @@ Distrobox guests tested successfully with the following container images:
 | deepin | 20 (apricot) <br> 23 (beige) | docker.io/linuxdeepin/apricot |
 | Fedora | 36 <br> 37 <br> 38 <br> 39 <br> Rawhide | quay.io/fedora/fedora:36 <br> quay.io/fedora/fedora:37 <br> quay.io/fedora/fedora:38 <br> quay.io/fedora/fedora:39 <br> quay.io/fedora/fedora:rawhide  |
 | Gentoo Linux | rolling | docker.io/gentoo/stage3:latest |
-| KDE neon | Latest <br> Testing <br> Unstable | invent-registry.kde.org/neon/docker-images/plasma:latest <br> invent-registry.kde.org/neon/docker-images/plasma:testing <br> invent-registry.kde.org/neon/docker-images/plasma:unstable |
+| KDE neon | Latest | invent-registry.kde.org/neon/docker-images/plasma:latest |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Mint | 21.1 | docker.io/linuxmintd/mint21.1-amd64 |
 | Neurodebian | nd100 | docker.io/library/neurodebian:nd100 |
 | openSUSE | Leap | registry.opensuse.org/opensuse/leap:latest    |
 | openSUSE | Tumbleweed | registry.opensuse.org/opensuse/distrobox:latest  <br> registry.opensuse.org/opensuse/tumbleweed:latest  <br>  registry.opensuse.org/opensuse/toolbox:latest    |
 | Oracle Linux | 7 <br> 7-slim <br> 8 <br> 8-slim <br> 9 <br> 9-slim |container-registry.oracle.com/os/oraclelinux:7 <br> container-registry.oracle.com/os/oraclelinux:7-slim <br> container-registry.oracle.com/os/oraclelinux:8 <br> container-registry.oracle.com/os/oraclelinux:8-slim <br> container-registry.oracle.com/os/oraclelinux:9 <br> container-registry.oracle.com/os/oraclelinux:9-slim  |
-| RedHat (UBI) | 7 <br> 8 <br> 9 | registry.access.redhat.com/ubi7/ubi <br> registry.access.redhat.com/ubi7/ubi-init <br> registry.access.redhat.com/ubi8/ubi <br> registry.access.redhat.com/ubi8/ubi-init <br> registry.access.redhat.com/ubi8/ubi-minimal <br> registry.access.redhat.com/ubi9/ubi <br> registry.access.redhat.com/ubi9/ubi-init <br> registry.access.redhat.com/ubi9/ubi-minimal |
+| RedHat (UBI) | 7 <br> 8 <br> 9 | registry.access.redhat.com/ubi7/ubi <br> registry.access.redhat.com/ubi8/ubi <br> registry.access.redhat.com/ubi8/ubi-init <br> registry.access.redhat.com/ubi8/ubi-minimal <br> registry.access.redhat.com/ubi9/ubi <br> registry.access.redhat.com/ubi9/ubi-init <br> registry.access.redhat.com/ubi9/ubi-minimal |
 | Rocky Linux | 8 <br> 8-minimal <br> 9 | quay.io/rockylinux/rockylinux:8 <br> quay.io/rockylinux/rockylinux:8-minimal <br> quay.io/rockylinux/rockylinux:9 <br> quay.io/rockylinux/rockylinux:latest    |
 | Scientific Linux | 7 | docker.io/library/sl:7    |
 | Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 23.04 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04 |
