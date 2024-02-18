@@ -204,6 +204,7 @@ DBUS_SESSION_BUS_ADDRESS="unix:path=/run/host/$(echo "${DBUS_SESSION_BUS_ADDRESS
 # Also, we don't initialize a pty, if we're not in a tty.
 if [ "$(basename "${host_command}")" = "xdg-open" ] ||
 	[ "$(basename "${host_command}")" = "gio" ] ||
+	[ "$(basename "${host_command}")" = "flatpak" ] ||
 	[ ! -t 1 ] ||
 	! tty > /dev/null 2>&1; then
 
