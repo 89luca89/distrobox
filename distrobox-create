@@ -29,6 +29,7 @@
 #	DBX_CONTAINER_IMAGE
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
+#	DBX_CONTAINER_HOSTNAME
 #	DBX_CONTAINER_GENERATE_ENTRY
 #	DBX_NON_INTERACTIVE
 #	DBX_SUDO_PROGRAM
@@ -59,6 +60,7 @@ container_manager="autodetect"
 container_manager_additional_flags=""
 container_name=""
 container_name_default="my-distrobox"
+container_hostname=""
 container_pre_init_hook=""
 container_user_custom_home=""
 container_user_gid="$(id -rg)"
@@ -142,6 +144,7 @@ fi
 [ -n "${DBX_CONTAINER_IMAGE}" ] && container_image="${DBX_CONTAINER_IMAGE}"
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
+[ -n "${DBX_CONTAINER_HOSTNAME}" ] && container_hostname="${DBX_CONTAINER_HOSTNAME}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 [ -n "${DBX_CONTAINER_GENERATE_ENTRY}" ] && container_generate_entry="${DBX_CONTAINER_GENERATE_ENTRY}"
 
@@ -172,7 +175,8 @@ Usage:
 Options:
 
 	--image/-i:		image to use for the container	default: ${container_image_default}
-	--name/-n:		name for the distrobox		default: ${container_name_default}
+	--name/-n:		name for the distrobox          default: ${container_name_default}
+	--hostname:		hostname for the distrobox      default: <container-name>.$(uname -n)
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
@@ -329,6 +333,13 @@ while :; do
 				shift
 			fi
 			;;
+		--hostname)
+			if [ -n "$2" ]; then
+				container_hostname="$2"
+				shift
+				shift
+			fi
+			;;
 		-c | --clone)
 			if [ -n "$2" ]; then
 				container_clone="$2"
@@ -445,13 +456,16 @@ if [ -z "${container_name}" ]; then
 	container_name="$(basename "${container_image}" | sed -E 's/[:.]/-/g')"
 fi
 
-# container_name is later set as hostname
-# let's check if the hostname is less than 64chars or we will have problems later
-# in setting the container's hostname.
-if [ "$(printf "%s" "${container_name}.$(uname -n)" | wc -m)" -gt 64 ]; then
-	printf >&2 "ERROR: Invalid name '%s'\n" "${container_name}"
-	printf >&2 "ERROR: This will result in hostname: '%s'\n" "${container_name}.$(uname -n)"
-	printf >&2 "ERROR: Hostname too long.\n"
+# set the container hostname to default value
+if [ -z "${container_hostname}" ]; then
+	container_hostname="${container_name}.$(uname -n)"
+fi
+
+# check if container hostname is less than 64 chars to reduce issues in setting the
+# container hostname
+if [ "$(printf "%s" "${container_hostname}" | wc -m)" -gt 64 ]; then
+	printf >&2 "ERROR: Invalid hostname '%s', longer than 64 characters\n" "${container_hostname}"
+	printf >&2 "ERROR: Use env var DBX_CONTAINER_HOSTNAME to set it manually\n"
 	exit 1
 fi
 
@@ -573,7 +587,7 @@ generate_command() {
 	result_command="${container_manager} create"
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
-		--hostname \"${container_name}.$(uname -n)\"
+		--hostname \"${container_hostname}\"
 		--name \"${container_name}\"
 		--privileged
 		--security-opt label=disable
