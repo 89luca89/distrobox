@@ -633,6 +633,7 @@ if [ "${upgrade}" -ne 0 ] ||
 			bash-completion
 			bc
 			bzip2
+			cracklib-dicts
 			curl
 			diffutils
 			dnf-plugins-core
@@ -784,6 +785,7 @@ EOF
 			bash-completion
 			bc
 			bzip2
+			cracklib-dicts
 			diffutils
 			dnf-plugins-core
 			findutils
