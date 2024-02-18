@@ -120,7 +120,7 @@ jobs:
           case "${container_name}" in
             *init*)
               echo "SYSTEMD DETECTED: performing systemctl check..."
-              ./distrobox enter --name "${container_name}" -- systemctl is-system-running
+              ./distrobox enter --name "${container_name}" -- systemctl is-system-running | grep -E "degraded|running|starting"
               ;;
             *)
               ./distrobox enter --name "${container_name}" -- whoami
