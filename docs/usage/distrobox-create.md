@@ -15,8 +15,9 @@ graphical apps (X11/Wayland), and audio.
 
 **distrobox create**
 
-	--image/-i:		image to use for the container	default: ${container_image_default}
-	--name/-n:		name for the distrobox		default: ${container_name_default}
+	--image/-i:		image to use for the container  default: ${container_image_default}
+	--name/-n:		name for the distrobox          default: ${container_name_default}
+	--hostname:		hostname for the distrobox      default: <container-name>.<system hostname>
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
@@ -131,6 +132,7 @@ Use environment variables to specify container name, image and container manager
 	DBX_CONTAINER_IMAGE
 	DBX_CONTAINER_MANAGER
 	DBX_CONTAINER_NAME
+	DBX_CONTAINER_HOSTNAME
 	DBX_NON_INTERACTIVE
 	DBX_SUDO_PROGRAM
 

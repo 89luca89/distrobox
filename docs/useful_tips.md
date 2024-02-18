@@ -217,12 +217,10 @@ xhost +si:localuser:$USER`
 
 SSH X-forwarding by default will not work because the container hostname is
 different from the host's one.
-You can create a distrobox with will have the same hostname as the host by
-creating it with the following init-hook:
+You can create a distrobox that will have the same hostname as the host by creating it with:
 
 ```sh
-distrobox create --name test --image your-chosen-image:tag \
-                  --init-hooks 'echo "$(uname -n)" > /etc/hostname'
+distrobox create --name test --hostname "$(uname -n)" --image your-chosen-image:tag
 ```
 
 This will ensure SSH X-Forwarding will work when SSH-ing inside the distrobox:
