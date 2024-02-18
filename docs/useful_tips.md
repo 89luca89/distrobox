@@ -222,7 +222,7 @@ creating it with the following init-hook:
 
 ```sh
 distrobox create --name test --image your-chosen-image:tag \
-                  --init-hooks 'echo "$(uname -n)" > /etc/hostname'
+    --init-hooks "echo '$(uname -n)' > /etc/hostname; hostname '$(uname -n)'"
 ```
 
 This will ensure SSH X-Forwarding will work when SSH-ing inside the distrobox:
