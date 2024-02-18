@@ -461,11 +461,10 @@ if [ -z "${container_hostname}" ]; then
 	container_hostname="${container_name}.$(uname -n)"
 fi
 
-# check if container hostname is less than 64 chars to reduce issues in setting the
-# container hostname
+# check if container hostname is less than 64 chars to prevent issues
 if [ "$(printf "%s" "${container_hostname}" | wc -m)" -gt 64 ]; then
 	printf >&2 "ERROR: Invalid hostname '%s', longer than 64 characters\n" "${container_hostname}"
-	printf >&2 "ERROR: Use env var DBX_CONTAINER_HOSTNAME to set it manually\n"
+	printf >&2 "ERROR: Use use --hostname argument to set it manually\n"
 	exit 1
 fi
 
