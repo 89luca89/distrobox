@@ -334,6 +334,7 @@ generate_command() {
 		if [ "${headless}" -eq 0 ]; then
 			container_command_login="${container_command_login} --pty"
 		fi
+		container_command_login="${container_command_login} -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
 		container_command_prefix="${container_command_login} -c"
 	else
 		result_command="${result_command}
