@@ -78,7 +78,8 @@ fi
 dest_path="${prefix}/bin"
 man_dest_path="${prefix}/share/man/man1"
 icon_dest_path="${prefix}/share/icons"
-completion_dest_path="${prefix}/share/bash-completion/completions/"
+completion_bash_dest_path="${prefix}/share/bash-completion/completions/"
+completion_zsh_dest_path="${prefix}//share/zsh/site-functions/"
 
 set -o errexit
 set -o nounset
@@ -107,7 +108,12 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 	fi
 	if [ -e "completions" ]; then
 		for file in completions/bash/*; do
-			install -D -m 0644 -t "${completion_dest_path}" "${file}"
+			install -D -m 0644 -t "${completion_bash_dest_path}" "${file}"
+		done
+	fi
+	if [ -e "completions" ]; then
+		for file in completions/zsh/*; do
+			install -D -m 0644 -t "${completion_zsh_dest_path}" "${file}"
 		done
 	fi
 	if [ -e terminal-distrobox-icon.svg ]; then
@@ -162,7 +168,12 @@ else
 	fi
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/completions/bash/" ]; then
 		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/completions/bash/*; do
-			install -D -m 0644 -t "${completion_dest_path}" "${file}"
+			install -D -m 0644 -t "${completion_bash_dest_path}" "${file}"
+		done
+	fi
+	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/completions/zsh/" ]; then
+		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/completions/zsh/*; do
+			install -D -m 0644 -t "${completion_zsh_dest_path}" "${file}"
 		done
 	fi
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.svg ]; then
