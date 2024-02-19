@@ -577,7 +577,7 @@ if [ "${container_status}" != "running" ]; then
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
 			case "${line}" in
-				*"printf"*)
+				"+"*)
 					# Ignoring logging commands
 					;;
 				*"Error:"*)
