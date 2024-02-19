@@ -1,11 +1,11 @@
 #compdef distrobox-enter
 
 _arguments -s \
-  '(--name -n)'{-n,--name=}'[name for the distrobox]:distrobox name:' \
+  '(--name -n)'{-n,--name}'[name for the distrobox]:distrobox name:' \
   '--[end arguments and execute the rest as command to execute at login]:command:_command_names' \
   '(--no-tty -T)'{-T,--no-tty}'[do not instantiate a tty]' \
   '(--no-workdir -nw)'{-nw,--no-workdir}'[always start the container from container home directory]' \
-  '(--additional-flags -a)'{-a,--additional-flags=}'[additional flags to pass to the container manager command]:flags:' \
+  '(--additional-flags -a)'{-a,--additional-flags}'[additional flags to pass to the container manager command]:flags:' \
   '(--help -h)'{-h,--help}'[show this message]' \
   '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
   '(--dry-run -d)'{-d,--dry-run}'[only print the container manager command generated]' \

@@ -1,13 +1,13 @@
 #compdef distrobox-export
 
 _arguments -s \
-  '(--app -a)'{-a,--app=}'[name of the application to export]:application name:' \
-  '(--bin -b)'{-b,--bin=}'[absolute path of the binary to export]:path to binary:_files' \
+  '(--app -a)'{-a,--app}'[name of the application to export]:application name:' \
+  '(--bin -b)'{-b,--bin}'[absolute path of the binary to export]:path to binary:_files' \
   '(--delete -d)'{-d,--delete}'[delete exported application or binary]' \
-  '(--export-label -el)'{-el,--export-label=}'[label to add to exported application name, use "none" to disable]:label:' \
-  '(--export-path -ep)'{-ep,--export-path=}'[path where to export the binary]:export path:_files' \
-  '(--extra-flags -ef)'{-ef,--extra-flags=}'[extra flags to add to the command]:extra flags:' \
-  '(--enter-flags -nf)'{-nf,--enter-flags=}'[flags to add to distrobox-enter]:enter flags:' \
+  '(--export-label -el)'{-el,--export-label}'[label to add to exported application name, use "none" to disable]:label:' \
+  '(--export-path -ep)'{-ep,--export-path}'[path where to export the binary]:export path:_files' \
+  '(--extra-flags -ef)'{-ef,--extra-flags}'[extra flags to add to the command]:extra flags:' \
+  '(--enter-flags -nf)'{-nf,--enter-flags}'[flags to add to distrobox-enter]:enter flags:' \
   '(--sudo -S)'{-S,--sudo}'[specify if the exported item should be run as sudo]' \
   '(--help -h)'{-h,--help}'[show this message]' \
   '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \

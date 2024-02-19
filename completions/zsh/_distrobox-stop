@@ -1,7 +1,7 @@
 #compdef distrobox-stop
 
 _arguments \
-  '--name=[specify container name]:container name:' \
+  '--name[specify container name]:container name:' \
   '(--all -a)'{-a,--all}'[stop all distroboxes]' \
   '(--yes -Y)'{-Y,--yes}'[non-interactive, stop without asking]' \
   '(--help -h)'{-h,--help}'[show this message]' \
