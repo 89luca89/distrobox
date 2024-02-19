@@ -20,6 +20,8 @@ automatically be launched from the container it is exported from.
 
 	--app/-a:		name of the application to export
 	--bin/-b:		absolute path of the binary to export
+	--list-apps:		list applications exported from this container
+	--list-binaries		list binaries exported from this container, use -ep to specify custom paths to search
 	--delete/-d:		delete exported application or binary
 	--export-label/-el:	label to add to exported application name.
 				Use "none" to disable.
