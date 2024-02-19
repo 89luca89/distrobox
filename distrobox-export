@@ -608,7 +608,7 @@ list_exported_applications() {
 list_exported_binaries() {
 	# In this phase we search for binaries exported.
 	# First find command will grep through all files in the canonical directories
-	# and only list files that contain the commend "# distrobox_binary".
+	# and only list files that contain the comment "# distrobox_binary".
 	binary_files=$(
 		find "${dest_path}" -type f -print 2> /dev/null | sed 's/./\\&/g' |
 			xargs -I{} grep -l -e "^# distrobox_binary" "{}" | sed 's/./\\&/g' |
