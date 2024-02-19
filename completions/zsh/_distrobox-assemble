@@ -2,8 +2,8 @@
 
 _arguments \
   '1:command:(create rm)' \
-  '--file=[path to the distrobox manifest/ini file]:file:_files' \
-  '(--name -n)'{-n,--name=}'[run against a single entry in the manifest/ini file]:entry name:' \
+  '--file[path to the distrobox manifest/ini file]:file:_files' \
+  '(--name -n)'{-n,--name}'[run against a single entry in the manifest/ini file]:entry name:' \
   '(--replace -R)'{-R,--replace}'[replace already existing distroboxes with matching names]' \
   '(--dry-run -d)'{-d,--dry-run}'[only print the container manager command generated]' \
   '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
