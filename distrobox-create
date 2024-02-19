@@ -134,9 +134,6 @@ if [ "${container_user_uid}" -ne 0 ]; then
 	# as root (UID 0).
 	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
 fi
-# Fixup non_interactive=[true|false], in case we find it in the config file(s)
-[ "${non_interactive}" = "true" ] && non_interactive=1
-[ "${non_interactive}" = "false" ] && non_interactive=0
 
 [ -n "${DBX_CONTAINER_ALWAYS_PULL}" ] && container_always_pull="${DBX_CONTAINER_ALWAYS_PULL}"
 [ -n "${DBX_CONTAINER_CUSTOM_HOME}" ] && container_user_custom_home="${DBX_CONTAINER_CUSTOM_HOME}"
@@ -147,6 +144,14 @@ fi
 [ -n "${DBX_CONTAINER_HOSTNAME}" ] && container_hostname="${DBX_CONTAINER_HOSTNAME}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 [ -n "${DBX_CONTAINER_GENERATE_ENTRY}" ] && container_generate_entry="${DBX_CONTAINER_GENERATE_ENTRY}"
+[ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
+
+# Fixup variable=[true|false], in case we find it in the config file(s)
+[ "${non_interactive}" = "true" ] && non_interactive=1
+[ "${non_interactive}" = "false" ] && non_interactive=0
+# Fixup variable=[true|false], in case we find it in the config file(s)
+[ "${verbose}" = "true" ] && verbose=1
+[ "${verbose}" = "false" ] && verbose=0
 
 # Print usage to stdout.
 # Arguments:

@@ -115,14 +115,18 @@ if [ "$(id -ru)" -ne 0 ]; then
 	# as root (UID 0).
 	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
 fi
-# Fixup non_interactive=[true|false], in case we find it in the config file(s)
-[ "${non_interactive}" = "true" ] && non_interactive=1
-[ "${non_interactive}" = "false" ] && non_interactive=0
 
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_SKIP_WORKDIR}" ] && skip_workdir="${DBX_SKIP_WORKDIR}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
+[ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
+
+# Fixup variable=[true|false], in case we find it in the config file(s)
+[ "${non_interactive}" = "true" ] && non_interactive=1
+[ "${non_interactive}" = "false" ] && non_interactive=0
+[ "${verbose}" = "true" ] && verbose=1
+[ "${verbose}" = "false" ] && verbose=0
 
 # Print usage to stdout.
 # Arguments:
