@@ -2237,7 +2237,7 @@ printf "distrobox: Firing up init system...\n"
 if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	# Start user Systemd unit, this will attempt until Systemd is ready
 	sh -c "	sleep 1 && while true; do \
-	    systemctl is-system-running && break; \
+	    systemctl is-system-running | grep -E 'running|degraded' && break; \
 	    echo 'waiting for systemd to come up...\n' && sleep 1; \
 	done && \
 	systemctl start user@${container_user_name}.service && \
