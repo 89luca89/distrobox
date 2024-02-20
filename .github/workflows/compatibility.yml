@@ -72,9 +72,9 @@ jobs:
 
     runs-on: ubuntu-latest
     needs: setup
+    timeout-minutes: 30
     strategy:
       fail-fast: false
-      max-parallel: 8
       matrix:
         distribution: ${{fromJSON(needs.setup.outputs.targets)}}
         container_manager: ["podman"] #, "docker"]
@@ -84,9 +84,6 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-
-      - name: Maximize build space
-        uses: ublue-os/remove-unwanted-software@v6
 
       # Ensure distrobox create works:
       - name: Distrobox create
@@ -112,11 +109,6 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          # ./distrobox enter --name "${container_name}" -- whoami
-          # Temporary disable systemd init on github runners, it seems to be incompatible
-          # with runner services:
-          #   Failed to create /system.slice/runner-provisioner.service/init.scope control group: Permission denied
-          # works fine otherwise.
           case "${container_name}" in
             *init*)
               echo "SYSTEMD DETECTED: performing systemctl check..."
@@ -208,8 +200,8 @@ jobs:
           ./distrobox stop --yes "${container_name}"
 
       # Ensure distrobox rm works:
-      - name: Distrobox logs on failure
-        if: ${{ failure() }}
+      - name: Distrobox logs
+        if: ${{ always() }}
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
