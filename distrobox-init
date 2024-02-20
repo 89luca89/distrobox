@@ -1984,7 +1984,7 @@ fi
 printf "distrobox: Ensuring user's access...\n"
 # If we're rootless, delete password for root and user
 if [ ! -e /etc/passwd.done ]; then
-	temporary_password="$(cat /proc/sys/kernel/random/uuid)"
+	temporary_password="$(md5sum < /proc/sys/kernel/random/uuid | cut -d' ' -f1)"
 	# We generate a random password to initialize the entry for the user.
 	printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
 	printf "%s:" "${container_user_name}" | chpasswd -e
