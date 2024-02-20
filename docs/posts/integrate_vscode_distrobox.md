@@ -121,4 +121,3 @@ chmod +x ~/.local/bin/vscode-distrobox
 This will make it easy to launch VSCode attached to target distrobox, on a target path:
 
 `vscode-distrobox my-distrobox /path/to/project`
-

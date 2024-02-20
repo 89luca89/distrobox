@@ -11,4 +11,4 @@ else
 	exit 127
 fi
 
-${code_command} --folder-uri="vscode-remote://attached-container+${container_name}/$(realpath ${2})"
+${code_command} --folder-uri="vscode-remote://attached-container+${container_name}/$(realpath "${2}")"

@@ -6,7 +6,7 @@ DISTROBOX_COMMAND="$(command -v distrobox 2> /dev/null)"
 
 # if we're in a flatpak, use podman-remote
 # else we fallback to host-spawn
-if [ -n "$FLATPAK_ID" ]; then
+if [ -n "${FLATPAK_ID}" ]; then
 	if command -v podman-remote > /dev/null 2>&1; then
 		PODMAN_COMMAND="podman-remote"
 	else
@@ -19,11 +19,12 @@ fi
 # we use our distrobox to properly enter the container
 if echo "$@" | grep -q 'exec'; then
 	# if exec && distrobox -> use distrobox-enter --
-	if [ "$($PODMAN_COMMAND inspect --type container --format '{{ index .Config.Labels "manager" }}' "${id}")" = "distrobox" ]; then
+	if [ "$(${PODMAN_COMMAND} inspect --type container --format '{{ index .Config.Labels "manager" }}' "${id}")" = "distrobox" ]; then
 
 		# Ensure that our distrobox containers will use different vscode-servers by symlinking to different paths
 		if [ -n "${id}" ]; then
-			$PODMAN_COMMAND exec -u "$USER" "${id}" /bin/sh -c '
+			# shellcheck disable=SC2016
+			${PODMAN_COMMAND} exec -u "${USER}" "${id}" /bin/sh -c '
 			if [ ! -L "${HOME}/.vscode-server" ]; then
 				[ -e "${HOME}/.vscode-server" ] && mv "${HOME}/.vscode-server" /var/tmp
 				[ -d /var/tmp/.vscode-server ] && mkdir /var/tmp/.vscode-server
@@ -39,22 +40,22 @@ if echo "$@" | grep -q 'exec'; then
 		dbox_args="-e A=B"
 		capture="false"
 		for i; do
-			if [ $capture = "true" ]; then
-				set -- "$@" "$i"
-			elif echo "$i" | grep -q "VSCODE"; then
-				dbox_args="$dbox_args -e $i"
-			elif echo "$i" | grep -q "\-w"; then
-				dbox_args="$dbox_args -w $2"
+			if [ "${capture}" = "true" ]; then
+				set -- "$@" "${i}"
+			elif echo "${i}" | grep -q "VSCODE"; then
+				dbox_args="${dbox_args} -e ${i}"
+			elif echo "${i}" | grep -q "\-w"; then
+				dbox_args="${dbox_args} -w ${2}"
 			fi
-			if [ "$i" = "${id}" ]; then
+			if [ "${i}" = "${id}" ]; then
 				capture="true"
 			fi
 			shift
 		done
 
-		$DISTROBOX_COMMAND enter --additional-flags "${dbox_args}" "${id}" -- "$@"
+		${DISTROBOX_COMMAND} enter --additional-flags "${dbox_args}" "${id}" -- "$@"
 		exit $?
 	fi
 fi
 
-$PODMAN_COMMAND "$@"
+${PODMAN_COMMAND} "$@"
