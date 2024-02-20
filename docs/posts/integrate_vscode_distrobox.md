@@ -56,6 +56,9 @@ it without problems.
 Alternatively you may want to install VSCode on your host. We will explore how
 to integrate VSCode installed via **Flatpak** with Distrobox.
 
+For this one you'll need to use VSCode from Microsoft, and not VSCodium, in order
+to have access to the remote containers extension.
+
 ### First step install it
 
 ```shell
@@ -75,69 +78,9 @@ Being in a Flatpak, we will need access to host's `podman` (or `docker`) to be
 able to use the containers. Place this in your `~/.local/bin/podman-host`
 
 ```shell
-#!/bin/sh
-
-id="$(echo "$@" | grep -Eo ' [a-zA-Z0-9]{64} ' | tr -d ' ')"
-PODMAN_COMMAND="$(command -v podman 2> /dev/null)"
-DISTROBOX_COMMAND="$(command -v distrobox 2> /dev/null)"
-
-# if we're in a flatpak, use podman-remote
-# else we fallback to host-spawn
-if [ -n "$FLATPAK_ID" ]; then
-    if command -v podman-remote > /dev/null 2>&1; then
-        PODMAN_COMMAND="podman-remote"
-    else
-        PODMAN_COMMAND="flatpak-spawn --host podman"
-    fi
-    DISTROBOX_COMMAND="flatpak-spawn --host distrobox"
-fi
-
-# This little workaround is used to ensure
-# we use our distrobox to properly enter the container
-if echo "$@" | grep -q 'exec'; then
-    # if exec && distrobox -> use distrobox-enter --
-    if [ "$($PODMAN_COMMAND inspect --type container --format '{{ index .Config.Labels "manager" }}' "${id}")" = "distrobox" ]; then
-
-        # Ensure that our distrobox containers will use different vscode-servers by symlinking to different paths
-        if [ -n "${id}" ]; then
-            $PODMAN_COMMAND exec -u "$USER" "${id}" /bin/sh -c '
-            if [ ! -L "${HOME}/.vscode-server" ]; then
-                [ -e "${HOME}/.vscode-server" ] && mv "${HOME}/.vscode-server" /var/tmp
-                [ -d /var/tmp/.vscode-server ] && mkdir /var/tmp/.vscode-server
-                ln -sf /var/tmp/.vscode-server "$HOME"
-            elif [ ! -e "${HOME}/.vscode-server" ]; then
-                mkdir /var/tmp/.vscode-server
-            fi
-        '
-        fi
-
-        # Remove everything from $@ and leave only the execution part, we start
-        # capturing after we meet our ID
-        dbox_args="-e A=B"
-        capture="false"
-        for i; do
-            if [ $capture = "true" ]; then
-                set -- "$@" "$i"
-            elif echo "$i" | grep -q "VSCODE"; then
-                dbox_args="$dbox_args -e $i"
-            elif echo "$i" | grep -q "\-w"; then
-                dbox_args="$dbox_args -w $2"
-            fi
-            if [ "$i" = "${id}" ]; then
-                capture="true"
-            fi
-            shift
-        done
-
-        $DISTROBOX_COMMAND enter --additional-flags "${dbox_args}" "${id}" -- "$@"
-        exit $?
-    fi
-fi
-
-$PODMAN_COMMAND "$@"
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/extras/podman-host -o ~/.local/bin/podman-host
+chmod +x ~/.local/bin/podman-host
 ```
-
-and make it executable: `chmod +x ~/.local/bin/podman-host`.
 
 Open VSCode settings (Ctrl+,) and head to `Remote>Containers>Docker Path` and
 set it to the path of `/home/<your-user>/.local/bin/podman-host`, like in the example
@@ -164,3 +107,18 @@ And let's choose our Distrobox
 And we're good to go! We have our VSCode remote session inside our Distrobox container!
 
 ![image](https://user-images.githubusercontent.com/598882/149210881-749a8146-c69d-4382-bbef-91e4b477b7ba.png)
+
+# Open VSCode directly attached to our Distrobox
+
+You may want to instead have a more direct way to launch your VSCode when you're already in your project directory,
+in this case you can use `vscode-distrobox` script:
+
+```shell
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/extras/vscode-distrobox -o ~/.local/bin/vscode-distrobox
+chmod +x ~/.local/bin/vscode-distrobox
+```
+
+This will make it easy to launch VSCode attached to target distrobox, on a target path:
+
+`vscode-distrobox my-distrobox /path/to/project`
+
