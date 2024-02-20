@@ -10,7 +10,7 @@ current logo credits [David Lapshin](https://github.com/daudix-UFO)<sub>
 [![GitHub](https://img.shields.io/github/license/89luca89/distrobox?color=blue)](../COPYING.md)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/89luca89/distrobox)](https://github.com/89luca89/distrobox/releases/latest)
 [![Packaging status](https://repology.org/badge/tiny-repos/distrobox.svg)](https://repology.org/project/distrobox/versions)
-[![GitHub issues by-label](https://img.shields.io/github/issues-raw/89luca89/distrobox/bug?color=red&label=Open%20Bug%20Reports)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3A%22bug%22)
+[![GitHub issues by-label](https://img.shields.io/github/issues-search/89luca89/distrobox?query=is%3Aissue%20is%3Aopen%20label%3Abug%20-label%3Await-on-user%20&label=Open%20Bug%20Reports&color=red)](https://github.com/89luca89/distrobox/issues?q=is%3Aissue+is%3Aopen+label%3Abug+-label%3Await-on-user)
 
 Use any Linux distribution inside your terminal. Enable both backward and forward
 compatibility with software and freedom to use whatever distribution you’re more

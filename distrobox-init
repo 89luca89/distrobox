@@ -1864,8 +1864,8 @@ fi
 ###############################################################################
 
 ###############################################################################
-printf "distrobox: Setting up users...\n"
 
+printf "distrobox: Setting up kerberos integration...\n"
 # Setup kerberos integration with the host
 if [ -d "/run/host/var/kerberos" ] &&
 	[ -d "/etc/krb5.conf.d" ] &&
@@ -1878,6 +1878,7 @@ if [ -d "/run/host/var/kerberos" ] &&
 EOF
 fi
 
+printf "distrobox: Setting up user's group list...\n"
 # If we have sudo/wheel groups, let's add the user to them.
 # and ensure that user's in those groups can effectively sudo
 additional_groups=""
@@ -1906,6 +1907,7 @@ fi
 # shellcheck disable=SC1003
 if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd &&
 	! getent passwd "${container_user_uid}"; then
+	printf "distrobox: Adding user...\n"
 	if ! useradd \
 		--home-dir "${container_user_home}" \
 		--no-create-home \
@@ -1936,6 +1938,7 @@ elif [ ! -e /etc/passwd.done ]; then
 		user_to_modify=$(getent passwd "${container_user_uid}" | cut -d: -f1)
 	fi
 
+	printf "distrobox: Modifying existing user...\n"
 	if ! usermod \
 		--home "${container_user_home}" \
 		--shell "${SHELL:-"/bin/bash"}" \
@@ -1978,6 +1981,7 @@ if [ "$(getent passwd "${container_user_name}" | cut -d: -f6)" != "${container_u
 	fi
 fi
 
+printf "distrobox: Ensuring user's access...\n"
 # If we're rootless, delete password for root and user
 if [ ! -e /etc/passwd.done ]; then
 	temporary_password="$(cat /proc/sys/kernel/random/uuid)"
