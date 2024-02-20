@@ -1,0 +1,14 @@
+#!/bin/sh
+
+container_name="$(printf '{"containerName":"%s"}' "$1" | od -A n -t x1 | tr -d "\n\t ")"
+
+if command -v code 2> /dev/null > /dev/null; then
+	code_command="code"
+elif flatpak list | grep -q com.visualstudio.code; then
+	code_command="flatpak run com.visualstudio.code"
+else
+	echo "vscode not installed"
+	exit 127
+fi
+
+${code_command} --folder-uri="vscode-remote://attached-container+${container_name}/$(realpath ${2})"
