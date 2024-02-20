@@ -2252,7 +2252,7 @@ if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	done && \
 	systemctl start user@${container_user_name}.service && \
 	systemctl start user-integration@${container_user_name}.service && \
-	loginctl enable-linger ${container_user_name} && \
+	loginctl enable-linger ${container_user_name} || : && \
 	echo container_setup_done" &
 
 	[ -e /usr/lib/systemd/systemd ] && exec /usr/lib/systemd/systemd --system --log-target=console --unit=multi-user.target
