@@ -1605,7 +1605,7 @@ if [ "${nvidia}" -eq 1 ]; then
 
 		if [ "${type}" = "link" ]; then
 			mkdir -p "$(dirname "${dest_file}")"
-			if [[ $(md5sum "${nvidia_lib}" | awk '{print $1}') != $(md5sum "${dest_file}" | awk '{print $1}') ]] ; then
+			if [ "$(md5sum "${nvidia_lib}" | awk '{print $1}')" != "$(md5sum "${dest_file}" | awk '{print $1}')" ]; then
 				cp -d "${nvidia_lib}" "${dest_file}"
 			fi
 			continue
