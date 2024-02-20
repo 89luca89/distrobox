@@ -582,19 +582,19 @@ if [ "${container_status}" != "running" ]; then
 		# read logs from log_timestamp to now, line by line
 		while IFS= read -r line; do
 			case "${line}" in
-				*"Error:"*)
+				"Error:"*)
 					printf >&2 "\033[31m %s\n\033[0m" "${line}"
 					exit 1
 					;;
-				*"Warning:"*)
+				"Warning:"*)
 					printf >&2 "\n\033[33m %s\033[0m" "${line}"
 					;;
-				*"distrobox:"*)
+				"distrobox:"*)
 					current_line="$(echo "${line}" | cut -d' ' -f2-)"
 					# Save current line in the status, to avoid printing the same line multiple times
 					printf >&2 "\033[32m [ OK ]\n\033[0m%-40s\t" "${current_line}"
 					;;
-				*"container_setup_done"*)
+				"container_setup_done"*)
 					printf >&2 "\033[32m [ OK ]\n\033[0m"
 					kill "${logs_pid}" > /dev/null 2>&1
 					break 2

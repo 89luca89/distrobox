@@ -26,6 +26,10 @@
 
 trap '[ "$?" -ne 0 ] && printf "Error: An error occurred\n"' EXIT
 
+# Redirect stderr to stdout as podman by default logs stderr as priority 3 journald errors.
+# Github issue: https://github.com/containers/podman/issues/20728
+exec 2>&1
+
 HOST_MOUNTS_RO_INIT="
 	/etc/localtime
 	/run/systemd/journal
