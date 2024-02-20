@@ -1987,7 +1987,11 @@ if [ ! -e /etc/passwd.done ]; then
 
 	if [ "${rootful}" -eq 0 ]; then
 		# We're rootless so we don't care about account password, so we remove it
-		printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | passwd root
+		passwd_cmd=passwd
+		if passwd --help 2>&1 | grep -q -- --stdin; then
+			passwd_cmd="passwd --stdin"
+		fi
+		printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | ${passwd_cmd} root
 		printf "%s:" "root" | chpasswd -e
 	else
 		# We're rootful, so we don't want passwordless accounts, so we lock them
