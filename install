@@ -79,7 +79,7 @@ dest_path="${prefix}/bin"
 man_dest_path="${prefix}/share/man/man1"
 icon_dest_path="${prefix}/share/icons"
 completion_bash_dest_path="${prefix}/share/bash-completion/completions/"
-completion_zsh_dest_path="${prefix}//share/zsh/site-functions/"
+completion_zsh_dest_path="${prefix}/share/zsh/site-functions/"
 
 set -o errexit
 set -o nounset
