@@ -1677,6 +1677,7 @@ EOF
 fi
 
 if { [ -d "/etc/dpkg/dpkg.cfg.d/" ] || [ -d "/usr/share/libalpm/scripts" ]; } && [ "${init}" -eq 0 ]; then
+	printf "distrobox: Setting up package manager hooks...\n"
 	cat << EOF > /etc/distrobox-pre-hook.sh
 #!/bin/sh
 mounts="${HOST_MOUNTS_RO_INIT}"
@@ -1865,7 +1866,7 @@ fi
 ###############################################################################
 
 ###############################################################################
-printf "distrobox: Setting up groups...\n"
+printf "distrobox: Setting up user groups...\n"
 # If not existing, ensure we have a group for our user.
 if ! grep -q "^${container_user_name}:" /etc/group; then
 	if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
@@ -1951,7 +1952,7 @@ elif [ ! -e /etc/passwd.done ]; then
 		user_to_modify=$(getent passwd "${container_user_uid}" | cut -d: -f1)
 	fi
 
-	printf "distrobox: Modifying existing user...\n"
+	printf "distrobox: Setting up existing user...\n"
 	if ! usermod \
 		--home "${container_user_home}" \
 		--shell "${SHELL:-"/bin/bash"}" \
@@ -1964,6 +1965,7 @@ elif [ ! -e /etc/passwd.done ]; then
 		printf "There was a problem setting up the user with usermod, trying manual addition\n"
 
 		# Modify the user
+		printf "distrobox: Setting up existing user: /etc/passwd...\n"
 		sed -i "s|^${container_user_name}.*||g" /etc/passwd
 		printf "%s:x:%s:%s:%s:%s:%s" \
 			"${container_user_name}" "${container_user_uid}" \
@@ -1972,6 +1974,7 @@ elif [ ! -e /etc/passwd.done ]; then
 
 		# Add or modify the default group
 		# and add or modify the additional groups
+		printf "distrobox: Setting up existing user: /etc/group...\n"
 		for group in ${container_user_name} ${additional_groups}; do
 			# Check if we have the user in the group
 			if ! grep -q "^${group}.*${container_user_name}.*" /etc/group; then
@@ -1988,14 +1991,15 @@ elif [ ! -e /etc/passwd.done ]; then
 fi
 
 # Ensure we have our home correctly set, in case of cloned containers or whatnot
+printf "distrobox: Setting up user home...\n"
 if [ "$(getent passwd "${container_user_name}" | cut -d: -f6)" != "${container_user_home}" ]; then
 	if ! usermod -d "${container_user_home}" "${container_user_name}"; then
 		sed -i "s|^${container_user_name}.*|${container_user_name}:x:${container_user_uid}:${container_user_gid}::${container_user_home}:${SHELL:-"/bin/bash"}|g" /etc/passwd
 	fi
 fi
 
-printf "distrobox: Ensuring user's access...\n"
 # If we're rootless, delete password for root and user
+printf "distrobox: Ensuring user's access...\n"
 if [ ! -e /etc/passwd.done ]; then
 	temporary_password="$(md5sum < /proc/sys/kernel/random/uuid | cut -d' ' -f1)"
 	# We generate a random password to initialize the entry for the user.
@@ -2046,9 +2050,9 @@ touch /etc/passwd.done
 ###############################################################################
 
 ###############################################################################
-printf "distrobox: Setting up skel...\n"
-
 if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
+	printf "distrobox: Setting up skel...\n"
+
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
 		base_file_name=$(basename "${skel_file}")
