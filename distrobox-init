@@ -1428,7 +1428,7 @@ HOST_MOUNTS_RO="
 	/var/log/journal"
 for host_mount_ro in ${HOST_MOUNTS_RO}; do
 	# Mounting read-only in a user namespace will trigger a check to see if certain
-	# "locked" flags are changed. This ensures we explicitly reuse those flags.
+	# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
 	locked_flags="$(get_locked_mount_flags /run/host"${host_mount_ro}")"
 	mount_bind /run/host"${host_mount_ro}" "${host_mount_ro}" ro"${locked_flags:+,${locked_flags}}"
 done
@@ -1549,7 +1549,10 @@ if [ "${nvidia}" -eq 1 ]; then
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
 
-		mount_bind "${nvidia_file}" "${dest_file}" ro
+		# Mounting read-only in a user namespace will trigger a check to see if certain
+		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
+		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
+		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
 	done
 
 	# Then we find all directories with nvidia in the name and just mount them
@@ -1569,7 +1572,10 @@ if [ "${nvidia}" -eq 1 ]; then
 			dest_dir="$(printf "%s" "${nvidia_dir}" | sed 's|/run/host||g')"
 		fi
 
-		mount_bind "${nvidia_dir}" "${dest_dir}" ro
+		# Mounting read-only in a user namespace will trigger a check to see if certain
+		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
+		locked_flags="$(get_locked_mount_flags "${nvidia_dir}")"
+		mount_bind "${nvidia_dir}" "${dest_dir}" ro"${locked_flags:+,${locked_flags}}"
 	done
 
 	# Then we find all the ".so" libraries, there are searched separately
@@ -1615,7 +1621,10 @@ if [ "${nvidia}" -eq 1 ]; then
 			continue
 		fi
 
-		mount_bind "${nvidia_lib}" "${dest_file}" ro
+		# Mounting read-only in a user namespace will trigger a check to see if certain
+		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
+		locked_flags="$(get_locked_mount_flags "${nvidia_lib}")"
+		mount_bind "${nvidia_lib}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
 	done
 
 	# Refresh ldconfig cache
