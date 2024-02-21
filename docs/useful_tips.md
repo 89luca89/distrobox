@@ -28,6 +28,7 @@
   - [Check used resources](#check-used-resources)
   - [Pre-installing additional package repositories](#pre-installing-additional-package-repositories)
   - [Apply resource limitation on the fly](#apply-resource-limitation-on-the-fly)
+  - [Copy/yank text to host clipboard](#copy-text-to-host-clipboard)
 
 ---
 
@@ -835,3 +836,7 @@ Then reload systemd daemon to apply the changes:
 ```bash
 systemctl --user daemon-reload
 ```
+
+## Copy text to host clipboard
+
+To copy/yank text from the container to the host clipboard you need to install `xsel` in the container for Xorg hosts or `wlroots` for wayland hosts.
