@@ -15,9 +15,9 @@ graphical apps (X11/Wayland), and audio.
 
 **distrobox create**
 
-	--image/-i:		image to use for the container  default: ${container_image_default}
+	--image/-i:		image to use for the container	default: ${container_image_default}
 	--name/-n:		name for the distrobox          default: ${container_name_default}
-	--hostname:		hostname for the distrobox      default: <container-name>.<system hostname>
+	--hostname:		hostname for the distrobox      default: <container-name>.$(uname -n)
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
