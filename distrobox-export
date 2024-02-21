@@ -411,7 +411,7 @@ export_application() {
 		return 127
 	fi
 
-	# Find icons by usinc the Icon= specification. If it's only a name, we'll
+	# Find icons by using the Icon= specification. If it's only a name, we'll
 	# search for the file, if it's already a path, just grab it.
 	icon_files=""
 	IFS="@"
