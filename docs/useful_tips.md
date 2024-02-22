@@ -839,4 +839,5 @@ systemctl --user daemon-reload
 
 ## Copy text to host clipboard
 
-To copy/yank text from the container to the host clipboard you need to install `xsel` in the container for Xorg hosts or `wlroots` for wayland hosts.
+To copy/yank text from the container to the host clipboard you need to install
+`xsel` in the container for Xorg hosts or `wlroots` for wayland hosts.
