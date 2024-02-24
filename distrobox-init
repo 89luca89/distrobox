@@ -417,109 +417,73 @@ if [ "${upgrade}" -ne 0 ] ||
 		fi
 		if apk add wolfi-base; then
 			deps="
-				${shell_pkg}
-				bash
-				bc
 				busybox
-				bzip2
-				coreutils
-				curl
-				diffutils
-				findmnt
-				findutils
-				gnupg
 				gnutar
-				gpg
-				iputils
-				iproute2
-				less
 				man-db
 				mesa
-				mount
-				ncurses
-				ncurses-terminfo
-				net-tools
-				openssh-client
-				pigz
 				posix-libc-utils
-				procps
-				rsync
-				shadow
-				su-exec
 				sudo-rs
-				tcpdump
-				tree
-				tzdata
-				umount
-				util-linux
-				util-linux-login
-				util-linux-misc
-				unzip
-				vulkan-loader
-				wget
-				xauth
-				xz
-				zip
 			"
 		elif apk add alpine-base; then
 			deps="
-				${shell_pkg}
-				bash
 				bash-completion
-				bc
-				bzip2
-				coreutils
-				curl
-				diffutils
 				docs
-				findmnt
-				findutils
 				gcompat
-				gnupg
-				gpg
-				iproute2
-				iputils
-				keyutils
-				less
 				libc-utils
-				libcap
 				lsof
 				man-pages
 				mandoc
-				mount
 				musl-utils
-				ncurses
-				ncurses-terminfo
-				net-tools
-				openssh-client
-				pigz
 				pinentry
-				posix-libc-utils
-				procps
-				rsync
-				shadow
-				su-exec
 				sudo
 				tar
-				tcpdump
-				tree
-				tzdata
-				umount
-				unzip
-				util-linux
-				util-linux-misc
-				util-linux-login
 				vte3
-				wget
 				which
-				xauth
-				xz
-				zip
 				$(apk search -q mesa-dri)
 				$(apk search -q mesa-vulkan)
-				vulkan-loader
 			"
 		fi
+		deps="${deps}
+			${shell_pkg}
+			bash
+			bc
+			bzip2
+			coreutils
+			curl
+			diffutils
+			findmnt
+			findutils
+			gnupg
+			gpg
+			iproute2
+			iputils
+			keyutils
+			less
+			libcap
+			mount
+			ncurses
+			ncurses-terminfo
+			net-tools
+			openssh-client
+			pigz
+			procps
+			rsync
+			shadow
+			su-exec
+			tcpdump
+			tree
+			tzdata
+			umount
+			unzip
+			util-linux
+			util-linux-login
+			util-linux-misc
+			vulkan-loader
+			wget
+			xauth
+			xz
+			zip
+		"
 		install_pkg=""
 		for dep in ${deps}; do
 			if apk info "${dep}" > /dev/null; then
