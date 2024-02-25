@@ -422,7 +422,6 @@ if [ "${upgrade}" -ne 0 ] ||
 				man-db
 				mesa
 				posix-libc-utils
-				sudo-rs
 			"
 		elif apk add alpine-base; then
 			deps="
