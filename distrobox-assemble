@@ -466,7 +466,7 @@ parse_file() (
 		# Save options to tempfile, to source it later
 		touch "${tmpfile}"
 		if [ -n "${key}" ] && [ -n "${value}" ]; then
-			if grep -q "${key}=" "${tmpfile}"; then
+			if grep -q "^${key}=" "${tmpfile}"; then
 				value="$(echo "${value}" | sed "s|\"|\" \${${key}}¤|")"
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
