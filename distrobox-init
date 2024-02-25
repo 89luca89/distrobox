@@ -442,7 +442,7 @@ if [ "${upgrade}" -ne 0 ] ||
 				$(apk search -q mesa-vulkan)
 			"
 		fi
-		deps="${deps}
+		deps="${deps:-}
 			${shell_pkg}
 			bash
 			bc
