@@ -300,8 +300,8 @@ run_distrobox() (
 
 			# Prepare for the next line, if we already have a ';' or '&&', do nothing
 			# else prefer adding '&&'
-			if ! echo "${arg}" | grep -q ';[[:space:]]\{0,1\}$' &&
-				! echo "${arg}" | grep -q '&&[[:space:]]\{0,1\}$'; then
+			if ! echo "${arg}" | grep -qE ';[[:space:]]{0,1}$' &&
+				! echo "${arg}" | grep -qE '&&[[:space:]]{0,1}$'; then
 				separator="&&"
 			else
 				separator=""
@@ -323,8 +323,8 @@ run_distrobox() (
 
 			# Prepare for the next line, if we already have a ';' or '&&', do nothing
 			# else prefer adding '&&'
-			if ! echo "${arg}" | grep -E ';[[:space:]]\{0,1\}$' &&
-				! echo "${arg}" | grep -E '&&[[:space:]]\{0,1\}$'; then
+			if ! echo "${arg}" | grep -qE ';[[:space:]]{0,1}$' &&
+				! echo "${arg}" | grep -qE '&&[[:space:]]{0,1}$'; then
 				separator="&&"
 			else
 				separator=""
