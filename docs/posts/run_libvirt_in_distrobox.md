@@ -38,6 +38,8 @@ init_hooks="systemctl enable virtqemud.socket virtnetworkd.socket virtstoraged.s
 init_hooks="usermod -aG libvirt ${USER}"
 # Expose container ssh on host
 additional_flags="-p 2222:22"
+# Export virt-manager
+exported_apps="virt-manager"
 ```
 
 Alternatively, command line:
@@ -49,17 +51,11 @@ distrobox create --pull --root --init --unshare-all --image registry.opensuse.or
 
 ## Launch from the container
 
-You can launch VirtManager from the container, by simply opening your container from the application menu:
+Simply select the `Virt Manager (on libvirt)` entry in your menu, entry your root password and you're done!
 
-![image](https://github.com/89luca89/distrobox/assets/598882/04d06687-51ef-46b6-8443-2d2e4bf7d7a6)
-
-Then launch `virt-manager` from it:
-
-![image](https://github.com/89luca89/distrobox/assets/598882/1faaac45-cdd3-402a-b763-527a0823b2dc)
-
-![image](https://github.com/89luca89/distrobox/assets/598882/23db4141-30e8-4e64-bffb-9aff75c648dd)
-
-You can use it directly as if it were on the host now.
+![image](https://github.com/89luca89/distrobox/assets/598882/ca4f8fed-c8bd-4a01-b845-48be1aafd523)
+![image](https://github.com/89luca89/distrobox/assets/598882/2f709b1b-f0e6-451a-8b59-3ed3177b9fcf)
+![image](https://github.com/89luca89/distrobox/assets/598882/3f5f36cf-749d-4832-93f0-8eb9574dea9a)
 
 ## Connect via SSH
 
