@@ -370,7 +370,7 @@ run_distrobox() (
 	# if there are exported bins and apps declared, let's export them
 	if [ -n "${exported_apps}" ] || [ -n "${exported_bins}" ]; then
 		# First we start the container
-		"${distrobox_path}"/distrobox enter "${name}" -- touch /dev/null
+		"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null
 
 		IFS="¤"
 		for apps in ${exported_apps}; do
