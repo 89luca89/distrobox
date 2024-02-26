@@ -44,6 +44,16 @@ sudo_prefix=""
 verbose=0
 version="1.6.0.1"
 
+sudo_askpass_path="${dest_path}/distrobox_sudo_askpass"
+sudo_askpass_script="#!/bin/sh
+if command -v zenity 2>&1 > /dev/null; then
+	zenity --password
+elif command -v kdialog 2>&1 > /dev/null; then
+	kdialog --password
+else
+	exit 127
+fi"
+
 # We depend on some commands, let's be sure we have them
 base_dependencies="basename find grep sed"
 for dep in ${base_dependencies}; do
@@ -191,6 +201,13 @@ fi
 # Check if we're in a rootful or rootless container.
 if grep -q "rootless=0" /run/.containerenv 2> /dev/null; then
 	rootful="--root"
+
+	# We need an askpass script for SUDO_ASKPASS, to launch graphical apps
+	# from the drawer
+	if [ ! -e "${sudo_askpass_path}" ]; then
+		echo "${sudo_askpass_script}" > "${sudo_askpass_path}"
+		chmod +x "${sudo_askpass_path}"
+	fi
 fi
 
 # We're working with HOME, so we must run as USER, not as root.
@@ -276,6 +293,10 @@ fi
 
 # Prefix to add to an existing command to work through the container
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} "
+
+if [ -n "${rootful}" ]; then
+	container_command_prefix="env SUDO_ASKPASS=\"${sudo_askpass_path}\" DBX_SUDO_PROGRAM=\"sudo --askpass\" ${container_command_prefix}"
+fi
 
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
