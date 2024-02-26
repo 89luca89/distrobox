@@ -34,6 +34,10 @@ graphical apps (X11/Wayland), and audio.
 
 ---
 
+> [!WARNING]  
+> Documentation on Github strictly refers to the code in the main branch. For the official documentation
+> Head over [https://distrobox.it](https://distrobox.it)
+
 - [Distrobox](#distrobox)
   - [What it does](#what-it-does)
     - [See it in action](#see-it-in-action)
