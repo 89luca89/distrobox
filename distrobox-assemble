@@ -370,6 +370,7 @@ run_distrobox() (
 	# if there are exported bins and apps declared, let's export them
 	if [ -n "${exported_apps}" ] || [ -n "${exported_bins}" ]; then
 		# First we start the container
+		# shellcheck disable=SC2086,2248
 		"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null
 
 		IFS="¤"
