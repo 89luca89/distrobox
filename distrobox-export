@@ -459,7 +459,7 @@ export_application() {
 
 		# check if we're exporting an icon which is not in a canonical path
 		if [ "${icon_home_directory}" = "$(dirname "${icon_file}")" ]; then
-			icon_home_directory="/run/host${host_home}/.local/share/icons/"
+			icon_home_directory="${host_home}/.local/share/icons/"
 			icon_file_absolute_path="${icon_home_directory}$(basename "${icon_file}")"
 		fi
 
