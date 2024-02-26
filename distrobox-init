@@ -415,63 +415,73 @@ if [ "${upgrade}" -ne 0 ] ||
 		if ! apk add "${shell_pkg}"; then
 			shell_pkg="bash"
 		fi
-		deps="
+		if apk add wolfi-base; then
+			deps="
+				busybox
+				gnutar
+				man-db
+				mesa
+				posix-libc-utils
+			"
+		elif apk add alpine-base; then
+			deps="
+				bash-completion
+				docs
+				gcompat
+				libc-utils
+				lsof
+				man-pages
+				mandoc
+				musl-utils
+				pinentry
+				sudo
+				tar
+				vte3
+				which
+				$(apk search -q mesa-dri)
+				$(apk search -q mesa-vulkan)
+			"
+		fi
+		deps="${deps:-}
 			${shell_pkg}
-			alpine-base
 			bash
-			bash-completion
 			bc
 			bzip2
 			coreutils
 			curl
 			diffutils
-			docs
 			findmnt
 			findutils
-			gcompat
 			gnupg
 			gpg
 			iproute2
 			iputils
 			keyutils
 			less
-			libc-utils
 			libcap
-			lsof
-			man-pages
-			mandoc
 			mount
-			musl-utils
 			ncurses
 			ncurses-terminfo
 			net-tools
 			openssh-client
 			pigz
-			pinentry
-			posix-libc-utils
 			procps
 			rsync
 			shadow
 			su-exec
-			sudo
-			tar
 			tcpdump
 			tree
 			tzdata
 			umount
 			unzip
 			util-linux
-			util-linux-misc
 			util-linux-login
-			vte3
+			util-linux-misc
+			vulkan-loader
 			wget
-			which
 			xauth
 			xz
 			zip
-			$(apk search -q mesa-dri)
-			$(apk search -q mesa-vulkan)
-			vulkan-loader
 		"
 		install_pkg=""
 		for dep in ${deps}; do
