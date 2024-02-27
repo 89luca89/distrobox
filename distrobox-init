@@ -1415,12 +1415,17 @@ fi
 ###############################################################################
 printf "distrobox: Setting up devpts mounts...\n"
 
+# First we need to ensure we have a tty group to assign /dev/pts to
+if ! grep -q tty /etc/group; then
+	printf "%s" 'tty:x:5:' >> /etc/group
+fi
+
 # Instantiate a new /dev/pts mount, this will ensure pseudoterminals are container-scoped
 # and make easier in case of initful containers to have a separate /dev/console
 #
 # Podman supports a mount option to do this at creation time, but we're doing it
 # here to support also other container rmanagers which does not support that flag
-mount -t devpts devpts -o noexec,nosuid,newinstance,ptmxmode=0666,mode=0620 /dev/pts/
+mount -t devpts devpts -o noexec,nosuid,newinstance,ptmxmode=0666,mode=0620,gid=tty /dev/pts/
 mount --bind /dev/pts/ptmx /dev/ptmx
 
 # Change mount propagation to shared to make the environment more similar to a
