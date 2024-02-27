@@ -1818,6 +1818,12 @@ test -z "\$UID"  && set -gx UID (id -ur 2> /dev/null)
 test -z "\$EUID" && set -gx EUID (id -u  2> /dev/null)
 set -gx SHELL (getent passwd "\$USER" | cut -f 7 -d :)
 
+# Ensure we have these two variables from the host, so that graphical apps
+# also work in case we use a login session
+test -z \$DISPLAY && set -gx DISPLAY (host-spawn sh -c "echo \\\$DISPLAY")
+test -z \$XAUTHORITY && set -gx XAUTHORITY (host-spawn sh -c "echo \\\$XAUTHORITY")
+test -z \$XAUTHLOCALHOSTNAME && set -gx XAUTHLOCALHOSTNAME (host-spawn sh -c "echo \\\$XAUTHLOCALHOSTNAME")
+
 # This will ensure we have a first-shell password setup for an user if needed.
 # We're going to use this later in case of rootful containers
 if test -e /var/tmp/.\$USER.passwd.initialize
