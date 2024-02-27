@@ -166,6 +166,7 @@ while :; do
 			;;
 		-f | --force)
 			force=1
+			non_interactive=1
 			shift
 			;;
 		-Y | --yes)
