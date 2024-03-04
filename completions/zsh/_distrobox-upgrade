@@ -1,10 +1,20 @@
 #compdef distrobox-upgrade
 
-_arguments \
-  '(--help -h)'{-h,--help}'[show this message]' \
-  '(--all -a)'{-a,--all}'[perform for all distroboxes]' \
-  '--running[perform only for running distroboxes]' \
-  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
-  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
-  '(--version -V)'{-V,--version}'[show version]' \
-  ':container name:_files'
+source /usr/share/zsh/site-functions/_distrobox_shared_functions
+
+_distrobox-upgrade() {
+    local -a options
+    options=(
+        '(-a --all)'{-a,--all}'[upgrade all distroboxes]'
+        '--running[perform only for running distroboxes]'
+        '(-r --root)'{-r,--root}'[launch podman/docker/lilipod with root privileges]'
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+
+    _arguments -s : $options[@] \
+        '*:container name:_distrobox_containers' && return 0
+}
+
+_distrobox-upgrade

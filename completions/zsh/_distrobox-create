@@ -1,29 +1,59 @@
 #compdef distrobox-create
 
-_arguments -s \
-  '(--image -i)'{-i,--image}'[image to use for the container]:image:_files' \
-  '(--name -n)'{-n,--name}'[name for the distrobox]:name:' \
-  '(--pull -p)'{-p,--pull}'[pull the image even if it exists locally (implies --yes)]' \
-  '(--yes -Y)'{-Y,--yes}'[non-interactive, pull images without asking]' \
-  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
-  '(--clone -c)'{-c,--clone}'[name of the distrobox container to use as base for a new container]:clone container name:' \
-  '(--home -H)'{-H,--home}'[select a custom HOME directory for the container]:path:_files -/' \
-  '--volume[additional volumes to add to the container]:volume:_files' \
-  '(--additional-flags -a)'{-a,--additional-flags}'[additional flags to pass to the container manager command]:flags:' \
-  '(--additional-packages -ap)'{-ap,--additional-packages}'[additional packages to install during initial container setup]:package:' \
-  '--init-hooks[additional commands to execute during container initialization]:command:' \
-  '--pre-init-hooks[additional commands to execute prior to container initialization]:command:' \
-  '(--init -I)'{-I,--init}'[use init system inside the container]' \
-  '--nvidia[try to integrate host nVidia drivers in the guest]' \
-  '--unshare-devsys[do not share host devices and sysfs dirs from host]' \
-  '--unshare-ipc[do not share ipc namespace with host]' \
-  '--unshare-netns[do not share the net namespace with host]' \
-  '--unshare-process[do not share process namespace with host]' \
-  '--unshare-all[activate all the unshare flags]' \
-  '(--compatibility -C)'{-C,--compatibility}'[show list of compatible images]' \
-  '(--help -h)'{-h,--help}'[show this message]' \
-  '--no-entry[do not generate a container entry in the application list]' \
-  '(--dry-run -d)'{-d,--dry-run}'[only print the container manager command generated]' \
-  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
-  '(--version -V)'{-V,--version}'[show version]' \
-  '--absolutely-disable-root-password-i-am-really-positively-sure[skip user password setup, leaving it blank]'
+source /usr/share/zsh/site-functions/_distrobox_shared_functions
+
+_distrobox-create() {
+    local -a options
+    local state_descriptions
+    local curcontext="$curcontext"
+    local state
+
+    options=(
+        '(-i --image)'{-i,--image}'[Specify image to use for the container]:image:_distrobox_images'
+        '(-n --name)'{-n,--name}'[Specify name for the distrobox]:distrobox name:'
+        '--hostname[Specify hostname for the distrobox]:hostname:'
+        '(-p --pull)'{-p,--pull}'[Pull the image even if it exists locally (implies --yes)]'
+        '(-Y --yes)'{-Y,--yes}'[Non-interactive, pull images without asking]'
+        '(-r --root)'{-r,--root}'[Launch with root privileges using podman/docker/lilipod]'
+        '(-c --clone)'{-c,--clone}'[Name of the distrobox container to use as base for a new container]:clone container name:'
+        '(-H --home)'{-H,--home}'[Select a custom HOME directory for the container]:path:_files -/'
+        '--volume[Add additional volumes to the container]:volume:_files'
+        '(-a --additional-flags)'{-a,--additional-flags}'[Additional flags to pass to the container manager command]:flags:'
+        '(-ap --additional-packages)'{-ap,--additional-packages}'[Additional packages to install during setup]:package:'
+        '--init-hooks[Commands to execute during container initialization]:command:'
+        '--pre-init-hooks[Commands to execute prior to container initialization]:command:'
+        '(-I --init)'{-I,--init}'[Use an init system inside the container]'
+        '--nvidia[Try to integrate host nVidia drivers into the guest]'
+        '--unshare-devsys[Do not share host devices and sysfs dirs from host]'
+        '--unshare-groups[Do not forward users additional groups into the container]'
+        '--unshare-ipc[Do not share ipc namespace with host]'
+        '--unshare-netns[Do not share the net namespace with host]'
+        '--unshare-process[Do not share process namespace with host]'
+        '--unshare-all[Activate all the unshare flags]'
+        '(-C --compatibility)'{-C,--compatibility}'[Show list of compatible images]'
+        '(-h --help)'{-h,--help}'[Show this message]'
+        '--no-entry[Do not generate a container entry in the application list]'
+        '(-d --dry-run)'{-d,--dry-run}'[Only print the container manager command generated]'
+        '(-v --verbose)'{-v,--verbose}'[Show more verbosity]'
+        '(-V --version)'{-V,--version}'[Show version]'
+        '--absolutely-disable-root-password-i-am-really-positively-sure[Skip user password setup, leaving it blank]'
+    )
+
+    _arguments -C -s \
+      '1: :->firstarg' \
+      '*::options:->options' \
+      $options[@]
+
+    case $state in
+      firstarg)
+        if [[ CURRENT -eq 2 ]]; then
+          _message 'container name or option'
+        fi
+        ;;
+      options)
+        _arguments $options[@]
+        ;;
+    esac
+}
+
+_distrobox-create
