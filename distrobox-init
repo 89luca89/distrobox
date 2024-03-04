@@ -434,7 +434,7 @@ if [ "${upgrade}" -ne 0 ] ||
 				mandoc
 				musl-utils
 				pinentry
-				sudo
+				doas-sudo-shim
 				tar
 				vte3
 				which
