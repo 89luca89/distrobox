@@ -1,0 +1,4 @@
+Place the files in /usr/share/zsh/site-functions
+
+Make sure compinit is being autoloaded in .zshrc. Instructions are in the README.
+Restart zsh
