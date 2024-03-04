@@ -1,4 +1,4 @@
-#compdef distrobox-create
+#compdef distrobox-ephemeral
 
 source /usr/share/zsh/site-functions/_distrobox_shared_functions
 
