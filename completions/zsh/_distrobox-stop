@@ -1,11 +1,20 @@
 #compdef distrobox-stop
 
-_arguments \
-  '--name[specify container name]:container name:' \
-  '(--all -a)'{-a,--all}'[stop all distroboxes]' \
-  '(--yes -Y)'{-Y,--yes}'[non-interactive, stop without asking]' \
-  '(--help -h)'{-h,--help}'[show this message]' \
-  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
-  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
-  '(--version -V)'{-V,--version}'[show version]' \
-  ':container name:_files'
+source ${fpath[@]}_distrobox_shared_functions
+
+_distrobox-stop() {
+    local expl
+    local -a options
+    options=(
+        '(-a --all)'{-a,--all}'[stop all distroboxes]'
+        '(-Y --yes)'{-Y,--yes}'[non-interactive, stop without asking]'
+        '(-r --root)'{-r,--root}'[launch podman/docker/lilipod with root privileges]'
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+    _arguments -s : $options[@] \
+        '*:container name:_distrobox_running_containers' && return 0
+}
+
+_distrobox-stop

@@ -1,11 +1,21 @@
 #compdef distrobox-generate-entry
 
-_arguments -s \
-  ':container name:_files' \
-  '(--help -h)'{-h,--help}'[show this message]' \
-  '(--all -a)'{-a,--all}'[perform for all distroboxes]' \
-  '(--delete -d)'{-d,--delete}'[delete the entry]' \
-  '(--icon -i)'{-i,--icon}'[specify a custom icon (default auto)]:icon path:_files' \
-  '(--root -r)'{-r,--root}'[perform on rootful distroboxes]' \
-  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
-  '(--version -V)'{-V,--version}'[show version]'
+source ${fpath[@]}_distrobox_shared_functions
+
+_distrobox-generate-entry() {
+    local -a options
+    options=(
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-a --all)'{-a,--all}'[perform for all distroboxes]'
+        '(-d --delete)'{-d,--delete}'[delete the entry]'
+        '(-i --icon)'{-i,--icon}'[specify a custom icon (default auto)]:icon path:(auto _files)'
+        '(-r --root)'{-r,--root}'[perform on rootful distroboxes]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+
+    _arguments -s : $options[@] \
+        '1:container name:_distrobox_containers' && return 0
+}
+
+_distrobox-generate-entry
