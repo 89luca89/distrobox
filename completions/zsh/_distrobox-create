@@ -40,13 +40,13 @@ _distrobox-create() {
     )
 
     _arguments -C -s \
-      '1: :->firstarg' \
+      '1: :->container' \
       '*::options:->options' \
       $options[@]
 
     case $state in
-      firstarg)
-        if [[ CURRENT -eq 2 ]]; then
+      container)
+        if (( CURRENT == 2 )); then
           _message 'container name or option'
         fi
         ;;
