@@ -20,11 +20,11 @@ _distrobox-enter() {
       '(--version -V)'{-V,--version}'[show version]'
     )
     _arguments -C \
-      '1: :->containers' \
+      '1: :->container' \
       $options[@]
 
     case $state in
-      containers)
+      container)
         if (( CURRENT == 2 )); then
           _distrobox_containers && return 0
         fi
