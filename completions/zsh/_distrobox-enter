@@ -29,7 +29,7 @@ _distrobox-enter() {
           _distrobox_containers && return 0
         fi
         ;;
-      *)
+      options)
         _arguments $options[@]
         ;;
     esac
