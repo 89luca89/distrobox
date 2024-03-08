@@ -19,6 +19,8 @@
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
 # POSIX
+# Optional env variables:
+#	DBX_CONTAINER_MANAGER
 
 # Despite of running this script via SUDO/DOAS being not supported (the
 # script itself will call the appropriate tool when necessary), we still want
@@ -76,6 +78,8 @@ done
 # Fixup variable=[true|false], in case we find it in the config file(s)
 [ "${verbose}" = "true" ] && verbose=1
 [ "${verbose}" = "false" ] && verbose=0
+
+[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 
 # Print usage to stdout.
 # Arguments:
