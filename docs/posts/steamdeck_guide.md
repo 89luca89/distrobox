@@ -1,5 +1,22 @@
 Latest SteamOS (version 3.5 and later) already pre-installed `distrobox` and `podman`.
 
+You might need to upgrade `distrobox` to the latest version before using it since SteamOS provides an older version of
+`distrobox`. You can confirm this by running the command `distrobox version` (on SteamOS 3.5 version 1.4.2.1-3 of
+`distrobox` was installed).
+
+To upgrade `distrobox` on the steamdeck, you have to disable the read-only state of the steamdeck, and then upgrade
+`distrobox` as [mentioned in the documentation](https://github.com/89luca89/distrobox/blob/main/docs/README.md#alternative-methods):
+
+```sh
+sudo steamos-readonly disable
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --prefix /usr
+sudo steamos-readonly enable
+```
+
+You can read about why the read-only state must be disabled [here](https://help.steampowered.com/en/faqs/view/671A-4453-E8D2-323C).
+
+Once `distrobox` is upgraded, you can use it as normal.
+
 To run GUI application, add following line to `~/.distroboxrc`.
 
 ```sh
