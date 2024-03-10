@@ -3,7 +3,7 @@
 # Distrobox
 
 <sub>previous logo credits [j4ckr3d](https://github.com/j4ckr3d)  
-current logo credits [David Lapshin](https://github.com/daudix-UFO)<sub>
+current logo credits [David Lapshin](https://github.com/daudix)<sub>
 
 [![Lint](https://github.com/89luca89/distrobox/actions/workflows/main.yml/badge.svg)](https://github.com/89luca89/distrobox/actions/workflows/main.yml)
 [![CI](https://github.com/89luca89/distrobox/actions/workflows/compatibility.yml/badge.svg)](https://github.com/89luca89/distrobox/actions/workflows/compatibility.yml)
