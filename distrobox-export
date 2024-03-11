@@ -254,7 +254,7 @@ if [ -z "${container_name}" ]; then
 fi
 
 # Command to execute
-container_command_suffix="${exported_bin} ${extra_flags} \"\$@\""
+container_command_suffix="'${exported_bin}' ${extra_flags} \"\$@\""
 
 # Check if exported application/binary should be run with sudo privileges
 if [ "${is_sudo}" -ne 0 ]; then
@@ -263,7 +263,7 @@ if [ "${is_sudo}" -ne 0 ]; then
 	# Edge case for systems without sudo
 	if command -v su-exec > /dev/null >&1; then
 		sudo_prefix="su-exec root"
-		container_command_suffix="sh -l -c \"${exported_bin} ${extra_flags} \$*\""
+		container_command_suffix="sh -l -c \"'${exported_bin} ${extra_flags}' \$*\""
 	fi
 fi
 
@@ -320,9 +320,9 @@ generate_script() {
 if [ -z "\${CONTAINER_ID}" ]; then
 	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} ${container_command_suffix}
 elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
-	exec distrobox-host-exec ${dest_path}/$(basename "${exported_bin}") ${extra_flags} "\$@"
+	exec distrobox-host-exec '${dest_path}/$(basename "${exported_bin}")' ${extra_flags} "\$@"
 else
-	exec ${exported_bin} "\$@"
+	exec '${exported_bin}' "\$@"
 fi
 EOF
 	return $?
