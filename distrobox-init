@@ -1840,7 +1840,7 @@ if test -z \$XAUTHORITY
 end
 if test -z \$XAUTHLOCALHOSTNAME
     set -gx XAUTHLOCALHOSTNAME (host-spawn sh -c "printf "%s" \\\$XAUTHLOCALHOSTNAME")
-    test -z \$XAUTHLOCALHOSTNAME && set -e XAUTHLOCALHOSTNAME
+    test -z \$XAUTHLOCALHOSTNAME ; and set -e XAUTHLOCALHOSTNAME
 end
 
 # This will ensure we have a first-shell password setup for an user if needed.
