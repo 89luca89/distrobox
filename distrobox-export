@@ -37,7 +37,7 @@ enter_flags=""
 #	DBX_HOST_HOME is set in case container is created
 #	with custom --home directory
 host_home="${DISTROBOX_HOST_HOME:-"${HOME}"}"
-dest_path="${host_home}/.local/bin"
+dest_path="${DISTROBOX_EXPORT_PATH:-${host_home}/.local/bin}"
 is_sudo=0
 rootful=""
 sudo_prefix=""
