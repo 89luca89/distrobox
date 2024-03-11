@@ -2130,6 +2130,16 @@ if [ "${init}" -eq 0 ]; then
 		/etc/localtime
 		/etc/resolv.conf
 	"
+
+	id="$(hostname)"
+	if [ -e /run/.containerenv ]; then
+		. /run/.containerenv
+	elif [ -e /.dockerenv ]; then
+		id="$(curl -s --unix-socket /run/docker.sock http://docker/containers/"$(hostname | cut -d'.' -f1)"/json |
+			grep -Eo '"Id":"[a-zA-Z0-9]{64}",' | cut -d '"' -f4)"
+	fi
+
+	findmnt -no SOURCE /etc/resolv.conf | grep "${id}" || :
 	# disable verbose logging for this phase.
 	set +x
 	while true; do
@@ -2139,8 +2149,10 @@ if [ "${init}" -eq 0 ]; then
 		#	- symlink will fail with "Device or Resource busy"
 		#	- bindmount will need a container restart on changes
 		for file_watch in ${HOST_WATCH}; do
-			# do stuff, only if we need to.
-			if [ "$(findmnt -no FSTYPE "${file_watch}")" = "overlay" ]; then
+			# do stuff, only if the file is a mountpoint, and if the mountpoint is NOT containing the
+			# container id, because if it does, it is because it's part of the podman/docker setup
+			mount_source="$(findmnt -no SOURCE "${file_watch}")"
+			if [ -n "${mount_source}" ] && ! echo "${mount_source}" | grep -q "${id}"; then
 				file_watch_src="/run/host${file_watch}"
 				# check if the target file exists
 				if ls -l "${file_watch_src}" 2> /dev/null > /dev/null; then
