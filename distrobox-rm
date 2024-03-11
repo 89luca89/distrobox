@@ -376,13 +376,13 @@ cleanup_exports() {
 		bin="$(echo "${i}" | cut -d'|' -f1 | sed 's/[ ]*$//' | sed 's/^[ ]*//')"
 		dir="$(echo "${i}" | cut -d'|' -f2- | sed 's/[ ]*$//' | sed 's/^[ ]*//')"
 		# shellcheck disable=SC2086,2248
-		"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- distrobox-export --bin "${bin}" --export-path "$(dirname "${dir}")" --delete
+		"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- distrobox-export --bin "${bin}" --export-path "$(dirname "${dir}")" --delete || :
 	done
 	unset IFS
 
 	# Remove exported gui apps from this container in default path
 	# shellcheck disable=SC2086,2248
-	"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- sh -c "distrobox-export --list-apps | cut -d'|' -f1 | sed 's/[ ]*$//' | xargs -I{} distrobox-export --app \"{}\" -d"
+	"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- sh -c "distrobox-export --list-apps | cut -d'|' -f1 | sed 's/[ ]*$//' | xargs -I{} distrobox-export --app \"{}\" -d" || :
 
 }
 
