@@ -32,7 +32,7 @@ root_flag=""
 # quoting and escaping
 tmpfile="$(mktemp -u)"
 verbose=0
-version="1.7.0"
+version="1.7.0.1"
 # initializing block of variables used in the manifest
 additional_flags=""
 additional_packages=""

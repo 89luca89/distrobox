@@ -42,7 +42,7 @@ is_sudo=0
 rootful=""
 sudo_prefix=""
 verbose=0
-version="1.7.0"
+version="1.7.0.1"
 
 sudo_askpass_path="${dest_path}/distrobox_sudo_askpass"
 sudo_askpass_script="#!/bin/sh
