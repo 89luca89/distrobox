@@ -1348,7 +1348,7 @@ EOF
 		"
 		# Mark gpg errors (exit code 106) as non-fatal, but don't pull anything from unverified repos
 		# shellcheck disable=SC2086,SC2046
-		zypper -n install -y $(zypper -n -q se -x ${deps} | grep -e 'package$' | cut -d'|' -f2) || [ ${?} = 106 ]
+		zypper -n install -y $(zypper -n -q se --match-exact ${deps} | grep -e 'package$' | cut -d'|' -f2) || [ ${?} = 106 ]
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
