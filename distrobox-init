@@ -2133,13 +2133,13 @@ if [ "${init}" -eq 0 ]; then
 
 	id="$(hostname)"
 	if [ -e /run/.containerenv ]; then
+		# shellcheck disable=SC1091,SC2034
 		. /run/.containerenv
 	elif [ -e /.dockerenv ]; then
 		id="$(curl -s --unix-socket /run/docker.sock http://docker/containers/"$(hostname | cut -d'.' -f1)"/json |
 			grep -Eo '"Id":"[a-zA-Z0-9]{64}",' | cut -d '"' -f4)"
 	fi
 
-	findmnt -no SOURCE /etc/resolv.conf | grep "${id}" || :
 	# disable verbose logging for this phase.
 	set +x
 	while true; do
