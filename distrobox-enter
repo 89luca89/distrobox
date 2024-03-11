@@ -58,8 +58,6 @@ fi
 container_command=""
 # by default we use getent to get the login shell of the user and use that
 container_command_login="/bin/sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
-# and we execute container_command using sh -c
-container_command_prefix="/bin/sh -c"
 container_image_default="registry.fedoraproject.org/fedora-toolbox:39"
 container_manager="autodetect"
 container_manager_additional_flags=""
@@ -214,7 +212,7 @@ while :; do
 			;;
 		-e | --exec | --)
 			shift
-			container_command="$1"
+			container_command="\"$1\""
 			shift
 			for arg in "$@"; do
 				arg="$(echo "${arg}x" | sed 's|'\''|'\'\\\\\'\''|g')"
@@ -335,7 +333,6 @@ generate_command() {
 			container_command_login="${container_command_login} --pty"
 		fi
 		container_command_login="${container_command_login} -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
-		container_command_prefix="${container_command_login} -c"
 	else
 		result_command="${result_command}
 			--user=\"${USER}"\"
@@ -468,8 +465,7 @@ generate_command() {
 		${container_name}"
 
 	if [ -n "${container_command}" ]; then
-		result_command="${result_command}
-			${container_command_prefix} \"${container_command}\""
+		result_command="${result_command} ${container_command}"
 	else
 		# if no command was specified, let's execute a command that will find
 		# and run the default shell for the user
