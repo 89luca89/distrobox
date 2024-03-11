@@ -1794,8 +1794,15 @@ export SHELL="\$(getent passwd "\${USER}" | cut -f 7 -d :)"
 # Ensure we have these two variables from the host, so that graphical apps
 # also work in case we use a login session
 test -z \$DISPLAY && export DISPLAY="\$(host-spawn sh -c "echo \\\$DISPLAY")"
-test -z \$XAUTHORITY && export XAUTHORITY="\$(host-spawn sh -c "echo \\\$XAUTHORITY")"
-test -z \$XAUTHLOCALHOSTNAME && export XAUTHLOCALHOSTNAME="\$(host-spawn sh -c "echo \\\$XAUTHLOCALHOSTNAME")"
+if [ -z "\$XAUTHORITY" ]; then
+    export XAUTHORITY="\$(host-spawn sh -c "printf "%s" \\\$XAUTHORITY")"
+    # if the variable is still empty, unset it, because empty it could be harmful
+    [ -z "\$XAUTHORITY" ] && unset XAUTHORITY
+fi
+if [ -z "\$XAUTHLOCALHOSTNAME" ]; then
+    export XAUTHLOCALHOSTNAME="\$(host-spawn sh -c "printf "%s" \\\$XAUTHLOCALHOSTNAME")"
+    [ -z "\$XAUTHLOCALHOSTNAME" ] && unset XAUTHLOCALHOSTNAME
+fi
 
 # This will ensure a default prompt for a container, this will be remineshent of
 # toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
@@ -1826,8 +1833,15 @@ set -gx SHELL (getent passwd "\$USER" | cut -f 7 -d :)
 # Ensure we have these two variables from the host, so that graphical apps
 # also work in case we use a login session
 test -z \$DISPLAY && set -gx DISPLAY (host-spawn sh -c "echo \\\$DISPLAY")
-test -z \$XAUTHORITY && set -gx XAUTHORITY (host-spawn sh -c "echo \\\$XAUTHORITY")
-test -z \$XAUTHLOCALHOSTNAME && set -gx XAUTHLOCALHOSTNAME (host-spawn sh -c "echo \\\$XAUTHLOCALHOSTNAME")
+if test -z \$XAUTHORITY
+    set -gx XAUTHORITY (host-spawn sh -c "printf "%s" \\\$XAUTHORITY")
+    # if the variable is still empty, unset it, because empty it could be harmful
+    test -z \$XAUTHORITY ; and set -e XAUTHORITY
+end
+if test -z \$XAUTHLOCALHOSTNAME
+    set -gx XAUTHLOCALHOSTNAME (host-spawn sh -c "printf "%s" \\\$XAUTHLOCALHOSTNAME")
+    test -z \$XAUTHLOCALHOSTNAME && set -e XAUTHLOCALHOSTNAME
+end
 
 # This will ensure we have a first-shell password setup for an user if needed.
 # We're going to use this later in case of rootful containers
