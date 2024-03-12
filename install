@@ -119,7 +119,7 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 	if [ -e icons/terminal-distrobox-icon.svg ]; then
 		install -D -m 0644 -t "${icon_dest_path}/scalable/apps" icons/terminal-distrobox-icon.svg
       		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
-        		install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" icons/hicolor/${sz}x${sz}/apps/terminal-distrobox-icon.png
+        		install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png
       		done
 	fi
 else
@@ -183,7 +183,7 @@ else
 		install -D -m 0644 -t "${icon_dest_path}/scalable/apps" \
 			"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"icons/terminal-distrobox-icon.svg
     		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
-        		install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" icons/hicolor/${sz}x${sz}/apps/terminal-distrobox-icon.png
+        		install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png
     		done
 	fi
 
