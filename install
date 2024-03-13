@@ -77,7 +77,7 @@ if  [ -z "${prefix}" ]; then
 fi
 dest_path="${prefix}/bin"
 man_dest_path="${prefix}/share/man/man1"
-icon_dest_path="${prefix}/share/icons"
+icon_dest_path="${prefix}/share/icons/hicolor"
 completion_bash_dest_path="${prefix}/share/bash-completion/completions/"
 completion_zsh_dest_path="${prefix}/share/zsh/site-functions/"
 
@@ -116,8 +116,12 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 			install -D -m 0644 -t "${completion_zsh_dest_path}" "${file}"
 		done
 	fi
-	if [ -e terminal-distrobox-icon.svg ]; then
-		install -D -m 0644 -t "${icon_dest_path}" terminal-distrobox-icon.svg
+	if [ -e icons/terminal-distrobox-icon.svg ]; then
+		install -D -m 0644 -t "${icon_dest_path}/scalable/apps" icons/terminal-distrobox-icon.svg
+		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
+			install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" \
+				icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png
+		done
 	fi
 else
 	printf >&2 "\033[1;31m Checking dependencies...\n\033[0m"
@@ -176,9 +180,13 @@ else
 			install -D -m 0644 -t "${completion_zsh_dest_path}" "${file}"
 		done
 	fi
-	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.svg ]; then
-		install -D -m 0644 -t "${icon_dest_path}" \
-			"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/terminal-distrobox-icon.svg
+	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/icons/terminal-distrobox-icon.svg ]; then
+		install -D -m 0644 -t "${icon_dest_path}/scalable/apps" \
+			"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"icons/terminal-distrobox-icon.svg
+		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
+			install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" \
+				icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png
+		done
 	fi
 
 	# securely delete unneeded files
