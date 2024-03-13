@@ -211,7 +211,7 @@ to your `~/.distroboxrc`
 
 ```console
 -$ cat ~/.distroboxrc
-xhost +si:localuser:$USER`
+xhost +si:localuser:$USER
 ```
 
 ## Enable SSH X-Forwarding when SSH-ing in a distrobox
