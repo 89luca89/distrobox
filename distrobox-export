@@ -82,7 +82,7 @@ Options:
 	--app/-a:		name of the application to export
 	--bin/-b:		absolute path of the binary to export
 	--list-apps:		list applications exported from this container
-	--list-binaries		list binaries exported from this container, use -ep to specify custom paths to search
+	--list-binaries:	list binaries exported from this container, use -ep to specify custom paths to search
 	--delete/-d:		delete exported application or binary
 	--export-label/-el:	label to add to exported application name.
 				Use "none" to disable.
@@ -565,7 +565,6 @@ export_application() {
 		printf "Application %s successfully exported.\nOK!\n" "${exported_app}"
 		printf "%s will appear in your applications list in a few seconds.\n" "${exported_app}"
 	fi
-
 }
 
 # List exported applications in canonical directories.

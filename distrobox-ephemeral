@@ -176,7 +176,6 @@ fi
 # Outputs:
 #   prints the distrobox-create command handling special flags
 generate_command() {
-
 	result_command="${distrobox_path}/distrobox-create"
 	if [ -n "${container_manager_additional_flags}" ]; then
 		result_command="${result_command} \

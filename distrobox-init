@@ -209,16 +209,16 @@ fi
 
 # Print mount flags considered "locked".
 # Arguments:
-# 	source (path to the file/directory)
+# 	src (path to the file/directory)
 # Outputs:
 # 	Comma-separated list of locked mount flags
-get_locked_mount_flags() (
-	source="$1"
+get_locked_mount_flags() {
+	src="$1"
 	prev=""
 	locked_flags=""
 
 	# If we can't read the file/directory, exit
-	if ! ls "${source}" 2> /dev/null > /dev/null; then
+	if ! ls "${src}" 2> /dev/null > /dev/null; then
 		return 0
 	fi
 
@@ -226,14 +226,14 @@ get_locked_mount_flags() (
 	# Earlier versions of findmnt did not check parents until it found a mountpoint,
 	# so we use a workaround with dirname.
 	while true; do
-		flags="$(findmnt --noheadings --output OPTIONS --target "${source}" || :)"
+		flags="$(findmnt --noheadings --output OPTIONS --target "${src}" || :)"
 		# shellcheck disable=SC2181
 		if [ -n "${flags}" ]; then
 			break
 		fi
-		prev="${source}"
-		source="$(dirname "${source}")"
-		[ "${source}" = "${prev}" ] && return 1
+		prev="${src}"
+		src="$(dirname "${src}")"
+		[ "${src}" = "${prev}" ] && return 1
 	done
 
 	for flag in nodev noexec nosuid; do
@@ -244,7 +244,7 @@ get_locked_mount_flags() (
 	done
 
 	printf "%s" "${locked_flags}"
-)
+}
 
 # init_readlink is a simplistic implementation for
 # readlink -fm
@@ -267,7 +267,7 @@ init_readlink() {
 # Outputs:
 #   No output if all ok
 #	Error if not
-mount_bind() (
+mount_bind() {
 	source_dir="$1"
 	target_dir="$2"
 	mount_flags=""
@@ -329,7 +329,7 @@ mount_bind() (
 	fi
 
 	return 0
-)
+}
 
 if [ -n "${pre_init_hook}" ]; then
 	printf "distrobox: Executing pre-init hooks...\n"

@@ -199,7 +199,7 @@ fi
 #   name of the distrobox.
 # Outputs:
 #   execution of the proper distrobox-create command.
-run_distrobox() (
+run_distrobox() {
 	name="${1}"
 
 	# Skip item if --name used and no match is found
@@ -396,14 +396,14 @@ run_distrobox() (
 			done
 		done
 	fi
-)
+}
 
 # Sanitize an input, add single/double quotes and escapes
 # Arguments:
 #   a value string
 # Outputs:
 #   a value string sanitized
-sanitize_variable() (
+sanitize_variable() {
 	variable="${1}"
 
 	# If there are spaces but no quotes, let's add them
@@ -415,14 +415,14 @@ sanitize_variable() (
 
 	# Return
 	echo "${variable}"
-)
+}
 
 # Parse input file and call distrobox-create accordingly
 # Arguments:
 #   path of the manifest file to parse
 # Outputs:
 #   None
-parse_file() (
+parse_file() {
 	file="${1}"
 	name=""
 
@@ -479,7 +479,7 @@ parse_file() (
 	done
 	# Execute now one last time for the last block
 	run_distrobox "${name}"
-)
+}
 
 # Exec
 parse_file "${input_file}"

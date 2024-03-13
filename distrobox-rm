@@ -105,7 +105,6 @@ fi
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 
 # Declare it AFTER config sourcing because we do not want a default name set for rm.
-container_name=""
 container_name_default="my-distrobox"
 container_name_list=""
 
@@ -336,7 +335,7 @@ delete_container() {
 	fi
 
 	if [ "${non_interactive}" -eq 1 ] || [ "${rm_exports}" -eq 1 ]; then
-		cleanup_exports
+		cleanup_exports "${container_name}"
 	fi
 
 	# Remove the container
@@ -360,10 +359,11 @@ delete_container() {
 
 # Delete exported apps and bins for container to delete.
 # Arguments:
-#   none.
+#   container_name
 # Outputs:
 #   none.
 cleanup_exports() {
+	container_name="$1"
 	IFS='
 	'
 	printf "Removing exported binaries...\n"
@@ -383,7 +383,6 @@ cleanup_exports() {
 	# Remove exported gui apps from this container in default path
 	# shellcheck disable=SC2086,2248
 	"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- sh -c "distrobox-export --list-apps | cut -d'|' -f1 | sed 's/[ ]*$//' | xargs -I{} distrobox-export --app \"{}\" -d" || :
-
 }
 
 # Prompt for confirmation
@@ -398,8 +397,8 @@ fi
 # Accept only y,Y,Yes,yes,n,N,No,no.
 case "${response}" in
 	y | Y | Yes | yes | YES)
-		for container_name in ${container_name_list}; do
-			delete_container "${container_name}"
+		for container in ${container_name_list}; do
+			delete_container "${container}"
 		done
 		;;
 	n | N | No | no | NO)
