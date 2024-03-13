@@ -237,7 +237,8 @@ run_distrobox() (
 
 	# If distrobox already exist, and we have replace enabled, destroy the container
 	# we have to recreate it.
-	if "${distrobox_path}"/distrobox-list | grep -qw "${name} " && [ "${dryrun}" -eq 0 ]; then
+	# shellcheck disable=SC2086,2248
+	if "${distrobox_path}"/distrobox-list ${root_flag} | grep -qw "${name} " && [ "${dryrun}" -eq 0 ]; then
 		printf >&2 "%s already exists\n" "${name}"
 		return 0
 	fi
@@ -425,12 +426,10 @@ parse_file() (
 	file="${1}"
 	name=""
 
-	while IFS="" read -r line || [ -n "${line}" ]; do
-		if [ -z "${line}" ]; then
-			# blank line, skip
-			continue
-		fi
-
+	IFS='
+	'
+	# shellcheck disable=SC2013
+	for line in $(cat "${file}"); do
 		# Remove comments and trailing spaces
 		line="$(echo "${line}" |
 			sed 's/\t/ /g' |
@@ -438,6 +437,11 @@ parse_file() (
 			sed 's/].*#.*//g' |
 			sed 's/ #.*//g' |
 			sed 's/\s*$//g')"
+
+		if [ -z "${line}" ]; then
+			# blank line, skip
+			continue
+		fi
 
 		# Detect start of new section
 		if [ "$(echo "${line}" | cut -c 1)" = '[' ]; then
@@ -472,8 +476,8 @@ parse_file() (
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
 		fi
-	done < "${file}"
-	#	# Execute now one last time for the last block
+	done
+	# Execute now one last time for the last block
 	run_distrobox "${name}"
 )
 
