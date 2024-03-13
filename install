@@ -118,9 +118,10 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 	fi
 	if [ -e icons/terminal-distrobox-icon.svg ]; then
 		install -D -m 0644 -t "${icon_dest_path}/scalable/apps" icons/terminal-distrobox-icon.svg
-      		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
-        		install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png
-      		done
+		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
+			install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" \
+				icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png
+		done
 	fi
 else
 	printf >&2 "\033[1;31m Checking dependencies...\n\033[0m"
@@ -182,9 +183,10 @@ else
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/icons/terminal-distrobox-icon.svg ]; then
 		install -D -m 0644 -t "${icon_dest_path}/scalable/apps" \
 			"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"icons/terminal-distrobox-icon.svg
-    		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
-        		install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png
-    		done
+		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
+			install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" \
+				icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png
+		done
 	fi
 
 	# securely delete unneeded files
