@@ -1,11 +1,37 @@
 Latest SteamOS (version 3.5 and later) already pre-installed `distrobox` and `podman`.
 
-You might need to upgrade `distrobox` to the latest version before using it since SteamOS provides an older version of
-`distrobox`. You can confirm this by running the command `distrobox version` (on SteamOS 3.5 version 1.4.2.1-3 of
-`distrobox` was installed).
+Before using `distrobox` on SteamOS, it may be necessary to upgrade to the latest version since the version provided by
+SteamOS may be outdated. You can verify the currently installed version by running the command `distrobox version`. For
+instance, on SteamOS 3.5, version 1.4.2.1-3 of `distrobox` is installed.
 
-To upgrade `distrobox` on the steamdeck, you have to disable the read-only state of the steamdeck, and then upgrade
-`distrobox` as [mentioned in the documentation](https://github.com/89luca89/distrobox/blob/main/docs/README.md#alternative-methods):
+To upgrade `distrobox` on SteamOS, you have two options:
+
+### Option 1: Install `distrobox` in `$HOME`
+
+By installing `distrobox` in your `$HOME` directory, you can ensure that you have control over the version you're using,
+independent of SteamOS updates. This method prevents your modifications from being reverted when SteamOS is updated.
+
+Note that it's essential to add this new version of `distrobox` to your PATH to ensure it's utilized over the
+SteamOS-provided version.
+
+To install `distrobox` in the `$HOME` directory, run the following command:
+
+```sh
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix $HOME
+```
+
+For more detailed installation instructions, refer to the documentation
+[here](https://github.com/89luca89/distrobox/blob/main/docs/README.md#alternative-methods).
+
+To upgrade the version of `distrobox`, follow the instructions provided in the documentation link above.
+
+### Option 2: Overwrite the provided `distrobox` installation in SteamOS
+
+An alternative approach is to upgrade the version of `distrobox` provided by SteamOS. While this simplifies management
+as you don't need to modify your PATH and you wouldn't have 2 versions of `distrobox` installed, it comes with the
+downside that your upgrades will be overwritten when SteamOS is updated.
+
+To upgrade the `distrobox` version provided by SteamOS, execute the following commands:
 
 ```sh
 sudo steamos-readonly disable
@@ -13,9 +39,12 @@ curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo
 sudo steamos-readonly enable
 ```
 
-You can read about why the read-only state must be disabled [here](https://help.steampowered.com/en/faqs/view/671A-4453-E8D2-323C).
+Please note that disabling the read-only state is necessary to perform this upgrade. You can find more information about
+this requirement [here](https://help.steampowered.com/en/faqs/view/671A-4453-E8D2-323C).
 
 Once `distrobox` is upgraded, you can use it as normal.
+
+---
 
 To run GUI application, add following line to `~/.distroboxrc`.
 
