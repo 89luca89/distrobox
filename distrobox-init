@@ -2151,7 +2151,9 @@ if [ "${init}" -eq 0 ]; then
 		for file_watch in ${HOST_WATCH}; do
 			# do stuff, only if the file is a mountpoint, and if the mountpoint is NOT containing the
 			# container id, because if it does, it is because it's part of the podman/docker setup
-			mount_source="$(findmnt -no SOURCE "${file_watch}")"
+      # The mount point might not exist, either because it's umounted or it doesn't exist on
+      # host in some cases like /etc/localtime, so ignore findmnt errors
+			mount_source="$(findmnt -no SOURCE "${file_watch}")" || :
 			if [ -n "${mount_source}" ] && ! echo "${mount_source}" | grep -q "${id}"; then
 				file_watch_src="/run/host${file_watch}"
 				# check if the target file exists
