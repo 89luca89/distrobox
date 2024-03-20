@@ -421,6 +421,7 @@ if [ "${upgrade}" -ne 0 ] ||
 				gnutar
 				man-db
 				mesa
+				openssh-client
 				posix-libc-utils
 			"
 		elif apk add alpine-base; then
@@ -433,6 +434,7 @@ if [ "${upgrade}" -ne 0 ] ||
 				man-pages
 				mandoc
 				musl-utils
+				openssh-client-default
 				pinentry
 				sudo
 				tar
@@ -463,9 +465,7 @@ if [ "${upgrade}" -ne 0 ] ||
 			ncurses
 			ncurses-terminfo
 			net-tools
-			openssh-client
 			pigz
-			procps
 			rsync
 			shadow
 			su-exec
@@ -482,12 +482,18 @@ if [ "${upgrade}" -ne 0 ] ||
 			xauth
 			xz
 			zip
+			$(apk search -qe procps)
 		"
+		# shellcheck disable=SC2086
+		found_deps="$(apk search -qe ${deps} | tr '\n' ' ')"
 		install_pkg=""
 		for dep in ${deps}; do
-			if apk info "${dep}" > /dev/null; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
+			# shellcheck disable=SC2249
+			case " ${found_deps} " in
+				*" ${dep} "*)
+					install_pkg="${install_pkg} ${dep}"
+					;;
+			esac
 		done
 		# shellcheck disable=SC2086
 		apk add --force-overwrite ${install_pkg}
