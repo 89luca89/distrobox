@@ -23,9 +23,16 @@
 #	HOME
 #	USER
 # Optional env variables:
+#	DBX_CONTAINER_ALWAYS_PULL
+#	DBX_CONTAINER_CUSTOM_HOME
+#	DBX_CONTAINER_GENERATE_ENTRY
+#	DBX_CONTAINER_HOME_PREFIX
+#	DBX_CONTAINER_HOSTNAME
+#	DBX_CONTAINER_IMAGE
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
 #	DBX_CONTAINER_CLEAN_PATH
+#	DBX_NON_INTERACTIVE
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
@@ -33,6 +40,19 @@ app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
 
 trap cleanup TERM INT HUP EXIT
 
+# Generate Podman, Docker or Lilipod command to execute.
+# Arguments:
+#   None
+# Expected global variables:
+#   container_manager = string container manager to use
+#   container_name    = string container name
+#   app_cache_dir     = string cache dire to write file into
+#   logs_pid     = string pid of the podman/docker logs process
+#   verbose      = bool verbose
+# Expected env variables:
+#   None
+# Outputs:
+#   None
 cleanup() {
 	rm -f "${app_cache_dir}/.${container_name}.fifo"
 	if [ -n "${logs_pid:-}" ]; then
@@ -132,6 +152,10 @@ fi
 # Print usage to stdout.
 # Arguments:
 #   None
+# Expected global variables:
+#   version = string distrobox version
+# Expected env variables:
+#   USER
 # Outputs:
 #   print usage with examples.
 show_help() {
@@ -318,19 +342,37 @@ fi
 # Generate Podman, Docker or Lilipod command to execute.
 # Arguments:
 #   None
+# Expected global variables:
+#   container_manager = string container manager to use
+#   container_name    = string container name
+#   container_manager_additional_flags = string container manager additional flags to use
+#   container_command = string container command to execute
+#   container_home    = string container's home path
+#   container_path    = string container's default PATH variable
+#   headless     = bool headless mode
+#   skip_workdir = bool skip workdir
+#   verbose      = bool verbose
+#   unshare_groups
+#   distrobox_enter_path
+# Expected env variables:
+#   PATH
+#   USER
+#   PWD
+#   XDG_DATA_DIRS
+#   XDG_CONFIG_DIRS
 # Outputs:
 #   prints the podman, docker or lilipod command to enter the distrobox container
-generate_command() {
+generate_enter_command() {
 	result_command="${container_manager} exec"
 	result_command="${result_command}
 		--interactive"
 	result_command="${result_command}
 		--detach-keys=\"\""
 
+	# In case of initful systems or unshared groups, we don't enter directly
+	# as our user, but we instead enter as root, and then su $USER, in order
+	# to trigger a proper login
 	if [ "${unshare_groups:-0}" -eq 1 ]; then
-		# In case of initful systems or unshared groups, we don't enter directly
-		# as our user, but we instead enter as root, and then su $USER, in order
-		# to trigger a proper login
 		result_command="${result_command}
 			--user='root'"
 
@@ -342,6 +384,7 @@ generate_command() {
 		fi
 		container_command_login="${container_command_login} -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
 		if [ -n "${container_command}" ]; then
+			# escape $ in order to avoid evaluation by the login shell
 			container_command="$(echo "${container_command}" | sed 's/\$/\\\$/g')"
 			container_command="${container_command_login} -c \"${container_command}\""
 		fi
@@ -384,6 +427,7 @@ generate_command() {
 		--env \"CONTAINER_ID=${container_name}\""
 	result_command="${result_command}
 		--env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
+
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
@@ -437,7 +481,7 @@ generate_command() {
 
 	# Ensure the standard FHS program paths are in XDG_DATA_DIRS environment
 	standard_paths="/usr/local/share /usr/share"
-	container_paths="${XDG_DATA_DIRS:=}"
+	container_paths="${XDG_DATA_DIRS:-}"
 	# add to the XDG_DATA_DIRS only after the host's paths, and only if not already present.
 	for standard_path in ${standard_paths}; do
 		pattern="(:|^)${standard_path}(:|$)"
@@ -461,7 +505,7 @@ generate_command() {
 
 	# Ensure the standard FHS program paths are in XDG_CONFIG_DIRS environment
 	standard_paths="/etc/xdg"
-	container_paths="${XDG_CONFIG_DIRS:=}"
+	container_paths="${XDG_CONFIG_DIRS:-}"
 	# add to the XDG_CONFIG_DIRS only after the host's paths, and only if not already present.
 	for standard_path in ${standard_paths}; do
 		pattern="(:|^)${standard_path}(:|$)"
@@ -516,8 +560,7 @@ eval "$(${container_manager} inspect --type container --format \
 
 # dry run mode, just generate the command and print it. No execution.
 if [ "${dryrun}" -ne 0 ]; then
-	cmd="$(generate_command)"
-	cmd="$(echo "${cmd}" | sed 's/\t//g')"
+	cmd="$(generate_enter_command | sed 's/\t//g')"
 	printf "%s\n" "${cmd}"
 	exit 0
 fi
@@ -567,11 +610,12 @@ fi
 # If the container is not already running, we need to start if first
 if [ "${container_status}" != "running" ]; then
 	# If container is not running, start it first
+	#
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
-	#
 	log_timestamp="$(date +%FT%T.%N%:z)"
 	${container_manager} start "${container_name}" > /dev/null
+	#
 	# Check if the container is going in error status earlier than the
 	# entrypoint
 	if [ "$(${container_manager} inspect \
@@ -633,6 +677,6 @@ if [ "${container_status}" != "running" ]; then
 fi
 
 # Generate the exec command and run it
-cmd="$(generate_command)"
+cmd="$(generate_enter_command)"
 # shellcheck disable=SC2086
 eval ${cmd}

@@ -63,8 +63,12 @@ for dep in ${base_dependencies}; do
 	fi
 done
 
-# Print usage to stdout.
+# show_help will print usage to stdout.
 # Arguments:
+#   None
+# Expected global variables:
+#   version: string distrobox version
+# Expected env variables:
 #   None
 # Outputs:
 #   print usage with examples.
@@ -253,20 +257,6 @@ if [ -z "${container_name}" ]; then
 	container_name=$(uname -n | cut -d'.' -f1)
 fi
 
-# Command to execute
-container_command_suffix="'${exported_bin}' ${extra_flags} \"\$@\""
-
-# Check if exported application/binary should be run with sudo privileges
-if [ "${is_sudo}" -ne 0 ]; then
-	sudo_prefix="sudo -S"
-
-	# Edge case for systems without sudo
-	if command -v su-exec > /dev/null >&1; then
-		sudo_prefix="su-exec root"
-		container_command_suffix="sh -l -c \"'${exported_bin}' ${extra_flags} \$*\""
-	fi
-fi
-
 # Filter enter_flags and remove redundant options
 if [ -n "${enter_flags}" ]; then
 	# shellcheck disable=SC2086
@@ -291,6 +281,20 @@ if [ -n "${enter_flags}" ]; then
 	enter_flags="${filtered_flags}"
 fi
 
+# Command to execute
+container_command_suffix="'${exported_bin}' ${extra_flags} \"\$@\""
+
+# Check if exported application/binary should be run with sudo privileges
+if [ "${is_sudo}" -ne 0 ]; then
+	sudo_prefix="sudo -S"
+
+	# Edge case for systems without sudo
+	if command -v su-exec > /dev/null >&1; then
+		sudo_prefix="su-exec root"
+		container_command_suffix="sh -l -c \"'${exported_bin}' ${extra_flags} \$*\""
+	fi
+fi
+
 # Prefix to add to an existing command to work through the container
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} "
 
@@ -310,6 +314,17 @@ fi
 # Print generated script from template
 # Arguments:
 #	none it will use the ones set up globally
+# Expected env variables:
+#   CONTAINER_ID = id of the current container
+#   container_command_suffix = string to postpone to the command to launch
+#   container_name =  string name of this container
+#   dest_path       = string path where to export the binary
+#   enter_flags =  string extra flags to append to the distrobox enter command
+#   exported_bin    = string path to the binary to exprot
+#   exported_delete = bool delete the binary exported
+#   extra_flags =  string extra flags to append to the exported app command
+#   rootful     = bool if this is a rootful container
+#   sudo_prefix = string sudo command to prepend to the exported command
 # Outputs:
 #	print generated script.
 generate_script() {
@@ -334,6 +349,12 @@ EOF
 #
 # Arguments:
 #	none it will use the ones set up globally
+# Expected env variables:
+#   CONTAINER_ID = id of the current container
+#   container_name =  string name of this container
+#   dest_path       = string path where to export the binary
+#   exported_bin    = string path to the binary to exprot
+#   exported_delete = bool delete the binary exported
 # Outputs:
 #	a generated_script in dest_path
 #	or error code.
@@ -386,6 +407,15 @@ export_binary() {
 #
 # Arguments:
 #	none it will use the ones set up globally
+# Expected env variables:
+#   CONTAINER_ID = id of the current container
+#   container_command_prefix = string to prepend to the command to launch
+#   container_name =  string name of this container
+#   exported_app  =   string name of the app to export
+#   exported_app_label = string label to use to mark the exported app
+#   exported_delete    =  bool if we want to delete or not
+#   extra_flags =  string extra flags to append to the exported app command
+#   host_home   = home path ofr the host, where to search desktop files
 # Outputs:
 #	needed icons in /run/host/$host_home/.local/share/icons
 #	needed desktop files in /run/host/$host_home/.local/share/applications
@@ -572,6 +602,9 @@ export_application() {
 #
 # Arguments:
 #	none
+# Expected env variables:
+#   host_home    = home path ofr the host, where to search desktop files
+#   CONTAINER_ID = id of the current container
 # Outputs:
 #	a list of exported apps
 #	or error code.
@@ -604,6 +637,9 @@ list_exported_applications() {
 #
 # Arguments:
 #	none
+# Expected env variables:
+#   dest_path    = destination path where to search binaries
+#   CONTAINER_ID = id of the current container
 # Outputs:
 #	a list of exported apps
 #	or error code.

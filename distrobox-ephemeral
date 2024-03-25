@@ -173,9 +173,14 @@ fi
 # Generate distrobox-create command to execute.
 # Arguments:
 #   None
+# Expected global variables:
+#   distrobox_path = string distrobox path
+#   name         = string container name
+#   extra_flags  = string extra flags to inject
+#   create_flags = string create extra flags to inject
 # Outputs:
 #   prints the distrobox-create command handling special flags
-generate_command() {
+generate_ephemeral_create_command() {
 	result_command="${distrobox_path}/distrobox-create"
 	if [ -n "${container_manager_additional_flags}" ]; then
 		result_command="${result_command} \
@@ -206,7 +211,7 @@ cleanup() {
 	"${distrobox_path}"/distrobox-rm ${extra_flags} --force "${name}" --yes
 }
 
-cmd="$(generate_command)"
+cmd="$(generate_ephemeral_create_command)"
 # shellcheck disable=SC2086
 eval ${cmd}
 # shellcheck disable=SC2086

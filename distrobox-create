@@ -228,6 +228,9 @@ EOF
 # Print list of compatible images to stdou, caching locally in a file.
 # Arguments:
 #   None
+# Expected global variables:
+#   app_cache_dir = cache dir to write to
+#   version       = distrobox version
 # Outputs:
 #   print usage with examples.
 show_compatibility() {
@@ -540,12 +543,22 @@ if [ -n "${container_additional_volumes}" ]; then
 	done
 fi
 
+# Check that we have a complete distrobox installation or
+# entrypoint and export will not work.
+if [ -z "${distrobox_entrypoint_path}" ] || [ -z "${distrobox_export_path}" ]; then
+	printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}"
+	exit 127
+fi
+
 # Clone a container as a snapshot.
 # Arguments:
 #   None
+# Expected global variables:
+#   container_manager = string container manager to use
+#   container_clone   = string container name to clone
 # Outputs:
 #   prints the image name of the newly cloned container
-clone_container() {
+get_clone_image() {
 	# We need to clone a container.
 	# to do this we will commit the container and create a new tag. Then use it
 	# as image for the new container.
@@ -584,9 +597,32 @@ clone_container() {
 # Generate Podman or Docker command to execute.
 # Arguments:
 #   None
+# Expected global variables:
+#   container_manager  = string container manager to use
+#   container_name     = string container name
+#   container_image    = string container image
+#   container_manager_additional_flags = string container manager additional flags to use
+#   container_hostname = string container hostname
+#   container_additional_packages = string additional packages
+#   container_pre_init_hook = string pre init hooks
+#   container_init_hook = string init hooks
+#   container_user_home = string user's home path
+#   container_user_name = string user's username
+#   container_user_uid  = string user's UID
+#   container_user_gid  = string user's GID
+#   container_home_prefix = string container's custom home prefix
+#   container_user_custom_home = string container's custom home path
+#   init    = bool initful
+#   nvidia  = bool nvidia integration
+#   rootful = bool rootful
+#   unshare_devsys  = bool unshare devsys
+#   unshare_groups  = bool unshare groups
+#   unshare_ipc     = bool unshare ipc
+#   unshare_netns   = bool unshare netns
+#   unshare_process = bool unshare proc
 # Outputs:
 #   prints the podman, docker or lilipod command to create the distrobox container
-generate_command() {
+generate_create_command() {
 	# Set the container hostname the same as the container name.
 	result_command="${container_manager} create"
 	# use the host's namespace for ipc, network, pid, ulimit
@@ -854,19 +890,12 @@ generate_command() {
 	printf "%s" "${result_command}"
 }
 
-# Check that we have a complete distrobox installation or
-# entrypoint and export will not work.
-if [ -z "${distrobox_entrypoint_path}" ] || [ -z "${distrobox_export_path}" ]; then
-	printf >&2 "Error: no distrobox-init found in %s\n" "${PATH}"
-	exit 127
-fi
-
 # dry run mode, just generate the command and print it. No creation.
 if [ "${dryrun}" -ne 0 ]; then
 	if [ -n "${container_clone}" ]; then
 		container_image="${container_clone}"
 	fi
-	cmd="$(generate_command)"
+	cmd="$(generate_create_command)"
 	cmd="$(echo "${cmd}" | sed 's/\t//g')"
 	printf "%s\n" "${cmd}"
 	exit 0
@@ -890,8 +919,9 @@ fi
 # if we are using the clone flag, let's set the image variable
 # to the output of container duplication
 if [ -n "${container_clone}" ]; then
-	container_image="$(clone_container)"
+	container_image="$(get_clone_image)"
 fi
+
 # First, check if the image exists in the host or auto-pull is enabled
 # If not prompt to download it.
 if [ "${container_always_pull}" -eq 1 ] ||
@@ -929,7 +959,7 @@ fi
 
 # Generate the create command and run it
 printf >&2 "Creating '%s' using image %s\t" "${container_name}" "${container_image}"
-cmd="$(generate_command)"
+cmd="$(generate_create_command)"
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
 if eval ${cmd} > /dev/null; then

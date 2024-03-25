@@ -71,8 +71,12 @@ if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
 	exit 1
 fi
 
-# Print usage to stdout.
+# show_help will print usage to stdout.
 # Arguments:
+#   None
+# Expected global variables:
+#   version: string distrobox version
+# Expected env variables:
 #   None
 # Outputs:
 #   print usage with examples.
@@ -196,7 +200,14 @@ fi
 
 # Create distrobox with parameters parsed from ini file.
 # Arguments:
-#   name of the distrobox.
+#   name    = name of the distrobox.
+# Expected global variables:
+#   boxname = string name of the target container
+#   tmpfile = string name of the tmpfile to read
+#   delete  = bool delete container
+#   replace = bool replace container
+#   dryrun  = bool dryrun (only print, no execute)
+# verbose   = bool verbose
 # Outputs:
 #   execution of the proper distrobox-create command.
 run_distrobox() {
@@ -220,7 +231,7 @@ run_distrobox() {
 
 	# We're going to delete, not create!
 	if [ "${delete}" -ne 0 ] || [ "${replace}" -ne 0 ]; then
-		printf " - Deleting %s... \n" "${name}"
+		printf " - Deleting %s...\n" "${name}"
 
 		if [ "${dryrun}" -eq 0 ]; then
 			# shellcheck disable=SC2086,2248
@@ -233,7 +244,7 @@ run_distrobox() {
 	fi
 
 	# We're going to create!
-	printf " - Creating %s... \n" "${name}"
+	printf " - Creating %s...\n" "${name}"
 
 	# If distrobox already exist, and we have replace enabled, destroy the container
 	# we have to recreate it.
@@ -420,6 +431,8 @@ sanitize_variable() {
 # Parse input file and call distrobox-create accordingly
 # Arguments:
 #   path of the manifest file to parse
+# Expected global variables:
+#   tmpfile = string name of the tmpfile to read
 # Outputs:
 #   None
 parse_file() {
