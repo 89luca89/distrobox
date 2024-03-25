@@ -244,6 +244,7 @@ if ! command -v "${container_manager}" > /dev/null; then
 	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
 	exit 127
 fi
+
 # add verbose if -v is specified
 if [ "${verbose}" -ne 0 ]; then
 	container_manager="${container_manager} --log-level debug"
@@ -278,9 +279,49 @@ if [ -z "${container_name_list}" ]; then
 	container_name_list="${container_name_default}"
 fi
 
+# Delete exported apps and bins for container to delete.
+# Arguments:
+#   container_name = string container name
+# Expected global variables:
+#   distrobox_flags = string additional distrobox flags to use
+# Outputs:
+#   none.
+cleanup_exports() {
+	container_name="$1"
+	IFS='
+	'
+	printf "Removing exported binaries...\n"
+	# Ensure we hide distrobox startup if not needed
+	# shellcheck disable=SC2086,2248
+	if ! "$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- whoami > /dev/null 2>&1; then
+		printf >&2 "Warning: could not start container %s, skipping unexporting..." "${container_name}"
+		return
+	fi
+	# Remove exported binaries from this container in default path
+	# shellcheck disable=SC2086,2248
+	for i in $("$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- distrobox-export --list-binaries); do
+		bin="$(echo "${i}" | cut -d'|' -f1 | sed 's/[ ]*$//' | sed 's/^[ ]*//')"
+		dir="$(echo "${i}" | cut -d'|' -f2- | sed 's/[ ]*$//' | sed 's/^[ ]*//')"
+		# shellcheck disable=SC2086,2248
+		"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- distrobox-export --bin "${bin}" --export-path "$(dirname "${dir}")" --delete || :
+	done
+	unset IFS
+
+	# Remove exported gui apps from this container in default path
+	# shellcheck disable=SC2086,2248
+	"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- sh -c "distrobox-export --list-apps | cut -d'|' -f1 | sed 's/[ ]*$//' | xargs -I{} distrobox-export --app \"{}\" -d" || :
+}
+
 # Delete containers.
 # Arguments:
-#   container_name
+#   container_name    = string container name
+# Expected global variables:
+#   container_manager = string container manager to use
+#   distrobox_flags   = string distrobox additional flags
+#   non_interactive   = bool non interactive mode
+#   force_flag = bool force mode
+#   rm_home    = bool remove home
+#   verbose    = bool verbose
 # Outputs:
 #   none.
 delete_container() {
@@ -355,34 +396,6 @@ delete_container() {
 		rm -r "${container_home}"
 		printf "Successfully removed %s\n" "${container_home}"
 	fi
-}
-
-# Delete exported apps and bins for container to delete.
-# Arguments:
-#   container_name
-# Outputs:
-#   none.
-cleanup_exports() {
-	container_name="$1"
-	IFS='
-	'
-	printf "Removing exported binaries...\n"
-	# Ensure we hide distrobox startup if not needed
-	# shellcheck disable=SC2086,2248
-	"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- whoami > /dev/null 2>&1
-	# Remove exported binaries from this container in default path
-	# shellcheck disable=SC2086,2248
-	for i in $("$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- distrobox-export --list-binaries); do
-		bin="$(echo "${i}" | cut -d'|' -f1 | sed 's/[ ]*$//' | sed 's/^[ ]*//')"
-		dir="$(echo "${i}" | cut -d'|' -f2- | sed 's/[ ]*$//' | sed 's/^[ ]*//')"
-		# shellcheck disable=SC2086,2248
-		"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- distrobox-export --bin "${bin}" --export-path "$(dirname "${dir}")" --delete || :
-	done
-	unset IFS
-
-	# Remove exported gui apps from this container in default path
-	# shellcheck disable=SC2086,2248
-	"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- sh -c "distrobox-export --list-apps | cut -d'|' -f1 | sed 's/[ ]*$//' | xargs -I{} distrobox-export --app \"{}\" -d" || :
 }
 
 # Prompt for confirmation
