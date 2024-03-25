@@ -320,7 +320,7 @@ fi
 #   container_name =  string name of this container
 #   dest_path       = string path where to export the binary
 #   enter_flags =  string extra flags to append to the distrobox enter command
-#   exported_bin    = string path to the binary to exprot
+#   exported_bin    = string path to the binary to export
 #   exported_delete = bool delete the binary exported
 #   extra_flags =  string extra flags to append to the exported app command
 #   rootful     = bool if this is a rootful container
@@ -353,7 +353,7 @@ EOF
 #   CONTAINER_ID = id of the current container
 #   container_name =  string name of this container
 #   dest_path       = string path where to export the binary
-#   exported_bin    = string path to the binary to exprot
+#   exported_bin    = string path to the binary to export
 #   exported_delete = bool delete the binary exported
 # Outputs:
 #	a generated_script in dest_path
