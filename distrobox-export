@@ -346,6 +346,9 @@ export_binary() {
 	# generate dest_file path
 	dest_file="${dest_path}/$(basename "${exported_bin}")"
 
+	# create the binary destination path if it doesn't exist
+	mkdir -p "${dest_path}"
+
 	# If we're deleting it, just do it and exit
 	if [ "${exported_delete}" -ne 0 ] &&
 		# ensure it's a distrobox exported binary
