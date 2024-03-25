@@ -25,6 +25,7 @@
 # Optional env variables:
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
+#	DBX_CONTAINER_CLEAN_PATH
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
@@ -77,6 +78,7 @@ headless=0
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 skip_workdir=0
 verbose=0
+clean_path=0
 version="1.7.0.1.1"
 
 # Source configuration files, this is done in an hierarchy so local files have
@@ -116,6 +118,7 @@ fi
 
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
+[ -n "${DBX_CONTAINER_CLEAN_PATH}" ] && clean_path=1
 [ -n "${DBX_SKIP_WORKDIR}" ] && skip_workdir="${DBX_SKIP_WORKDIR}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 [ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
@@ -147,6 +150,7 @@ Options:
 
 	--name/-n:		name for the distrobox						default: my-distrobox
 	--/-e:			end arguments execute the rest as command to execute at login	default: default ${USER}'s shell
+	--clean-path:		reset PATH inside container to FHS standard
 	--no-tty/-T:		do not instantiate a tty
 	--no-workdir/-nw:	always start the container from container's home directory
 	--additional-flags/-a:	additional flags to pass to the container manager command
@@ -220,6 +224,10 @@ while :; do
 				container_command="${container_command} '${arg}'"
 			done
 			break
+			;;
+		--clean-path)
+			shift
+			clean_path=1
 			;;
 		-*) # Invalid options.
 			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
@@ -394,23 +402,36 @@ generate_command() {
 	container_paths="${container_path:-""}"
 	# Ensure the standard FHS program paths are in PATH environment
 	standard_paths="/usr/local/sbin /usr/local/bin /usr/sbin /usr/bin /sbin /bin"
-	# collect standard paths not existing from host PATH
-	for standard_path in ${standard_paths}; do
-		pattern="(:|^)${standard_path}(:|$)"
-		if ! echo "${PATH}" | grep -Eq "${pattern}"; then
+
+	if [ "${clean_path}" -eq 1 ]; then
+		# only add the standard paths
+		for standard_path in ${standard_paths}; do
 			if [ -z "${container_paths}" ]; then
 				container_paths="${standard_path}"
 			else
 				container_paths="${container_paths}:${standard_path}"
 			fi
-		fi
-	done
-	# append additional standard paths to host PATH to get final container_paths
-	if [ -n "${container_paths}" ]; then
-		container_paths="${PATH}:${container_paths}"
+		done
 	else
-		container_paths="${PATH}"
+		# collect standard paths not existing from host PATH
+		for standard_path in ${standard_paths}; do
+			pattern="(:|^)${standard_path}(:|$)"
+			if ! echo "${PATH}" | grep -Eq "${pattern}"; then
+				if [ -z "${container_paths}" ]; then
+					container_paths="${standard_path}"
+				else
+					container_paths="${container_paths}:${standard_path}"
+				fi
+			fi
+		done
+		# append additional standard paths to host PATH to get final container_paths
+		if [ -n "${container_paths}" ]; then
+			container_paths="${PATH}:${container_paths}"
+		else
+			container_paths="${PATH}"
+		fi
 	fi
+
 	result_command="${result_command}
 		--env \"PATH=${container_paths}\""
 
