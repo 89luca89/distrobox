@@ -2266,6 +2266,9 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/systemd-update-utmp*
 		/usr/lib/systemd/user/pipewire*
 		/usr/lib/systemd/user/wireplumber*
+		/usr/lib/systemd/system/suspend.target
+		/usr/lib/systemd/system/hibernate.target
+		/usr/lib/systemd/system/hybrid-sleep.target
 	"
 	# shellcheck disable=SC2086,SC2044
 	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
