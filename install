@@ -21,7 +21,7 @@
 
 next=0
 verbose=0
-version=1.7.1.0
+version=1.7.1
 
 # Print usage to stdout.
 # Arguments:
