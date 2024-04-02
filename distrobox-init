@@ -600,14 +600,8 @@ if [ "${upgrade}" -ne 0 ] ||
 			libvulkan1
 			mesa-vulkan-drivers
 		"
-		install_pkg=""
-		for dep in ${deps}; do
-			if apt-cache policy "${dep}" | grep Candidate | grep -qv none; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-		# shellcheck disable=SC2086
-		apt-get install -y ${install_pkg}
+		# shellcheck disable=SC2086,2046
+		apt-get install -y $(apt list ${deps} 2> /dev/null | tail -n +2 | cut -d/ -f1)
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
