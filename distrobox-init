@@ -943,19 +943,11 @@ EOF
 			xorg-xauth
 			zip
 			mesa
-			opengl-driver
 			vulkan-intel
-			vte-common
 			vulkan-radeon
 		"
-		install_pkg=""
-		for dep in ${deps}; do
-			if pacman -Ss "${dep}" > /dev/null; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-		# shellcheck disable=SC2086
-		pacman -S --noconfirm ${install_pkg}
+		# shellcheck disable=SC2086,2046
+		pacman -S --needed --noconfirm $(pacman -Ssq | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
 
 		# Ensure we have tzdata installed and populated, sometimes container
 		# images blank the zoneinfo directory, so we reinstall the package to
