@@ -1142,14 +1142,8 @@ EOF
 			mesa-vulkan-intel
 			mesa-vulkan-radeon
 		"
-		install_pkg=""
-		for dep in ${deps}; do
-			if [ "$(xbps-query -Rs "${dep}" | wc -l)" -gt 0 ]; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-		# shellcheck disable=SC2086
-		xbps-install -Sy ${install_pkg}
+		# shellcheck disable=SC2086,2046
+		xbps-install -Sy $(xbps-query -Rs '*' | awk '{print $2}' | sed 's/-[^-]*$//' | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
