@@ -74,13 +74,12 @@ for config_file in ${config_files}; do
 	[ -e "${config_file}" ] && . "$(realpath "${config_file}")"
 done
 
+[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
 
 # Fixup variable=[true|false], in case we find it in the config file(s)
 [ "${verbose}" = "true" ] && verbose=1
 [ "${verbose}" = "false" ] && verbose=0
-
-[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 
 # Print usage to stdout.
 # Arguments:
