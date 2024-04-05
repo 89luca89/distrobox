@@ -24,6 +24,7 @@
 #	DBX_CONTAINER_NAME
 #	DBX_CONTAINER_RM_CUSTOM_HOME
 #	DBX_NON_INTERACTIVE
+#	DBX_VERBOSE
 #	DBX_SUDO_PROGRAM
 
 # Despite of running this script via SUDO/DOAS being not supported (the

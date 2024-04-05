@@ -21,6 +21,7 @@
 # POSIX
 # Optional env variables:
 #	DBX_CONTAINER_MANAGER
+#	DBX_VERBOSE
 
 # Despite of running this script via SUDO/DOAS being not supported (the
 # script itself will call the appropriate tool when necessary), we still want

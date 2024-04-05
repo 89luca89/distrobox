@@ -32,6 +32,7 @@
 #	DBX_CONTAINER_HOSTNAME
 #	DBX_CONTAINER_GENERATE_ENTRY
 #	DBX_NON_INTERACTIVE
+#	DBX_VERBOSE
 #	DBX_SUDO_PROGRAM
 
 # Despite of running this script via SUDO/DOAS being not supported (the

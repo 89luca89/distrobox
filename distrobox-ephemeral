@@ -22,7 +22,7 @@
 # Optional env variables:
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
-#	DBX_NON_INTERACTIVE
+#	DBX_VERBOSE
 #	DBX_SUDO_PROGRAM
 
 # Despite of running this script via SUDO/DOAS being not supported (the

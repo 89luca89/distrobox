@@ -24,6 +24,8 @@
 #	USER
 #	DISTROBOX_ENTER_PATH
 #	DISTROBOX_HOST_HOME
+# Optional env variables:
+#	DBX_VERBOSE
 
 # Defaults
 export_action=""
