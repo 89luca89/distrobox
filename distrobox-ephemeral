@@ -54,6 +54,8 @@ container_init_hook=" "
 container_manager_additional_flags=""
 container_pre_init_hook=" "
 
+[ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
+
 # Print usage to stdout.
 # Arguments:
 #   None

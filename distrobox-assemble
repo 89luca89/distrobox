@@ -71,6 +71,8 @@ if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
 	exit 1
 fi
 
+[ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
+
 # show_help will print usage to stdout.
 # Arguments:
 #   None

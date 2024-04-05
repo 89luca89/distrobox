@@ -33,6 +33,9 @@ sudo_command=""
 verbose=0
 version="1.7.1.0"
 
+[ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
+[ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
+
 # Print usage to stdout.
 # Arguments:
 #   None

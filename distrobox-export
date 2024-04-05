@@ -63,6 +63,8 @@ for dep in ${base_dependencies}; do
 	fi
 done
 
+[ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
+
 # show_help will print usage to stdout.
 # Arguments:
 #   None
