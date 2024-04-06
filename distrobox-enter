@@ -383,7 +383,7 @@ generate_enter_command() {
 		if [ "${headless}" -eq 0 ]; then
 			container_command_login="${container_command_login} --pty"
 		fi
-		container_command_login="${container_command_login} -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
+
 		if [ -n "${container_command}" ]; then
 			# escape $ in order to avoid evaluation by the login shell
 			container_command="$(echo "${container_command}" | sed 's/\$/\\\$/g')"
