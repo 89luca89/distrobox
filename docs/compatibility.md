@@ -70,7 +70,7 @@ Distrobox has been successfully tested on:
 | RedHat | 8 <br> 9  | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
 | Ubuntu | 18.04 <br> 20.04 <br> 22.04 <br> 22.10 <br> 23.04 <br>| Older versions based on 20.04 or earlier may need external repos to install newer Podman and Docker releases. <br> Derivatives like Pop_OS!, Mint and Elementary OS should work the same. <br> [Now PPA available!](https://launchpad.net/~michel-slm/+archive/ubuntu/distrobox), also `distrobox` is available in default repos from `22.10` onward (thanks [michel-slm](https://github.com/michel-slm)!)  |
 | Vanilla OS | 22.10 <br> Orchid | `distrobox` should be installed in the home directory using the official script |
-| Void Linux | glibc | |
+| Void Linux | glibc <br> musl | |
 | Windows | Oracle Linux 9 | using built-in Windows Subsystem for Linux |
 
 ### Compatibility notes
@@ -155,7 +155,7 @@ Distrobox guests tested successfully with the following container images:
 | SteamOS | | ghcr.io/linuxserver/steamos:latest |
 | Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 23.04 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04 |
 | Vanilla OS | VSO | ghcr.io/vanilla-os/vso:main |
-| Void Linux | | ghcr.io/void-linux/void-glibc-full:latest |
+| Void Linux | glibc <br> musl | ghcr.io/void-linux/void-glibc-full:latest <br> ghcr.io/void-linux/void-musl-full:latest |
 
 Images marked with **Toolbox** are tailored images made by the community efforts in [toolbx-images/images](https://github.com/toolbx-images/images),
 so they are more indicated for desktop use, and first setup will take less time.
