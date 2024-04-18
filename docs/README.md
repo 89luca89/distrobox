@@ -395,7 +395,7 @@ wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh
 
 Just run the `curl` or `wget` command again.
 
-> [WARNING]
+> [!WARNING]
 > Remember to add prefix-path-you-choose/bin to your PATH, to make it work.
 
 ### Git
