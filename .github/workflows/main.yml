@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run dash -n
         run: |
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run shfmt
         run: |
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Exclude from bashate the following rules:
       #   - SC2310 we don't want to exit if errors happen inside a check, that's why we have a check...
@@ -85,7 +85,7 @@ jobs:
       security-events: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # Exclude from bashate the following rules:
       #   - E002 we use tab indentation as suggested by shfmt.
       #   - E003 we use tab indentation as suggested by shfmt.
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run markdownlint
         run: |
@@ -134,6 +134,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: codespell-project/actions-codespell@v1
+      - uses: codespell-project/actions-codespell@v2
         with:
           skip: .git,*.pdf,*.1,*.css,*.lock

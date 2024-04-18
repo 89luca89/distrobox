@@ -21,7 +21,7 @@ jobs:
       distrobox_changed: ${{ steps.check_file_changed.outputs.distrobox_changed }}
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # Checkout as many commits as needed for the diff
           fetch-depth: 2
@@ -42,7 +42,7 @@ jobs:
     if: needs.check_changes.outputs.distrobox_changed == 'True'
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT }}
 
@@ -62,7 +62,7 @@ jobs:
 
           man/gen-man
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: main
           commit_message: Automatic Man Page Update
