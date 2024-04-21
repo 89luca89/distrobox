@@ -1830,6 +1830,7 @@ EOF
 
 # It's also importanto to keep this working on fish shells
 if [ -e "/etc/fish/config.fish" ]; then
+	mkdir -p /etc/fish/conf.d
 	cat << EOF > /etc/fish/conf.d/distrobox_config.fish
 test -z "\$USER" && set -gx USER (id -un 2> /dev/null)
 test -z "\$UID"  && set -gx UID (id -ur 2> /dev/null)
