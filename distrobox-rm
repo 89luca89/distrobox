@@ -24,6 +24,7 @@
 #	DBX_CONTAINER_NAME
 #	DBX_CONTAINER_RM_CUSTOM_HOME
 #	DBX_NON_INTERACTIVE
+#	DBX_VERBOSE
 #	DBX_SUDO_PROGRAM
 
 # Despite of running this script via SUDO/DOAS being not supported (the
@@ -81,9 +82,14 @@ for config_file in ${config_files}; do
 	[ -e "${config_file}" ] && . "$(realpath "${config_file}")"
 done
 
+[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
+[ -n "${DBX_CONTAINER_RM_CUSTOM_HOME}" ] && rm_home="${DBX_CONTAINER_RM_CUSTOM_HOME}"
+[ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 [ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
 
 # Fixup variable=[true|false], in case we find it in the config file(s)
+[ "${non_interactive}" = "true" ] && non_interactive=1
+[ "${non_interactive}" = "false" ] && non_interactive=0
 [ "${verbose}" = "true" ] && verbose=1
 [ "${verbose}" = "false" ] && verbose=0
 
@@ -96,13 +102,6 @@ if [ "$(id -ru)" -ne 0 ]; then
 	# as root (UID 0).
 	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
 fi
-# Fixup non_interactive=[true|false], in case we find it in the config file(s)
-[ "${non_interactive}" = "true" ] && non_interactive=1
-[ "${non_interactive}" = "false" ] && non_interactive=0
-
-[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
-[ -n "${DBX_CONTAINER_RM_CUSTOM_HOME}" ] && rm_home="${DBX_CONTAINER_RM_CUSTOM_HOME}"
-[ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 
 # Declare it AFTER config sourcing because we do not want a default name set for rm.
 container_name_default="my-distrobox"

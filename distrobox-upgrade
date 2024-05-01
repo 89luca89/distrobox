@@ -65,6 +65,7 @@ for config_file in ${config_files}; do
 	[ -e "${config_file}" ] && . "$(realpath "${config_file}")"
 done
 
+[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
 
 # Fixup variable=[true|false], in case we find it in the config file(s)
@@ -80,7 +81,6 @@ if [ "$(id -ru)" -ne 0 ]; then
 	# as root (UID 0).
 	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
 fi
-[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 
 # Declare it AFTER config sourcing because we do not want a default name set.
 container_name=""
