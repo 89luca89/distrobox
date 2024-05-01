@@ -287,28 +287,31 @@ fi
 #   none.
 cleanup_exports() {
 	container_name="$1"
-	IFS='
-	'
+	IFS='@'
 	printf "Removing exported binaries...\n"
-	# Ensure we hide distrobox startup if not needed
-	# shellcheck disable=SC2086,2248
-	if ! "$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- whoami > /dev/null 2>&1; then
-		printf >&2 "Warning: could not start container %s, skipping unexporting..." "${container_name}"
-		return
-	fi
-	# Remove exported binaries from this container in default path
-	# shellcheck disable=SC2086,2248
-	for i in $("$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- distrobox-export --list-binaries); do
-		bin="$(echo "${i}" | cut -d'|' -f1 | sed 's/[ ]*$//' | sed 's/^[ ]*//')"
-		dir="$(echo "${i}" | cut -d'|' -f2- | sed 's/[ ]*$//' | sed 's/^[ ]*//')"
-		# shellcheck disable=SC2086,2248
-		"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- distrobox-export --bin "${bin}" --export-path "$(dirname "${dir}")" --delete || :
+	binary_files="$(grep -rl "# distrobox_binary" "${HOME}/.local/bin" 2> /dev/null | sed 's/./\\&/g' |
+		xargs -I{} grep -le "# name: ${container_name}$" "{}" | sed 's/./\\&/g' |
+		xargs -I{} printf "%s@" "{}" 2> /dev/null || :)"
+	for file in ${binary_files}; do
+		printf "Removing exported binary %s...\n" "${file}"
+		rm -f "${file}"
 	done
-	unset IFS
 
 	# Remove exported gui apps from this container in default path
-	# shellcheck disable=SC2086,2248
-	"$(dirname "$(realpath "${0}")")/distrobox-enter" ${distrobox_flags} "${container_name}" -- sh -c "distrobox-export --list-apps | cut -d'|' -f1 | sed 's/[ ]*$//' | xargs -I{} distrobox-export --app \"{}\" -d" || :
+	# shellcheck disable=SC2086,SC2038
+	desktop_files="$(find "${HOME}/.local/share/applications/${container_name}"* -type f -o -type l 2> /dev/null | sed 's/./\\&/g' |
+		xargs -I{} grep -le "Exec=.*${container_name} " "{}" | sed 's/./\\&/g' |
+		xargs -I{} printf "%s@" "{}" 2> /dev/null || :)"
+	for file in ${desktop_files}; do
+		if [ -e "${file}" ]; then
+			app="$(grep -Eo "Name=.*" "${file}" | head -n 1 | cut -d'=' -f2)"
+			icon="$(grep -Eo "Icon=.*" "${file}" | head -n 1 | cut -d'=' -f2)"
+
+			printf "Removing exported app %s...\n" "${app}"
+			rm -f "${file}"
+			find "${HOME}/.local/share/icons" -name "${icon}.*" -delete
+		fi
+	done
 }
 
 # Delete containers.
