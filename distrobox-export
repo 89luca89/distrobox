@@ -371,15 +371,19 @@ export_binary() {
 	mkdir -p "${dest_path}"
 
 	# If we're deleting it, just do it and exit
-	if [ "${exported_delete}" -ne 0 ] &&
+	if [ "${exported_delete}" -ne 0 ]; then
 		# ensure it's a distrobox exported binary
-		grep -q "distrobox_binary" "${dest_file}"; then
+		if ! grep -q "distrobox_binary" "${dest_file}"; then
+			printf >&2 "Error: %s is not exported.\n" "${exported_bin}"
+			return 1
+		fi
 
 		if rm -f "${dest_file}"; then
 			printf "%s from %s removed successfully from %s.\nOK!\n" \
 				"${exported_bin}" "${container_name}" "${dest_path}"
 			return 0
 		fi
+		return 1
 	fi
 
 	# test if we have writing rights on the file
