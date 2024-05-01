@@ -1734,7 +1734,7 @@ if [ -d "/usr/share/libalpm/scripts" ] && [ "${init}" -eq 0 ]; then
 	# in case we're not using an init image, neutralize systemd post installation hooks
 	# so that we do not encounter problems along the way.
 	# This will be removed if we're using --init.
-	cat << EOF >> /usr/share/libalpm/scripts/distrobox_post_hook.sh
+	cat << EOF > /usr/share/libalpm/scripts/distrobox_post_hook.sh
 #!/bin/sh
 echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
 EOF
