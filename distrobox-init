@@ -1774,7 +1774,7 @@ rcfiles="
 	/etc/bashrc
 	/etc/zshrc
 "
-for rcfile in $rcfiles; do
+for rcfile in ${rcfiles}; do
 	if [ -e "${rcfile}" ] && ! grep -q distrobox_profile.sh "${rcfile}"; then
 		echo "[ -e /etc/profile.d/distrobox_profile.sh ] && . /etc/profile.d/distrobox_profile.sh" >> "${rcfile}"
 	fi
