@@ -49,7 +49,7 @@ Once `distrobox` is upgraded, you can use it as normal.
 To run GUI application, add following line to `~/.distroboxrc`.
 
 ```sh
-xhost +si:localuser:$USER
+xhost +si:localuser:$USER >/dev/null
 ```
 
 This is needed to ensure the graphical apps can talk to the Xwayland session.
@@ -113,7 +113,7 @@ correctly in SteamOS
 Ensure your `~/.distroboxrc` has this content:
 
 ```sh
-xhost +si:localuser:$USER
+xhost +si:localuser:$USER >/dev/null
 export PIPEWIRE_RUNTIME_DIR=/dev/null
 export PATH=$PATH:$HOME/.local/bin
 ```
