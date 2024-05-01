@@ -587,7 +587,7 @@ aarch64
 
 ## Using the GPU inside the container
 
-For Intel and AMD Gpus, the support is backed in, as the containers will install
+For Intel and AMD GPUs, the support is baked in, as the containers will install
 their latest available mesa/dri drivers.
 
 For NVidia, you can use the `--nvidia` flag during create, see [distrobox-create](./usage/distrobox-create.md)
