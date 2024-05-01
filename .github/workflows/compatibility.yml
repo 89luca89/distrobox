@@ -60,12 +60,14 @@ jobs:
       # Fetch from compatibility table all the distros supported
       - id: set-matrix
         run: |
+            skip_list="bazzite|slackware"
+
             echo "::set-output name=targets::$(sed -n -e '/| Alma/,/| Void/ p' docs/compatibility.md |
             cut -d'|' -f 4 |
             sed 's/<br>/\n/g' |
             tr -d ' ' |
             sed '/^[[:space:]]*$/d' |
-            sort -u |
+            sort -u | grep -Ev "${skip_list}" |
             jq -R -s -c 'split("\n")[:-1]')"
 
   run:
@@ -78,6 +80,7 @@ jobs:
         distribution: ${{fromJSON(needs.setup.outputs.targets)}}
         container_manager: ["podman"] #, "docker"]
     env:
+      XDG_CACHE_HOME: "/tmp/"
       DBX_CONTAINER_MANAGER: ${{ matrix.container_manager }}
 
     steps:
