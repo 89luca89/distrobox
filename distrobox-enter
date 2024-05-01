@@ -391,7 +391,7 @@ generate_enter_command() {
 		fi
 	else
 		result_command="${result_command}
-			--user=\"${USER}"\"
+			--user=\"${USER}\""
 	fi
 
 	# For some usage, like use in service, or launched by non-terminal
