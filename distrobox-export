@@ -477,7 +477,8 @@ export_application() {
 		icon_name="$(grep Icon= "${desktop_file}" | cut -d'=' -f2- | paste -sd "@" -)"
 
 		for icon in ${icon_name}; do
-			if [ -e "${icon_name}" ]; then
+			if case "${icon_name}" in "/"*) true ;; *) false ;; esac &&
+				[ -e "${icon_name}" ]; then
 				# In case it's an hard path, conserve it and continue
 				icon_files="${icon_files}@${icon_name}"
 			else
