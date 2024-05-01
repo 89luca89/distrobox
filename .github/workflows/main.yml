@@ -137,3 +137,17 @@ jobs:
       - uses: codespell-project/actions-codespell@v2
         with:
           skip: .git,*.pdf,*.1,*.css,*.lock
+
+  shell-funcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run shell-funcheck
+        run: |
+          curl -L -O https://github.com/89luca89/shell-funcheck/releases/download/v0.0.1/shell-funcheck-amd64
+          chmod +x ./shell-funcheck-amd64
+          for i in distrobox*; do
+          ./shell-funcheck-amd64 check "$i"
+          done

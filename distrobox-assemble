@@ -472,7 +472,7 @@ sanitize_variable() {
 
 # parse_file will read and parse input file and call distrobox-create accordingly
 # Arguments:
-#   file: stirng path of the manifest file to parse
+#   file: string path of the manifest file to parse
 # Expected global variables:
 #   tmpfile: string name of the tmpfile to read
 # Expected env variables:
