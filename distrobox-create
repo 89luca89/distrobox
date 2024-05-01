@@ -673,6 +673,39 @@ generate_create_command() {
 		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
 		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
 
+	# Due to breaking change in https://github.com/opencontainers/runc/commit/d4b670fca6d0ac606777376440ffe49686ce15f4
+	# now we cannot mount /:/run/host as before, as it will try to mount RO partitions as RW thus breaking things.
+	# This will ensure we will mount directories one-by-one thus avoiding this problem.
+	#
+	# This happens ONLY with podman+runc, docker and lilipod are unaffected, so let's do this only if we have podman AND runc.
+	if echo "${container_manager}" | grep -q "podman" && ${container_manager} info | grep -q runc; then
+		for rootdir in /*; do
+
+			# Skip symlinks
+			if [ -L "${rootdir}" ]; then
+				continue
+			fi
+
+			# Find if the directory belongs to a RO mount, if do, mount it as RO+Rslave
+			if findmnt --notruncate --noheadings --list --output OPTIONS --target "${rootdir}" |
+				tr ',' '\n' | grep -q "^ro$"; then
+
+				result_command="${result_command}
+				--volume ${rootdir}:/run/host${rootdir}:ro,rslave"
+				continue
+			fi
+
+			# Else we mount it RW+Rslave
+			result_command="${result_command}
+				--volume ${rootdir}:/run/host${rootdir}:rslave"
+		done
+	else
+		# We're either on podman+crun, docker or lilipod, let's keep old behaviour
+		result_command="${result_command}
+			--volume /:/run/host/:rslave"
+
+	fi
+
 	if [ "${unshare_devsys}" -eq 0 ]; then
 		result_command="${result_command}
 			--volume /dev:/dev:rslave
