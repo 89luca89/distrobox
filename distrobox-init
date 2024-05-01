@@ -2104,14 +2104,16 @@ if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 		if [ -n "${file_path_for_home}" ] &&
 			[ ! -d "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"}" ]; then
 			mkdir -p "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}"
+			chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}"
 		fi
 
 		if [ ! -f "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}" ] &&
 			[ ! -L "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}" ]; then
 			cp "${skel_file}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}"
+			chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}"
 		fi
+
 	done
-	chown -R "${container_user_uid}":"${container_user_gid}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}"
 fi
 ###############################################################################
 
