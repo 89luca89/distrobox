@@ -614,7 +614,7 @@ if [ "${container_status}" != "running" ]; then
 	#
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
-	log_timestamp="$(date +%FT%T.%N%:z)"
+	log_timestamp="$(date -u +%FT%T)"
 	${container_manager} start "${container_name}" > /dev/null
 	#
 	# Check if the container is going in error status earlier than the
