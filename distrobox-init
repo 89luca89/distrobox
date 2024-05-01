@@ -1767,9 +1767,18 @@ printf "distrobox: Setting up distrobox profile...\n"
 # This ensures compatibility with prompts and tools between toolbx and distrobox
 touch /run/.toolboxenv
 
-# If we do not have profile files in the home, we should copy the
-# skeleton files, if present.
-# Ensure we copy only if the dotfile is not already present.
+# Ensure we have some basic env variables and prompt as base.
+rcfiles="
+	/etc/profile
+	/etc/bash.bashrc
+	/etc/bashrc
+	/etc/zshrc
+"
+for rcfile in $rcfiles; do
+	if [ -e "${rcfile}" ] && ! grep -q distrobox_profile.sh "${rcfile}"; then
+		echo "[ -e /etc/profile.d/distrobox_profile.sh ] && . /etc/profile.d/distrobox_profile.sh" >> "${rcfile}"
+	fi
+done
 mkdir -p /etc/profile.d
 cat << EOF > /etc/profile.d/distrobox_profile.sh
 test -z "\$USER" && export USER="\$(id -un 2> /dev/null)"
@@ -1798,8 +1807,8 @@ fi
 # toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
 # this will ensure greater compatibility between the two implementations
 if [ -f /run/.toolboxenv ]; then
-    [ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\h \W]\$ "
-    [ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@%m]%~%# "
+    [ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\$CONTAINER_ID \W]\$ "
+    [ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@\$CONTAINER_ID]%~%# "
 fi
 
 # This will ensure we have a first-shell password setup for an user if needed.
@@ -2083,6 +2092,9 @@ touch /etc/passwd.done
 if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 	printf "distrobox: Setting up skel...\n"
 
+	# If we do not have profile files in the home, we should copy the
+	# skeleton files, if present.
+	# Ensure we copy only if the dotfile is not already present.
 	skel_files="$(find /etc/skel/ -type f || :)"
 	for skel_file in ${skel_files}; do
 		base_file_name=$(basename "${skel_file}")
@@ -2121,17 +2133,18 @@ if [ "${init}" -eq 0 ]; then
 	printf "container_setup_done\n"
 	# Keepalive loop
 	HOST_WATCH="
+		/etc/hostname
 		/etc/hosts
 		/etc/localtime
 		/etc/resolv.conf
 	"
 
-	id="$(hostname)"
+	id="${CONTAINER_ID:-}"
 	if [ -e /run/.containerenv ]; then
 		# shellcheck disable=SC1091,SC2034
 		. /run/.containerenv
 	elif [ -e /.dockerenv ]; then
-		id="$(curl -s --unix-socket /run/docker.sock http://docker/containers/"$(hostname | cut -d'.' -f1)"/json |
+		id="$(curl -s --unix-socket /run/docker.sock http://docker/containers/"${CONTAINER_ID:-$(hostname | cut -d'.' -f1)}"/json |
 			grep -Eo '"Id":"[a-zA-Z0-9]{64}",' | cut -d '"' -f4)"
 	fi
 
@@ -2165,6 +2178,11 @@ if [ "${init}" -eq 0 ]; then
 						# We only do this, if the file is actually different
 						umount "${file_watch}" &&
 							mount_bind "${file_watch_src}" "${file_watch}"
+
+						# Let's keep in sync host's hostname and container's hostname
+						if [ "${file_watch}" = "/etc/hostname" ]; then
+							hostname "$(cat /etc/hostname)"
+						fi
 					fi
 				fi
 			fi
