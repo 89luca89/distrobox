@@ -69,7 +69,6 @@ jobs:
             jq -R -s -c 'split("\n")[:-1]')"
 
   run:
-
     runs-on: ubuntu-latest
     needs: setup
     timeout-minutes: 30
@@ -214,3 +213,4 @@ jobs:
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           ./distrobox rm --force "${container_name}"
+          $DBX_CONTAINER_MANAGER rmi -f "${image}"
