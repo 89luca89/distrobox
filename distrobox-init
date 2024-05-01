@@ -601,7 +601,7 @@ if [ "${upgrade}" -ne 0 ] ||
 			mesa-vulkan-drivers
 		"
 		# shellcheck disable=SC2086,2046
-		apt-get install -y $(apt list ${deps} 2> /dev/null | tail -n +2 | cut -d/ -f1)
+		apt-get install -y $(apt-cache show ${deps} 2> /dev/null | grep "Package:" | sort -u | cut -d' ' -f2-)
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
