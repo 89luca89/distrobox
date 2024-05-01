@@ -107,8 +107,12 @@ fi
 container_name_default="my-distrobox"
 container_name_list=""
 
-# Print usage to stdout.
+# show_help will print usage to stdout.
 # Arguments:
+#   None
+# Expected global variables:
+#   version: distrobox version
+# Expected env variables:
 #   None
 # Outputs:
 #   print usage with examples.
@@ -278,13 +282,15 @@ if [ -z "${container_name_list}" ]; then
 	container_name_list="${container_name_default}"
 fi
 
-# Delete exported apps and bins for container to delete.
+# cleanup_exports will remove exported apps and bins for container to delete.
 # Arguments:
-#   container_name = string container name
+#   container_name: string container name
 # Expected global variables:
-#   distrobox_flags = string additional distrobox flags to use
+#   distrobox_flags: string additional distrobox flags to use
+# Expected env variables:
+#   None
 # Outputs:
-#   none.
+#   None
 cleanup_exports() {
 	container_name="$1"
 	IFS='¤'
@@ -314,18 +320,20 @@ cleanup_exports() {
 	done
 }
 
-# Delete containers.
+# delete_container will remove input container
 # Arguments:
-#   container_name    = string container name
+#   container_name: string container name
 # Expected global variables:
-#   container_manager = string container manager to use
-#   distrobox_flags   = string distrobox additional flags
-#   non_interactive   = bool non interactive mode
-#   force_flag = bool force mode
-#   rm_home    = bool remove home
-#   verbose    = bool verbose
+#   container_manager: string container manager to use
+#   distrobox_flags: string distrobox additional flags
+#   non_interactive: bool non interactive mode
+#   force_flag: bool force mode
+#   rm_home: bool remove home
+#   verbose: bool verbose
+# Expected env variables:
+#   None
 # Outputs:
-#   none.
+#   None
 delete_container() {
 	container_name="$1"
 	# Inspect the container we're working with.

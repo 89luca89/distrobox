@@ -41,15 +41,16 @@ app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
 
 trap cleanup TERM INT HUP EXIT
 
-# Generate Podman, Docker or Lilipod command to execute.
+# cleanup will remove fifo and temp files, and print to stdout
+# container's logs in case of error and verbose.
 # Arguments:
 #   None
 # Expected global variables:
-#   container_manager = string container manager to use
-#   container_name    = string container name
-#   app_cache_dir     = string cache dire to write file into
-#   logs_pid     = string pid of the podman/docker logs process
-#   verbose      = bool verbose
+#   container_manager: string container manager to use
+#   container_name: string container name
+#   app_cache_dir: string cache dire to write file into
+#   logs_pid: string pid of the podman/docker logs process
+#   verbose: bool verbose
 # Expected env variables:
 #   None
 # Outputs:
@@ -151,13 +152,13 @@ fi
 [ "${verbose}" = "true" ] && verbose=1
 [ "${verbose}" = "false" ] && verbose=0
 
-# Print usage to stdout.
+# show_help will print usage to stdout.
 # Arguments:
 #   None
 # Expected global variables:
-#   version = string distrobox version
+#   version: distrobox version
 # Expected env variables:
-#   USER
+#   None
 # Outputs:
 #   print usage with examples.
 show_help() {
@@ -341,19 +342,19 @@ if [ "${rootful}" -ne 0 ]; then
 	container_manager="${distrobox_sudo_program-} ${container_manager}"
 fi
 
-# Generate Podman, Docker or Lilipod command to execute.
+# generate_enter_command will produce a Podman, Docker or Lilipod command to execute to enter the container.
 # Arguments:
 #   None
 # Expected global variables:
-#   container_manager = string container manager to use
-#   container_name    = string container name
-#   container_manager_additional_flags = string container manager additional flags to use
-#   container_command = string container command to execute
-#   container_home    = string container's home path
-#   container_path    = string container's default PATH variable
-#   headless     = bool headless mode
-#   skip_workdir = bool skip workdir
-#   verbose      = bool verbose
+#   container_manager: string container manager to use
+#   container_name: string container name
+#   container_manager_additional_flags: string container manager additional flags to use
+#   container_command: string container command to execute
+#   container_home: string container's home path
+#   container_path: string container's default PATH variable
+#   headless: bool headless mode
+#   skip_workdir: bool skip workdir
+#   verbose: bool verbose
 #   unshare_groups
 #   distrobox_enter_path
 # Expected env variables:

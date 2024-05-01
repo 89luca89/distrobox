@@ -231,16 +231,18 @@ if [ ! -e "${input_file}" ]; then
 	exit 1
 fi
 
-# Create distrobox with parameters parsed from ini file.
+# run_distrobox will create distrobox with parameters parsed from ini file.
 # Arguments:
-#   name    = name of the distrobox.
+#   name: name of the distrobox.
 # Expected global variables:
-#   boxname = string name of the target container
-#   tmpfile = string name of the tmpfile to read
-#   delete  = bool delete container
-#   replace = bool replace container
-#   dryrun  = bool dryrun (only print, no execute)
-# verbose   = bool verbose
+#   boxname: string name of the target container
+#   tmpfile: string name of the tmpfile to read
+#   delete:  bool delete container
+#   replace: bool replace container
+#   dryrun:  bool dryrun (only print, no execute)
+#   verbose: bool verbose
+# Expected env variables:
+#   None
 # Outputs:
 #   execution of the proper distrobox-create command.
 run_distrobox() {
@@ -445,9 +447,13 @@ run_distrobox() {
 	fi
 }
 
-# Sanitize an input, add single/double quotes and escapes
+# sanitize_variable will sanitize an input, add single/double quotes and escapes
 # Arguments:
-#   a value string
+#   variable: string
+# Expected global variables:
+#   None
+# Expected env variables:
+#   None
 # Outputs:
 #   a value string sanitized
 sanitize_variable() {
@@ -464,11 +470,13 @@ sanitize_variable() {
 	echo "${variable}"
 }
 
-# Parse input file and call distrobox-create accordingly
+# parse_file will read and parse input file and call distrobox-create accordingly
 # Arguments:
-#   path of the manifest file to parse
+#   file: stirng path of the manifest file to parse
 # Expected global variables:
-#   tmpfile = string name of the tmpfile to read
+#   tmpfile: string name of the tmpfile to read
+# Expected env variables:
+#   None
 # Outputs:
 #   None
 parse_file() {

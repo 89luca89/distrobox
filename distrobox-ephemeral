@@ -86,8 +86,12 @@ done
 [ "${verbose}" = "true" ] && verbose=1
 [ "${verbose}" = "false" ] && verbose=0
 
-# Print usage to stdout.
+# show_help will print usage to stdout.
 # Arguments:
+#   None
+# Expected global variables:
+#   version: distrobox version
+# Expected env variables:
 #   None
 # Outputs:
 #   print usage with examples.
@@ -202,7 +206,7 @@ if [ "${rootful}" -ne 0 ]; then
 	extra_flags="${extra_flags} --root"
 fi
 
-# Generate distrobox-create command to execute.
+# generate_ephemeral_create_command will produce a distrobox-create command to execute.
 # Arguments:
 #   None
 # Expected global variables:
@@ -210,6 +214,8 @@ fi
 #   name         = string container name
 #   extra_flags  = string extra flags to inject
 #   create_flags = string create extra flags to inject
+# Expected env variables:
+#   None
 # Outputs:
 #   prints the distrobox-create command handling special flags
 generate_ephemeral_create_command() {
@@ -237,6 +243,17 @@ generate_ephemeral_create_command() {
 	printf "%s" "${result_command}"
 }
 
+# cleanup will ensure we remove the ephemeral container
+# Arguments:
+#   None
+# Expected global variables:
+#   name: string the name of the container
+#   extra_flags: string extra flags to append to the distrobox command
+#   distrobox_path: string path to the distrobox script
+# Expected env variables:
+#   None
+# Outputs:
+#   None
 cleanup() {
 	trap - TERM INT HUP
 	# shellcheck disable=SC2086

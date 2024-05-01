@@ -88,8 +88,12 @@ if [ "$(id -ru)" -ne 0 ]; then
 fi
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 
-# Print usage to stdout.
+# show_help will print usage to stdout.
 # Arguments:
+#   None
+# Expected global variables:
+#   version: distrobox version
+# Expected env variables:
 #   None
 # Outputs:
 #   print usage with examples.

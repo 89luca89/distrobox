@@ -67,7 +67,7 @@ done
 # Arguments:
 #   None
 # Expected global variables:
-#   version: string distrobox version
+#   version: distrobox version
 # Expected env variables:
 #   None
 # Outputs:
@@ -311,20 +311,23 @@ else
 	exported_app_label=" ${exported_app_label}"
 fi
 
-# Print generated script from template
+# generate_script will generate a script from template. This script will wrap the
+# exported binary in order to ensure it will be executed in the right container.
 # Arguments:
-#	none it will use the ones set up globally
+#	None
+# Expected global variables:
+#   CONTAINER_ID: id of the current container
+#   container_command_suffix: string to postpone to the command to launch
+#   container_name:  string name of this container
+#   dest_path: string path where to export the binary
+#   enter_flags:  string extra flags to append to the distrobox enter command
+#   exported_bin: string path to the binary to export
+#   exported_delete: bool delete the binary exported
+#   extra_flags:  string extra flags to append to the exported app command
+#   rootful: bool if this is a rootful container
+#   sudo_prefix: string sudo command to prepend to the exported command
 # Expected env variables:
-#   CONTAINER_ID = id of the current container
-#   container_command_suffix = string to postpone to the command to launch
-#   container_name =  string name of this container
-#   dest_path       = string path where to export the binary
-#   enter_flags =  string extra flags to append to the distrobox enter command
-#   exported_bin    = string path to the binary to export
-#   exported_delete = bool delete the binary exported
-#   extra_flags =  string extra flags to append to the exported app command
-#   rootful     = bool if this is a rootful container
-#   sudo_prefix = string sudo command to prepend to the exported command
+#   None
 # Outputs:
 #	print generated script.
 generate_script() {
@@ -343,18 +346,20 @@ EOF
 	return $?
 }
 
-# Export binary to destination directory.
+# export_binary will export selected binary to destination directory.
 # the following function will use generate_script to create a shell script in
 # dest_path that will execute the exported binary in the selected distrobox.
 #
 # Arguments:
-#	none it will use the ones set up globally
+#	None
+# Expected global variables:
+#   CONTAINER_ID: id of the current container
+#   container_name: string name of this container
+#   dest_path: string path where to export the binary
+#   exported_bin: string path to the binary to export
+#   exported_delete: bool delete the binary exported
 # Expected env variables:
-#   CONTAINER_ID = id of the current container
-#   container_name =  string name of this container
-#   dest_path       = string path where to export the binary
-#   exported_bin    = string path to the binary to export
-#   exported_delete = bool delete the binary exported
+#   None
 # Outputs:
 #	a generated_script in dest_path
 #	or error code.
@@ -403,23 +408,25 @@ export_binary() {
 	return 3
 }
 
-# Export graphical application to the host.
+# export_application will export input graphical application to the host.
 # the following function will scan the distrobox for desktop and icon files for
 # the selected application. It will then put the needed icons in the host's icons
 # directory and create a new .desktop file that will execute the selected application
 # in the distrobox.
 #
 # Arguments:
-#	none it will use the ones set up globally
+#	None
+# Expected global variables:
+#   CONTAINER_ID: id of the current container
+#   container_command_prefix: string to prepend to the command to launch
+#   container_name:  string name of this container
+#   exported_app:   string name of the app to export
+#   exported_app_label: string label to use to mark the exported app
+#   exported_delete:  bool if we want to delete or not
+#   extra_flags:  string extra flags to append to the exported app command
+#   host_home: home path ofr the host, where to search desktop files
 # Expected env variables:
-#   CONTAINER_ID = id of the current container
-#   container_command_prefix = string to prepend to the command to launch
-#   container_name =  string name of this container
-#   exported_app  =   string name of the app to export
-#   exported_app_label = string label to use to mark the exported app
-#   exported_delete    =  bool if we want to delete or not
-#   extra_flags =  string extra flags to append to the exported app command
-#   host_home   = home path ofr the host, where to search desktop files
+#   None
 # Outputs:
 #	needed icons in /run/host/$host_home/.local/share/icons
 #	needed desktop files in /run/host/$host_home/.local/share/applications
@@ -602,14 +609,16 @@ export_application() {
 	fi
 }
 
-# List exported applications in canonical directories.
+# list_exported_applications will print all exported applications in canonical directories.
 # the following function will list exported desktop files from this container.
 #
 # Arguments:
-#	none
+#	None
+# Expected global variables:
+#   host_home: home path ofr the host, where to search desktop files
+#   CONTAINER_ID: id of the current container
 # Expected env variables:
-#   host_home    = home path ofr the host, where to search desktop files
-#   CONTAINER_ID = id of the current container
+#   None
 # Outputs:
 #	a list of exported apps
 #	or error code.
@@ -636,15 +645,17 @@ list_exported_applications() {
 	done
 }
 
-# List exported binaries.
+# list_exported_binaries will print all exported binaries.
 # the following function will list exported desktop files from this container.
 # If no export-path is specified, it searches in the default path.
 #
 # Arguments:
-#	none
+#	None
+# Expected global variables:
+#   dest_path: destination path where to search binaries
+#   CONTAINER_ID: id of the current container
 # Expected env variables:
-#   dest_path    = destination path where to search binaries
-#   CONTAINER_ID = id of the current container
+#	None
 # Outputs:
 #	a list of exported apps
 #	or error code.

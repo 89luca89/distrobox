@@ -50,8 +50,13 @@ rootful=0
 upgrade=0
 verbose=0
 version="1.7.1.0"
-# Print usage to stdout.
+
+# show_help will print usage to stdout.
 # Arguments:
+#   None
+# Expected global variables:
+#   version: distrobox version
+# Expected env variables:
 #   None
 # Outputs:
 #   print usage with examples.
@@ -207,9 +212,13 @@ if stat /run/host/etc/shadow > /dev/null &&
 	rootful=1
 fi
 
-# Print mount flags considered "locked".
+# get_locked_mount_flags will print mount flags considered "locked".
 # Arguments:
-# 	src (path to the file/directory)
+# 	src: path to the file/directory
+# Expected env variables:
+#	None
+# Expected global variables:
+#	None
 # Outputs:
 # 	Comma-separated list of locked mount flags
 get_locked_mount_flags() {
@@ -252,6 +261,10 @@ get_locked_mount_flags() {
 # busybox systems, and we need the path even for broken links.
 # Arguments:
 #	source file
+# Expected env variables:
+#	None
+# Expected global variables:
+#	None
 # Outputs:
 #	original path the link is pointing
 init_readlink() {
@@ -259,11 +272,15 @@ init_readlink() {
 	ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2- | sed 's|\.\./|/|g'
 }
 
-# Bind mount or error.
+# mount_bind will perform a bind mount for inputs or error
 # Arguments:
-#   source_dir
-#	target_dir
-#	mount_flags -> optional
+#   source_dir: string what to mount
+#	target_dir: string where to mount
+#	mount_flags: list of mount flags -> optional
+# Expected env variables:
+#	None
+# Expected global variables:
+#	None
 # Outputs:
 #   No output if all ok
 #	Error if not

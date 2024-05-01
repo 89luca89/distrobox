@@ -85,8 +85,12 @@ fi
 # Declare it AFTER config sourcing because we do not want a default name set.
 container_name=""
 
-# Print usage to stdout.
+# show_help will print usage to stdout.
 # Arguments:
+#   None
+# Expected global variables:
+#   version: distrobox version
+# Expected env variables:
 #   None
 # Outputs:
 #   print usage with examples.
