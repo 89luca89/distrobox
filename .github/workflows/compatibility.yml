@@ -96,10 +96,10 @@ jobs:
           case "${container_name}" in
             *init*)
               echo "SYSTEMD DETECTED: creating container with --init..."
-              ./distrobox create --yes -i "${image}" --name "${container_name}" --init --unshare-all
+              ./distrobox create --yes -i "${image}" --hostname "${container_name}" --name "${container_name}" --init --unshare-all
               ;;
             *)
-              ./distrobox create --yes -i "${image}" --name "${container_name}"
+              ./distrobox create --yes -i "${image}" --hostname "${container_name}" --name "${container_name}"
               ;;
           esac
 
@@ -142,7 +142,7 @@ jobs:
           # Assert that distrobox exported binary indeed works
           set -x
           command_output="$(./distrobox enter --name "${container_name}" -- uname -n | tr -d '\r' | tr -d '^@')"
-          expected_output="${container_name}.$(uname -n)"
+          expected_output="${container_name}"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
           fi
@@ -157,7 +157,7 @@ jobs:
           # Assert that distrobox exported binary indeed works
           set -x
           command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
-          expected_output="${container_name}.$(uname -n)"
+          expected_output="${container_name}"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
           fi
@@ -173,7 +173,7 @@ jobs:
           # Assert that distrobox exported binary indeed works
           set -x
           command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
-          expected_output="${container_name}.$(uname -n)"
+          expected_output="${container_name}"
           if [ "$command_output" != "$expected_output" ]; then
             exit 1
           fi
