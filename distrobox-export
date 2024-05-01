@@ -458,7 +458,7 @@ export_application() {
 		find ${canon_dirs} -type f -print -o -type l -print | sed 's/./\\&/g' |
 			xargs -I{} grep -l -e "Exec=.*${exported_app}.*" -e "Name=.*${exported_app}.*" "{}" | sed 's/./\\&/g' |
 			xargs -I{} grep -L -e "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox.*enter"}.*" "{}" | sed 's/./\\&/g' |
-			xargs -I{} printf "%s@" "{}"
+			xargs -I{} printf "%s¤" "{}"
 	)
 
 	# Ensure the app we're exporting is installed
@@ -472,31 +472,31 @@ export_application() {
 	# Find icons by using the Icon= specification. If it's only a name, we'll
 	# search for the file, if it's already a path, just grab it.
 	icon_files=""
-	IFS="@"
+	IFS="¤"
 	for desktop_file in ${desktop_files}; do
 		if [ -z "${desktop_file}" ]; then
 			continue
 		fi
 
-		icon_name="$(grep Icon= "${desktop_file}" | cut -d'=' -f2- | paste -sd "@" -)"
+		icon_name="$(grep Icon= "${desktop_file}" | cut -d'=' -f2- | paste -sd "¤" -)"
 
 		for icon in ${icon_name}; do
 			if case "${icon_name}" in "/"*) true ;; *) false ;; esac &&
 				[ -e "${icon_name}" ]; then
 				# In case it's an hard path, conserve it and continue
-				icon_files="${icon_files}@${icon_name}"
+				icon_files="${icon_files}¤${icon_name}"
 			else
 				# If it's not an hard path, find all files in the canonical paths.
-				icon_files="${icon_files}@$(find \
+				icon_files="${icon_files}¤$(find \
 					/usr/share/icons \
 					/usr/share/pixmaps \
 					/var/lib/flatpak/exports/share/icons -iname "*${icon}*" \
-					-printf "%p@" 2> /dev/null || :)"
+					-printf "%p¤" 2> /dev/null || :)"
 			fi
 		done
 
 		# remove leading delimiter
-		icon_files=${icon_files#@}
+		icon_files=${icon_files#¤}
 	done
 
 	# create applications dir if not existing
@@ -504,7 +504,7 @@ export_application() {
 
 	# copy icons in home directory
 	icon_file_absolute_path=""
-	IFS="@"
+	IFS="¤"
 	for icon_file in ${icon_files}; do
 		if [ -z "${icon_file}" ]; then
 			continue
@@ -537,7 +537,7 @@ export_application() {
 	done
 
 	# create desktop files for the distrobox
-	IFS="@"
+	IFS="¤"
 	for desktop_file in ${desktop_files}; do
 		if [ -z "${desktop_file}" ]; then
 			continue
@@ -621,11 +621,11 @@ list_exported_applications() {
 		# shellcheck disable=SC2086
 		find "/run/host${host_home}/.local/share/applications" -type f -print -o -type l -print 2> /dev/null | sed 's/./\\&/g' |
 			xargs -I{} grep -l -e "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox.*enter"}.*" "{}" | sed 's/./\\&/g' |
-			xargs -I{} printf "%s@" "{}"
+			xargs -I{} printf "%s¤" "{}"
 	)
 
 	# Then we try to pretty print them.
-	IFS="@"
+	IFS="¤"
 	for i in ${desktop_files}; do
 		# Get app name, and remove label
 		name="$(grep -Eo 'Name=.*' "${i}" | head -n 1 | cut -d'=' -f2- | sed 's|(.*)||g')"
@@ -655,12 +655,15 @@ list_exported_binaries() {
 	binary_files=$(
 		find "${dest_path}" -type f -print 2> /dev/null | sed 's/./\\&/g' |
 			xargs -I{} grep -l -e "^# distrobox_binary" "{}" | sed 's/./\\&/g' |
-			xargs -I{} printf "%s@" "{}"
+			xargs -I{} printf "%s¤" "{}"
 	)
 
 	# Then we try to pretty print them.
-	IFS="@"
+	IFS="¤"
 	for i in ${binary_files}; do
+		if [ -z "${i}" ]; then
+			continue
+		fi
 		# Get original binary name
 		name="$(grep -B1 "fi" "${i}" | grep exec | cut -d' ' -f2)"
 		# Print only stuff we exported from this box!
