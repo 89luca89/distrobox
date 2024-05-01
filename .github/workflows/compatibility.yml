@@ -55,7 +55,7 @@ jobs:
       github.event.inputs.run_always == 'True'
     steps:
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Fetch from compatibility table all the distros supported
       - id: set-matrix
