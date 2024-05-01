@@ -95,32 +95,38 @@ cd "${curr_dir}" || exit 1
 # if files are available, install files in dest directory
 # else download targz and uncompress it
 if [ -e "${curr_dir}/distrobox-enter" ]; then
+	if ! install -d "${dest_path}" "${man_dest_path}" "${completion_bash_dest_path}" \
+		"${completion_zsh_dest_path}" "${icon_dest_path}/scalable/apps"; then
+		printf >&2 "Do you have permission to write to %s?\n" "${prefix}"
+		exit 1
+	fi
 	for file in distrobox*; do
-		if ! install -D -m 0755 -t "${dest_path}" "${file}"; then
+		if ! install -m 0755 "${file}" "${dest_path}"; then
 			printf >&2 "Do you have permission to write to %s?\n" "${dest_path}"
 			exit 1
 		fi
 	done
 	if [ -e "man" ]; then
 		for file in man/man1/*; do
-			install -D -m 0644 -t "${man_dest_path}" "${file}"
+			install -m 0644 "${file}" "${man_dest_path}"
 		done
 	fi
 	if [ -e "completions" ]; then
 		for file in completions/bash/*; do
-			install -D -m 0644 -t "${completion_bash_dest_path}" "${file}"
+			install -m 0644 "${file}" "${completion_bash_dest_path}"
 		done
 	fi
 	if [ -e "completions" ]; then
 		for file in completions/zsh/*; do
-			install -D -m 0644 -t "${completion_zsh_dest_path}" "${file}"
+			install -m 0644 "${file}" "${completion_zsh_dest_path}"
 		done
 	fi
 	if [ -e icons/terminal-distrobox-icon.svg ]; then
-		install -D -m 0644 -t "${icon_dest_path}/scalable/apps" icons/terminal-distrobox-icon.svg
+		install -m 0644 icons/terminal-distrobox-icon.svg "${icon_dest_path}/scalable/apps"
 		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
-			install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" \
-				icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png
+			install -d "${icon_dest_path}/${sz}x${sz}/apps"
+			install -m 0644 icons/hicolor/"${sz}x${sz}"/apps/terminal-distrobox-icon.png \
+				"${icon_dest_path}/${sz}x${sz}/apps"
 		done
 	fi
 else
@@ -159,33 +165,39 @@ else
 		tar xf "${release_name}"
 	fi
 	# deploy our files
+	if ! install -d "${dest_path}" "${man_dest_path}" "${completion_bash_dest_path}" \
+		"${completion_zsh_dest_path}" "${icon_dest_path}/scalable/apps"; then
+		printf >&2 "Do you have permission to write to %s?\n" "${prefix}"
+		exit 1
+	fi
 	for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/distrobox*; do
-		if ! install -D -m 0755 -t "${dest_path}" "${file}"; then
+		if ! install -m 0755 "${file}" "${dest_path}"; then
 			printf >&2 "Do you have permission to write to %s?\n" "${dest_path}"
 			exit 1
 		fi
 	done
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/man/" ]; then
 		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/man/man1/*; do
-			install -D -m 0644 -t "${man_dest_path}" "${file}"
+			install -m 0644 "${file}" "${man_dest_path}"
 		done
 	fi
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/completions/bash/" ]; then
 		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/completions/bash/*; do
-			install -D -m 0644 -t "${completion_bash_dest_path}" "${file}"
+			install -m 0644 "${file}" "${completion_bash_dest_path}"
 		done
 	fi
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/completions/zsh/" ]; then
 		for file in "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/completions/zsh/*; do
-			install -D -m 0644 -t "${completion_zsh_dest_path}" "${file}"
+			install -m 0644 "${file}" "${completion_zsh_dest_path}"
 		done
 	fi
 	if [ -e "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/icons/terminal-distrobox-icon.svg ]; then
-		install -D -m 0644 -t "${icon_dest_path}/scalable/apps" \
-			"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/icons/terminal-distrobox-icon.svg
+		install -m 0644 "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')"/icons/terminal-distrobox-icon.svg \
+			"${icon_dest_path}/scalable/apps"
 		for sz in 16 22 24 32 36 48 64 72 96 128 256; do
-			install -D -m 0644 -t "${icon_dest_path}/${sz}x${sz}/apps" \
-				"distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/icons/hicolor/${sz}x${sz}/apps/terminal-distrobox-icon.png"
+			install -d "${icon_dest_path}/${sz}x${sz}/apps"
+			install -m 0644 "distrobox-$(echo "${release_name}" | sed 's/.tar.gz//g')/icons/hicolor/${sz}x${sz}/apps/terminal-distrobox-icon.png" \
+				"${icon_dest_path}/${sz}x${sz}/apps"
 		done
 	fi
 
