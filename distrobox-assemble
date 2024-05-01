@@ -38,6 +38,7 @@ additional_flags=""
 additional_packages=""
 entry=""
 home=""
+hostname=""
 image=""
 init=""
 init_hooks=""
@@ -330,6 +331,9 @@ run_distrobox() {
 	fi
 	if [ -n "${home}" ]; then
 		result_command="${result_command} --home $(sanitize_variable "${home}")"
+	fi
+	if [ -n "${hostname}" ]; then
+		result_command="${result_command} --hostname $(sanitize_variable "${hostname}")"
 	fi
 	if [ -n "${init_hooks}" ]; then
 		IFS="¤"
