@@ -600,14 +600,8 @@ if [ "${upgrade}" -ne 0 ] ||
 			libvulkan1
 			mesa-vulkan-drivers
 		"
-		install_pkg=""
-		for dep in ${deps}; do
-			if apt-cache policy "${dep}" | grep Candidate | grep -qv none; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-		# shellcheck disable=SC2086
-		apt-get install -y ${install_pkg}
+		# shellcheck disable=SC2086,2046
+		apt-get install -y $(apt-cache show ${deps} 2> /dev/null | grep "Package:" | sort -u | cut -d' ' -f2-)
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
@@ -949,19 +943,11 @@ EOF
 			xorg-xauth
 			zip
 			mesa
-			opengl-driver
 			vulkan-intel
-			vte-common
 			vulkan-radeon
 		"
-		install_pkg=""
-		for dep in ${deps}; do
-			if pacman -Ss "${dep}" > /dev/null; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-		# shellcheck disable=SC2086
-		pacman -S --noconfirm ${install_pkg}
+		# shellcheck disable=SC2086,2046
+		pacman -S --needed --noconfirm $(pacman -Ssq | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
 
 		# Ensure we have tzdata installed and populated, sometimes container
 		# images blank the zoneinfo directory, so we reinstall the package to
@@ -1156,14 +1142,8 @@ EOF
 			mesa-vulkan-intel
 			mesa-vulkan-radeon
 		"
-		install_pkg=""
-		for dep in ${deps}; do
-			if [ "$(xbps-query -Rs "${dep}" | wc -l)" -gt 0 ]; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-		# shellcheck disable=SC2086
-		xbps-install -Sy ${install_pkg}
+		# shellcheck disable=SC2086,2046
+		xbps-install -Sy $(xbps-query -Rs '*' | awk '{print $2}' | sed 's/-[^-]*$//' | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
