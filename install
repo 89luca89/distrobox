@@ -28,7 +28,8 @@ version=1.7.2.0
 #   None
 # Outputs:
 #   print usage with examples.
-show_help() {
+show_help()
+{
 	cat << EOF
 install --prefix /usr/local
 
@@ -132,7 +133,9 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 else
 	printf >&2 "\033[1;31m Checking dependencies...\n\033[0m"
 	# check that we have base dependencies
-	if ! { command -v curl > /dev/null || command -v wget > /dev/null; } || ! command -v tar > /dev/null; then
+	if ! {
+		command   -v curl > /dev/null || command -v wget > /dev/null
+	} || ! command -v tar > /dev/null; then
 		printf >&2 "Online install depends on tar and either curl or wget\n"
 		printf >&2 "Ensure you have all dependencies installed.\n"
 		exit 1

@@ -113,7 +113,8 @@ done
 #   None
 # Outputs:
 #   print usage with examples.
-show_help() {
+show_help()
+{
 	cat << EOF
 distrobox version: ${version}
 
@@ -245,7 +246,8 @@ fi
 #   None
 # Outputs:
 #   execution of the proper distrobox-create command.
-run_distrobox() {
+run_distrobox()
+{
 	name="${1}"
 
 	# Skip item if --name used and no match is found
@@ -456,7 +458,8 @@ run_distrobox() {
 #   None
 # Outputs:
 #   a value string sanitized
-sanitize_variable() {
+sanitize_variable()
+{
 	variable="${1}"
 
 	# If there are spaces but no quotes, let's add them
@@ -479,7 +482,8 @@ sanitize_variable() {
 #   None
 # Outputs:
 #   None
-parse_file() {
+parse_file()
+{
 	file="${1}"
 	name=""
 

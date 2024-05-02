@@ -33,7 +33,9 @@
 # containers.
 #
 # SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
-if { [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; } && [ "$(id -ru)" -eq 0 ]; then
+if {
+	[ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]
+} && [ "$(id -ru)" -eq 0 ]; then
 	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
 	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
 	exit 1
@@ -116,7 +118,8 @@ container_name_list=""
 #   None
 # Outputs:
 #   print usage with examples.
-show_help() {
+show_help()
+{
 	cat << EOF
 distrobox version: ${version}
 
@@ -291,7 +294,8 @@ fi
 #   None
 # Outputs:
 #   None
-cleanup_exports() {
+cleanup_exports()
+{
 	container_name="$1"
 	IFS='¤'
 	printf "Removing exported binaries...\n"
@@ -334,7 +338,8 @@ cleanup_exports() {
 #   None
 # Outputs:
 #   None
-delete_container() {
+delete_container()
+{
 	container_name="$1"
 	# Inspect the container we're working with.
 	container_status="$(${container_manager} inspect --type container \

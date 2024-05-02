@@ -60,7 +60,8 @@ version="1.7.2.0"
 #   None
 # Outputs:
 #   print usage with examples.
-show_help() {
+show_help()
+{
 	cat << EOF
 distrobox version: ${version}
 
@@ -221,7 +222,8 @@ fi
 #	None
 # Outputs:
 # 	Comma-separated list of locked mount flags
-get_locked_mount_flags() {
+get_locked_mount_flags()
+{
 	src="$1"
 	prev=""
 	locked_flags=""
@@ -267,7 +269,8 @@ get_locked_mount_flags() {
 #	None
 # Outputs:
 #	original path the link is pointing
-init_readlink() {
+init_readlink()
+{
 	# shellcheck disable=SC2010
 	ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2- | sed 's|\.\./|/|g'
 }
@@ -284,7 +287,8 @@ init_readlink() {
 # Outputs:
 #   No output if all ok
 #	Error if not
-mount_bind() {
+mount_bind()
+{
 	source_dir="$1"
 	target_dir="$2"
 	mount_flags=""
@@ -412,7 +416,9 @@ PATH="${PATH}:/bin:/sbin:/usr/bin:/usr/sbin"
 # Check if dependencies are met for the script to run.
 if [ "${upgrade}" -ne 0 ] ||
 	[ "${missing_packages}" -ne 0 ] ||
-	{ [ -n "${container_additional_packages}" ] && [ ! -e /.containersetupdone ]; }; then
+	{
+		[ -n "${container_additional_packages}" ] && [ ! -e /.containersetupdone ]
+	}; then
 
 	# Detect the available package manager
 	# install minimal dependencies needed to bootstrap the container:
@@ -1694,7 +1700,9 @@ if [ -d "/usr/lib/rpm/macros.d/" ] && [ "${init}" -eq 0 ]; then
 EOF
 fi
 
-if { [ -d "/etc/dpkg/dpkg.cfg.d/" ] || [ -d "/usr/share/libalpm/scripts" ]; } && [ "${init}" -eq 0 ]; then
+if {
+	[ -d "/etc/dpkg/dpkg.cfg.d/" ] || [ -d "/usr/share/libalpm/scripts" ]
+} && [ "${init}" -eq 0 ]; then
 	printf "distrobox: Setting up package manager hooks...\n"
 	cat << EOF > /etc/distrobox-pre-hook.sh
 #!/bin/sh

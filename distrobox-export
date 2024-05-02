@@ -72,7 +72,8 @@ done
 #   None
 # Outputs:
 #   print usage with examples.
-show_help() {
+show_help()
+{
 	cat << EOF
 distrobox version: ${version}
 
@@ -330,7 +331,8 @@ fi
 #   None
 # Outputs:
 #	print generated script.
-generate_script() {
+generate_script()
+{
 	cat << EOF
 #!/bin/sh
 # distrobox_binary
@@ -363,7 +365,8 @@ EOF
 # Outputs:
 #	a generated_script in dest_path
 #	or error code.
-export_binary() {
+export_binary()
+{
 	# Ensure the binary we're exporting is installed
 	if [ ! -f "${exported_bin}" ]; then
 		printf >&2 "Error: cannot find %s.\n" "${exported_bin}"
@@ -431,7 +434,8 @@ export_binary() {
 #	needed icons in /run/host/$host_home/.local/share/icons
 #	needed desktop files in /run/host/$host_home/.local/share/applications
 #	or error code.
-export_application() {
+export_application()
+{
 	canon_dirs=""
 
 	IFS=":"
@@ -622,7 +626,8 @@ export_application() {
 # Outputs:
 #	a list of exported apps
 #	or error code.
-list_exported_applications() {
+list_exported_applications()
+{
 	# In this phase we search for applications exported.
 	# First find command will grep through all files in the canonical directories
 	# and only list files that contain the $DISTROBOX_ENTER_PATH.
@@ -659,7 +664,8 @@ list_exported_applications() {
 # Outputs:
 #	a list of exported apps
 #	or error code.
-list_exported_binaries() {
+list_exported_binaries()
+{
 	# In this phase we search for binaries exported.
 	# First find command will grep through all files in the canonical directories
 	# and only list files that contain the comment "# distrobox_binary".

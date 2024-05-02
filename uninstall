@@ -26,7 +26,8 @@ verbose=0
 #   None
 # Outputs:
 #   print usage with examples.
-show_help() {
+show_help()
+{
 	cat << EOF
 uninstall --prefix /usr/local
 
