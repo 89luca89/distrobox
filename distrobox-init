@@ -1423,12 +1423,14 @@ fi
 #
 # Podman supports a mount option to do this at creation time, but we're doing it
 # here to support also other container rmanagers which does not support that flag
-mount -t devpts devpts -o noexec,nosuid,newinstance,ptmxmode=0666,mode=0620,gid=tty /dev/pts/
-mount --bind /dev/pts/ptmx /dev/ptmx
+{
+	mount -t devpts devpts -o noexec,nosuid,newinstance,ptmxmode=0666,mode=0620,gid=tty /dev/pts/
+	mount --bind /dev/pts/ptmx /dev/ptmx
+} || printf "Warning: Cannot mount devpts\n"
 
 # Change mount propagation to shared to make the environment more similar to a
 # modern Linux system, e.g. with Systemd as PID 1.
-mount --make-rshared /
+mount --make-rshared / || printf "Warning: Cannot remount root as shared\n"
 ###############################################################################
 
 ###############################################################################

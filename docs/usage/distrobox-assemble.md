@@ -113,6 +113,7 @@ This is a list of available options with the corresponding type:
 | nvidia | bool |
 | pull | bool |
 | root | bool |
+| unprivileged | bool |
 | unshare_home | bool |
 | unshare_ipc | bool |
 | unshare_netns | bool |

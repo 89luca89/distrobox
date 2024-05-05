@@ -52,6 +52,7 @@ pre_init_hooks=""
 pull=""
 root=""
 start_now=""
+unprivileged=""
 unshare_home=""
 unshare_ipc=""
 unshare_netns=""
@@ -324,6 +325,9 @@ run_distrobox()
 	fi
 	if [ -n "${nvidia}" ] && [ "${nvidia}" -eq 1 ]; then
 		result_command="${result_command} --nvidia"
+	fi
+	if [ -n "${unprivileged}" ] && [ "${unprivileged}" -eq 1 ]; then
+		result_command="${result_command} --unprivileged"
 	fi
 	if [ -n "${unshare_netns}" ] && [ "${unshare_netns}" -eq 1 ]; then
 		result_command="${result_command} --unshare-netns"

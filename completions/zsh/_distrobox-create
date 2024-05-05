@@ -15,6 +15,7 @@ _arguments -s \
   '--pre-init-hooks[additional commands to execute prior to container initialization]:command:' \
   '(--init -I)'{-I,--init}'[use init system inside the container]' \
   '--nvidia[try to integrate host nVidia drivers in the guest]' \
+  '--unprivileged[do not drop security measures when creating a container]' \
   '--unshare-devsys[do not share host devices and sysfs dirs from host]' \
   '--unshare-groups[do not forward user''s additional groups into the container]' \
   '--unshare-home[do not mount host home directory into the container]' \

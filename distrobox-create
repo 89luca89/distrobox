@@ -80,6 +80,7 @@ init=0
 non_interactive=0
 nvidia=0
 nopasswd=0
+unprivileged=0
 unshare_ipc=0
 unshare_groups=0
 unshare_home=0
@@ -216,6 +217,7 @@ Options:
 				this will make host's processes not visible from within the container. (assumes --unshare-process)
 				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--unprivileged:		do not drop security measures when creating a container
 	--unshare-devsys:       do not share host devices and sysfs dirs from host
 	--unshare-groups:       do not forward user's additional groups into the container
 	--unshare-home:         do not mount host home directory into the container
@@ -301,6 +303,10 @@ while :; do
 		-d | --dry-run)
 			shift
 			dryrun=1
+			;;
+		--unprivileged)
+			shift
+			unprivileged=1
 			;;
 		-r | --root)
 			shift
@@ -654,6 +660,7 @@ get_clone_image()
 #   init: bool initful
 #   nvidia: bool nvidia integration
 #   rootful: bool rootful
+#   unprivileged: bool unprivileged
 #   unshare_devsys: bool unshare devsys
 #   unshare_groups: bool unshare groups
 #   unshare_home: bool unshare home dir
@@ -673,10 +680,6 @@ generate_create_command()
 	result_command="${result_command}
 		--hostname \"${container_hostname}\"
 		--name \"${container_name}\"
-		--privileged
-		--security-opt label=disable
-		--security-opt apparmor=unconfined
-		--pids-limit=-1
 		--user root:root"
 
 	if [ "${unshare_ipc}" -eq 0 ]; then
@@ -750,6 +753,12 @@ generate_create_command()
 			--volume /:/run/host/:rslave"
 	fi
 
+	if [ "${unprivileged}" -eq 0 ]; then
+		result_command="${result_command}
+			--privileged
+			--security-opt label=disable
+			--security-opt apparmor=unconfined
+			--pids-limit=-1"
 	fi
 
 	if [ "${unshare_devsys}" -eq 0 ]; then
