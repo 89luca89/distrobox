@@ -16,6 +16,7 @@ _arguments -s \
   '(--init -I)'{-I,--init}'[use init system inside the container]' \
   '--nvidia[try to integrate host nVidia drivers in the guest]' \
   '--unshare-devsys[do not share host devices and sysfs dirs from host]' \
+  '--unshare-groups[do not forward user''s additional groups into the container]' \
   '--unshare-ipc[do not share ipc namespace with host]' \
   '--unshare-netns[do not share the net namespace with host]' \
   '--unshare-process[do not share process namespace with host]' \
