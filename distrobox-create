@@ -82,8 +82,10 @@ nvidia=0
 nopasswd=0
 unshare_ipc=0
 unshare_groups=0
+unshare_home=0
 unshare_netns=0
 unshare_process=0
+unshare_root=0
 unshare_devsys=0
 
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
@@ -214,11 +216,13 @@ Options:
 				this will make host's processes not visible from within the container. (assumes --unshare-process)
 				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
 	--nvidia:		try to integrate host's nVidia drivers in the guest
-	--unshare-devsys:          do not share host devices and sysfs dirs from host
-	--unshare-groups:          do not forward user's additional groups into the container
+	--unshare-devsys:       do not share host devices and sysfs dirs from host
+	--unshare-groups:       do not forward user's additional groups into the container
+	--unshare-home:         do not mount host home directory into the container
 	--unshare-ipc:          do not share ipc namespace with host
 	--unshare-netns:        do not share the net namespace with host
-	--unshare-process:          do not share process namespace with host
+	--unshare-process:      do not share process namespace with host
+	--unshare-root:         do not mount host root directory into the container
 	--unshare-all:          activate all the unshare flags below
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
@@ -320,6 +324,10 @@ while :; do
 			shift
 			unshare_groups=1
 			;;
+		--unshare-home)
+			shift
+			unshare_home=1
+			;;
 		--unshare-netns)
 			shift
 			unshare_netns=1
@@ -327,6 +335,10 @@ while :; do
 		--unshare-process)
 			shift
 			unshare_process=1
+			;;
+		--unshare-root)
+			shift
+			unshare_root=1
 			;;
 		--unshare-devsys)
 			shift
@@ -337,8 +349,10 @@ while :; do
 			unshare_devsys=1
 			unshare_groups=1
 			unshare_ipc=1
+			unshare_home=1
 			unshare_netns=1
 			unshare_process=1
+			unshare_root=1
 			;;
 		-C | --compatibility)
 			show_compatibility
@@ -642,9 +656,11 @@ get_clone_image()
 #   rootful: bool rootful
 #   unshare_devsys: bool unshare devsys
 #   unshare_groups: bool unshare groups
+#   unshare_home: bool unshare home dir
 #   unshare_ipc: bool unshare ipc
 #   unshare_netns: bool unshare netns
 #   unshare_process: bool unshare proc
+#   unshare_root: bool unshare root dir
 # Expected env variables:
 #   None
 # Outputs:
@@ -690,23 +706,24 @@ generate_create_command()
 	result_command="${result_command}
 		--label \"manager=distrobox\"
 		--label \"distrobox.unshare_groups=${unshare_groups}\"
+		--label \"distrobox.unshare_home=${unshare_home}\"
+		--label \"distrobox.unshare_root=${unshare_root}\"
 		--env \"SHELL=$(basename "${SHELL:-"/bin/bash"}")\"
-		--env \"HOME=${container_user_home}\"
 		--env \"container=${container_manager}\"
 		--env \"TERMINFO_DIRS=/usr/share/terminfo:/run/host/usr/share/terminfo\"
 		--env \"CONTAINER_ID=${container_name}\"
 		--volume /tmp:/tmp:rslave
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
-		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
-		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro"
 
 	# Due to breaking change in https://github.com/opencontainers/runc/commit/d4b670fca6d0ac606777376440ffe49686ce15f4
 	# now we cannot mount /:/run/host as before, as it will try to mount RO partitions as RW thus breaking things.
 	# This will ensure we will mount directories one-by-one thus avoiding this problem.
 	#
 	# This happens ONLY with podman+runc, docker and lilipod are unaffected, so let's do this only if we have podman AND runc.
-	if echo "${container_manager}" | grep -q "podman" && ${container_manager} info | grep -q runc; then
+	if [ "${unshare_root}" -eq 0 ] &&
+		echo "${container_manager}" | grep -q "podman" && ${container_manager} info | grep -q runc; then
 		for rootdir in /*; do
 
 			# Skip symlinks
@@ -727,10 +744,11 @@ generate_create_command()
 			result_command="${result_command}
 				--volume ${rootdir}:/run/host${rootdir}:rslave"
 		done
-	else
+	elif [ "${unshare_root}" -eq 0 ]; then
 		# We're either on podman+crun, docker or lilipod, let's keep old behaviour
 		result_command="${result_command}
 			--volume /:/run/host/:rslave"
+	fi
 
 	fi
 
@@ -738,6 +756,12 @@ generate_create_command()
 		result_command="${result_command}
 			--volume /dev:/dev:rslave
 			--volume /sys:/sys:rslave"
+	fi
+
+	if [ "${unshare_home}" -eq 0 ]; then
+		result_command="${result_command}
+			--env \"HOME=${container_user_home}\"
+			--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
 	fi
 
 	# In case of initful containers, we implement a series of mountpoint in order
@@ -864,7 +888,8 @@ generate_create_command()
 	# Mount also the /var/home dir on ostree based systems
 	# do this only if $HOME was not already set to /var/home/username
 	if [ "${container_user_home}" != "/var/home/${container_user_name}" ] &&
-		[ -d "/var/home/${container_user_name}" ]; then
+		[ -d "/var/home/${container_user_name}" ] &&
+		[ "${unshare_home}" -eq 0 ]; then
 
 		result_command="${result_command}
 			--volume \"/var/home/${container_user_name}\":\"/var/home/${container_user_name}\":rslave"

@@ -52,9 +52,11 @@ pre_init_hooks=""
 pull=""
 root=""
 start_now=""
+unshare_home=""
 unshare_ipc=""
 unshare_netns=""
 unshare_process=""
+unshare_root=""
 unshare_devsys=""
 unshare_all=""
 volume=""
@@ -326,11 +328,17 @@ run_distrobox()
 	if [ -n "${unshare_netns}" ] && [ "${unshare_netns}" -eq 1 ]; then
 		result_command="${result_command} --unshare-netns"
 	fi
+	if [ -n "${unshare_home}" ] && [ "${unshare_home}" -eq 1 ]; then
+		result_command="${result_command} --unshare-home"
+	fi
 	if [ -n "${unshare_ipc}" ] && [ "${unshare_ipc}" -eq 1 ]; then
 		result_command="${result_command} --unshare-ipc"
 	fi
 	if [ -n "${unshare_process}" ] && [ "${unshare_process}" -eq 1 ]; then
 		result_command="${result_command} --unshare-process"
+	fi
+	if [ -n "${unshare_root}" ] && [ "${unshare_root}" -eq 1 ]; then
+		result_command="${result_command} --unshare-root"
 	fi
 	if [ -n "${unshare_devsys}" ] && [ "${unshare_devsys}" -eq 1 ]; then
 		result_command="${result_command} --unshare-devsys"

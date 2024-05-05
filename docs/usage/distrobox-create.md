@@ -38,9 +38,11 @@ graphical apps (X11/Wayland), and audio.
 	--nvidia:		try to integrate host's nVidia drivers in the guest
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-groups:          do not forward user's additional groups into the container
+	--unshare-home:         do not mount host home directory into the container
 	--unshare-ipc:          do not share ipc namespace with host
 	--unshare-netns:        do not share the net namespace with host
 	--unshare-process:          do not share process namespace with host
+	--unshare-root:         do not mount host root directory into the container
 	--unshare-all:          activate all the unshare flags below
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
