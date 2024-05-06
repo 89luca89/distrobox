@@ -1827,6 +1827,10 @@ if [ -z "\$WAYLAND_DISPLAY" ]; then
     export WAYLAND_DISPLAY="\$(host-spawn sh -c "printf "%s" \\\$WAYLAND_DISPLAY")"
     [ -z "\$WAYLAND_DISPLAY" ] && unset WAYLAND_DISPLAY
 fi
+if [ -z "\$DISPLAY" ]; then
+    export DISPLAY="\$(host-spawn sh -c "printf "%s" \\\$DISPLAY")"
+    [ -z "\$DISPLAY" ] && unset DISPLAY
+fi
 
 # This will ensure a default prompt for a container, this will be remineshent of
 # toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
@@ -1871,6 +1875,10 @@ if status --is-interactive
 	if test -z \$WAYLAND_DISPLAY
 		set -gx WAYLAND_DISPLAY (host-spawn sh -c "printf "%s" \\\$WAYLAND_DISPLAY")
 		test -z \$WAYLAND_DISPLAY ; and set -e WAYLAND_DISPLAY
+	end
+	if test -z \$DISPLAY
+		set -gx DISPLAY (host-spawn sh -c "printf "%s" \\\$DISPLAY")
+		test -z \$DISPLAY ; and set -e DISPLAY
 	end
 
 	# This will ensure we have a first-shell password setup for an user if needed.
