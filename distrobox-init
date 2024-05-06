@@ -49,7 +49,7 @@ pre_init_hook=""
 rootful=0
 upgrade=0
 verbose=0
-version="1.7.3.0"
+version="1.7.2.1"
 
 # show_help will print usage to stdout.
 # Arguments:
@@ -1813,7 +1813,6 @@ export SHELL="\$(getent passwd "\${USER}" | cut -f 7 -d :)"
 
 # Ensure we have these two variables from the host, so that graphical apps
 # also work in case we use a login session
-test -z \$DISPLAY && export DISPLAY="\$(host-spawn sh -c "echo \\\$DISPLAY")"
 if [ -z "\$XAUTHORITY" ]; then
     export XAUTHORITY="\$(host-spawn sh -c "printf "%s" \\\$XAUTHORITY")"
     # if the variable is still empty, unset it, because empty it could be harmful
@@ -1862,7 +1861,6 @@ if status --is-interactive
 
 	# Ensure we have these two variables from the host, so that graphical apps
 	# also work in case we use a login session
-	test -z \$DISPLAY && set -gx DISPLAY (host-spawn sh -c "echo \\\$DISPLAY")
 	if test -z \$XAUTHORITY
 		set -gx XAUTHORITY (host-spawn sh -c "printf "%s" \\\$XAUTHORITY")
 		# if the variable is still empty, unset it, because empty it could be harmful
