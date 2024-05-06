@@ -46,7 +46,7 @@ jobs:
           for file in $(find . -type f -not -path "*.git*"); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
-              podman run --rm -v "$PWD:/mnt" docker.io/peterdavehello/shfmt:latest shfmt -d -s -ci -sr -kp /mnt/$file
+              podman run --rm -v "$PWD:/mnt" docker.io/peterdavehello/shfmt:latest shfmt -d -s -ci -sr -kp -fn -i=0 -p /mnt/$file
               result=$(( result + $? ))
             fi
           done
