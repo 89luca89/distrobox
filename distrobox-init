@@ -459,7 +459,6 @@ if [ "${upgrade}" -ne 0 ] ||
 				musl-utils
 				openssh-client-default
 				pinentry
-				sudo
 				tar
 				vte3
 				which
@@ -492,6 +491,7 @@ if [ "${upgrade}" -ne 0 ] ||
 			rsync
 			shadow
 			su-exec
+			sudo
 			tcpdump
 			tree
 			tzdata
