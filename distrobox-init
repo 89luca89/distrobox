@@ -490,7 +490,6 @@ if [ "${upgrade}" -ne 0 ] ||
 			pigz
 			rsync
 			shadow
-			su-exec
 			sudo
 			tcpdump
 			tree
@@ -533,16 +532,6 @@ if [ "${upgrade}" -ne 0 ] ||
 		if [ -n "${container_additional_packages}" ]; then
 			# shellcheck disable=SC2086
 			apk add --force-overwrite ${container_additional_packages}
-		fi
-
-		# Workaround for when sudo is missing, we use su-exec as a replacement.
-		if [ -e /sbin/su-exec ]; then
-			chmod u+s /sbin/su-exec
-
-			if [ ! -e /usr/bin/sudo ]; then
-				printf "%s\n%s" '#!/bin/sh' '/sbin/su-exec root "$@"' > /usr/bin/sudo
-				chmod +x /usr/bin/sudo
-			fi
 		fi
 
 	elif command -v apt-get; then
