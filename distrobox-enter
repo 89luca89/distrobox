@@ -37,6 +37,11 @@
 #	DBX_SKIP_WORKDIR
 #	DBX_SUDO_PROGRAM
 
+# Ensure we have our env variables correctly set
+[ -z "${USER}" ] && USER="$(id -run)"
+[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+
 app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
 
 trap cleanup TERM INT HUP EXIT

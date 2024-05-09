@@ -18,6 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
+# Ensure we have our env variables correctly set
+[ -z "${USER}" ] && USER="$(id -run)"
+[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+
 # Defaults
 host_command=""
 non_interactive=0

@@ -37,6 +37,11 @@ if {
 	exit 1
 fi
 
+# Ensure we have our env variables correctly set
+[ -z "${USER}" ] && USER="$(id -run)"
+[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+
 # If the user runs this script as root in a login shell, set rootful=1.
 # There's no need for them to pass the --root flag option in such cases.
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0

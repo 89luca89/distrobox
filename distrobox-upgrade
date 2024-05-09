@@ -32,6 +32,11 @@ if {
 	exit 1
 fi
 
+# Ensure we have our env variables correctly set
+[ -z "${USER}" ] && USER="$(id -run)"
+[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+
 all=0
 running=0
 container_manager="autodetect"

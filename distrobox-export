@@ -25,6 +25,11 @@
 #	DISTROBOX_ENTER_PATH
 #	DISTROBOX_HOST_HOME
 
+# Ensure we have our env variables correctly set
+[ -z "${USER}" ] && USER="$(id -run)"
+[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+
 # Defaults
 export_action=""
 exported_app=""
