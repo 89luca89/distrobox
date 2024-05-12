@@ -85,7 +85,7 @@ container_command=""
 # by default we use getent to get the login shell of the user and use that
 container_command_user="$(echo "${USER}" | sed 's|\\|\\\\|g')"
 container_command_login="/bin/sh -c \"\\\$(getent passwd ${container_command_user} | cut -f 7 -d :) -l\""
-container_image_default="registry.fedoraproject.org/fedora-toolbox:39"
+container_image_default="registry.fedoraproject.org/fedora-toolbox:40"
 container_manager="autodetect"
 container_manager_additional_flags=""
 container_name=""
