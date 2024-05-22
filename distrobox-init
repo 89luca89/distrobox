@@ -213,6 +213,18 @@ if stat /run/host/etc/shadow > /dev/null &&
 	rootful=1
 fi
 
+
+# Get host $LANG
+if [ -f "/run/host/etc/locale.conf" ] ; then
+	HOST_LOCALE=$(grep -e '^LANG=' /run/host/etc/locale.conf | sed 's/LANG=//' | sed 's/"//g')
+	HOST_LOCALE_ENCODING=$(echo "${HOST_LOCALE}" | sed -n 's/^[^.]*\.\(.*\)$/\1/p')
+	HOST_LOCALE_LANG=$(echo "${HOST_LOCALE}" | sed -n 's/^\([^.]*\)\..*$/\1/p')
+elif [ -f "/run/host/etc/default/locale" ] ; then
+	HOST_LOCALE=$(grep -e '^LANG=' /run/host/etc/default/locale | sed 's/LANG=//' | sed 's/"//g')
+	HOST_LOCALE_ENCODING=$(echo "${HOST_LOCALE}" | sed -n 's/^[^.]*\.\(.*\)$/\1/p')
+	HOST_LOCALE_LANG=$(echo "${HOST_LOCALE}" | sed -n 's/^\([^.]*\)\..*$/\1/p')
+fi
+
 # get_locked_mount_flags will print mount flags considered "locked".
 # Arguments:
 # 	src: path to the file/directory
@@ -617,10 +629,11 @@ if [ "${upgrade}" -ne 0 ] ||
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8; then
+		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
 			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
 			locale-gen
-			update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+			update-locale LC_ALL="${HOST_LOCALE}" LANG="${HOST_LOCALE}"
 			dpkg-reconfigure locales
 		fi
 
@@ -713,8 +726,8 @@ if [ "${upgrade}" -ne 0 ] ||
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8; then
-			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
+		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 		fi
 
 		# Ensure we have tzdata installed and populated, sometimes container
@@ -778,12 +791,13 @@ if [ "${upgrade}" -ne 0 ] ||
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8; then
+		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
 			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
 			locale-gen
 			cat << EOF > /etc/env.d/02locale
-LANG=en_US.UTF-8
-LC_CTYPE=en_US.UTF-8
+LANG=${HOST_LOCALE}
+LC_CTYPE=${HOST_LOCALE}
 EOF
 		fi
 
@@ -870,8 +884,8 @@ EOF
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8; then
-			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
+		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 		fi
 
 		# Ensure we have tzdata installed and populated, sometimes container
@@ -904,8 +918,9 @@ EOF
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8; then
+		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
 			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
 			locale-gen -a
 		fi
 
@@ -1159,8 +1174,9 @@ EOF
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if command -v locale && ! locale -a | grep -qi en_us.utf8; then
+		if command -v locale && ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
 			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/default/libc-locales
+			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/default/libc-locales
 			xbps-reconfigure --force glibc-locales
 		fi
 
@@ -1255,8 +1271,8 @@ EOF
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8; then
-			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8
+		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 		fi
 
 		# Ensure we have tzdata installed and populated, sometimes container
@@ -1350,8 +1366,8 @@ EOF
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8; then
-			LANG=en_US.UTF-8 localedef -i en_US -f UTF-8 en_US.UTF-8 || true
+		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}" || true
 		fi
 
 		# Ensure we have tzdata installed and populated, sometimes container
