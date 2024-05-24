@@ -6,7 +6,7 @@
 
 # Using an immutable distribution
 
-If you are on an immutable distribution (Silverblue/Kionite, MicroOS) chances are that
+If you are on an immutable distribution (Silverblue/Kionite, Aeon) chances are that
 installing lots and lots of packages on the base system is not advisable.
 
 One way is to use a distrobox for them.
