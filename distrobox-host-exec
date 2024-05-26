@@ -132,6 +132,12 @@ if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ] && [ -z "${container:-}" 
 	exit 126
 fi
 
+# Check if host dir is mounted in this container
+if [ ! -d /run/host ]; then
+	printf >&2 "Cannot run in container with unshared host directory!\n"
+	exit 126
+fi
+
 if [ -z "${host_command}" ]; then
 	host_command="${distrobox_host_exec_default_command}"
 fi

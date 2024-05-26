@@ -208,6 +208,12 @@ if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ] && [ -z "${container:-}" 
 	exit 126
 fi
 
+# Check if host dir is mounted in this container
+if [ ! -d /run/host ]; then
+	printf >&2 "Cannot run in container with unshared host directory!\n"
+	exit 126
+fi
+
 # Check if we're in a rootful or rootless container.
 if grep -q "rootless=0" /run/.containerenv 2> /dev/null; then
 	rootful="--root"
