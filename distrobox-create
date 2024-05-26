@@ -907,7 +907,8 @@ generate_create_command()
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
 	# This is skipped in case of initful containers, so that a dedicated
 	# systemd user session can be used.
-	if [ -d "/run/user/${container_user_uid}" ] && [ "${init}" -eq 0 ]; then
+	if [ -d "/run/user/${container_user_uid}" ] && [ "${init}" -eq 0 ] &&
+		[ "${unshare_root}" -eq 0 ]; then
 		result_command="${result_command}
 			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}:rslave"
 	fi
