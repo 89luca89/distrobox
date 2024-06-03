@@ -2300,6 +2300,7 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/systemd-binfmt.service
 		/usr/lib/systemd/system/systemd-tmpfiles*
 		/usr/lib/systemd/system/systemd-udevd.service
+		/usr/lib/systemd/system/systemd-udev-trigger.service
 		/usr/lib/systemd/system/systemd-update-utmp*
 		/usr/lib/systemd/user/pipewire*
 		/usr/lib/systemd/user/wireplumber*
