@@ -327,6 +327,7 @@ cleanup_exports()
 			find "${HOME}/.local/share/icons" -name "${icon}.*" -delete
 		fi
 	done
+	unset IFS
 }
 
 # delete_container will remove input container
