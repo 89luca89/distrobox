@@ -344,7 +344,7 @@ distrobox create \
   --unshare-all
 ```
 
-Inside it install podman, and add suduids for the user:
+Inside it install podman, and add subuids for the user:
 
 ```sh
 sudo usermod --add-subuids 10000-65536 $USER
