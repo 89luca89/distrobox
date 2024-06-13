@@ -646,6 +646,9 @@ list_exported_applications()
 	# Then we try to pretty print them.
 	IFS="¤"
 	for i in ${desktop_files}; do
+		if [ -z "${i}" ]; then
+			continue
+		fi
 		# Get app name, and remove label
 		name="$(grep -Eo 'Name=.*' "${i}" | head -n 1 | cut -d'=' -f2- | sed 's|(.*)||g')"
 		# Print only stuff we exported from this box!
@@ -653,6 +656,7 @@ list_exported_applications()
 			printf "%-20s | %-30s\n" "${name}" "${i}"
 		fi
 	done
+	unset IFS
 }
 
 # list_exported_binaries will print all exported binaries.
@@ -693,6 +697,7 @@ list_exported_binaries()
 			printf "%-20s | %-30s\n" "${name}" "${i}"
 		fi
 	done
+	unset IFS
 }
 
 # Main routine
