@@ -353,6 +353,8 @@ run_distrobox()
 				continue
 			fi
 
+			# Convert back from base64
+			arg="$(echo "${arg}" | base64 -d)"
 			args="${args} ${separator} ${arg}"
 
 			# Prepare for the next line, if we already have a ';' or '&&', do nothing
@@ -376,6 +378,8 @@ run_distrobox()
 				continue
 			fi
 
+			# Convert back from base64
+			arg="$(echo "${arg}" | base64 -d)"
 			args="${args} ${separator} ${arg}"
 
 			# Prepare for the next line, if we already have a ';' or '&&', do nothing
@@ -454,6 +458,28 @@ run_distrobox()
 	fi
 }
 
+# encode_variable will encode an input in base64, removing surrounding single/double quotes.
+# Arguments:
+#   variable: string
+# Expected global variables:
+#   None
+# Expected env variables:
+#   None
+# Outputs:
+#   a value string encoded in base64
+encode_variable()
+{
+	variable="${1}"
+	# remove surrounding quotes possibly added by the user
+	if echo "${variable}" | grep -qE '^"'; then
+		variable="$(echo "${variable}" | sed -e 's/^"//' -e 's/"$//')"
+	elif echo "${variable}" | grep -qE "^'"; then
+		variable="$(echo "${variable}" | sed -e "s/^'//" -e "s/'$//")"
+	fi
+
+	echo "${variable}" | base64 -w 0
+}
+
 # sanitize_variable will sanitize an input, add single/double quotes and escapes
 # Arguments:
 #   variable: string
@@ -471,7 +497,13 @@ sanitize_variable()
 	if echo "${variable}" | grep -q " " &&
 		! echo "${variable}" | grep -Eq "^'|^\""; then
 
-		variable="\"${variable}\""
+		# if we have double quotes we should wrap the whole line in single quotes
+		# in order to not "undo" them
+		if echo "${variable}" | grep -q '"'; then
+			variable="'${variable}'"
+		else
+			variable="\"${variable}\""
+		fi
 	fi
 
 	# Return
@@ -532,13 +564,22 @@ parse_file()
 		[ "${value}" = "false" ] && value=0
 
 		# Sanitize value, by whitespaces, quotes and escapes
-		value="$(sanitize_variable "${value}")"
+		if [ "${key}" = "init_hooks" ] || [ "${key}" = "pre_init_hooks" ]; then
+			# in case of shell commands (so the hooks) we prefer to pass the variable
+			# around encoded, so that we don't accidentally execute stuff
+			# and, we will execute sanitize_variable on the final string flag at the
+			# end, instead of key/value base.
+			value="$(encode_variable "${value}")"
+		else
+			value="$(sanitize_variable "${value}")"
+		fi
 
 		# Save options to tempfile, to source it later
 		touch "${tmpfile}"
 		if [ -n "${key}" ] && [ -n "${value}" ]; then
 			if grep -q "^${key}=" "${tmpfile}"; then
-				value="$(echo "${value}" | sed "s|\"|\" \${${key}}¤|")"
+				# make keys cumulative
+				value="\${${key}}¤${value}"
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
 		fi
