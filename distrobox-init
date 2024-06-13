@@ -909,6 +909,7 @@ EOF
 			locale-gen -a
 		fi
 
+		pacman -S -u --noconfirm
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
