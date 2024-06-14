@@ -60,7 +60,6 @@ non_interactive=0
 verbose=0
 rm_home=0
 response_rm_home="N"
-response_rm_exports="N"
 version="1.7.2.1"
 
 # Source configuration files, this is done in an hierarchy so local files have
@@ -388,22 +387,13 @@ delete_container()
 			;;
 	esac
 
-	rm_exports=0
-	if [ "${container_status}" != "running" ] && [ "${non_interactive}" -eq 0 ]; then
-		printf "Container %s not running.\n" "${container_name}"
-		printf "Do you want to start it to remove exported apps and binaries? [y/N]: "
-		read -r response_rm_exports
-		response_rm_exports="${response_rm_exports:-"N"}"
-	fi
-
-	if [ "${non_interactive}" -eq 1 ] || [ "${rm_exports}" -eq 1 ]; then
-		cleanup_exports "${container_name}"
-	fi
+	# Remove exported apps and bins
+	cleanup_exports "${container_name}"
 
 	# Remove the container
 	printf "Removing container...\n"
 	# shellcheck disable=SC2086,SC2248
-	${container_manager} rm ${force_flag} "${container_name}"
+	${container_manager} rm ${force_flag} --volumes "${container_name}"
 
 	# We're going to delete the box, let's also delete the entry
 	verbose_arg=""
