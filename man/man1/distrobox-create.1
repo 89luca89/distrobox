@@ -163,7 +163,7 @@ Use init to create a Systemd container (acts similar to an LXC):
 .IP
 .nf
 \f[C]
-distrobox create -i ubuntu:latest --name test --additional-packages \[dq]systemd libpam-systemd\[dq] --init
+distrobox create -i ubuntu:latest --name test --additional-packages \[dq]systemd libpam-systemd pipewire-audio-client-libraries\[dq] --init
 \f[R]
 .fi
 .PP
@@ -329,8 +329,8 @@ additional package:
 .nf
 \f[C]
 distrobox create -i alpine:latest --init --additional-packages \[dq]openrc\[dq] -n test
-distrobox create -i debian:stable --init --additional-packages \[dq]systemd libpam-systemd\[dq] -n test
-distrobox create -i ubuntu:22.04 --init --additional-packages \[dq]systemd libpam-systemd\[dq] -n test
+distrobox create -i debian:stable --init --additional-packages \[dq]systemd libpam-systemd pipewire-audio-client-libraries\[dq] -n test
+distrobox create -i ubuntu:22.04 --init --additional-packages \[dq]systemd libpam-systemd pipewire-audio-client-libraries\[dq] -n test
 distrobox create -i archlinux:latest --init --additional-packages \[dq]systemd\[dq] -n test
 distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages \[dq]systemd\[dq] -n test
 distrobox create -i registry.fedoraproject.org/fedora:39 --init --additional-packages \[dq]systemd\[dq] -n test
