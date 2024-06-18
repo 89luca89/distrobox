@@ -98,7 +98,7 @@ Use pre-init-hooks to perform an action at the beginning of the container startu
 
 Use init to create a Systemd container (acts similar to an LXC):
 
-	distrobox create -i ubuntu:latest --name test --additional-packages "systemd libpam-systemd" --init
+	distrobox create -i ubuntu:latest --name test --additional-packages "systemd libpam-systemd pipewire-audio-client-libraries" --init
 
 Use init to create a OpenRC container (acts similar to an LXC):
 
@@ -195,8 +195,8 @@ This is needed because `/sbin/init` must be pid 1.
 If you want to use a non-pre-create image, you'll need to add the additional package:
 
 	distrobox create -i alpine:latest --init --additional-packages "openrc" -n test
-	distrobox create -i debian:stable --init --additional-packages "systemd libpam-systemd" -n test
-	distrobox create -i ubuntu:22.04 --init --additional-packages "systemd libpam-systemd" -n test
+	distrobox create -i debian:stable --init --additional-packages "systemd libpam-systemd pipewire-audio-client-libraries" -n test
+	distrobox create -i ubuntu:22.04 --init --additional-packages "systemd libpam-systemd pipewire-audio-client-libraries" -n test
 	distrobox create -i archlinux:latest --init --additional-packages "systemd" -n test
 	distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages "systemd" -n test
 	distrobox create -i registry.fedoraproject.org/fedora:39 --init --additional-packages "systemd" -n test

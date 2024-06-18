@@ -250,8 +250,8 @@ If you want to use a non-pre-create image, you'll need to add the additional pac
 
 ```console
 distrobox create -i alpine:latest --init --additional-packages "openrc" -n test
-distrobox create -i debian:stable --init --additional-packages "systemd libpam-systemd" -n test
-distrobox create -i ubuntu:22.04 --init --additional-packages "systemd libpam-systemd" -n test
+distrobox create -i debian:stable --init --additional-packages "systemd libpam-systemd pipewire-audio-client-libraries" -n test
+distrobox create -i ubuntu:22.04 --init --additional-packages "systemd libpam-systemd pipewire-audio-client-libraries" -n test
 distrobox create -i archlinux:latest --init --additional-packages "systemd" -n test
 distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages "systemd" -n test
 distrobox create -i registry.fedoraproject.org/fedora:39 --init --additional-packages "systemd" -n test
