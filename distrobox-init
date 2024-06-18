@@ -1782,19 +1782,21 @@ printf "distrobox: Setting up distrobox profile...\n"
 # This ensures compatibility with prompts and tools between toolbx and distrobox
 touch /run/.toolboxenv
 
-# Ensure we have some basic env variables and prompt as base.
-rcfiles="
-	/etc/profile
-	/etc/bash.bashrc
-	/etc/bashrc
-	/etc/zshrc
-"
-for rcfile in ${rcfiles}; do
-	if [ -e "${rcfile}" ] && ! grep -q distrobox_profile.sh "${rcfile}"; then
-		echo "[ -e /etc/profile.d/distrobox_profile.sh ] && . /etc/profile.d/distrobox_profile.sh" >> "${rcfile}"
-	fi
-done
-mkdir -p /etc/profile.d
+# Ensure we have some basic env variables and prompt as base if /etc/profile.d is missing
+if [ ! -d /etc/profile.d ]; then
+	rcfiles="
+		/etc/profile
+		/etc/bash.bashrc
+		/etc/bashrc
+		/etc/zshrc
+	"
+	for rcfile in ${rcfiles}; do
+		if [ -e "${rcfile}" ] && ! grep -q 'distrobox_profile.sh' "${rcfile}"; then
+			echo "[ -e /etc/profile.d/distrobox_profile.sh ] && . /etc/profile.d/distrobox_profile.sh" >> "${rcfile}"
+		fi
+	done
+	mkdir -p /etc/profile.d
+fi
 cat << EOF > /etc/profile.d/distrobox_profile.sh
 test -z "\$USER" && export USER="\$(id -un 2> /dev/null)"
 test -z "\$UID"  && readonly UID="\$(id -ur 2> /dev/null)"
