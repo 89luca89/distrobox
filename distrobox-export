@@ -54,7 +54,7 @@ sudo_askpass_script="#!/bin/sh
 if command -v zenity 2>&1 > /dev/null; then
 	zenity --password
 elif command -v kdialog 2>&1 > /dev/null; then
-	kdialog --password
+	kdialog --password 'A password is required...'
 else
 	exit 127
 fi"
