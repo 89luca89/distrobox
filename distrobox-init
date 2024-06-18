@@ -224,6 +224,11 @@ elif [ -f "/run/host/etc/default/locale" ] ; then
 	HOST_LOCALE_ENCODING=$(echo "${HOST_LOCALE}" | sed -n 's/^[^.]*\.\(.*\)$/\1/p')
 	HOST_LOCALE_LANG=$(echo "${HOST_LOCALE}" | sed -n 's/^\([^.]*\)\..*$/\1/p')
 fi
+# Add fallback values in case host's locale is not set correctly
+[ -z "${HOST_LOCALE}" ] && HOST_LOCALE="en_US.UTF-8"
+[ -z "${HOST_LOCALE_ENCODING}" ] && HOST_LOCALE_ENCODING="UTF-8 en_US.UTF-8"
+[ -z "${HOST_LOCALE_LANG}" ] && HOST_LOCALE_LANG="en_US"
+
 
 # get_locked_mount_flags will print mount flags considered "locked".
 # Arguments:
