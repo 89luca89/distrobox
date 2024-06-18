@@ -154,7 +154,7 @@ Distrobox guests tested successfully with the following container images:
 | Scientific Linux | 7 | docker.io/library/sl:7    |
 | Slackware | | docker.io/vbatts/slackware:current |
 | SteamOS | | ghcr.io/linuxserver/steamos:latest |
-| Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 23.04 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04 |
+| Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 23.04 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04 <br> docker.io/library/ubuntu:23.04 |
 | Vanilla OS | VSO | ghcr.io/vanilla-os/vso:main |
 | Void Linux | glibc <br> musl | ghcr.io/void-linux/void-glibc-full:latest <br> ghcr.io/void-linux/void-musl-full:latest |
 
