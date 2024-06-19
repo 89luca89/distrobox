@@ -150,6 +150,12 @@ elif  command -v wget > /dev/null 2>&1; then
 	download_command="wget -qO"
 fi
 
+# Normalize architecture name to comply to golang/release naming
+architecture="$(uname -m)"
+if echo "${architecture}" | grep -q armv; then
+	architecture="$(echo "${architecture}" | grep -Eo "armv[0-9]+")"
+fi
+
 # Setup host-spawn as a way to execute commands back on the host
 if ! command -v host-spawn > /dev/null ||
 	[ "$(printf "%s\n%s\n" "${host_spawn_version}" "$(host-spawn --version)" |
@@ -170,7 +176,7 @@ if ! command -v host-spawn > /dev/null ||
 		y | Y | Yes | yes | YES)
 			# Download matching version with current distrobox
 			if ! ${download_command} /tmp/host-spawn \
-				"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-$(uname -m)"; then
+				"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-${architecture}"; then
 
 				printf "Error: Cannot download host-spawn\n"
 				exit 1
