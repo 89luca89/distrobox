@@ -1463,7 +1463,14 @@ for host_mount_ro in ${HOST_MOUNTS_RO}; do
 	# Mounting read-only in a user namespace will trigger a check to see if certain
 	# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
 	locked_flags="$(get_locked_mount_flags /run/host"${host_mount_ro}")"
-	mount_bind /run/host"${host_mount_ro}" "${host_mount_ro}" ro"${locked_flags:+,${locked_flags}}"
+	if ! mount_bind /run/host"${host_mount_ro}" "${host_mount_ro}" ro"${locked_flags:+,${locked_flags}}"; then
+		printf "Warning: %s integration with the host failed, runtime sync for %s disabled.\n" "${host_mount_ro}" "${host_mount_ro}"
+		# Fallback options for files, we do a hard copy of it
+		if [ -f /run/host"${host_mount_ro}" ]; then
+			rm -f "${host_mount_ro}"
+			cp -f /run/host"${host_mount_ro}" "${host_mount_ro}"
+		fi
+	fi
 done
 ###############################################################################
 
