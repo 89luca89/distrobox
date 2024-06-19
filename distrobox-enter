@@ -401,6 +401,12 @@ generate_enter_command()
 			container_command="$(echo "${container_command}" | sed 's/\$/\\\$/g')"
 			container_command="${container_command_login} -c \"${container_command}\""
 		fi
+
+		# in case we don't have any command to launch, ensure we do a proper login with su
+		# we're using here the --shell option in order to execute a POSIX shell for the getent
+		# command, and then launch whichever shell the user has by default.
+		# This ensures a proper login also with non-posix shells like fish.
+		container_command_login="${container_command_login} -s /bin/sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
 	else
 		result_command="${result_command}
 			--user=\"${USER}\""
