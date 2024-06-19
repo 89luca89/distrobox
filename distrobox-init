@@ -226,7 +226,7 @@ fi
 # Add fallback values in case host's locale is not set correctly
 if [ -z "${HOST_LOCALE}" ] || [ "${HOST_LOCALE}" = "C.UTF-8" ]; then
 	HOST_LOCALE="en_US.UTF-8"
-	HOST_LOCALE_ENCODING="UTF-8 en_US.UTF-8"
+	HOST_LOCALE_ENCODING="UTF-8"
 	HOST_LOCALE_LANG="en_US"
 fi
 
