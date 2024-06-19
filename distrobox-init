@@ -224,9 +224,11 @@ elif [ -f "/run/host/etc/default/locale" ]; then
 	HOST_LOCALE_LANG=$(echo "${HOST_LOCALE}" | sed -n 's/^\([^.]*\)\..*$/\1/p')
 fi
 # Add fallback values in case host's locale is not set correctly
-[ -z "${HOST_LOCALE}" ] && HOST_LOCALE="en_US.UTF-8"
-[ -z "${HOST_LOCALE_ENCODING}" ] && HOST_LOCALE_ENCODING="UTF-8 en_US.UTF-8"
-[ -z "${HOST_LOCALE_LANG}" ] && HOST_LOCALE_LANG="en_US"
+if [ -z "${HOST_LOCALE}" ] || [ "${HOST_LOCALE}" = "C.UTF-8" ]; then
+	HOST_LOCALE="en_US.UTF-8"
+	HOST_LOCALE_ENCODING="UTF-8 en_US.UTF-8"
+	HOST_LOCALE_LANG="en_US"
+fi
 
 # get_locked_mount_flags will print mount flags considered "locked".
 # Arguments:
@@ -1178,7 +1180,9 @@ EOF
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if command -v locale && ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		if command -v locale && {
+			! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
+		}; then
 			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/default/libc-locales
 			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/default/libc-locales
 			xbps-reconfigure --force glibc-locales
