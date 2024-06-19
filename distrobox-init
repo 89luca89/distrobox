@@ -1620,6 +1620,7 @@ if [ "${nvidia}" -eq 1 ]; then
 	NVIDIA_LIBS="$(find \
 		/run/host/usr/lib/i386-linux-gnu/ \
 		/run/host/usr/lib/x86_64-linux-gnu/ \
+		/run/host/usr/lib/ \
 		/run/host/usr/lib32/ \
 		/run/host/usr/lib64/ \
 		-iname "*nvidia*.so*" \
@@ -1631,7 +1632,8 @@ if [ "${nvidia}" -eq 1 ]; then
 			sed "s|/run/host/usr/lib/x86_64-linux-gnu/|${lib64_dir}|g" |
 			sed "s|/run/host/usr/lib/i386-linux-gnu/|${lib32_dir}|g" |
 			sed "s|/run/host/usr/lib64/|${lib64_dir}|g" |
-			sed "s|/run/host/usr/lib32/|${lib32_dir}|g")"
+			sed "s|/run/host/usr/lib32/|${lib32_dir}|g" |
+			sed "s|/run/host/usr/lib/|${lib32_dir}|g")"
 
 		# If file exists, just continue
 		# this may happen for directories like /usr/lib/nvidia/xorg/foo.so
