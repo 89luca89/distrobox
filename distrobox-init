@@ -897,7 +897,7 @@ EOF
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
 		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			microdnf reinstall -y tzdata ||  microdnf install -y glibc-common
+			microdnf reinstall -y tzdata || microdnf install -y glibc-common
 		fi
 		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
 			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
