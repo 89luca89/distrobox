@@ -2047,7 +2047,7 @@ if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/pass
 		--gid "${container_user_gid}" \
 		"${container_user_name}"; then
 
-		printf "There was a problem setting up the user with usermod, trying manual addition\n"
+		printf "Warning: There was a problem setting up the user with usermod, trying manual addition\n"
 
 		printf "%s:x:%s:%s:%s:%s:%s" \
 			"${container_user_name}" "${container_user_uid}" \
@@ -2078,7 +2078,7 @@ elif [ ! -e /etc/passwd.done ]; then
 		--login "${container_user_name}" \
 		"${user_to_modify:-"${container_user_name}"}"; then
 
-		printf "There was a problem setting up the user with usermod, trying manual addition\n"
+		printf "Warning: There was a problem setting up the user with usermod, trying manual addition\n"
 
 		# Modify the user
 		printf "distrobox: Setting up existing user: /etc/passwd...\n"
@@ -2119,8 +2119,18 @@ printf "distrobox: Ensuring user's access...\n"
 if [ ! -e /etc/passwd.done ]; then
 	temporary_password="$(md5sum < /proc/sys/kernel/random/uuid | cut -d' ' -f1)"
 	# We generate a random password to initialize the entry for the user.
-	printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e
-	printf "%s:" "${container_user_name}" | chpasswd -e
+	chpasswd_failed=0
+	printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e || chpasswd_failed=1
+	printf "%s:" "${container_user_name}" | chpasswd -e || chpasswd_failed=1
+
+	if [ "${chpasswd_failed}" -eq 1 ]; then
+		printf "Warning: There was a problem setting up the user, trying manual addition\n"
+		if grep -q "${container_user_name}" /etc/shadow; then
+			sed -i "s|^${container_user_name}.*|${container_user_name}::::::::|g" /etc/shadow
+		else
+			echo "${container_user_name}::::::::" >> /etc/shadow
+		fi
+	fi
 
 	if [ "${rootful}" -eq 0 ]; then
 		# We're rootless so we don't care about account password, so we remove it
