@@ -634,7 +634,9 @@ if [ "${upgrade}" -ne 0 ] ||
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		if [ -e /etc/locale.gen ] && {
+			! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
+		}; then
 			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
 			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
 			locale-gen
@@ -683,6 +685,7 @@ if [ "${upgrade}" -ne 0 ] ||
 			dnf-plugins-core
 			findutils
 			glibc-all-langpacks
+			glibc-common
 			glibc-locale-source
 			gnupg2
 			gnupg2-smime
@@ -731,6 +734,9 @@ if [ "${upgrade}" -ne 0 ] ||
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
+		if [ ! -e /usr/share/i18n/charmaps ]; then
+			dnf reinstall -y glibc-common
+		fi
 		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
 			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 		fi
@@ -835,6 +841,7 @@ EOF
 			dnf-plugins-core
 			findutils
 			glibc-all-langpacks
+			glibc-common
 			glibc-locale-source
 			gnupg2
 			gnupg2-smime
@@ -889,6 +896,9 @@ EOF
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
+		if [ ! -e /usr/share/zoneinfo/UTC ]; then
+			microdnf reinstall -y tzdata ||  microdnf install -y glibc-common
+		fi
 		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
 			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 		fi
@@ -1228,6 +1238,7 @@ EOF
 			dnf-plugins-core
 			findutils
 			glibc-all-langpacks
+			glibc-common
 			glibc-locale-source
 			gnupg2
 			gnupg2-smime
@@ -1279,6 +1290,9 @@ EOF
 
 		# In case the locale is not available, install it
 		# will ensure we don't fallback to C.UTF-8
+		if [ ! -e /usr/share/i18n/charmaps ]; then
+			yum reinstall -y glibc-common
+		fi
 		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
 			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 		fi
