@@ -62,8 +62,7 @@ to have access to the remote containers extension.
 ### First step install it
 
 ```shell
-~$ flatpak install --user app/com.visualstudio.code com.visualstudio.code.tool.podman
-~$ flatpak override --user --filesystem=xdg-run/podman com.visualstudio.code
+~$ flatpak install --user app/com.visualstudio.code 
 ```
 
 ### Second step, extensions
@@ -74,16 +73,27 @@ Now we want to install VSCode [Dev Containers extension](https://marketplace.vis
 
 ### Third step podman wrapper
 
-Being in a Flatpak, we will need access to host's `podman` (or `docker`) to be
+Being in a Flatpak, we will need access to host's `podman` to be
 able to use the containers. Place this in your `~/.local/bin/podman-host`
+In case of access to host's `docker` to be
+able to use the containers, use `~/.local/bin/docker-host`
+
+For podman:
 
 ```shell
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/extras/podman-host -o ~/.local/bin/podman-host
 chmod +x ~/.local/bin/podman-host
 ```
 
+For docker:
+
+```shell
+curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/extras/docker-host -o ~/.local/bin/docker-host
+chmod +x ~/.local/bin/docker-host
+```
+
 Open VSCode settings (Ctrl+,) and head to `Remote>Containers>Docker Path` and
-set it to the path of `/home/<your-user>/.local/bin/podman-host`, like in the example
+set it to the path of `/home/<your-user>/.local/bin/podman-host` (or docker-host in case of docker), like in the example
 
 ![image](https://user-images.githubusercontent.com/598882/149208525-5ad630c9-fcbc-4ee6-9d77-e50d2c782a56.png)
 
