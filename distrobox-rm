@@ -113,6 +113,8 @@ fi
 container_name_default="my-distrobox"
 container_name_list=""
 
+image="0"
+
 # show_help will print usage to stdout.
 # Arguments:
 #   None
@@ -134,6 +136,7 @@ Usage:
 Options:
 
 	--all/-a:		delete all distroboxes
+	--clean-image	delete container image
 	--force/-f:		force deletion
 	--rm-home:		remove the mounted home if it differs from the host user's one
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
@@ -156,6 +159,10 @@ while :; do
 		-a | --all)
 			shift
 			all=1
+			;;
+		--clean-image)
+			shift
+			image=1
 			;;
 		-r | --root)
 			shift
@@ -409,9 +416,104 @@ delete_container()
 	fi
 }
 
+# delete_image will remove input container image
+# Arguments:
+#   container_name: string image name
+# Expected global variables:
+#   container_manager: string container manager to use
+#   distrobox_flags: string distrobox additional flags
+#   non_interactive: bool non interactive mode
+#   force_flag: bool force mode
+#   verbose: bool verbose
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+delete_image()
+{
+	container_name="$1"
+	# Inspect the container we're working with.
+	container_status="$(${container_manager} inspect --type container \
+		--format '{{.State.Status}}' "${container_name}" || :)"
+	# Does the container exist? check if inspect reported errors
+	if [ -z "${container_status}" ]; then
+		# If not, prompt to create it first
+		printf >&2 "Cannot find container %s.\n" "${container_name}"
+		return
+	fi
+
+	# Remove the container image
+	printf "Removing container image...\n"
+	verbose_arg=""
+	if [ "${verbose}" -ne 0 ]; then
+		verbose_arg="--verbose"
+	fi
+	"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete "${verbose_arg}"
+	image_id=$(${container_manager} inspect --format='{{.Image}}' "${container_name}")
+	image_container_count=$(${container_manager} ps -a --filter ancestor="${image_id}" -q | wc -l)
+	delete_container "${container_name}"
+	${container_manager} rmi "${image_id}" "${force_flag}"
+}
+
+if [ "${image}" -eq 0 ]; then
+	# Prompt for confirmation
+	if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
+		printf "Do you really want to delete containers:%s? [Y/n]: " "${container_name_list}"
+		read -r response
+		response="${response:-"Y"}"
+	else
+		response="yes"
+	fi
+
+	for container in ${container_name_list}; do
+		if [ "$(${container_manager} inspect --type container --format '{{.State.Status}}' "${container}")" = "running" ]; then
+			if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
+				printf "Container %s running, do you want to force delete them? [Y/n]: " "${container_name_list}"
+				read -r response_force
+				response_force="${response_force:-"Y"}"
+			else
+				response_force="yes"
+			fi
+		fi
+
+		# Accept only y,Y,Yes,yes,n,N,No,no.
+		case "${response_force:-"N"}" in
+			y | Y | Yes | yes | YES)
+				force=1
+				force_flag="--force"
+				break
+				;;
+			n | N | No | no | NO) ;;
+
+			*) # Default case: If no more options then break out of the loop.
+				printf >&2 "Invalid input.\n"
+				printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+				;;
+		esac
+	done
+
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response}" in
+		y | Y | Yes | yes | YES)
+			for container in ${container_name_list}; do
+				delete_container "${container}"
+			done
+			;;
+		n | N | No | no | NO)
+			printf "Aborted.\n"
+			exit 0
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			exit 1
+			;;
+	esac
+fi
+
 # Prompt for confirmation
 if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
-	printf "Do you really want to delete containers:%s? [Y/n]: " "${container_name_list}"
+	printf "Do you really want to delete containers image:%s? [Y/n]: " "${container_name_list}"
 	read -r response
 	response="${response:-"Y"}"
 else
@@ -419,9 +521,11 @@ else
 fi
 
 for container in ${container_name_list}; do
-	if [ "$(${container_manager} inspect --type container --format '{{.State.Status}}' "${container}")" = "running" ]; then
+	image_id=$(${container_manager} inspect --format='{{.Image}}' "${container}")
+	image_container_count=$(${container_manager} ps -a --filter ancestor="${image_id}" -q | wc -l)
+	if [ "${image_container_count}" -gt 1 ]; then
 		if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
-			printf "Container %s running, do you want to force delete them? [Y/n]: " "${container_name_list}"
+			printf "Image %s is used by other containers, do you want to force delete them? [Y/n]: " "${container_name_list}"
 			read -r response_force
 			response_force="${response_force:-"Y"}"
 		else
@@ -449,7 +553,7 @@ done
 case "${response}" in
 	y | Y | Yes | yes | YES)
 		for container in ${container_name_list}; do
-			delete_container "${container}"
+			delete_image "${container}"
 		done
 		;;
 	n | N | No | no | NO)
