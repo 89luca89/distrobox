@@ -62,7 +62,7 @@ container_clone=""
 container_generate_entry=1
 container_home_prefix=""
 container_image=""
-container_image_default="registry.fedoraproject.org/fedora-toolbox:39"
+container_image_default="registry.fedoraproject.org/fedora-toolbox:latest"
 container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
@@ -184,7 +184,7 @@ Usage:
 	distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks "dnf config-manager --enable powertools && dnf -y install epel-release"
 	distrobox create --clone fedora-39 --name fedora-39-copy
 	distrobox create --image alpine my-alpine-container
-	distrobox create --image registry.fedoraproject.org/fedora-toolbox:39 --name fedora-toolbox-39
+	distrobox create --image registry.fedoraproject.org/fedora-toolbox:latest --name fedora-toolbox-latest
 	distrobox create --pull --image centos:stream9 --home ~/distrobox/centos9
 	distrobox create --image alpine:latest --name test2 --additional-packages "git tmux vim"
 	distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
