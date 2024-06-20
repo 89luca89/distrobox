@@ -436,15 +436,14 @@ for container in ${container_name_list}; do
 			force_flag="--force"
 			break
 			;;
-		n | N | No | no | NO)
-			;;
+		n | N | No | no | NO) ;;
+
 		*) # Default case: If no more options then break out of the loop.
 			printf >&2 "Invalid input.\n"
 			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
 			;;
 	esac
 done
-
 
 # Accept only y,Y,Yes,yes,n,N,No,no.
 case "${response}" in
