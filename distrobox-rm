@@ -430,7 +430,7 @@ for container in ${container_name_list}; do
 	fi
 
 	# Accept only y,Y,Yes,yes,n,N,No,no.
-	case "${response_force}" in
+	case "${response_force:-"N"}" in
 		y | Y | Yes | yes | YES)
 			force=1
 			force_flag="--force"
