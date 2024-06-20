@@ -1,12 +1,12 @@
 #!/bin/sh
 
 id="$(echo "$@" | grep -Eo ' [a-zA-Z0-9]{64} ' | tr -d ' ')"
-PODMAN_COMMAND="$(command -v podman 2> /dev/null)"
+DOCKER_COMMAND="$(command -v docker 2> /dev/null)"
 ENV_COMMAND="printenv"
 
 # if we're in a flatpak, we fallback to host-spawn
 if [ -n "${FLATPAK_ID}" ]; then
-	PODMAN_COMMAND="flatpak-spawn --host podman"
+	DOCKER_COMMAND="flatpak-spawn --host docker"
 	ENV_COMMAND="flatpak-spawn --host printenv"
 fi
 
@@ -15,7 +15,7 @@ fi
 if echo "$@" | grep -q 'exec'; then
 	# we do this procedure only for distroboxes
 	# we will leave regular containers alone.
-	if [ "$(${PODMAN_COMMAND} inspect --type container --format '{{ index .Config.Labels "manager" }}' "${id}")" = "distrobox" ]; then
+	if [ "$(${DOCKER_COMMAND} inspect --type container --format '{{ index .Config.Labels "manager" }}' "${id}")" = "distrobox" ]; then
 
 		# Ensure that our distrobox containers will use different vscode-servers
 		# by symlinking to different paths
@@ -23,7 +23,7 @@ if echo "$@" | grep -q 'exec'; then
 		# so we're forced to do this workaround
 		if [ -n "${id}" ]; then
 			# shellcheck disable=SC2016
-			${PODMAN_COMMAND} exec -u "${USER}" "${id}" /bin/sh -c '
+			${DOCKER_COMMAND} exec -u "${USER}" "${id}" /bin/sh -c '
 			if [ ! -L "${HOME}/.vscode-server" ]; then
 				[ -e "${HOME}/.vscode-server" ] && mv "${HOME}/.vscode-server" /var/tmp
 				[ -d /var/tmp/.vscode-server ] || mkdir /var/tmp/.vscode-server
@@ -60,4 +60,4 @@ if echo "$@" | grep -q 'exec'; then
 	fi
 fi
 
-${PODMAN_COMMAND} "$@"
+${DOCKER_COMMAND} "$@"
