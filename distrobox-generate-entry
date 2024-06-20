@@ -182,7 +182,7 @@ if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-if [ -z "${container_name}" ]; then
+if [ -z "${container_name:-}" ]; then
 	container_name="${container_name_default}"
 fi
 
@@ -360,4 +360,9 @@ NoDisplay=false
 Terminal=true
 TryExec=${distrobox_path}/distrobox
 Type=Application
+Actions=Remove;
+
+[Desktop Action Remove]
+Name=Remove ${entry_name} from system
+Exec=${distrobox_path}/distrobox rm ${extra_flags} ${container_name}
 EOF
