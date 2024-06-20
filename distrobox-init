@@ -57,7 +57,8 @@ version="1.7.2.1"
 # Expected global variables:
 #   version: distrobox version
 # Expected env variables:
-#   None
+#   USER
+#   HOME
 # Outputs:
 #   print usage with examples.
 show_help()
