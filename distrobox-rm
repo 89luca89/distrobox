@@ -387,13 +387,13 @@ delete_container()
 			;;
 	esac
 
-	# Remove exported apps and bins
-	cleanup_exports "${container_name}"
-
 	# Remove the container
 	printf "Removing container...\n"
 	# shellcheck disable=SC2086,SC2248
 	${container_manager} rm ${force_flag} --volumes "${container_name}"
+
+	# Remove exported apps and bins
+	cleanup_exports "${container_name}"
 
 	# We're going to delete the box, let's also delete the entry
 	verbose_arg=""
@@ -417,6 +417,34 @@ if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
 else
 	response="yes"
 fi
+
+for container in ${container_name_list}; do
+	if [ "$(${container_manager} inspect --type container --format '{{.State.Status}}' "${container}")" = "running" ]; then
+		if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
+			printf "Container %s running, do you want to force delete them? [Y/n]: " "${container_name_list}"
+			read -r response_force
+			response_force="${response_force:-"Y"}"
+		else
+			response_force="yes"
+		fi
+	fi
+
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response_force}" in
+		y | Y | Yes | yes | YES)
+			force=1
+			force_flag="--force"
+			break
+			;;
+		n | N | No | no | NO)
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			;;
+	esac
+done
+
 
 # Accept only y,Y,Yes,yes,n,N,No,no.
 case "${response}" in
