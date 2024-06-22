@@ -308,6 +308,7 @@ if [ "${icon}" = "auto" ]; then
 		deepin:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/deepin-distrobox.png
 		fedora:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/fedora-distrobox.png
 		gentoo:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/gentoo-distrobox.png
+		kali:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/kali-distrobox.png
 		kdeneon:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/kdeneon-distrobox.png
 		opensuse-leap:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/opensuse-distrobox.png
 		opensuse-tumbleweed:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/opensuse-distrobox.png
