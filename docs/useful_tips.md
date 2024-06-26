@@ -349,7 +349,7 @@ Inside it install podman, and add subuids for the user:
 ```sh
 sudo usermod --add-subuids 10000-65536 $USER
 sudo usermod --add-subgids 10000-65536 $USER
-cat << EOF > /etc/containers/containers.conf
+cat << EOF | sudo tee /etc/containers/containers.conf
 [containers]
 netns="host"
 userns="host"
