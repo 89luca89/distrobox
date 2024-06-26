@@ -774,22 +774,22 @@ if [ "${upgrade}" -ne 0 ] ||
 			shell_pkg="bash"
 		fi
 		deps="
-			${shell_pkg}
+			app-shells/${shell_pkg}
 			app-crypt/gnupg
-			bash-completion
-			diffutils
-			findutils
-			less
-			ncurses
+			app-shells/bash-completion
+			sys-apps/diffutils
+			sys-apps/findutils
+			sys-apps/less
+			sys-libs/ncurses
 			net-misc/curl
 			app-crypt/pinentry
-			procps
-			shadow
-			sudo
+			sys-process/procps
+			sys-apps/shadow
+			app-admin/sudo
 			sys-devel/bc
 			sys-process/lsof
-			util-linux
-			wget
+			sys-apps/util-linux
+			net-misc/wget
 		"
 		install_pkg=""
 		for dep in ${deps}; do
