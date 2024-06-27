@@ -246,6 +246,11 @@ get_locked_mount_flags()
 	prev=""
 	locked_flags=""
 
+	# If findmnt does not exist, exit
+	if ! command -v findmnt 2> /dev/null > /dev/null; then
+		return 0
+	fi
+
 	# If we can't read the file/directory, exit
 	if ! ls "${src}" 2> /dev/null > /dev/null; then
 		return 0
