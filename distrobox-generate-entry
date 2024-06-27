@@ -217,8 +217,6 @@ elif command -v wget > /dev/null 2>&1; then
 	download="wget --timeout=3 --tries=1 -qO"
 fi
 
-
-
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker, else lilipod
 case "${container_manager}" in
