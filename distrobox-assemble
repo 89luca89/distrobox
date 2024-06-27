@@ -254,6 +254,28 @@ fi
 run_distrobox()
 {
 	name="${1}"
+	additional_flags=""
+	additional_packages=""
+	entry=""
+	home=""
+	hostname=""
+	image=""
+	init=""
+	init_hooks=""
+	nvidia=""
+	pre_init_hooks=""
+	pull=""
+	root=""
+	start_now=""
+	unshare_ipc=""
+	unshare_netns=""
+	unshare_process=""
+	unshare_devsys=""
+	unshare_all=""
+	volume=""
+	exported_apps=""
+	exported_bins=""
+	exported_bins_path="${HOME}/.local/bin"
 
 	# Skip item if --name used and no match is found
 	if [ "${boxname}" != "" ] && [ "${boxname}" != "${name}" ]; then
