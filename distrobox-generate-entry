@@ -53,6 +53,7 @@ delete=0
 icon="auto"
 icon_default="${HOME}/.local/share/icons/terminal-distrobox-icon.svg"
 verbose=0
+online=0
 version="1.7.2.1"
 
 # Source configuration files, this is done in an hierarchy so local files have
@@ -211,10 +212,12 @@ if ! command -v curl > /dev/null && ! command -v wget > /dev/null; then
 fi
 
 if command -v curl > /dev/null 2>&1; then
-	download="curl -sLo"
+	download="curl --connect-timeout 3 --retry 1 -sLo"
 elif command -v wget > /dev/null 2>&1; then
-	download="wget -qO"
+	download="wget --timeout=3 --tries=1 -qO"
 fi
+
+
 
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker, else lilipod
@@ -342,7 +345,7 @@ if [ "${icon}" = "auto" ]; then
 	if [ -n "${icon_url}" ] && [ "${download}" != "null" ]; then
 		icon_extension="${icon_url##*.}"
 
-		if ${download} - "${icon_url}" > "${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"; then
+		if [ "${online}" -lt 1 ] && ${download} - "${icon_url}" > "${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"; then
 			icon="${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"
 		else
 			# Wget failed for some reasons. Default to generic terminal icon as declared at the beginning.
