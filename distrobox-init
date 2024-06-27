@@ -1135,9 +1135,18 @@ EOF
 		fi
 		# Ensure we avoid errors by keeping xbps updated
 		xbps-install -Syu xbps
-		# We have to lock this package, as it's incompatible with distrobox's
+
+		# We have to lock this paths from xbps extraction, as it's incompatible with distrobox's
 		# mount process.
-		xbps-pkgdb -m repolock base-files runit-void
+		cat << EOF > /etc/xbps.d/distrobox-ignore.conf
+noextract=/etc/passwd
+noextract=/etc/hosts
+noextract=/etc/host.conf
+noextract=/etc/hostname
+noextract=/etc/localtime
+noextract=/etc/machine-id
+noextract=/etc/resolv.conf
+EOF
 		# Check if shell_pkg is available in distro's repo. If not we
 		# fall back to bash, and we set the SHELL variable to bash so
 		# that it is set up correctly for the user.
