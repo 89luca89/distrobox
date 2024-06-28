@@ -166,10 +166,16 @@ string_list: multiple strings, for example
 Note that \f[V]string_list\f[R] can be declared multiple times to be
 compounded:
 .RS 2
-.PP
-[ubuntu] image=ubuntu:latest additional_packages=\[lq]git vim tmux
-nodejs\[rq] additional_packages=\[lq]htop iftop iotop\[rq]
-additional_packages=\[lq]zsh fish\[rq]
+.IP
+.nf
+\f[C]
+[ubuntu]
+image=ubuntu:latest
+additional_packages=\[dq]git vim tmux nodejs\[dq]
+additional_packages=\[dq]htop iftop iotop\[dq]
+additional_packages=\[dq]zsh fish\[dq]
+\f[R]
+.fi
 .RE
 .PP
 .TS
