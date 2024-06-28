@@ -31,7 +31,8 @@
 [ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
 
 # Defaults
-container_name="${CONTAINER_ID:-$(grep "name=" /run/.containerenv | cut -d'=' -f2- | tr -d '"')}"
+container_name="${CONTAINER_ID:-}"
+[ -z "${container_name}" ] && container_name="$(grep "name=" /run/.containerenv | cut -d'=' -f2- | tr -d '"')"
 export_action=""
 exported_app=""
 exported_app_label=""
