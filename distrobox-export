@@ -89,7 +89,7 @@ Usage:
 
 Options:
 
-	--app/-a:		name of the application to export
+	--app/-a:		name of the application to export or absolute path to desktopfile to export
 	--bin/-b:		absolute path of the binary to export
 	--list-apps:		list applications exported from this container
 	--list-binaries:	list binaries exported from this container, use -ep to specify custom paths to search
@@ -448,39 +448,44 @@ export_application()
 {
 	canon_dirs=""
 
-	IFS=":"
-	if [ -n "${XDG_DATA_DIRS}" ]; then
-		for xdg_data_home in ${XDG_DATA_HOME}; do
-			[ -d "${xdg_data_home}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_home}/applications"
-		done
+	# In case we're explictly going for a full desktopfile path
+	if [ -e "${exported_app}" ]; then
+		desktop_files="${exported_app}"
 	else
-		[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
-		[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
-		[ -d /var/lib/flatpak/exports/share/applications ] && canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
-	fi
-	if [ -n "${XDG_DATA_HOME}" ]; then
-		for xdg_data_dir in ${XDG_DATA_DIRS}; do
-			[ -d "${xdg_data_dir}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_dir}/applications"
-		done
-	else
-		[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
-	fi
-	unset IFS
+		IFS=":"
+		if [ -n "${XDG_DATA_DIRS}" ]; then
+			for xdg_data_home in ${XDG_DATA_HOME}; do
+				[ -d "${xdg_data_home}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_home}/applications"
+			done
+		else
+			[ -d /usr/share/applications ] && canon_dirs="/usr/share/applications"
+			[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
+			[ -d /var/lib/flatpak/exports/share/applications ] && canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
+		fi
+		if [ -n "${XDG_DATA_HOME}" ]; then
+			for xdg_data_dir in ${XDG_DATA_DIRS}; do
+				[ -d "${xdg_data_dir}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_dir}/applications"
+			done
+		else
+			[ -d "${HOME}/.local/share/applications" ] && canon_dirs="${canon_dirs} ${HOME}/.local/share/applications"
+		fi
+		unset IFS
 
-	# In this phase we search for applications to export.
-	# First find command will grep through all files in the canonical directories
-	# and only list files that contain the $exported_app, excluding those that
-	# already contains a distrobox-enter command. So skipping already exported apps.
-	# Second find will list all files that contain the name specified, so that
-	# it is possible to export an app not only by its executable name but also
-	# by its launcher name.
-	desktop_files=$(
-		# shellcheck disable=SC2086
-		find ${canon_dirs} -type f -print -o -type l -print | sed 's/./\\&/g' |
-			xargs -I{} grep -l -e "Exec=.*${exported_app}.*" -e "Name=.*${exported_app}.*" "{}" | sed 's/./\\&/g' |
-			xargs -I{} grep -L -e "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox.*enter"}.*" "{}" | sed 's/./\\&/g' |
-			xargs -I{} printf "%s¤" "{}"
-	)
+		# In this phase we search for applications to export.
+		# First find command will grep through all files in the canonical directories
+		# and only list files that contain the $exported_app, excluding those that
+		# already contains a distrobox-enter command. So skipping already exported apps.
+		# Second find will list all files that contain the name specified, so that
+		# it is possible to export an app not only by its executable name but also
+		# by its launcher name.
+		desktop_files=$(
+			# shellcheck disable=SC2086
+			find ${canon_dirs} -type f -print -o -type l -print | sed 's/./\\&/g' |
+				xargs -I{} grep -l -e "Exec=.*${exported_app}.*" -e "Name=.*${exported_app}.*" "{}" | sed 's/./\\&/g' |
+				xargs -I{} grep -L -e "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox.*enter"}.*" "{}" | sed 's/./\\&/g' |
+				xargs -I{} printf "%s¤" "{}"
+		)
+	fi
 
 	# Ensure the app we're exporting is installed
 	# Check that we found some desktop files first.

@@ -18,7 +18,7 @@ automatically be launched from the container it is exported from.
 
 **distrobox-export**
 
-	--app/-a:		name of the application to export
+	--app/-a:		name of the application to export or absolute path to desktopfile to export
 	--bin/-b:		absolute path of the binary to export
 	--list-apps:		list applications exported from this container
 	--list-binaries		list binaries exported from this container, use -ep to specify custom paths to search
@@ -49,6 +49,10 @@ Using `distrobox-export` from **inside** the container will let you use them fro
 This tool will simply copy the original `.desktop` files along with needed icons,
 add the prefix `/usr/local/bin/distrobox-enter -n distrobox_name -e ...` to the commands to run, and
 save them in your home to be used directly from the host as a normal app.
+
+	distrobox-export --app /opt/application/my-app.desktop
+
+This will skip searching for the desktopfile in canonical paths, and just use the provided file path.
 
 **Binary export example**
 
