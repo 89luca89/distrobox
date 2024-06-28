@@ -37,7 +37,7 @@ specified using the \f[V]--file\f[R] flag.
 .IP
 .nf
 \f[C]
---file:         path to the distrobox manifest/ini file
+--file:         path or URL to the distrobox manifest/ini file
 --name/-n:      run against a single entry in the manifest/ini file
 --replace/-R:       replace already existing distroboxes with matching names
 --dry-run/-d:       only print the container manager command generated
@@ -96,6 +96,14 @@ You can specify a custom path for the file using
 .nf
 \f[C]
 distrobox assemble create --file /my/custom/path.ini
+\f[R]
+.fi
+.PP
+Or even specify a remote file, by using an URL:
+.IP
+.nf
+\f[C]
+distrobox-assemble create --file https://raw.githubusercontent.com/89luca89/dotfiles/master/distrobox.ini
 \f[R]
 .fi
 .PP
@@ -1456,7 +1464,7 @@ will automatically be launched from the container it is exported from.
 .IP
 .nf
 \f[C]
---app/-a:       name of the application to export
+--app/-a:       name of the application to export or absolute path to desktopfile to export
 --bin/-b:       absolute path of the binary to export
 --list-apps:        list applications exported from this container
 --list-binaries     list binaries exported from this container, use -ep to specify custom paths to search
@@ -1500,6 +1508,15 @@ with needed icons, add the prefix
 \f[V]/usr/local/bin/distrobox-enter -n distrobox_name -e ...\f[R] to the
 commands to run, and save them in your home to be used directly from the
 host as a normal app.
+.IP
+.nf
+\f[C]
+distrobox-export --app /opt/application/my-app.desktop
+\f[R]
+.fi
+.PP
+This will skip searching for the desktopfile in canonical paths, and
+just use the provided file path.
 .PP
 \f[B]Binary export example\f[R]
 .IP

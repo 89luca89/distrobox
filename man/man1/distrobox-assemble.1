@@ -37,7 +37,7 @@ specified using the \f[V]--file\f[R] flag.
 .IP
 .nf
 \f[C]
---file:         path to the distrobox manifest/ini file
+--file:         path or URL to the distrobox manifest/ini file
 --name/-n:      run against a single entry in the manifest/ini file
 --replace/-R:       replace already existing distroboxes with matching names
 --dry-run/-d:       only print the container manager command generated
@@ -96,6 +96,14 @@ You can specify a custom path for the file using
 .nf
 \f[C]
 distrobox assemble create --file /my/custom/path.ini
+\f[R]
+.fi
+.PP
+Or even specify a remote file, by using an URL:
+.IP
+.nf
+\f[C]
+distrobox-assemble create --file https://raw.githubusercontent.com/89luca89/dotfiles/master/distrobox.ini
 \f[R]
 .fi
 .PP
