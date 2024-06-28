@@ -31,6 +31,7 @@
 [ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
 
 # Defaults
+container_name="${CONTAINER_ID:-$(grep "name=" /run/.containerenv | cut -d'=' -f2- | tr -d '"')}"
 export_action=""
 exported_app=""
 exported_app_label=""
@@ -231,41 +232,11 @@ if [ "$(id -u)" -eq 0 ]; then
 	exit 1
 fi
 
-# Ensure the foundamental variables are set and not empty, we will not proceed
-# if they are not all set.
-if [ -z "${exported_app}" ] && [ -z "${exported_bin}" ]; then
-	printf >&2 "Error: Invalid arguments.\n"
-	printf >&2 "Error: missing export target. Run\n"
-	printf >&2 "\tdistrobox-export --help\n"
-	printf >&2 "for more information.\n"
-	exit 2
-fi
 # Ensure we're not receiving more than one action at time.
 if [ -n "${exported_app}" ] && [ -n "${exported_bin}" ]; then
 	printf >&2 "Error: Invalid arguments, choose only one action below.\n"
 	printf >&2 "Error: You can only export one thing at time.\n"
 	exit 2
-fi
-# Ensure we have the export-path set when exporting a binary.
-if [ -n "${exported_bin}" ] && [ -z "${dest_path}" ]; then
-	printf >&2 "Error: Missing argument export-path.\n"
-	exit 2
-fi
-
-if [ -n "${CONTAINER_ID}" ]; then
-	container_name="${CONTAINER_ID}"
-# if the variable is not set, let's fall back to some tricks.
-elif [ -e /.dockerenv ]; then
-	# we're in docker, let's use this trick
-	container_name=$(grep "memory:/" < /proc/self/cgroup | sed 's|.*/||')
-elif [ -e /run/.containerenv ]; then
-	# we're in podman or lilipod, use this other trick
-	container_name=$(grep "name=" /run/.containerenv | cut -d'=' -f2- | tr -d '"')
-fi
-# If one of the previous methods didn't work
-# let's fallback to a more simple way but error prone
-if [ -z "${container_name}" ]; then
-	container_name=$(uname -n | cut -d'.' -f1)
 fi
 
 # Filter enter_flags and remove redundant options
