@@ -106,13 +106,11 @@ Types legend:
 - string_list: multiple strings, for example `additional_packages="htop vim git"`. Note that `string_list` can be
 declared multiple times to be compounded:
 
-```ini
 	[ubuntu]
 	image=ubuntu:latest
 	additional_packages="git vim tmux nodejs"
 	additional_packages="htop iftop iotop"
 	additional_packages="zsh fish"
-```
 
 | Flag Name | Type | |
 | - | - | - |
