@@ -1442,6 +1442,15 @@ if ! command -v xdg-open; then
 	mkdir -p /usr/local/bin/
 	ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
 fi
+
+# If flatpak is not present, do a link of it. This is handy to handle opening of
+# links, files and apps from inside the container into the host.
+# Note: we're using /usr/bin instead of /usr/local/bin because xdg-open will read
+# the desktopfile, which will contain an absolute path of /usr/bin/flatpak
+if ! command -v flatpak; then
+	ln -sf /usr/bin/distrobox-host-exec /usr/bin/flatpak
+fi
+
 ###############################################################################
 
 # Ensure compatibility with older versions of su, this will allow to specify
