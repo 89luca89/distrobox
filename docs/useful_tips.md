@@ -10,7 +10,6 @@
   - [Export to the host](#export-to-the-host)
   - [Execute commands on the host](#execute-commands-on-the-host)
   - [Resolve "Error cannot open display: :0"](#resolve-error-cannot-open-display-0)
-  - [Enable SSH X-Forwarding when SSH-ing in a distrobox](#enable-ssh-x-forwarding-when-ssh-ing-in-a-distrobox)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using Docker inside a Distrobox](#using-docker-inside-a-distrobox)
   - [Using Podman inside a Distrobox](#using-podman-inside-a-distrobox)
@@ -33,6 +32,12 @@
 ---
 
 # Useful tips
+
+## Detect if you're in a distrobox
+
+Being this tightly integrated, it may be useful to know when you're in a container or not.
+
+To detect you can just check the environment variable `"${CONTAINER_ID}"`, if set, you're in a distrobox.
 
 ## Launch a distrobox from you applications list
 
@@ -213,20 +218,6 @@ to your `~/.distroboxrc`
 -$ cat ~/.distroboxrc
 xhost +si:localuser:$USER >/dev/null
 ```
-
-## Enable SSH X-Forwarding when SSH-ing in a distrobox
-
-SSH X-forwarding by default will not work because the container hostname is
-different from the host's one.
-You can create a distrobox that will have the same hostname as the host by creating it with:
-
-```sh
-distrobox create --name test --hostname "$(uname -n)" --image your-chosen-image:tag
-```
-
-This will ensure SSH X-Forwarding will work when SSH-ing inside the distrobox:
-
-`ssh -X myhost distrobox enter test -- xclock`
 
 ## Using init system inside a distrobox
 
