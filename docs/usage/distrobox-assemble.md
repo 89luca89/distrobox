@@ -15,7 +15,7 @@ The manifest file by default is `./distrobox.ini`, but can be specified using th
 
 **distrobox assemble**
 
-	--file:			path to the distrobox manifest/ini file
+	--file:			path or URL to the distrobox manifest/ini file
 	--name/-n:		run against a single entry in the manifest/ini file
 	--replace/-R:		replace already existing distroboxes with matching names
 	--dry-run/-d:		only print the container manager command generated
@@ -62,6 +62,10 @@ the command, no further arguments are needed.
 You can specify a custom path for the file using
 
 	distrobox assemble create --file /my/custom/path.ini
+
+Or even specify a remote file, by using an URL:
+
+	distrobox-assemble create --file https://raw.githubusercontent.com/89luca89/dotfiles/master/distrobox.ini
 
 **Replace**
 

@@ -36,6 +36,7 @@ root_flag=""
 # tmpfile will be used as a little buffer to pass variables without messing up
 # quoting and escaping
 tmpfile="$(mktemp -u)"
+tmp_download_file="$(mktemp -u)"
 verbose=0
 version="1.7.2.1"
 # initializing block of variables used in the manifest
@@ -63,7 +64,7 @@ exported_bins=""
 exported_bins_path="${HOME}/.local/bin"
 
 # Cleanup tmpfiles on exit
-trap 'rm -f ${tmpfile}' EXIT
+trap 'rm -f ${tmpfile} ${tmp_download_file}' EXIT
 
 # Despite of running this script via SUDO/DOAS being not supported (the
 # script itself will call the appropriate tool when necessary), we still want
@@ -133,7 +134,7 @@ Usage:
 
 Options:
 
-	--file:			path to the distrobox manifest/ini file
+	--file:			path or URL to the distrobox manifest/ini file
 	--name/-n:		run against a single entry in the manifest/ini file
 	--replace/-R:		replace already existing distroboxes with matching names
 	--dry-run/-d:		only print the container manager command generated
@@ -233,8 +234,19 @@ fi
 
 # Check if file effectively exists
 if [ ! -e "${input_file}" ]; then
-	printf >&2 "File %s does not exist.\n" "${input_file}"
-	exit 1
+
+	if command -v curl > /dev/null 2>&1; then
+		download="curl --connect-timeout 3 --retry 1 -sLo"
+	elif command -v wget > /dev/null 2>&1; then
+		download="wget --timeout=3 --tries=1 -qO"
+	fi
+
+	if ! ${download} - "${input_file}" > "${tmp_download_file}"; then
+		printf >&2 "File %s does not exist.\n" "${input_file}"
+		exit 1
+	else
+		input_file="${tmp_download_file}"
+	fi
 fi
 
 # run_distrobox will create distrobox with parameters parsed from ini file.
