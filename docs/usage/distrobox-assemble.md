@@ -99,45 +99,46 @@ running them.
 
 This is a list of available options with the corresponding type:
 
-| Flag Name | Type |
-| - | - |
-| additional_flags | string |
-| additional_packages | string |
-| home | string |
-| image | string |
-| init_hooks | string |
-| pre_init_hooks | string |
-| volume | string |
-| exported_apps | string |
-| exported_bins | string |
-| exported_bins_path | string |
-| entry | bool |
-| start_now | bool |
-| init | bool |
-| nvidia | bool |
-| pull | bool |
-| root | bool |
-| unshare_ipc | bool |
-| unshare_netns | bool |
-| unshare_process | bool |
-| unshare_devsys | bool |
-| unshare_all | bool |
+Types legend:
 
-boolean options default to false if not specified.
-string options can be broken in multiple declarations additively in order to improve
-readability of the file:
+- bool: true or false
+- string: a single string, for example `home="/home/luca-linux/dbox"`
+- string_list: multiple strings, for example `additional_packages="htop vim git"`. Note that `string_list` can be
+declared multiple times to be compounded:
 
+```ini
 	[ubuntu]
 	image=ubuntu:latest
 	additional_packages="git vim tmux nodejs"
 	additional_packages="htop iftop iotop"
 	additional_packages="zsh fish"
+```
 
-Be aware that if you're doing lines with spaces, you need to quote them.
-If you're doing multiple hooks (init or pre_init) in multiple lines, end the line with a semicolon (;)
-in order to execute them one after the other.
+| Flag Name | Type | |
+| - | - | - |
+| additional_flags | string_list | Additional flags to pass to the container manager |
+| additional_packages | string_list | Additional packages to install inside the container |
+| home | string | Which home directory should the container use |
+| image | string | Which image should the container use, look [here](../compatibility.md) for a list |
+| init_hooks | string_list | Commands to run inside the container, after the packages setup |
+| pre_init_hooks | string_list | Commands to run inside the container, before the packages setup |
+| volume | string_list | Additional volumes to mount inside the containers |
+| exported_apps | string_list | App names or desktopfile paths to export |
+| exported_bins | string_list | Binaries to export |
+| exported_bins_path | string | Optional path where to export binaries (default: $HOME/.local/bin) |
+| entry | bool | Generate an entry for the container in the app list (default: false) |
+| start_now | bool | Start the container immediately (default: false) |
+| init | bool | Specify if this is an initful container (default: false) |
+| nvidia | bool | Specify if you want to enable NVidia drivers integration (default: false) |
+| pull | bool | Specify if you want to pull the image every time (default: false) |
+| root | bool | Specify if the container is rootful (default: false) |
+| unshare_ipc | bool | Specify if the container should unshare the ipc namespace (default: false) |
+| unshare_netns | bool | Specify if the container should unshare the network namespace (default: false) |
+| unshare_process | bool | Specify if the container should unshare the process (pid) namespace (default: false) |
+| unshare_devsys | bool | Specify if the container should unshare /dev (default: false) |
+| unshare_all | bool | Specify if the container should unshare all the previous options (default: false) |
 
-For an explanation of each of the option in the list, take a look at the [distrobox create usage](distrobox-create.md#synopsis),
+For further explanation of each of the option in the list, take a look at the [distrobox create usage](distrobox-create.md#synopsis),
 each option corresponds to one of the `create` flags.
 
 **Advanced example**
