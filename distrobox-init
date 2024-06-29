@@ -30,6 +30,31 @@ trap '[ "$?" -ne 0 ] && printf "Error: An error occurred\n"' EXIT
 # Github issue: https://github.com/containers/podman/issues/20728
 exec 2>&1
 
+# We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
+# the host to the container
+HOST_MOUNTS="
+	/etc/host.conf
+	/etc/machine-id
+	/media
+	/mnt
+	/run/libvirt
+	/run/media
+	/run/netconfig/
+	/run/systemd/journal
+	/run/systemd/resolve/
+	/run/systemd/seats
+	/run/systemd/sessions
+	/run/systemd/users
+	/run/udev
+	/var/lib/libvirt
+	/var/mnt"
+
+# We'll also bind mount in READ-ONLY useful directories from the host
+HOST_MOUNTS_RO="
+	/etc/localtime
+	/var/lib/systemd/coredump
+	/var/log/journal"
+
 HOST_MOUNTS_RO_INIT="
 	/etc/localtime
 	/run/systemd/journal
@@ -393,6 +418,1189 @@ if [ "${shell_pkg}" = "ash" ]; then
 	shell_pkg="bash"
 fi
 
+# setup_pkg_manager_hooks will create umount/remount hooks script for a package
+# manager. Mainly used by apt and pacman.
+# Arguments:
+#   None
+# Expected global variables:
+#   init: if this is an initful container
+#   HOST_MOUNTS_RO_INIT: list of mountpoints of an initful system, to avoid
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_pkg_manager_hooks()
+{
+	if {
+		[ -d "/etc/dpkg/dpkg.cfg.d/" ] || [ -d "/usr/share/libalpm/scripts" ]
+	} && [ "${init}" -eq 0 ]; then
+		cat << EOF > /etc/distrobox-pre-hook.sh
+#!/bin/sh
+mounts="${HOST_MOUNTS_RO_INIT}"
+for mount in \$mounts; do
+	if findmnt \$mount >/dev/null; then
+		umount -l \$mount
+	fi
+done
+EOF
+		cat << EOF > /etc/distrobox-post-hook.sh
+#!/bin/sh
+mounts="${HOST_MOUNTS_RO_INIT}"
+for mount in \$mounts; do
+	if [ -e /run/host/\$mount ] || [ -e /run/host/\$(readlink -fm /run/host/\$mount) ]; then
+		if [ ! -d /run/host/\$mount ]; then
+			rm -f \$mount && touch \$mount
+		fi
+		if ! mount --rbind \$(readlink -fm /run/host/\$mount) \$mount; then
+			mount --rbind /run/host/\$(readlink -fm /run/host/\$mount) \$mount
+		fi
+	fi
+done
+EOF
+		chmod +x /etc/distrobox-pre-hook.sh /etc/distrobox-post-hook.sh
+	fi
+}
+
+# setup_deb_exceptions will create path-excludes for host mounts, dpkg/apt only.
+# Arguments:
+#   None
+# Expected global variables:
+#   init: if this is an initful container
+#   HOST_MOUNTS_RO: list of readonly mountpoints, to avoid
+#   HOST_MOUNTS: list of readwrite mountpoints, to avoid
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_deb_exceptions()
+{
+	setup_pkg_manager_hooks
+
+	# In case of an DEB distro, we can specify that our bind_mount directories
+	# have to be ignored. This prevents conflicts during package installations.
+	if [ "${init}" -eq 0 ]; then
+		# Loop through all the environment vars
+		# and export them to the container.
+		mkdir -p /etc/dpkg/dpkg.cfg.d/
+		printf "" > /etc/dpkg/dpkg.cfg.d/00_distrobox
+		for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
+			printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
+		done
+
+		# Also we put a hook to clear some critical paths that do not play well
+		# with read only filesystems, like Systemd.
+		if [ -d "/etc/apt/apt.conf.d/" ]; then
+			printf 'DPkg::Pre-Invoke {/etc/distrobox-pre-hook.sh};\n' > /etc/apt/apt.conf.d/00_distrobox
+			printf 'DPkg::Post-Invoke {/etc/distrobox-post-hook.sh};\n' >> /etc/apt/apt.conf.d/00_distrobox
+		fi
+	fi
+}
+
+# setup_pacman_exceptions will set pre/post transaction hooks to avoid host's mounts, pacman only.
+# Arguments:
+#   None
+# Expected global variables:
+#   init: if this is an initful container
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_pacman_exceptions()
+{
+	# Workarounds for pacman. We need to exclude the paths by using a pre-hook to umount them and a
+	# post-hook to remount them. Additionally we neutralize the systemd-post-hooks as they do not
+	# work on a rootless container system.
+	if [ -d "/usr/share/libalpm/scripts" ] && [ "${init}" -eq 0 ]; then
+		# in case we're not using an init image, neutralize systemd post installation hooks
+		# so that we do not encounter problems along the way.
+		# This will be removed if we're using --init.
+		cat << EOF > /usr/share/libalpm/scripts/distrobox_post_hook.sh
+#!/bin/sh
+echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
+EOF
+		chmod +x /usr/share/libalpm/scripts/distrobox_post_hook.sh
+
+		# create hooks files for them
+		find /usr/share/libalpm/hooks/*distrobox* -delete || :
+		for hook in /etc/distrobox-pre-hook.sh /etc/distrobox-post-hook.sh /usr/share/libalpm/scripts/distrobox_post_hook.sh; do
+			when="PostTransaction"
+			[ -z "${hook##*pre*}" ] && when="PreTransaction"
+			cat << EOF > "/usr/share/libalpm/hooks/$(basename "${hook}").hook"
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = *
+[Action]
+Description = Distrobox hook ${hook}...
+When = ${when}
+Exec = ${hook}
+EOF
+		done
+	fi
+
+}
+
+# setup_rpm_exceptions will create path-excludes for host mounts, rpm only (dnf, yum, zypper, microdnf).
+# Arguments:
+#   None
+# Expected global variables:
+#   init: if this is an initful container
+#   HOST_MOUNTS_RO: list of readonly mountpoints, to avoid
+#   HOST_MOUNTS: list of readwrite mountpoints, to avoid
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_rpm_exceptions()
+{
+	# In case of an RPM distro, we can specify that our bind_mount directories
+	# are in fact net shares. This prevents conflicts during package installations.
+	if [ "${init}" -eq 0 ]; then
+		mkdir -p /usr/lib/rpm/macros.d/
+		# Loop through all the environment vars
+		# and export them to the container.
+		net_mounts=""
+		for net_mount in \
+			${HOST_MOUNTS_RO} ${HOST_MOUNTS} \
+			'/dev' '/proc' '/sys' '/tmp' \
+			'/etc/hosts' '/etc/resolv.conf' '/etc/passwd' '/etc/shadow'; do
+
+			net_mounts="${net_mount}:${net_mounts}"
+		done
+		net_mounts=${net_mounts%?}
+		cat << EOF > /usr/lib/rpm/macros.d/macros.distrobox
+%_netsharedpath ${net_mounts}
+EOF
+	fi
+}
+
+# setup_xbps_exceptions will create path-excludes for host mounts, xbps only.
+# Arguments:
+#   None
+# Expected global variables:
+#   None
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_xbps_exceptions()
+{
+	# We have to lock this paths from xbps extraction, as it's incompatible with distrobox's
+	# mount process.
+	cat << EOF > /etc/xbps.d/distrobox-ignore.conf
+noextract=/etc/passwd
+noextract=/etc/hosts
+noextract=/etc/host.conf
+noextract=/etc/hostname
+noextract=/etc/localtime
+noextract=/etc/machine-id
+noextract=/etc/resolv.conf
+EOF
+}
+
+# setup_apk will upgrade or setup all packages for apk based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_apk()
+{
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		apk update
+		apk upgrade
+		exit
+	fi
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! apk add "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	if apk add wolfi-base; then
+		deps="
+			busybox
+			gnutar
+			man-db
+			mesa
+			openssh-client
+			posix-libc-utils
+		"
+	elif apk add alpine-base; then
+		deps="
+			bash-completion
+			docs
+			gcompat
+			libc-utils
+			lsof
+			man-pages
+			mandoc
+			musl-utils
+			openssh-client-default
+			pinentry
+			tar
+			vte3
+			which
+			$(apk search -q mesa-dri)
+			$(apk search -q mesa-vulkan)
+		"
+	fi
+	deps="${deps:-}
+		${shell_pkg}
+		bash
+		bc
+		bzip2
+		coreutils
+		curl
+		diffutils
+		findmnt
+		findutils
+		gnupg
+		gpg
+		iproute2
+		iputils
+		keyutils
+		less
+		libcap
+		mount
+		ncurses
+		ncurses-terminfo
+		net-tools
+		pigz
+		rsync
+		shadow
+		sudo
+		tcpdump
+		tree
+		tzdata
+		umount
+		unzip
+		util-linux
+		util-linux-login
+		util-linux-misc
+		vulkan-loader
+		wget
+		xauth
+		xz
+		zip
+		$(apk search -qe procps)
+	"
+	# shellcheck disable=SC2086
+	found_deps="$(apk search -qe ${deps} | tr '\n' ' ')"
+	install_pkg=""
+	for dep in ${deps}; do
+		# shellcheck disable=SC2249
+		case " ${found_deps} " in
+			*" ${dep} "*)
+				install_pkg="${install_pkg} ${dep}"
+				;;
+		esac
+	done
+	# shellcheck disable=SC2086
+	apk add --force-overwrite ${install_pkg}
+
+	# Ensure we have tzdata installed and populated, sometimes container
+	# images blank the zoneinfo directory, so we reinstall the package to
+	# ensure population
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		apk del tzdata
+		apk add tzdata
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		apk add --force-overwrite ${container_additional_packages}
+	fi
+}
+
+# setup_apt will upgrade or setup all packages for apt based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_apt()
+{
+	export DEBIAN_FRONTEND=noninteractive
+
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		apt-get update
+		apt-get upgrade -y
+		exit
+	fi
+	# In Ubuntu official images, dpkg is configured to ignore locale and docs
+	# This however, results in a rather poor out-of-the-box experience
+	# So, let's enable them.
+	rm -f /etc/dpkg/dpkg.cfg.d/excludes
+
+	apt-get update
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! apt-get install -y "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	deps="
+		${shell_pkg}
+		apt-utils
+		bash-completion
+		bc
+		bzip2
+		curl
+		dialog
+		diffutils
+		findutils
+		gnupg
+		gnupg2
+		gpgsm
+		hostname
+		iproute2
+		iputils-ping
+		keyutils
+		language-pack-en
+		less
+		libcap2-bin
+		libkrb5-3
+		libnss-mdns
+		libnss-myhostname
+		libvte-2.9*-common
+		libvte-common
+		locales
+		lsof
+		man-db
+		manpages
+		mtr
+		ncurses-base
+		openssh-client
+		passwd
+		pigz
+		pinentry-curses
+		procps
+		rsync
+		sudo
+		tcpdump
+		time
+		traceroute
+		tree
+		tzdata
+		unzip
+		util-linux
+		wget
+		xauth
+		xz-utils
+		zip
+		libgl1
+		libegl1-mesa
+		libgl1-mesa-glx
+		libegl1
+		libglx-mesa0
+		libvulkan1
+		mesa-vulkan-drivers
+	"
+	# shellcheck disable=SC2086,2046
+	apt-get install -y $(apt-cache show ${deps} 2> /dev/null | grep "Package:" | sort -u | cut -d' ' -f2-)
+
+	# Setup hooks
+	setup_deb_exceptions
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if [ -e /etc/locale.gen ] && {
+		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
+	}; then
+		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
+		locale-gen
+		update-locale LC_ALL="${HOST_LOCALE}" LANG="${HOST_LOCALE}"
+		dpkg-reconfigure locales
+	fi
+
+	# Ensure we have tzdata installed and populated, sometimes container
+	# images blank the zoneinfo directory, so we reinstall the package to
+	# ensure population
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		apt-get --reinstall install tzdata
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		apt-get install -y ${container_additional_packages}
+	fi
+}
+
+# setup_dnf will upgrade or setup all packages for dnf/yum based systems.
+# Arguments:
+#   manager: yum or dnf
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_dnf()
+{
+	setup_rpm_exceptions
+
+	manager=$1
+
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		${manager} upgrade -y
+		exit
+	fi
+	# In dnf family official images, dnf is configured to ignore locale and docs
+	# This however, results in a rather poor out-of-the-box experience
+	# So, let's enable them.
+	[ -e /etc/dnf/dnf.conf ] && sed -i '/tsflags=nodocs/d' /etc/dnf/dnf.conf
+	[ -e /etc/yum.conf ] && sed -i '/tsflags=nodocs/d' /etc/yum.conf
+
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! ${manager} install -y "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	deps="
+		${shell_pkg}
+		bash-completion
+		bc
+		bzip2
+		cracklib-dicts
+		curl
+		diffutils
+		dnf-plugins-core
+		findutils
+		glibc-all-langpacks
+		glibc-common
+		glibc-locale-source
+		gnupg2
+		gnupg2-smime
+		hostname
+		iproute
+		iputils
+		keyutils
+		krb5-libs
+		less
+		lsof
+		man-db
+		man-pages
+		mtr
+		ncurses
+		nss-mdns
+		openssh-clients
+		pam
+		passwd
+		pigz
+		pinentry
+		procps-ng
+		rsync
+		shadow-utils
+		sudo
+		tcpdump
+		time
+		traceroute
+		tree
+		tzdata
+		unzip
+		util-linux
+		vte-profile
+		wget
+		which
+		whois
+		words
+		xorg-x11-xauth
+		xz
+		zip
+		mesa-dri-drivers
+		mesa-vulkan-drivers
+		vulkan
+	"
+	# shellcheck disable=SC2086,2046
+	${manager} install -y $(${manager} list -q ${deps} |
+		grep -v "Packages" |
+		grep "$(uname -m)" |
+		cut -d' ' -f1)
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if [ ! -e /usr/share/i18n/charmaps ]; then
+		${manager} reinstall -y glibc-common
+	fi
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
+	fi
+
+	# Ensure we have tzdata installed and populated, sometimes container
+	# images blank the zoneinfo directory, so we reinstall the package to
+	# ensure population
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		${manager} reinstall -y tzdata
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		${manager} install -y ${container_additional_packages}
+	fi
+}
+
+# setup_emerge will upgrade or setup all packages for gentoo based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_emerge()
+{
+	# Check if the container we are using has a ::gentoo repo defined,
+	# if it is defined and it is empty, then synchroznize it.
+	gentoo_repo="$(portageq get_repo_path / gentoo)"
+	if [ -n "${gentoo_repo}" ] && [ ! -e "${gentoo_repo}" ]; then
+		emerge-webrsync
+	fi
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		emerge --sync
+		exit
+	fi
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	deps="
+		app-shells/${shell_pkg}
+		app-crypt/gnupg
+		app-shells/bash-completion
+		sys-apps/diffutils
+		sys-apps/findutils
+		sys-apps/less
+		sys-libs/ncurses
+		net-misc/curl
+		app-crypt/pinentry
+		sys-process/procps
+		sys-apps/shadow
+		app-admin/sudo
+		sys-devel/bc
+		sys-process/lsof
+		sys-apps/util-linux
+		net-misc/wget
+	"
+	install_pkg=""
+	for dep in ${deps}; do
+		if [ "$(emerge --ask=n --search "${dep}" | grep "Applications found" | grep -Eo "[0-9]")" -gt 0 ]; then
+			# shellcheck disable=SC2086
+			install_pkg="${install_pkg} ${dep}"
+		fi
+	done
+	# shellcheck disable=SC2086
+	emerge --ask=n --autounmask-continue --noreplace --quiet-build ${install_pkg}
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
+		locale-gen
+		cat << EOF > /etc/env.d/02locale
+LANG=${HOST_LOCALE}
+LC_CTYPE=${HOST_LOCALE}
+EOF
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		emerge --ask=n --autounmask-continue --noreplace --quiet-build \
+			${container_additional_packages}
+	fi
+}
+
+# setup_microdnf will upgrade or setup all packages for microdnf based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_microdnf()
+{
+	setup_rpm_exceptions
+
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		microdnf upgrade -y
+		exit
+	fi
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! microdnf install -y "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	deps="
+		${shell_pkg}
+		bash-completion
+		bc
+		bzip2
+		cracklib-dicts
+		diffutils
+		dnf-plugins-core
+		findutils
+		glibc-all-langpacks
+		glibc-common
+		glibc-locale-source
+		gnupg2
+		gnupg2-smime
+		hostname
+		iproute
+		iputils
+		keyutils
+		krb5-libs
+		less
+		lsof
+		man-db
+		man-pages
+		mtr
+		ncurses
+		nss-mdns
+		openssh-clients
+		pam
+		passwd
+		pigz
+		pinentry
+		procps-ng
+		rsync
+		shadow-utils
+		sudo
+		tcpdump
+		time
+		traceroute
+		tree
+		tzdata
+		unzip
+		util-linux
+		vte-profile
+		wget
+		which
+		whois
+		words
+		xorg-x11-xauth
+		xz
+		zip
+		mesa-dri-drivers
+		mesa-vulkan-drivers
+		vulkan
+	"
+	install_pkg=""
+	for dep in ${deps}; do
+		if [ "$(microdnf repoquery "${dep}" | wc -l)" -gt 0 ]; then
+			install_pkg="${install_pkg} ${dep}"
+		fi
+	done
+	# shellcheck disable=SC2086,SC2046
+	microdnf install -y ${install_pkg}
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		microdnf reinstall -y tzdata || microdnf install -y glibc-common
+	fi
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
+	fi
+
+	# Ensure we have tzdata installed and populated, sometimes container
+	# images blank the zoneinfo directory, so we reinstall the package to
+	# ensure population
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		microdnf reinstall -y tzdata || microdnf install -y tzdata
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		microdnf install -y ${container_additional_packages}
+	fi
+}
+
+# setup_pacman will upgrade or setup all packages for pacman based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_pacman()
+{
+	# Update the package repository cache exactly once before installing packages.
+	pacman -S -y -y
+
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		pacman -S -u --noconfirm
+		exit
+	fi
+	# In archlinux official images, pacman is configured to ignore locale and docs
+	# This however, results in a rather poor out-of-the-box experience
+	# So, let's enable them.
+	sed -i "s|NoExtract.*||g" /etc/pacman.conf
+	sed -i "s|NoProgressBar.*||g" /etc/pacman.conf
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
+		locale-gen -a
+	fi
+
+	pacman -S -u --noconfirm
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! pacman -S --needed --noconfirm "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	deps="
+		${shell_pkg}
+		bash-completion
+		bc
+		curl
+		diffutils
+		findutils
+		glibc
+		gnupg
+		inetutils
+		keyutils
+		less
+		lsof
+		man-db
+		man-pages
+		mlocate
+		mtr
+		ncurses
+		nss-mdns
+		openssh
+		pigz
+		pinentry
+		procps-ng
+		rsync
+		shadow
+		sudo
+		tcpdump
+		time
+		traceroute
+		tree
+		tzdata
+		unzip
+		util-linux
+		util-linux-libs
+		vte-common
+		wget
+		words
+		xorg-xauth
+		zip
+		mesa
+		vulkan-intel
+		vulkan-radeon
+	"
+	# shellcheck disable=SC2086,2046
+	pacman -S --needed --noconfirm $(pacman -Ssq | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
+
+	# Setup hooks
+	setup_pacman_exceptions
+
+	# Ensure we have tzdata installed and populated, sometimes container
+	# images blank the zoneinfo directory, so we reinstall the package to
+	# ensure population
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		pacman -S --noconfirm tzdata
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		pacman -S --needed --noconfirm ${container_additional_packages}
+	fi
+}
+
+# setup_slackpkg will upgrade or setup all packages for slackware based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_slackpkg()
+{
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		yes | slackpkg upgrade-all -default_answer=yes -batch=yes
+		exit
+	fi
+	slackpkg update
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! yes | slackpkg install -default_answer=yes -batch=yes "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	deps="
+		${shell_pkg}
+		bash-completion
+		bc
+		curl
+		diffutils
+		findutils
+		glew
+		glibc
+		glu
+		gnupg2
+		iputils
+		less
+		libX11
+		libXau
+		libXdamage
+		libXdmcp
+		libXext
+		libXfixes
+		libXxf86vm
+		libdrm
+		libvte-2
+		libxcb
+		libxcb-dri2
+		libxcb-dri3
+		libxcb-glx
+		libxcb-present
+		libxcb-randr
+		libxcb-render
+		libxcb-shape
+		libxcb-sync
+		libxcb-xfixes
+		libxshmfence
+		lsof
+		man
+		mesa
+		ncurses
+		openssh
+		pinentry
+		procps
+		rsync
+		shadow
+		ssh
+		sudo
+		time
+		wget
+		xauth
+	"
+	install_pkg=""
+	dep=""
+	for dep in ${deps}; do
+		if ! slackpkg search "${dep}" | grep -q "No package name matches the pattern"; then
+			install_pkg="${install_pkg} ${dep}"
+		fi
+	done
+
+	rm -f /var/lock/slackpkg.*
+
+	# shellcheck disable=SC2086
+	yes | slackpkg install -default_answer=yes -batch=yes ${install_pkg}
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		yes | slackpkg install -default_answer=yes -batch=yes \
+			${container_additional_packages}
+	fi
+}
+
+# setup_swupd will upgrade or setup all packages for clearlinux based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_swupd()
+{
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		swupd update
+		exit
+	fi
+
+	swupd bundle-add os-core-search
+
+	deps="
+		bc
+		cryptography
+		curl
+		network-basic
+		procps-ng
+		rsync
+		shells
+		sysadmin-basic
+		unzip
+		wget
+		x11-tools
+		zip
+		devpkg-Vulkan-Loader
+		lib-opengl
+	"
+	install_pkg=""
+	for dep in ${deps}; do
+		if swupd search "${dep}" > /dev/null; then
+			install_pkg="${install_pkg} ${dep}"
+		fi
+	done
+	# shellcheck disable=SC2086
+	swupd bundle-add ${install_pkg}
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		swupd bundle-add ${container_additional_packages}
+	fi
+}
+
+# setup_xbps will upgrade or setup all packages for xbps based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_xbps()
+{
+	setup_xbps_exceptions
+
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		xbps-install -Syu
+		exit
+	fi
+	# Ensure we avoid errors by keeping xbps updated
+	xbps-install -Syu xbps
+
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! xbps-install -Sy "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	deps="
+		${shell_pkg}
+		bash-completion
+		bc
+		bzip2
+		curl
+		diffutils
+		findutils
+		gnupg2
+		inetutils-ping
+		iproute2
+		less
+		lsof
+		man-db
+		mit-krb5-client
+		mit-krb5-libs
+		mtr
+		ncurses-base
+		nss
+		openssh
+		pigz
+		pinentry-tty
+		procps-ng
+		rsync
+		shadow
+		sudo
+		time
+		traceroute
+		tree
+		tzdata
+		unzip
+		util-linux
+		xauth
+		xz
+		zip
+		wget
+		vte3
+		mesa-dri
+		vulkan-loader
+		mesa-vulkan-intel
+		mesa-vulkan-radeon
+	"
+	# shellcheck disable=SC2086,2046
+	xbps-install -Sy $(xbps-query -Rs '*' | awk '{print $2}' | sed 's/-[^-]*$//' | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if command -v locale && {
+		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
+	}; then
+		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/default/libc-locales
+		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/default/libc-locales
+		xbps-reconfigure --force glibc-locales
+	fi
+
+	# Ensure we have tzdata installed and populated, sometimes container
+	# images blank the zoneinfo directory, so we reinstall the package to
+	# ensure population
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		xbps-install --force -y tzdata
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		xbps-install -Sy ${container_additional_packages}
+	fi
+}
+
+# setup_zypper will upgrade or setup all packages for zypper based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_zypper()
+{
+	setup_rpm_exceptions
+
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		zypper dup -y
+		exit
+	fi
+	if ! zypper install -y "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+
+	# In openSUSE official images, zypper is configured to ignore recommended
+	# packages (i.e., weak dependencies). This however, results in a rather
+	# poor out-of-the-box experience (e.g., when trying to run GUI apps).
+	# So, let's enable them. For the same reason, we make sure we install
+	# docs.
+	sed -i 's/.*solver.onlyRequires.*/solver.onlyRequires = false/g' /etc/zypp/zypp.conf
+	sed -i 's/.*rpm.install.excludedocs.*/rpm.install.excludedocs = no/g' /etc/zypp/zypp.conf
+	# With recommended packages, something might try to pull in
+	# parallel-printer-support which can't be installed in rootless containers.
+	# Since we very much likely never need it, just lock it
+	zypper al parallel-printer-support
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	deps="
+		${shell_pkg}
+		bash-completion
+		bc
+		bzip2
+		curl
+		diffutils
+		findutils
+		glibc-locale
+		glibc-locale-base
+		gnupg
+		hostname
+		iputils
+		keyutils
+		less
+		libvte-2*
+		lsof
+		man
+		man-pages
+		mtr
+		ncurses
+		nss-mdns
+		openssh-clients
+		pam
+		pam-extra
+		pigz
+		pinentry
+		procps
+		rsync
+		shadow
+		sudo
+		system-group-wheel
+		systemd
+		time
+		timezone
+		tree
+		unzip
+		util-linux
+		util-linux-systemd
+		wget
+		words
+		xauth
+		zip
+		Mesa-dri
+		libvulkan1
+		libvulkan_intel
+		libvulkan_radeon
+	"
+	# Mark gpg errors (exit code 106) as non-fatal, but don't pull anything from unverified repos
+	# shellcheck disable=SC2086,SC2046
+	zypper -n install -y $(zypper -n -q se --match-exact ${deps} | grep -e 'package$' | cut -d'|' -f2) || [ ${?} = 106 ]
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}" || true
+	fi
+
+	# Ensure we have tzdata installed and populated, sometimes container
+	# images blank the zoneinfo directory, so we reinstall the package to
+	# ensure population
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		zypper install -f -y timezone
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		zypper install -y ${container_additional_packages}
+	fi
+}
+
 # Check dependencies in a list, and install all if one is missing
 missing_packages=0
 dependencies="
@@ -449,976 +1657,27 @@ if [ "${upgrade}" -ne 0 ] ||
 	#	sudo, mount, find
 	#	passwd, groupadd and useradd
 	if command -v apk; then
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			apk update
-			apk upgrade
-			exit
-		fi
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		if ! apk add "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-		if apk add wolfi-base; then
-			deps="
-				busybox
-				gnutar
-				man-db
-				mesa
-				openssh-client
-				posix-libc-utils
-			"
-		elif apk add alpine-base; then
-			deps="
-				bash-completion
-				docs
-				gcompat
-				libc-utils
-				lsof
-				man-pages
-				mandoc
-				musl-utils
-				openssh-client-default
-				pinentry
-				tar
-				vte3
-				which
-				$(apk search -q mesa-dri)
-				$(apk search -q mesa-vulkan)
-			"
-		fi
-		deps="${deps:-}
-			${shell_pkg}
-			bash
-			bc
-			bzip2
-			coreutils
-			curl
-			diffutils
-			findmnt
-			findutils
-			gnupg
-			gpg
-			iproute2
-			iputils
-			keyutils
-			less
-			libcap
-			mount
-			ncurses
-			ncurses-terminfo
-			net-tools
-			pigz
-			rsync
-			shadow
-			sudo
-			tcpdump
-			tree
-			tzdata
-			umount
-			unzip
-			util-linux
-			util-linux-login
-			util-linux-misc
-			vulkan-loader
-			wget
-			xauth
-			xz
-			zip
-			$(apk search -qe procps)
-		"
-		# shellcheck disable=SC2086
-		found_deps="$(apk search -qe ${deps} | tr '\n' ' ')"
-		install_pkg=""
-		for dep in ${deps}; do
-			# shellcheck disable=SC2249
-			case " ${found_deps} " in
-				*" ${dep} "*)
-					install_pkg="${install_pkg} ${dep}"
-					;;
-			esac
-		done
-		# shellcheck disable=SC2086
-		apk add --force-overwrite ${install_pkg}
-
-		# Ensure we have tzdata installed and populated, sometimes container
-		# images blank the zoneinfo directory, so we reinstall the package to
-		# ensure population
-		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			apk del tzdata
-			apk add tzdata
-		fi
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			apk add --force-overwrite ${container_additional_packages}
-		fi
-
+		setup_apk
 	elif command -v apt-get; then
-		export DEBIAN_FRONTEND=noninteractive
-
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			apt-get update
-			apt-get upgrade -y
-			exit
-		fi
-		# In Ubuntu official images, dpkg is configured to ignore locale and docs
-		# This however, results in a rather poor out-of-the-box experience
-		# So, let's enable them.
-		rm -f /etc/dpkg/dpkg.cfg.d/excludes
-
-		apt-get update
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		if ! apt-get install -y "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-		deps="
-			${shell_pkg}
-			apt-utils
-			bash-completion
-			bc
-			bzip2
-			curl
-			dialog
-			diffutils
-			findutils
-			gnupg
-			gnupg2
-			gpgsm
-			hostname
-			iproute2
-			iputils-ping
-			keyutils
-			language-pack-en
-			less
-			libcap2-bin
-			libkrb5-3
-			libnss-mdns
-			libnss-myhostname
-			libvte-2.9*-common
-			libvte-common
-			locales
-			lsof
-			man-db
-			manpages
-			mtr
-			ncurses-base
-			openssh-client
-			passwd
-			pigz
-			pinentry-curses
-			procps
-			rsync
-			sudo
-			tcpdump
-			time
-			traceroute
-			tree
-			tzdata
-			unzip
-			util-linux
-			wget
-			xauth
-			xz-utils
-			zip
-			libgl1
-			libegl1-mesa
-			libgl1-mesa-glx
-			libegl1
-			libglx-mesa0
-			libvulkan1
-			mesa-vulkan-drivers
-		"
-		# shellcheck disable=SC2086,2046
-		apt-get install -y $(apt-cache show ${deps} 2> /dev/null | grep "Package:" | sort -u | cut -d' ' -f2-)
-
-		# In case the locale is not available, install it
-		# will ensure we don't fallback to C.UTF-8
-		if [ -e /etc/locale.gen ] && {
-			! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
-		}; then
-			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
-			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
-			locale-gen
-			update-locale LC_ALL="${HOST_LOCALE}" LANG="${HOST_LOCALE}"
-			dpkg-reconfigure locales
-		fi
-
-		# Ensure we have tzdata installed and populated, sometimes container
-		# images blank the zoneinfo directory, so we reinstall the package to
-		# ensure population
-		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			apt-get --reinstall install tzdata
-		fi
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			apt-get install -y ${container_additional_packages}
-		fi
-
+		setup_apt
 	elif command -v dnf; then
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			dnf upgrade -y
-			exit
-		fi
-		# In dnf family official images, dnf is configured to ignore locale and docs
-		# This however, results in a rather poor out-of-the-box experience
-		# So, let's enable them.
-		sed -i '/tsflags=nodocs/d' /etc/dnf/dnf.conf
-
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		if ! dnf install -y "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-		deps="
-			${shell_pkg}
-			bash-completion
-			bc
-			bzip2
-			cracklib-dicts
-			curl
-			diffutils
-			dnf-plugins-core
-			findutils
-			glibc-all-langpacks
-			glibc-common
-			glibc-locale-source
-			gnupg2
-			gnupg2-smime
-			hostname
-			iproute
-			iputils
-			keyutils
-			krb5-libs
-			less
-			lsof
-			man-db
-			man-pages
-			mtr
-			ncurses
-			nss-mdns
-			openssh-clients
-			pam
-			passwd
-			pigz
-			pinentry
-			procps-ng
-			rsync
-			shadow-utils
-			sudo
-			tcpdump
-			time
-			traceroute
-			tree
-			tzdata
-			unzip
-			util-linux
-			vte-profile
-			wget
-			which
-			whois
-			words
-			xorg-x11-xauth
-			xz
-			zip
-			mesa-dri-drivers
-			mesa-vulkan-drivers
-			vulkan
-		"
-		# shellcheck disable=SC2086,2046
-		dnf install -y --allowerasing $(dnf repoquery -q --latest-limit 1 --arch "$(uname -m)" ${deps})
-
-		# In case the locale is not available, install it
-		# will ensure we don't fallback to C.UTF-8
-		if [ ! -e /usr/share/i18n/charmaps ]; then
-			dnf reinstall -y glibc-common
-		fi
-		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
-			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
-		fi
-
-		# Ensure we have tzdata installed and populated, sometimes container
-		# images blank the zoneinfo directory, so we reinstall the package to
-		# ensure population
-		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			dnf reinstall -y tzdata
-		fi
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			dnf install -y ${container_additional_packages}
-		fi
-
+		setup_dnf dnf
 	elif command -v emerge; then
-		# Check if the container we are using has a ::gentoo repo defined,
-		# if it is defined and it is empty, then synchroznize it.
-		gentoo_repo="$(portageq get_repo_path / gentoo)"
-		if [ -n "${gentoo_repo}" ] && [ ! -e "${gentoo_repo}" ]; then
-			emerge-webrsync
-		fi
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			emerge --sync
-			exit
-		fi
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		if ! emerge --ask=n --autounmask-continue --noreplace --quiet-build "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-		deps="
-			app-shells/${shell_pkg}
-			app-crypt/gnupg
-			app-shells/bash-completion
-			sys-apps/diffutils
-			sys-apps/findutils
-			sys-apps/less
-			sys-libs/ncurses
-			net-misc/curl
-			app-crypt/pinentry
-			sys-process/procps
-			sys-apps/shadow
-			app-admin/sudo
-			sys-devel/bc
-			sys-process/lsof
-			sys-apps/util-linux
-			net-misc/wget
-		"
-		install_pkg=""
-		for dep in ${deps}; do
-			if [ "$(emerge --ask=n --search "${dep}" | grep "Applications found" | grep -Eo "[0-9]")" -gt 0 ]; then
-				# shellcheck disable=SC2086
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-		# shellcheck disable=SC2086
-		emerge --ask=n --autounmask-continue --noreplace --quiet-build ${install_pkg}
-
-		# In case the locale is not available, install it
-		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
-			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
-			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
-			locale-gen
-			cat << EOF > /etc/env.d/02locale
-LANG=${HOST_LOCALE}
-LC_CTYPE=${HOST_LOCALE}
-EOF
-		fi
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			emerge --ask=n --autounmask-continue --noreplace --quiet-build \
-				${container_additional_packages}
-		fi
-
+		setup_emerge
 	elif command -v microdnf; then
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			microdnf upgrade -y
-			exit
-		fi
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		if ! microdnf install -y "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-		deps="
-			${shell_pkg}
-			bash-completion
-			bc
-			bzip2
-			cracklib-dicts
-			diffutils
-			dnf-plugins-core
-			findutils
-			glibc-all-langpacks
-			glibc-common
-			glibc-locale-source
-			gnupg2
-			gnupg2-smime
-			hostname
-			iproute
-			iputils
-			keyutils
-			krb5-libs
-			less
-			lsof
-			man-db
-			man-pages
-			mtr
-			ncurses
-			nss-mdns
-			openssh-clients
-			pam
-			passwd
-			pigz
-			pinentry
-			procps-ng
-			rsync
-			shadow-utils
-			sudo
-			tcpdump
-			time
-			traceroute
-			tree
-			tzdata
-			unzip
-			util-linux
-			vte-profile
-			wget
-			which
-			whois
-			words
-			xorg-x11-xauth
-			xz
-			zip
-			mesa-dri-drivers
-			mesa-vulkan-drivers
-			vulkan
-		"
-		install_pkg=""
-		for dep in ${deps}; do
-			if [ "$(microdnf repoquery "${dep}" | wc -l)" -gt 0 ]; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-		# shellcheck disable=SC2086,SC2046
-		microdnf install -y ${install_pkg}
-
-		# In case the locale is not available, install it
-		# will ensure we don't fallback to C.UTF-8
-		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			microdnf reinstall -y tzdata || microdnf install -y glibc-common
-		fi
-		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
-			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
-		fi
-
-		# Ensure we have tzdata installed and populated, sometimes container
-		# images blank the zoneinfo directory, so we reinstall the package to
-		# ensure population
-		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			microdnf reinstall -y tzdata || microdnf install -y tzdata
-		fi
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			microdnf install -y ${container_additional_packages}
-		fi
-
+		setup_microdnf
 	elif command -v pacman; then
-		# Update the package repository cache exactly once before installing packages.
-		pacman -S -y -y
-
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			pacman -S -u --noconfirm
-			exit
-		fi
-		# In archlinux official images, pacman is configured to ignore locale and docs
-		# This however, results in a rather poor out-of-the-box experience
-		# So, let's enable them.
-		sed -i "s|NoExtract.*||g" /etc/pacman.conf
-		sed -i "s|NoProgressBar.*||g" /etc/pacman.conf
-
-		# In case the locale is not available, install it
-		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
-			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
-			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
-			locale-gen -a
-		fi
-
-		pacman -S -u --noconfirm
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		if ! pacman -S --needed --noconfirm "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-		deps="
-			${shell_pkg}
-			bash-completion
-			bc
-			curl
-			diffutils
-			findutils
-			glibc
-			gnupg
-			inetutils
-			keyutils
-			less
-			lsof
-			man-db
-			man-pages
-			mlocate
-			mtr
-			ncurses
-			nss-mdns
-			openssh
-			pigz
-			pinentry
-			procps-ng
-			rsync
-			shadow
-			sudo
-			tcpdump
-			time
-			traceroute
-			tree
-			tzdata
-			unzip
-			util-linux
-			util-linux-libs
-			vte-common
-			wget
-			words
-			xorg-xauth
-			zip
-			mesa
-			vulkan-intel
-			vulkan-radeon
-		"
-		# shellcheck disable=SC2086,2046
-		pacman -S --needed --noconfirm $(pacman -Ssq | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
-
-		# Ensure we have tzdata installed and populated, sometimes container
-		# images blank the zoneinfo directory, so we reinstall the package to
-		# ensure population
-		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			pacman -S --noconfirm tzdata
-		fi
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			pacman -S --needed --noconfirm ${container_additional_packages}
-		fi
-
+		setup_pacman
 	elif command -v slackpkg; then
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			yes | slackpkg upgrade-all -default_answer=yes -batch=yes
-			exit
-		fi
-		slackpkg update
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		if ! yes | slackpkg install -default_answer=yes -batch=yes "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-		deps="
-			${shell_pkg}
-			bash-completion
-			bc
-			curl
-			diffutils
-			findutils
-			glew
-			glibc
-			glu
-			gnupg2
-			iputils
-			less
-			libX11
-			libXau
-			libXdamage
-			libXdmcp
-			libXext
-			libXfixes
-			libXxf86vm
-			libdrm
-			libvte-2
-			libxcb
-			libxcb-dri2
-			libxcb-dri3
-			libxcb-glx
-			libxcb-present
-			libxcb-randr
-			libxcb-render
-			libxcb-shape
-			libxcb-sync
-			libxcb-xfixes
-			libxshmfence
-			lsof
-			man
-			mesa
-			ncurses
-			openssh
-			pinentry
-			procps
-			rsync
-			shadow
-			ssh
-			sudo
-			time
-			wget
-			xauth
-		"
-		install_pkg=""
-		dep=""
-		for dep in ${deps}; do
-			if ! slackpkg search "${dep}" | grep -q "No package name matches the pattern"; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-
-		rm -f /var/lock/slackpkg.*
-
-		# shellcheck disable=SC2086
-		yes | slackpkg install -default_answer=yes -batch=yes ${install_pkg}
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			yes | slackpkg install -default_answer=yes -batch=yes \
-				${container_additional_packages}
-		fi
-
+		setup_slackpkg
 	elif command -v swupd; then
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			swupd update
-			exit
-		fi
-
-		swupd bundle-add os-core-search
-
-		deps="
-			bc
-			cryptography
-			curl
-			network-basic
-			procps-ng
-			rsync
-			shells
-			sysadmin-basic
-			unzip
-			wget
-			x11-tools
-			zip
-			devpkg-Vulkan-Loader
-			lib-opengl
-		"
-		install_pkg=""
-		for dep in ${deps}; do
-			if swupd search "${dep}" > /dev/null; then
-				install_pkg="${install_pkg} ${dep}"
-			fi
-		done
-		# shellcheck disable=SC2086
-		swupd bundle-add ${install_pkg}
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			swupd bundle-add ${container_additional_packages}
-		fi
-
+		setup_swupd
 	elif command -v xbps-install; then
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			xbps-install -Syu
-			exit
-		fi
-		# Ensure we avoid errors by keeping xbps updated
-		xbps-install -Syu xbps
-
-		# We have to lock this paths from xbps extraction, as it's incompatible with distrobox's
-		# mount process.
-		cat << EOF > /etc/xbps.d/distrobox-ignore.conf
-noextract=/etc/passwd
-noextract=/etc/hosts
-noextract=/etc/host.conf
-noextract=/etc/hostname
-noextract=/etc/localtime
-noextract=/etc/machine-id
-noextract=/etc/resolv.conf
-EOF
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		if ! xbps-install -Sy "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-		deps="
-			${shell_pkg}
-			bash-completion
-			bc
-			bzip2
-			curl
-			diffutils
-			findutils
-			gnupg2
-			inetutils-ping
-			iproute2
-			less
-			lsof
-			man-db
-			mit-krb5-client
-			mit-krb5-libs
-			mtr
-			ncurses-base
-			nss
-			openssh
-			pigz
-			pinentry-tty
-			procps-ng
-			rsync
-			shadow
-			sudo
-			time
-			traceroute
-			tree
-			tzdata
-			unzip
-			util-linux
-			xauth
-			xz
-			zip
-			wget
-			vte3
-			mesa-dri
-			vulkan-loader
-			mesa-vulkan-intel
-			mesa-vulkan-radeon
-		"
-		# shellcheck disable=SC2086,2046
-		xbps-install -Sy $(xbps-query -Rs '*' | awk '{print $2}' | sed 's/-[^-]*$//' | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
-
-		# In case the locale is not available, install it
-		# will ensure we don't fallback to C.UTF-8
-		if command -v locale && {
-			! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
-		}; then
-			sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/default/libc-locales
-			sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/default/libc-locales
-			xbps-reconfigure --force glibc-locales
-		fi
-
-		# Ensure we have tzdata installed and populated, sometimes container
-		# images blank the zoneinfo directory, so we reinstall the package to
-		# ensure population
-		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			xbps-install --force -y tzdata
-		fi
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			xbps-install -Sy ${container_additional_packages}
-		fi
-
+		setup_xbps
 	elif command -v yum; then
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			yum upgrade -y
-			exit
-		fi
-		# In yum family official images, yum is configured to ignore locale and docs
-		# This however, results in a rather poor out-of-the-box experience
-		# So, let's enable them.
-		sed -i '/tsflags=nodocs/d' /etc/yum.conf
-
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		if ! yum install -y "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-		deps="
-			${shell_pkg}
-			bash-completion
-			bc
-			bzip2
-			curl
-			diffutils
-			dnf-plugins-core
-			findutils
-			glibc-all-langpacks
-			glibc-common
-			glibc-locale-source
-			gnupg2
-			gnupg2-smime
-			hostname
-			iproute
-			iputils
-			keyutils
-			krb5-libs
-			less
-			lsof
-			man-db
-			man-pages
-			mtr
-			ncurses
-			nss-mdns
-			openssh-clients
-			pam
-			passwd
-			pigz
-			pinentry
-			procps-ng
-			rsync
-			shadow-utils
-			sudo
-			tcpdump
-			time
-			traceroute
-			tree
-			tzdata
-			unzip
-			util-linux
-			vte-profile
-			wget
-			which
-			whois
-			words
-			xorg-x11-xauth
-			xz
-			zip
-			mesa-dri-drivers
-			mesa-vulkan-drivers
-			vulkan
-		"
-		# shellcheck disable=SC2086,SC2046
-		yum install -y $(yum list -q ${deps} |
-			grep -v "Packages" |
-			grep "$(uname -m)" |
-			cut -d' ' -f1)
-
-		# In case the locale is not available, install it
-		# will ensure we don't fallback to C.UTF-8
-		if [ ! -e /usr/share/i18n/charmaps ]; then
-			yum reinstall -y glibc-common
-		fi
-		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
-			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
-		fi
-
-		# Ensure we have tzdata installed and populated, sometimes container
-		# images blank the zoneinfo directory, so we reinstall the package to
-		# ensure population
-		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			yum reinstall -y tzdata
-		fi
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			yum install -y ${container_additional_packages}
-		fi
-
+		setup_dnf yum
 	elif command -v zypper; then
-		# If we need to upgrade, do it and exit, no further action required.
-		if [ "${upgrade}" -ne 0 ]; then
-			zypper dup -y
-			exit
-		fi
-		if ! zypper install -y "${shell_pkg}"; then
-			shell_pkg="bash"
-		fi
-
-		# In openSUSE official images, zypper is configured to ignore recommended
-		# packages (i.e., weak dependencies). This however, results in a rather
-		# poor out-of-the-box experience (e.g., when trying to run GUI apps).
-		# So, let's enable them. For the same reason, we make sure we install
-		# docs.
-		sed -i 's/.*solver.onlyRequires.*/solver.onlyRequires = false/g' /etc/zypp/zypp.conf
-		sed -i 's/.*rpm.install.excludedocs.*/rpm.install.excludedocs = no/g' /etc/zypp/zypp.conf
-		# With recommended packages, something might try to pull in
-		# parallel-printer-support which can't be installed in rootless containers.
-		# Since we very much likely never need it, just lock it
-		zypper al parallel-printer-support
-		# Check if shell_pkg is available in distro's repo. If not we
-		# fall back to bash, and we set the SHELL variable to bash so
-		# that it is set up correctly for the user.
-		deps="
-			${shell_pkg}
-			bash-completion
-			bc
-			bzip2
-			curl
-			diffutils
-			findutils
-			glibc-locale
-			glibc-locale-base
-			gnupg
-			hostname
-			iputils
-			keyutils
-			less
-			libvte-2*
-			lsof
-			man
-			man-pages
-			mtr
-			ncurses
-			nss-mdns
-			openssh-clients
-			pam
-			pam-extra
-			pigz
-			pinentry
-			procps
-			rsync
-			shadow
-			sudo
-			system-group-wheel
-			systemd
-			time
-			timezone
-			tree
-			unzip
-			util-linux
-			util-linux-systemd
-			wget
-			words
-			xauth
-			zip
-			Mesa-dri
-			libvulkan1
-			libvulkan_intel
-			libvulkan_radeon
-		"
-		# Mark gpg errors (exit code 106) as non-fatal, but don't pull anything from unverified repos
-		# shellcheck disable=SC2086,SC2046
-		zypper -n install -y $(zypper -n -q se --match-exact ${deps} | grep -e 'package$' | cut -d'|' -f2) || [ ${?} = 106 ]
-
-		# In case the locale is not available, install it
-		# will ensure we don't fallback to C.UTF-8
-		if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
-			LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}" || true
-		fi
-
-		# Ensure we have tzdata installed and populated, sometimes container
-		# images blank the zoneinfo directory, so we reinstall the package to
-		# ensure population
-		if [ ! -e /usr/share/zoneinfo/UTC ]; then
-			zypper install -f -y timezone
-		fi
-
-		# Install additional packages passed at distrbox-create time
-		if [ -n "${container_additional_packages}" ]; then
-			# shellcheck disable=SC2086
-			zypper install -y ${container_additional_packages}
-		fi
+		setup_zypper
 	else
 		printf "Error: could not find a supported package manager.\n"
 		printf "Error: could not set up base dependencies.\n"
@@ -1496,11 +1755,6 @@ mount --make-rshared /
 ###############################################################################
 printf "distrobox: Setting up read-only mounts...\n"
 
-# We'll also bind mount in READ-ONLY useful directories from the host
-HOST_MOUNTS_RO="
-	/etc/localtime
-	/var/lib/systemd/coredump
-	/var/log/journal"
 for host_mount_ro in ${HOST_MOUNTS_RO}; do
 	# Mounting read-only in a user namespace will trigger a check to see if certain
 	# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
@@ -1528,24 +1782,6 @@ if [ -e "/var/home/${container_user_name}" ]; then
 	fi
 fi
 
-# We'll also bind mount READ-WRITE useful mountpoints to pass external drives and libvirt from
-# the host to the container
-HOST_MOUNTS="
-	/etc/host.conf
-	/etc/machine-id
-	/media
-	/mnt
-	/run/libvirt
-	/run/media
-	/run/netconfig/
-	/run/systemd/journal
-	/run/systemd/resolve/
-	/run/systemd/seats
-	/run/systemd/sessions
-	/run/systemd/users
-	/run/udev
-	/var/lib/libvirt
-	/var/mnt"
 for host_mount in ${HOST_MOUNTS}; do
 	if ! mount_bind /run/host"${host_mount}" "${host_mount}"; then
 		printf "Warning: Cannot bind mount %s to /run/host%s\n" "${host_mount}" "${host_mount}"
@@ -1735,118 +1971,6 @@ if ! mount_bind "/run/host/usr/share/fonts" "/usr/local/share/fonts"; then
 fi
 ###############################################################################
 
-###############################################################################
-if [ "${init}" -eq 0 ]; then
-	printf "distrobox: Setting up package manager exceptions...\n"
-fi
-
-# In case of an RPM distro, we can specify that our bind_mount directories
-# are in fact net shares. This prevents conflicts during package installations.
-if [ -d "/usr/lib/rpm/macros.d/" ] && [ "${init}" -eq 0 ]; then
-	printf "distrobox: Setting up rpm exceptions...\n"
-	# Loop through all the environment vars
-	# and export them to the container.
-	net_mounts=""
-	for net_mount in \
-		${HOST_MOUNTS_RO} ${HOST_MOUNTS} \
-		'/dev' '/proc' '/sys' '/tmp' \
-		'/etc/hosts' '/etc/resolv.conf'; do
-
-		net_mounts="${net_mount}:${net_mounts}"
-	done
-	net_mounts=${net_mounts%?}
-	cat << EOF > /usr/lib/rpm/macros.d/macros.distrobox
-%_netsharedpath ${net_mounts}
-EOF
-fi
-
-if {
-	[ -d "/etc/dpkg/dpkg.cfg.d/" ] || [ -d "/usr/share/libalpm/scripts" ]
-} && [ "${init}" -eq 0 ]; then
-	printf "distrobox: Setting up package manager hooks...\n"
-	cat << EOF > /etc/distrobox-pre-hook.sh
-#!/bin/sh
-mounts="${HOST_MOUNTS_RO_INIT}"
-for mount in \$mounts; do
-	if findmnt \$mount >/dev/null; then
-		umount -l \$mount
-	fi
-done
-EOF
-	cat << EOF > /etc/distrobox-post-hook.sh
-#!/bin/sh
-mounts="${HOST_MOUNTS_RO_INIT}"
-for mount in \$mounts; do
-	if [ -e /run/host/\$mount ] || [ -e /run/host/\$(readlink -fm /run/host/\$mount) ]; then
-		if [ ! -d /run/host/\$mount ]; then
-			rm -f \$mount && touch \$mount
-		fi
-		if ! mount --rbind \$(readlink -fm /run/host/\$mount) \$mount; then
-			mount --rbind /run/host/\$(readlink -fm /run/host/\$mount) \$mount
-		fi
-	fi
-done
-EOF
-	chmod +x /etc/distrobox-pre-hook.sh /etc/distrobox-post-hook.sh
-fi
-
-# In case of an DEB distro, we can specify that our bind_mount directories
-# have to be ignored. This prevents conflicts during package installations.
-if [ -d "/etc/dpkg/dpkg.cfg.d/" ] && [ "${init}" -eq 0 ]; then
-	# Loop through all the environment vars
-	# and export them to the container.
-	printf "distrobox: Setting up dpkg exceptions...\n"
-	printf "" > /etc/dpkg/dpkg.cfg.d/00_distrobox
-	for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
-		printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
-	done
-
-	# Also we put a hook to clear some critical paths that do not play well
-	# with read only filesystems, like Systemd.
-	if [ -d "/etc/apt/apt.conf.d/" ]; then
-		printf "distrobox: Setting up apt hooks...\n"
-		printf 'DPkg::Pre-Invoke {/etc/distrobox-pre-hook.sh};\n' > /etc/apt/apt.conf.d/00_distrobox
-		printf 'DPkg::Post-Invoke {/etc/distrobox-post-hook.sh};\n' >> /etc/apt/apt.conf.d/00_distrobox
-	fi
-fi
-
-# Workarounds for pacman. We need to exclude the paths by using a pre-hook to umount them and a
-# post-hook to remount them. Additionally we neutralize the systemd-post-hooks as they do not
-# work on a rootless container system.
-if [ -d "/usr/share/libalpm/scripts" ] && [ "${init}" -eq 0 ]; then
-	printf "distrobox: Setting up pacman exceptions...\n"
-
-	# in case we're not using an init image, neutralize systemd post installation hooks
-	# so that we do not encounter problems along the way.
-	# This will be removed if we're using --init.
-	cat << EOF > /usr/share/libalpm/scripts/distrobox_post_hook.sh
-#!/bin/sh
-echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
-EOF
-	chmod +x /usr/share/libalpm/scripts/distrobox_post_hook.sh
-
-	# create hooks files for them
-	printf "distrobox: Setting up pacman hooks...\n"
-	find /usr/share/libalpm/hooks/*distrobox* -delete || :
-	for hook in /etc/distrobox-pre-hook.sh /etc/distrobox-post-hook.sh /usr/share/libalpm/scripts/distrobox_post_hook.sh; do
-		when="PostTransaction"
-		[ -z "${hook##*pre*}" ] && when="PreTransaction"
-		cat << EOF > "/usr/share/libalpm/hooks/$(basename "${hook}").hook"
-[Trigger]
-Operation = Install
-Operation = Upgrade
-Type = Package
-Target = *
-[Action]
-Description = Distrobox hook ${hook}...
-When = ${when}
-Exec = ${hook}
-EOF
-	done
-fi
-###############################################################################
-
-###############################################################################
 printf "distrobox: Setting up distrobox profile...\n"
 
 # This ensures compatibility with prompts and tools between toolbx and distrobox
