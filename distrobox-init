@@ -1653,19 +1653,13 @@ if [ "${upgrade}" -ne 0 ] ||
 
 	# Detect the available package manager
 	# install minimal dependencies needed to bootstrap the container:
-	#	the same shell that's on the host
-	#	sudo, mount, find
-	#	passwd, groupadd and useradd
+	#	the same shell that's on the host + ${dependencies}
 	if command -v apk; then
 		setup_apk
 	elif command -v apt-get; then
 		setup_apt
-	elif command -v dnf; then
-		setup_dnf dnf
 	elif command -v emerge; then
 		setup_emerge
-	elif command -v microdnf; then
-		setup_microdnf
 	elif command -v pacman; then
 		setup_pacman
 	elif command -v slackpkg; then
@@ -1674,10 +1668,14 @@ if [ "${upgrade}" -ne 0 ] ||
 		setup_swupd
 	elif command -v xbps-install; then
 		setup_xbps
-	elif command -v yum; then
-		setup_dnf yum
 	elif command -v zypper; then
 		setup_zypper
+	elif command -v dnf; then
+		setup_dnf dnf
+	elif command -v microdnf; then
+		setup_microdnf
+	elif command -v yum; then
+		setup_dnf yum
 	else
 		printf "Error: could not find a supported package manager.\n"
 		printf "Error: could not set up base dependencies.\n"
@@ -2130,9 +2128,10 @@ fi
 ###############################################################################
 
 ###############################################################################
-printf "distrobox: Setting up user groups...\n"
 # If not existing, ensure we have a group for our user.
 if ! grep -q "^${container_user_name}:" /etc/group; then
+	printf "distrobox: Setting up user groups...\n"
+
 	if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
 		# It may occur that we have users with unsupported user name (eg. on LDAP or AD)
 		# So let's try and force the group creation this way.
@@ -2143,11 +2142,12 @@ fi
 
 ###############################################################################
 
-printf "distrobox: Setting up kerberos integration...\n"
 # Setup kerberos integration with the host
 if [ -d "/run/host/var/kerberos" ] &&
 	[ -d "/etc/krb5.conf.d" ] &&
 	[ ! -e "/etc/krb5.conf.d/kcm_default_ccache" ]; then
+
+	printf "distrobox: Setting up kerberos integration...\n"
 
 	cat << EOF > /etc/krb5.conf.d/kcm_default_ccache
 # # To disable the KCM credential cache, comment out the following lines.
@@ -2255,16 +2255,18 @@ elif [ ! -e /etc/passwd.done ]; then
 fi
 
 # Ensure we have our home correctly set, in case of cloned containers or whatnot
-printf "distrobox: Setting up user home...\n"
 if [ "$(getent passwd "${container_user_name}" | cut -d: -f6)" != "${container_user_home}" ]; then
+	printf "distrobox: Setting up user home...\n"
+
 	if ! usermod -d "${container_user_home}" "${container_user_name}"; then
 		sed -i "s|^${container_user_name}.*|${container_user_name}:x:${container_user_uid}:${container_user_gid}::${container_user_home}:${SHELL:-"/bin/bash"}|g" /etc/passwd
 	fi
 fi
 
 # If we're rootless, delete password for root and user
-printf "distrobox: Ensuring user's access...\n"
 if [ ! -e /etc/passwd.done ]; then
+	printf "distrobox: Ensuring user's access...\n"
+
 	temporary_password="$(md5sum < /proc/sys/kernel/random/uuid | cut -d' ' -f1)"
 	# We generate a random password to initialize the entry for the user.
 	chpasswd_failed=0
