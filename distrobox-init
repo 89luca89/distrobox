@@ -871,8 +871,12 @@ setup_dnf()
 	# Check if shell_pkg is available in distro's repo. If not we
 	# fall back to bash, and we set the SHELL variable to bash so
 	# that it is set up correctly for the user.
-	if ! ${manager} install -y "${shell_pkg}"; then
+	if ! ${manager} install -y "${shell_pkg}" 2> /dev/null; then
 		shell_pkg="bash"
+	fi
+	flags=""
+	if [ "${manager}" = "dnf" ]; then
+		flags="--allowerasing"
 	fi
 	deps="
 		${shell_pkg}
@@ -930,7 +934,7 @@ setup_dnf()
 		vulkan
 	"
 	# shellcheck disable=SC2086,2046
-	${manager} install -y $(${manager} list -q ${deps} |
+	${manager} install ${flags} -y $(${manager} list -q ${deps} |
 		grep -v "Packages" |
 		grep "$(uname -m)" |
 		cut -d' ' -f1)
