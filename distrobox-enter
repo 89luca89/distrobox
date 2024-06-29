@@ -674,7 +674,7 @@ if [ "${unshare_groups:-0}" -eq 1 ]; then
 	set -- "-c" '"$0" "$@"' -- "$@"
 	set -- "-s" "/bin/sh" "$@"
 	if [ "${headless}" -eq 0 ]; then
-			set -- "--pty" "$@"
+		set -- "--pty" "$@"
 	fi
 	set -- "${container_command_user}" "$@"
 	set -- "su" "$@"
