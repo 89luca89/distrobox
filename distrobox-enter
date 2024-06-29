@@ -86,10 +86,8 @@ if {
 fi
 
 # Defaults
-container_command=""
 # by default we use getent to get the login shell of the user and use that
 container_command_user="$(echo "${USER}" | sed 's|\\|\\\\|g')"
-container_command_login="/bin/sh -c \"\\\$(getent passwd '${container_command_user}' | cut -f 7 -d :) -l\""
 container_image_default="registry.fedoraproject.org/fedora-toolbox:latest"
 container_manager="autodetect"
 container_manager_additional_flags=""
@@ -252,13 +250,7 @@ while :; do
 			;;
 		-e | --exec | --)
 			shift
-			container_command="\"$1\""
-			shift
-			for arg in "$@"; do
-				arg="$(echo "${arg}x" | sed 's|'\''|'\'\\\\\'\''|g')"
-				arg="${arg%x}"
-				container_command="${container_command} '${arg}'"
-			done
+			# We pass the rest of arguments as $@ at the end
 			break
 			;;
 		--clean-path)
@@ -358,7 +350,6 @@ fi
 #   container_manager: string container manager to use
 #   container_name: string container name
 #   container_manager_additional_flags: string container manager additional flags to use
-#   container_command: string container command to execute
 #   container_home: string container's home path
 #   container_path: string container's default PATH variable
 #   headless: bool headless mode
@@ -380,36 +371,17 @@ generate_enter_command()
 	result_command="${result_command}
 		--interactive"
 	result_command="${result_command}
-		--detach-keys=\"\""
+		--detach-keys="
 
 	# In case of initful systems or unshared groups, we don't enter directly
 	# as our user, but we instead enter as root, and then su $USER, in order
 	# to trigger a proper login
 	if [ "${unshare_groups:-0}" -eq 1 ]; then
 		result_command="${result_command}
-			--user='root'"
-
-		# We use `su` to become the designed user, this triggers a proper login
-		# and we instantiate a proper pty with it
-		container_command_login="su ${USER}"
-		if [ "${headless}" -eq 0 ]; then
-			container_command_login="${container_command_login} --pty"
-		fi
-
-		if [ -n "${container_command}" ]; then
-			# escape $ in order to avoid evaluation by the login shell
-			container_command="$(echo "${container_command}" | sed 's/\$/\\\$/g')"
-			container_command="${container_command_login} -c \"${container_command}\""
-		fi
-
-		# in case we don't have any command to launch, ensure we do a proper login with su
-		# we're using here the --shell option in order to execute a POSIX shell for the getent
-		# command, and then launch whichever shell the user has by default.
-		# This ensures a proper login also with non-posix shells like fish.
-		container_command_login="${container_command_login} -s /bin/sh -c \"\\\$(getent passwd ${USER} | cut -f 7 -d :) -l\""
+			--user=root"
 	else
 		result_command="${result_command}
-			--user=\"${USER}\""
+			--user=${USER}"
 	fi
 
 	# For some usage, like use in service, or launched by non-terminal
@@ -432,7 +404,7 @@ generate_enter_command()
 	# to avoid confusing the user about shifted paths.
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
 	if [ "${skip_workdir}" -eq 0 ]; then
-		workdir="$(echo "${PWD:-${container_home:-"/"}}" | sed -e 's/"/\\\"/g')"
+		workdir="${PWD:-${container_home:-"/"}}"
 		if [ -n "${workdir##*"${container_home}"*}" ]; then
 			workdir="/run/host${workdir}"
 		fi
@@ -441,11 +413,11 @@ generate_enter_command()
 		workdir="${container_home}"
 	fi
 	result_command="${result_command}
-		--workdir=\"${workdir}\""
+		--workdir=${workdir}"
 	result_command="${result_command}
-		--env \"CONTAINER_ID=${container_name}\""
+		--env CONTAINER_ID=${container_name}"
 	result_command="${result_command}
-		--env \"DISTROBOX_ENTER_PATH=${distrobox_enter_path}\""
+		--env DISTROBOX_ENTER_PATH=${distrobox_enter_path}"
 
 	# Loop through all the environment vars
 	# and export them to the container.
@@ -458,7 +430,7 @@ generate_enter_command()
 		# We also NEED to ignore the HOME variable, as this is set at create time
 		# and needs to stay that way to use custom home dirs.
 		result_command="${result_command}
-			--env \"${i}\""
+			--env ${i}"
 	done
 
 	# Start with the $PATH set in the container's config
@@ -496,7 +468,7 @@ generate_enter_command()
 	fi
 
 	result_command="${result_command}
-		--env \"PATH=${container_paths}\""
+		--env PATH=${container_paths}"
 
 	# Ensure the standard FHS program paths are in XDG_DATA_DIRS environment
 	standard_paths="/usr/local/share /usr/share"
@@ -511,16 +483,16 @@ generate_enter_command()
 		fi
 	done
 	result_command="${result_command}
-		--env \"XDG_DATA_DIRS=${container_paths}\""
+		--env XDG_DATA_DIRS=${container_paths}"
 
 	# This correctly sets the XDG_* dirs to the container_home
 	# it will be $HOME if using regular home dirs
 	# if will be $container_home if using a custom home during create
 	result_command="${result_command}
-		--env \"XDG_CACHE_HOME=${container_home}/.cache\"
-		--env \"XDG_CONFIG_HOME=${container_home}/.config\"
-		--env \"XDG_DATA_HOME=${container_home}/.local/share\"
-		--env \"XDG_STATE_HOME=${container_home}/.local/state\""
+		--env XDG_CACHE_HOME=${container_home}/.cache
+		--env XDG_CONFIG_HOME=${container_home}/.config
+		--env XDG_DATA_HOME=${container_home}/.local/share
+		--env XDG_STATE_HOME=${container_home}/.local/state"
 
 	# Ensure the standard FHS program paths are in XDG_CONFIG_DIRS environment
 	standard_paths="/etc/xdg"
@@ -535,7 +507,7 @@ generate_enter_command()
 		fi
 	done
 	result_command="${result_command}
-		--env \"XDG_CONFIG_DIRS=${container_paths}\""
+		--env XDG_CONFIG_DIRS=${container_paths}"
 
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
@@ -551,15 +523,6 @@ generate_enter_command()
 	# Run selected container with specified command.
 	result_command="${result_command}
 		${container_name}"
-
-	if [ -n "${container_command}" ]; then
-		result_command="${result_command} ${container_command}"
-	else
-		# if no command was specified, let's execute a command that will find
-		# and run the default shell for the user
-		result_command="${result_command}
-			${container_command_login}"
-	fi
 
 	# Return generated command.
 	printf "%s" "${result_command}"
@@ -580,7 +543,7 @@ eval "$(${container_manager} inspect --type container --format \
 # dry run mode, just generate the command and print it. No execution.
 if [ "${dryrun}" -ne 0 ]; then
 	cmd="$(generate_enter_command | sed 's/\t//g')"
-	printf "%s\n" "${cmd}"
+	printf "%s %s\n" "${cmd}" "$*"
 	exit 0
 fi
 
@@ -610,7 +573,7 @@ if [ "${container_status}" = "unknown" ]; then
 			printf >&2 "Creating the container %s\n" "${container_name}"
 
 			if [ "${dryrun}" -ne 1 ]; then
-				eval "${create_command}"
+				${create_command}
 			fi
 			;;
 		n | N | No | no | NO)
@@ -695,7 +658,28 @@ if [ "${container_status}" != "running" ]; then
 	printf >&2 "\nContainer Setup Complete!\n"
 fi
 
+# Setup default commands if none are specified
+# execute a getent command using the /bin/sh shell
+# to find out the default shell of the user, and
+# do a login shell with it (eg: /bin/bash -l)
+if [ "$#" -eq 0 ]; then
+	set "$@" "/bin/sh" "-c" "\$(getent passwd '${container_command_user}' | cut -f 7 -d :) -l"
+fi
+
+# If we have a command and we're unsharing groups, we need to execute those
+# command using su $container_command_user
+# if we're in a tty, also allocate one
+if [ "${unshare_groups:-0}" -eq 1 ]; then
+	# shellcheck disable=SC2089,SC2016
+	set -- "-c" '"$0" "$@"' -- "$@"
+	set -- "-s" "/bin/sh" "$@"
+	if [ "${headless}" -eq 0 ]; then
+			set -- "--pty" "$@"
+	fi
+	set -- "${container_command_user}" "$@"
+	set -- "su" "$@"
+fi
+
 # Generate the exec command and run it
 cmd="$(generate_enter_command)"
-# shellcheck disable=SC2086
-eval ${cmd}
+${cmd} "$@"

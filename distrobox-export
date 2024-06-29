@@ -274,7 +274,7 @@ if [ "${is_sudo}" -ne 0 ]; then
 	# Edge case for systems without sudo
 	if command -v su-exec > /dev/null >&1; then
 		sudo_prefix="su-exec root"
-		container_command_suffix="sh -l -c \"'${exported_bin}' ${extra_flags} \$*\""
+		container_command_suffix="sh -l -c \"'${exported_bin}' ${extra_flags} \$@\""
 	fi
 fi
 
