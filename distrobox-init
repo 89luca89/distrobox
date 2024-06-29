@@ -933,7 +933,7 @@ setup_dnf()
 		mesa-vulkan-drivers
 		vulkan
 	"
-	# shellcheck disable=SC2086,2046
+	# shellcheck disable=SC2086,2046,2248
 	${manager} install ${flags} -y $(${manager} list -q ${deps} |
 		grep -v "Packages" |
 		grep "$(uname -m)" |
