@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ASSEMBLE" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-ASSEMBLE" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -394,7 +394,7 @@ exported_bins_path=\[dq]\[ti]/.local/bin\[dq]
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH COMPATIBILITY
 .PP
@@ -875,7 +875,7 @@ up the integration independently from the distrobox\[cq]s own flag.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-CREATE" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-CREATE" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -913,8 +913,8 @@ usb devices and graphical apps (X11/Wayland), and audio.
 --volume:       additional volumes to add to the container
 --additional-flags/-a:  additional flags to pass to the container manager command
 --additional-packages/-ap:  additional packages to install during initial container setup
---init-hooks:       additional commands to execute during container initialization
---pre-init-hooks:   additional commands to execute prior to container initialization
+--init-hooks:       additional commands to execute at the end of container initialization
+--pre-init-hooks:   additional commands to execute at the start of container initialization
 --init/-I:      use init system (like systemd) inside the container.
             this will make host\[aq]s processes not visible from within the container. (assumes --unshare-process)
             may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
@@ -1270,7 +1270,7 @@ Void Linux (glibc)
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ENTER" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-ENTER" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1420,7 +1420,7 @@ run distrobox commands involving rootful containers using `doas'.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EPHEMERAL" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-EPHEMERAL" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1492,7 +1492,7 @@ a list of supported environment variables to use.
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-EXPORT" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-EXPORT" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1649,7 +1649,7 @@ option to provide a series of flags, for example:
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-GENERATE-ENTRY" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-GENERATE-ENTRY" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1727,7 +1727,7 @@ distrobox generate-entry container-name --delete
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-HOST-EXEC" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-HOST-EXEC" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1801,7 +1801,7 @@ distrobox-host-exec podman ps -a
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-INIT" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-INIT" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1869,7 +1869,7 @@ distrobox-init --upgrade
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-LIST" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-LIST" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -1940,7 +1940,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-RM" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-RM" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -2012,7 +2012,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-STOP" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-STOP" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -2089,7 +2089,7 @@ DBX_SUDO_PROGRAM
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-UPGRADE" "1" "Jun 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-UPGRADE" "1" "Jul 2024" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
