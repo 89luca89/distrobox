@@ -51,7 +51,7 @@ container_manager="autodetect"
 container_name_default="my-distrobox"
 delete=0
 icon="auto"
-icon_default="${HOME}/.local/share/icons/terminal-distrobox-icon.svg"
+icon_default="${XDG_DATA_HOME:-$HOME/.local/share}/icons/terminal-distrobox-icon.svg"
 verbose=0
 online=0
 version="1.7.2.1"
@@ -201,7 +201,7 @@ fi
 
 # If we delete, just ask confirmation and exit.
 if [ "${delete}" -ne 0 ]; then
-	rm -f "${HOME}/.local/share/applications/${container_name}.desktop"
+	rm -f "${XDG_DATA_HOME:-$HOME/.local/share}/applications/${container_name}.desktop"
 	exit
 fi
 
@@ -288,8 +288,8 @@ if ! ${container_manager} inspect --type container "${container_name}" > /dev/nu
 fi
 
 # Ensure the destination dir exists.
-mkdir -p "${HOME}/.local/share/applications"
-mkdir -p "${HOME}/.local/share/icons/distrobox"
+mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/icons/distrobox"
 
 distrobox_path="$(dirname "$(realpath "${0}")")"
 entry_name="$(echo "${container_name}" | cut -c1 | tr "[:lower:]" "[:upper:]")$(echo "${container_name}" | cut -c2-)"
@@ -344,8 +344,8 @@ if [ "${icon}" = "auto" ]; then
 	if [ -n "${icon_url}" ] && [ "${download}" != "null" ]; then
 		icon_extension="${icon_url##*.}"
 
-		if [ "${online}" -lt 1 ] && ${download} - "${icon_url}" > "${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"; then
-			icon="${HOME}/.local/share/icons/distrobox/${container_distro}.${icon_extension}"
+		if [ "${online}" -lt 1 ] && ${download} - "${icon_url}" > "${XDG_DATA_HOME:-$HOME/.local/share}/icons/distrobox/${container_distro}.${icon_extension}"; then
+			icon="${XDG_DATA_HOME:-$HOME/.local/share}/icons/distrobox/${container_distro}.${icon_extension}"
 		else
 			# Wget failed for some reasons. Default to generic terminal icon as declared at the beginning.
 			printf >&2 "Warning: Failed to download icon. Defaulting to generic one.\n"
@@ -356,7 +356,7 @@ if [ "${icon}" = "auto" ]; then
 	fi
 fi
 
-cat << EOF > "${HOME}/.local/share/applications/${container_name}.desktop"
+cat << EOF > "${XDG_DATA_HOME:-$HOME/.local/share}/applications/${container_name}.desktop"
 [Desktop Entry]
 Name=${entry_name}
 GenericName=Terminal entering ${entry_name}
