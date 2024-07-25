@@ -325,6 +325,7 @@ if [ "${icon}" = "auto" ]; then
 		cut -d'=' -f2- |
 		sed "s|linux||g" |
 		tr -d ' ' |
+		tr '[:upper:]' '[:lower:]' |
 		tr -d '"')"
 
 	if [ "${rootful}" -ne 0 ]; then
