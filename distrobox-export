@@ -425,7 +425,7 @@ export_application()
 		desktop_files="${exported_app}"
 	else
 		IFS=":"
-		if [ -n "${XDG_DATA_DIRS}" ]; then
+		if [ -n "${XDG_DATA_HOME}" ]; then
 			for xdg_data_home in ${XDG_DATA_HOME}; do
 				[ -d "${xdg_data_home}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_home}/applications"
 			done
@@ -434,7 +434,7 @@ export_application()
 			[ -d /usr/local/share/applications ] && canon_dirs="${canon_dirs} /usr/local/share/applications"
 			[ -d /var/lib/flatpak/exports/share/applications ] && canon_dirs="${canon_dirs} /var/lib/flatpak/exports/share/applications"
 		fi
-		if [ -n "${XDG_DATA_HOME}" ]; then
+		if [ -n "${XDG_DATA_DIRS}" ]; then
 			for xdg_data_dir in ${XDG_DATA_DIRS}; do
 				[ -d "${xdg_data_dir}/applications" ] && canon_dirs="${canon_dirs} ${xdg_data_dir}/applications"
 			done
