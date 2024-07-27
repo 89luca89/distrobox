@@ -14,7 +14,7 @@ _arguments -s \
   '--init-hooks[additional commands to execute during container initialization]:command:' \
   '--pre-init-hooks[additional commands to execute prior to container initialization]:command:' \
   '(--init -I)'{-I,--init}'[use init system inside the container]' \
-  '--nvidia[try to integrate host nVidia drivers in the guest]' \
+  '--nvidia[try to integrate host NVIDIA drivers in the guest]' \
   '--unshare-devsys[do not share host devices and sysfs dirs from host]' \
   '--unshare-ipc[do not share ipc namespace with host]' \
   '--unshare-netns[do not share the net namespace with host]' \

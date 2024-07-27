@@ -9,7 +9,7 @@ _arguments \
   '--additional-packages[packages to install in addition]:packages:' \
   '(--init -I)'{-I,--init}'[whether to use or not init]' \
   '--pre-init-hooks[commands to execute prior to init]:commands:' \
-  '--nvidia[try to integrate hosts nVidia drivers in the guest]' \
+  '--nvidia[try to integrate hosts NVIDIA drivers in the guest]' \
   '(--upgrade -U)'{-U,--upgrade}'[run init in upgrade mode]' \
   '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
   '(--version -V)'{-V,--version}'[show version]' \
