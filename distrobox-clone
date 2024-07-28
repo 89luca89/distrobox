@@ -1,0 +1,23 @@
+# POSIX
+# Expected env variables:
+#	HOME
+#	USER
+# Optional env variables:
+#	DBX_CONTAINER_ALWAYS_PULL
+#	DBX_CONTAINER_CUSTOM_HOME
+#	DBX_CONTAINER_GENERATE_ENTRY
+#	DBX_CONTAINER_HOME_PREFIX
+#	DBX_CONTAINER_HOSTNAME
+#	DBX_CONTAINER_IMAGE
+#	DBX_CONTAINER_MANAGER
+#	DBX_CONTAINER_NAME
+#	DBX_CONTAINER_CLEAN_PATH
+#	DBX_NON_INTERACTIVE
+#	DBX_VERBOSE
+#	DBX_SKIP_WORKDIR
+#	DBX_SUDO_PROGRAM
+
+# Ensure we have our env variables correctly set
+[ -z "${USER}" ] && USER="$(id -run)"
+[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
