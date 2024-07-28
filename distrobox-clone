@@ -1,3 +1,4 @@
+#!/bin/sh
 # POSIX
 # Expected env variables:
 #	HOME
