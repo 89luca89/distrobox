@@ -2406,7 +2406,7 @@ if [ "${init}" -eq 0 ]; then
 			# host in some cases like /etc/localtime, so ignore findmnt errors
 			mount_source="$(findmnt -no SOURCE "${file_watch}")" || :
 			if [ -n "${mount_source}" ] && ! echo "${mount_source}" | grep -q "${id}"; then
-				file_watch_src="/run/host${file_watch}"
+				file_watch_src="readlink -f /run/host${file_watch}"
 				# check if the target file exists
 				if ls -l "${file_watch_src}" 2> /dev/null > /dev/null; then
 					# if it's a symlink and take the source
