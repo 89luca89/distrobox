@@ -87,6 +87,7 @@ fi
 
 # Defaults
 # by default we use getent to get the login shell of the user and use that
+container_custom_command=0
 container_command_user="$(echo "${USER}" | sed 's|\\|\\\\|g')"
 container_image_default="registry.fedoraproject.org/fedora-toolbox:latest"
 container_manager="autodetect"
@@ -249,6 +250,7 @@ while :; do
 			shift
 			;;
 		-e | --exec | --)
+			container_custom_command=1
 			shift
 			# We pass the rest of arguments as $@ at the end
 			break
@@ -367,7 +369,7 @@ fi
 #   prints the podman, docker or lilipod command to enter the distrobox container
 generate_enter_command()
 {
-	result_command="${container_manager} exec"
+	result_command="exec"
 	result_command="${result_command}
 		--interactive"
 	result_command="${result_command}
@@ -381,7 +383,7 @@ generate_enter_command()
 			--user=root"
 	else
 		result_command="${result_command}
-			--user=${USER}"
+			--user ${USER}"
 	fi
 
 	# For some usage, like use in service, or launched by non-terminal
@@ -412,8 +414,9 @@ generate_enter_command()
 		# Skipping workdir we just enter $HOME of the container.
 		workdir="${container_home}"
 	fi
+
 	result_command="${result_command}
-		--workdir=${workdir}"
+		--workdir ${workdir}"
 	result_command="${result_command}
 		--env CONTAINER_ID=${container_name}"
 	result_command="${result_command}
@@ -525,7 +528,9 @@ generate_enter_command()
 		${container_name}"
 
 	# Return generated command.
-	printf "%s" "${result_command}"
+	# here we remove tabs as an artifact of using indentation in code to improve
+	# readability
+	printf "%s\n" "${result_command}" | tr -d '\t'
 }
 
 container_home="${HOME}"
@@ -658,12 +663,30 @@ if [ "${container_status}" != "running" ]; then
 	printf >&2 "\nContainer Setup Complete!\n"
 fi
 
+################################################################################
+# Execution section, in this section we will manipulate the positional parameters
+# in order to generate our long docker/podman/lilipod command to execute.
+#
+# We use positional parameters in order to have the shell manage escaping and spaces
+# so we remove the problem of we having to handle them.
+#
+# 1 - handle absence of custom command, we will need to add a getent command to
+#     execute the right container's user's shell
+# 2 - in case of unshared groups (or initful) we need to trigger a proper login
+#     using `su`, so we will need to manipulate these arguments accorodingly
+# 3 - prepend our generated command
+#     to do this, we use `tac` so we reverse loop it and prepend each argument.
+# 4 - now that we're done, we can prepend our container_command
+#     we will need to use `rev` to reverse it as we reverse loop and prepend each
+#     argument
+################################################################################
+#
 # Setup default commands if none are specified
 # execute a getent command using the /bin/sh shell
 # to find out the default shell of the user, and
 # do a login shell with it (eg: /bin/bash -l)
-if [ "$#" -eq 0 ]; then
-	set "$@" "/bin/sh" "-c" "\$(getent passwd '${container_command_user}' | cut -f 7 -d :) -l"
+if [ "${container_custom_command}" -eq 0 ]; then
+	set - "$@" "/bin/sh" "-c" "\$(getent passwd '${container_command_user}' | cut -f 7 -d :) -l"
 fi
 
 # If we have a command and we're unsharing groups, we need to execute those
@@ -681,5 +704,25 @@ if [ "${unshare_groups:-0}" -eq 1 ]; then
 fi
 
 # Generate the exec command and run it
-cmd="$(generate_enter_command)"
-${cmd} "$@"
+cmd="$(generate_enter_command | tac)"
+# Reverse it with tac so we can reverse loop and prepend the command's arguments
+# to our positional parameters
+IFS='
+'
+for arg in ${cmd}; do
+	if echo "${arg}" | grep -q " "; then
+		set - "$(echo "${arg}" | cut -d' ' -f1)" "$(echo "${arg}" | cut -d' ' -f2-)" "$@"
+	else
+		set - "${arg}" "$@"
+	fi
+done
+
+# Prepend the container manager command
+# reverse it first, so we can loop backward as we're prepending not appending
+IFS=' '
+for arg in $(echo "${container_manager}" | rev); do
+	arg="$(echo "${arg}" | rev)"
+	set - "${arg}" "$@"
+done
+
+exec "$@"
