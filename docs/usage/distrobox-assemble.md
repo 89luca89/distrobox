@@ -168,3 +168,7 @@ each option corresponds to one of the `create` flags.
 	exported_apps="htop"
 	exported_bins="/usr/bin/htop /usr/bin/git"
 	exported_bins_path="~/.local/bin"
+	volume="/games:/games"
+	volume="/usr/games:/usr/games /usr/local/games:/usr/local/games"
+
+\* _Note :_ Multi-line volume decleration is available from (ToDo: Mention version)
