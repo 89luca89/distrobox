@@ -437,9 +437,11 @@ run_distrobox()
 	fi
 	if [ -n "${volume}" ]; then
 		IFS="¤"
+		args=""
 		for vol in ${volume}; do
-			result_command="${result_command} --volume $(sanitize_variable "${vol}")"
+			args="${args} ${vol}"
 		done
+			result_command="${result_command} --volume $(sanitize_variable "${args}")"
 	fi
 	if [ -n "${additional_flags}" ]; then
 		IFS="¤"
