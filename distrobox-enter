@@ -541,8 +541,8 @@ container_status="unknown"
 eval "$(${container_manager} inspect --type container --format \
 	'container_status={{.State.Status}};
 	unshare_groups={{ index .Config.Labels "distrobox.unshare_groups" }};
-	{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}container_home={{slice . 5 | printf "%q"}};{{end}}{{end}}
-	{{range .Config.Env}}{{if slice . 0 5 | eq "PATH="}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
+	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "HOME=")}}container_home={{slice . 5 | printf "%q"}}{{end}}{{end}};
+	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "PATH=")}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
 	"${container_name}")"
 
 # dry run mode, just generate the command and print it. No execution.
