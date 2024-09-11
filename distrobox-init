@@ -70,6 +70,7 @@ container_additional_packages=""
 init=0
 init_hook=""
 nvidia=0
+nvidia_exclusion=""
 pre_init_hook=""
 rootful=0
 upgrade=0
@@ -106,6 +107,7 @@ Options:
 	--init/-I:		whether to use or not init
 	--pre-init-hooks:	commands to execute prior to init
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--nvidia-exclude:	directories to be excluded when nvidia is integrated (e.g. /usr/share/cmake)
 	--upgrade/-U:		run init in upgrade mode
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -185,6 +187,13 @@ while :; do
 		--nvidia)
 			if [ -n "$2" ]; then
 				nvidia="$2"
+				shift
+				shift
+			fi
+			;;
+		--nvidia-exclude)
+			if [ -n "$2" ]; then
+				nvidia_exclusion="$2"
 				shift
 				shift
 			fi
@@ -1859,13 +1868,20 @@ if [ "${nvidia}" -eq 1 ]; then
 	#	- egl files
 	#	- icd files
 	#	Excluding here the libs, we will threat them later specifically
-	NVIDIA_FILES="$(find /run/host/etc/ /run/host/usr/ \
-		-path "/run/host/usr/lib/i386-linux-gnu/*" -prune -o \
-		-path "/run/host/usr/lib/x86_64-linux-gnu/*" -prune -o \
-		-path "/run/host/usr/lib32/*" -prune -o \
-		-path "/run/host/usr/lib64/*" -prune -o \
-		-path "/run/host/usr/lib/*" -prune -o \
-		-iname "*nvidia*" -not -type d -print 2> /dev/null || :)"
+	NVIDIA_FILES_CMD="find /run/host/etc/ /run/host/usr/ \
+		-path \"/run/host/usr/lib/i386-linux-gnu/*\" -prune -o \
+		-path \"/run/host/usr/lib/x86_64-linux-gnu/*\" -prune -o \
+		-path \"/run/host/usr/lib32/*\" -prune -o \
+		-path \"/run/host/usr/lib64/*\" -prune -o \
+		-path \"/run/host/usr/lib/*\" -prune -o"
+
+	if [[ ! -z $nvidia_exclusion ]]; then
+		for exclusion in $nvidia_exclusion; do
+			NVIDIA_FILES_CMD="${NVIDIA_FILES_CMD} ! -path \"/run/host${exclusion}/**\""
+		done
+	fi
+	NVIDIA_FILES_CMD="${NVIDIA_FILES_CMD} -iname "*nvidia*" -not -type d -print 2> /dev/null || :"
+	NVIDIA_FILES=$(eval ${NVIDIA_FILES_CMD})
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
 
@@ -1876,7 +1892,14 @@ if [ "${nvidia}" -eq 1 ]; then
 	done
 
 	# Then we find all directories with nvidia in the name and just mount them
-	NVIDIA_DIRS="$(find /run/host/etc /run/host/usr -iname "*nvidia*" -type d 2> /dev/null || :)"
+	NVIDIA_DIRS_CMD="find /run/host/etc /run/host/usr"
+	if [[ ! -z $nvidia_exclusion ]]; then
+		for exclusion in $nvidia_exclusion; do
+			NVIDIA_DIRS_CMD="${NVIDIA_DIRS_CMD} ! -path \"/run/host${exclusion}/**\""
+		done
+	fi
+	NVIDIA_DIRS_CMD="${NVIDIA_DIRS_CMD} -iname "*nvidia*" -type d 2> /dev/null || :"
+	NVIDIA_DIRS=$(eval ${NVIDIA_DIRS_CMD})
 	for nvidia_dir in ${NVIDIA_DIRS}; do
 		# /usr/lib64 is common in Arch or RPM based distros, while /usr/lib/x86_64-linux-gnu is
 		# common on Debian derivatives, so we need to adapt between the two nomenclatures.
