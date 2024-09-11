@@ -80,6 +80,7 @@ init=0
 non_interactive=0
 nvidia=0
 nopasswd=0
+nvidia_exclusion=""
 unshare_ipc=0
 unshare_groups=0
 unshare_netns=0
@@ -214,6 +215,7 @@ Options:
 				this will make host's processes not visible from within the container. (assumes --unshare-process)
 				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--nvidia-exclude:	directories to be excluded when nvidia drivers are integrated (e.g. /usr/share/cmake)
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-groups:          do not forward user's additional groups into the container
 	--unshare-ipc:          do not share ipc namespace with host
@@ -386,6 +388,13 @@ while :; do
 		--nvidia)
 			shift
 			nvidia=1
+			;;
+		--nvidia-exclude)
+			if [ -n "$2" ]; then
+				nvidia_exclusion="${nvidia_exclusion} $2"
+				shift
+				shift
+			fi
 			;;
 		-Y | --yes)
 			non_interactive=1
@@ -938,17 +947,26 @@ generate_create_command()
 	#
 	# We set the entrypoint _before_ running the container image so that
 	# we can override any user provided entrypoint if need be
-	result_command="${result_command}
-	--entrypoint /usr/bin/entrypoint
-	${container_image}
+	init_command="
 		--verbose
 		--name \"${container_user_name}\"
 		--user ${container_user_uid}
 		--group ${container_user_gid}
 		--home \"${container_user_custom_home:-"${container_user_home}"}\"
 		--init \"${init}\"
-		--nvidia \"${nvidia}\"
 		--pre-init-hooks \"${container_pre_init_hook}\"
+		--nvidia \"${nvidia}\"
+	"
+	if [[ ! -z ${nvidia_exclusion} ]]; then
+		init_command="
+			${init_command}
+			--nvidia-exclude \"${nvidia_exclusion}\"
+		"
+	fi
+	result_command="${result_command}
+	--entrypoint /usr/bin/entrypoint
+	${container_image}
+		${init_command}
 		--additional-packages \"${container_additional_packages}\"
 		-- '${container_init_hook}'
 	"
