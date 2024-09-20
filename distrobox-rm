@@ -390,7 +390,7 @@ delete_container()
 	# Remove the container
 	printf "Removing container...\n"
 	# shellcheck disable=SC2086,SC2248
-	${container_manager} rm ${force_flag} --volumes "${container_name}"
+	eval "${container_manager} rm ${force_flag} --volumes \"${container_name}\""
 
 	# Remove exported apps and bins
 	cleanup_exports "${container_name}"
