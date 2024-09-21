@@ -1,0 +1,20 @@
+hr {
+	box-shadow: var(--edge-highlight);
+	border: none;
+	border-radius: 999px;
+	background-color: var(--fg-muted-2);
+	width: 50%;
+	height: 0.25rem;
+
+	&::after {
+		display: none;
+	}
+}
+
+#badges {
+	text-align: center;
+
+	img {
+		display: inline-block;
+	}
+}

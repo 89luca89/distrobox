@@ -265,7 +265,7 @@ if ! command -v "${container_manager}" > /dev/null; then
 	printf >&2 "You can follow the documentation on:\n"
 	printf >&2 "\tman distrobox-compatibility\n"
 	printf >&2 "or:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/content/compatibility.md\n"
 	exit 127
 fi
 
@@ -300,24 +300,24 @@ if [ "${icon}" = "auto" ]; then
 	# This is a NON comprehensive list of logos of the most popular distributions. If you find logos for
 	# other supported distros, add it here.
 	DISTRO_ICON_MAP="
-		alma:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/alma-distrobox.png
-		alpine:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/alpine-distrobox.png
-		arch:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/arch-distrobox.png
-		centos:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/centos-distrobox.png
-		clear--os:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/clear-distrobox.png
-		debian:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/debian-distrobox.png
-		deepin:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/deepin-distrobox.png
-		fedora:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/fedora-distrobox.png
-		gentoo:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/gentoo-distrobox.png
-		kali:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/kali-distrobox.png
-		kdeneon:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/kdeneon-distrobox.png
-		opensuse-leap:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/opensuse-distrobox.png
-		opensuse-tumbleweed:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/opensuse-distrobox.png
-		rhel:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/redhat-distrobox.png
-		rocky:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/rocky-distrobox.png
-		ubuntu:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/ubuntu-distrobox.png
-		vanilla:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/vanilla-distrobox.png
-		void:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/void-distrobox.png
+		alma:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/alma-distrobox.png
+		alpine:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/alpine-distrobox.png
+		arch:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/arch-distrobox.png
+		centos:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/centos-distrobox.png
+		clear--os:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/clear-distrobox.png
+		debian:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/debian-distrobox.png
+		deepin:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/deepin-distrobox.png
+		fedora:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/fedora-distrobox.png
+		gentoo:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/gentoo-distrobox.png
+		kali:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/kali-distrobox.png
+		kdeneon:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/kdeneon-distrobox.png
+		opensuse-leap:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/opensuse-distrobox.png
+		opensuse-tumbleweed:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/opensuse-distrobox.png
+		rhel:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/redhat-distrobox.png
+		rocky:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/rocky-distrobox.png
+		ubuntu:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/ubuntu-distrobox.png
+		vanilla:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/vanilla-distrobox.png
+		void:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/static/assets/distros/void-distrobox.png
 	"
 	# Try to detect container's distribution by using /etc/os-release
 	${container_manager_cp_command} "${container_name}":/etc/os-release /tmp/"${container_name}".os-release
