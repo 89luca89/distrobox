@@ -3,6 +3,8 @@ title = "Home"
 insert_anchor_links = "right"
 +++
 
+<!-- markdownlint-disable MD025 -->
+
 ![splash](assets/splash.svg#no-hover)
 
 # Distrobox
