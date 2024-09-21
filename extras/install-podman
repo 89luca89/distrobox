@@ -22,9 +22,9 @@
 echo "This script is deprecated and unsupported"
 echo "head over to:"
 echo ""
-echo "https://github.com/89luca89/distrobox/blob/main/docs/posts/install_podman_static.md"
+echo "https://github.com/89luca89/distrobox/blob/main/docs/content/posts/install_podman_static.md"
 echo "or"
-echo "https://github.com/89luca89/distrobox/blob/main/docs/posts/install_lilipod_static.md"
+echo "https://github.com/89luca89/distrobox/blob/main/docs/content/posts/install_lilipod_static.md"
 echo ""
 echo "for updated instructions on how to install podman-launcher"
 

@@ -95,7 +95,7 @@ done
   - `bashate -i E002,E003,E010,E011 --max-line-length 120`
 - use `markdownlint`
   - install using `npm -i -g markdownlint-cli`
-  - run `markdownlint $(find . -name '*.md' | grep -vF './.git')`
+  - run `markdownlint $(find . -name '*.md' | grep -vF './.git') --ignore docs/themes/duckquill/`
 - Legibility of the code is more important than code golfing, try to be
   expressive in the code
 - Try to **follow the happy path**:

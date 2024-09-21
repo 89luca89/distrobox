@@ -1,0 +1,45 @@
+title = "Distrobox"
+base_url = "https://distrobox.it"
+description = "Use any linux distribution inside your terminal."
+
+theme = "duckquill"
+
+compile_sass = true
+build_search_index = true
+
+[markdown]
+highlight_code = true
+highlight_theme = "css"
+highlight_themes_css = [
+	{ theme = "gruvbox-dark", filename = "syntax-theme-dark.css" },
+	{ theme = "gruvbox-light", filename = "syntax-theme-light.css" },
+]
+smart_punctuation = true
+bottom_footnotes = true
+
+[search]
+index_format = "elasticlunr_json"
+
+[extra]
+accent_color = "#70594d"
+accent_color_dark = "#f0e2d1"
+fix_contrast_dark = true
+bundled_fonts = true
+show_copy_button = true
+issues_url = "https://github.com/89luca89/distrobox/issues"
+source_url = "https://github.com/89luca89/distrobox/tree/main/docs"
+styles = ["custom.css"]
+
+[extra.nav]
+links = [
+	{ url = "@/compatibility.md", name = "Compatibility" },
+	{ url = "@/featured_articles.md", name = "Articles" },
+	{ url = "@/posts/_index.md", name = "Posts" },
+	{ url = "@/usage/_index.md", name = "Usage" },
+	{ url = "@/useful_tips.md", name = "Tips" },
+]
+
+[extra.footer]
+show_copyright = true
+show_powered_by = true
+show_source = true

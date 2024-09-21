@@ -242,7 +242,7 @@ if ! command -v "${container_manager}" > /dev/null; then
 	printf >&2 "You can follow the documentation on:\n"
 	printf >&2 "\tman distrobox-compatibility\n"
 	printf >&2 "or:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/content/compatibility.md\n"
 	exit 127
 fi
 # add  verbose if -v is specified

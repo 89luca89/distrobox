@@ -212,7 +212,7 @@ Options:
 	--pre-init-hooks:	additional commands to execute at the start of container initialization
 	--init/-I:		use init system (like systemd) inside the container.
 				this will make host's processes not visible from within the container. (assumes --unshare-process)
-				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
+				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/content/useful_tips.md#using-init-system-inside-a-distrobox
 	--nvidia:		try to integrate host's nVidia drivers in the guest
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-groups:          do not forward user's additional groups into the container
@@ -235,7 +235,7 @@ Compatibility:
 		man distrobox-compatibility
 	or run
 		distrobox create --compatibility
-	or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md
+	or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/content/compatibility.md
 EOF
 }
 
@@ -537,7 +537,7 @@ if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; the
 	printf >&2 "You can follow the documentation on:\n"
 	printf >&2 "\tman distrobox-compatibility\n"
 	printf >&2 "or:\n"
-	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/content/compatibility.md\n"
 	exit 127
 fi
 # add  verbose if -v is specified
