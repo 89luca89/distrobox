@@ -28,7 +28,7 @@ bundled_fonts = true
 show_copy_button = true
 issues_url = "https://github.com/89luca89/distrobox/issues"
 source_url = "https://github.com/89luca89/distrobox/tree/main/docs"
-styles = ["custom.css"]
+styles = ["custom.css", "mods.css"]
 
 [extra.nav]
 links = [
