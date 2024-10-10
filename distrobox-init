@@ -737,7 +737,7 @@ setup_apt()
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		apt-get update
-		apt-get upgrade -y
+		apt-get upgrade -o Dpkg::Options::="--force-confold" -y
 		exit
 	fi
 	# In Ubuntu official images, dpkg is configured to ignore locale and docs
