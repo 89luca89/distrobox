@@ -1,4 +1,4 @@
 tags
 *.vim
 TODO.txt
-docs/public/
+site/public/
