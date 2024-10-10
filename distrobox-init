@@ -1866,6 +1866,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		-path "/run/host/usr/lib32/*" -prune -o \
 		-path "/run/host/usr/lib64/*" -prune -o \
 		-path "/run/host/usr/lib/*" -prune -o \
+		-path "*.repo" -prune -o \
 		-iname "*nvidia*" -not -type d -print 2> /dev/null || :)"
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
