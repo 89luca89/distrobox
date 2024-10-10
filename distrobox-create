@@ -1047,6 +1047,8 @@ if eval ${cmd} > /dev/null; then
 			"${distrobox_genentry_path}" "${container_name}"
 		fi
 	fi
-	exit $?
+else
+	error="$?"
+	printf >&2 "\033[31m [ ERR ]\033[0m failed to create container.\n"
+	exit ${error}
 fi
-printf >&2 "\033[31m [ ERR ]\n\033[0m"
