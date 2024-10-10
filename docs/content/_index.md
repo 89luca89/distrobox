@@ -1,6 +1,6 @@
 +++
 title = "Home"
-insert_anchor_links = "right"
+insert_anchor_links = "left"
 +++
 
 <!-- markdownlint-disable MD025 -->
