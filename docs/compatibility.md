@@ -134,7 +134,6 @@ Distrobox guests tested successfully with the following container images:
 | Archlinux     | | docker.io/library/archlinux:latest    |
 | Blackarch     | | docker.io/blackarchlinux/blackarch:latest    |
 | CentOS Stream | 8 <br> 9 | quay.io/centos/centos:stream8 <br> quay.io/centos/centos:stream9  |
-| CentOS | 7 | quay.io/centos/centos:7  |
 | Chainguard Wolfi | | cgr.dev/chainguard/wolfi-base:latest |
 | ClearLinux |      | docker.io/library/clearlinux:latest <br> docker.io/library/clearlinux:base    |
 | Crystal Linux | | registry.gitlab.com/crystal-linux/misc/docker:latest  |
@@ -153,7 +152,6 @@ Distrobox guests tested successfully with the following container images:
 | Oracle Linux | 7 <br> 7-slim <br> 8 <br> 8-slim <br> 9 <br> 9-slim |container-registry.oracle.com/os/oraclelinux:7 <br> container-registry.oracle.com/os/oraclelinux:7-slim <br> container-registry.oracle.com/os/oraclelinux:8 <br> container-registry.oracle.com/os/oraclelinux:8-slim <br> container-registry.oracle.com/os/oraclelinux:9 <br> container-registry.oracle.com/os/oraclelinux:9-slim  |
 | RedHat (UBI) | 7 <br> 8 <br> 9 | registry.access.redhat.com/ubi7/ubi <br> registry.access.redhat.com/ubi8/ubi <br> registry.access.redhat.com/ubi8/ubi-init <br> registry.access.redhat.com/ubi8/ubi-minimal <br> registry.access.redhat.com/ubi9/ubi <br> registry.access.redhat.com/ubi9/ubi-init <br> registry.access.redhat.com/ubi9/ubi-minimal |
 | Rocky Linux | 8 <br> 8-minimal <br> 9 | quay.io/rockylinux/rockylinux:8 <br> quay.io/rockylinux/rockylinux:8-minimal <br> quay.io/rockylinux/rockylinux:9 <br> quay.io/rockylinux/rockylinux:latest    |
-| Scientific Linux | 7 | docker.io/library/sl:7    |
 | Slackware | | docker.io/vbatts/slackware:current |
 | SteamOS | | ghcr.io/linuxserver/steamos:latest |
 | Ubuntu | 14.04 <br> 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 23.04 | docker.io/library/ubuntu:14.04 <br> docker.io/library/ubuntu:16.04 <br> docker.io/library/ubuntu:18.04 <br> docker.io/library/ubuntu:20.04 <br> docker.io/library/ubuntu:22.04 <br> docker.io/library/ubuntu:23.04 |
