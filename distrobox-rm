@@ -359,7 +359,7 @@ delete_container()
 	# Retrieve container's HOME, and check if it's different from host's one. In
 	# this case we prompt for deletion of the custom home.
 	container_home=$(${container_manager} inspect --type container --format \
-		'{{range .Config.Env}}{{if slice . 0 5 | eq "HOME="}}{{slice . 5}}{{end}}{{end}}' "${container_name}")
+		'{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "HOME=")}}{{slice . 5 | printf "%q"}}{{end}}{{end}}' "${container_name}")
 	# Prompt for confirmation
 	if [ "${container_home}" != "${HOME}" ]; then
 		if [ "${non_interactive}" -eq 0 ] &&
