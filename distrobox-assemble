@@ -431,6 +431,9 @@ run_distrobox()
 		IFS="¤"
 		args=""
 		for packages in ${additional_packages}; do
+			if [ -z "${packages}" ]; then
+				continue
+			fi
 			args="${args} ${packages}"
 		done
 		result_command="${result_command} --additional-packages $(sanitize_variable "${args}")"
@@ -438,12 +441,18 @@ run_distrobox()
 	if [ -n "${volume}" ]; then
 		IFS="¤"
 		for vol in ${volume}; do
+			if [ -z "${vol}" ]; then
+				continue
+			fi
 			result_command="${result_command} --volume $(sanitize_variable "${vol}")"
 		done
 	fi
 	if [ -n "${additional_flags}" ]; then
 		IFS="¤"
 		for flag in ${additional_flags}; do
+			if [ -z "${flag}" ]; then
+				continue
+			fi
 			result_command="${result_command} --additional-flags $(sanitize_variable "${flag}")"
 		done
 	fi
