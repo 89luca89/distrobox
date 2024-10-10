@@ -123,7 +123,7 @@ Distrobox guests tested successfully with the following container images:
 | Debian (Toolbox) | 10 <br> 11 <br> 12 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:10 <br> quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br> quay.io/toolbx-images/debian-toolbox:testing <br> quay.io/toolbx-images/debian-toolbox:unstable <br> quay.io/toolbx-images/debian-toolbox:latest |
 | Fedora (Toolbox) | 37 <br> 38 <br> 39 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox:37 <br> registry.fedoraproject.org/fedora-toolbox:38 <br> registry.fedoraproject.org/fedora-toolbox:39 <br> registry.fedoraproject.org/fedora-toolbox:40 <br> registry.fedoraproject.org/fedora-toolbox:rawhide |
 | openSUSE (Toolbox) | | registry.opensuse.org/opensuse/distrobox:latest |
-| RedHat (Toolbox) | 8 <br> 9 | registry.access.redhat.com/ubi8/toolbox <br> registry.access.redhat.com/ubi9/toolbox <br> quay.io/toolbx-images/rhel-toolbox:latest |
+| RedHat (Toolbox) | 8 <br> 9 | registry.access.redhat.com/ubi8/toolbox <br> registry.access.redhat.com/ubi9/toolbox |
 | Rocky Linux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/rockylinux-toolbox:8 <br> quay.io/toolbx-images/rockylinux-toolbox:9 <br> quay.io/toolbx-images/rockylinux-toolbox:latest |
 | Ubuntu (Toolbox) | 16.04 <br> 18.04 <br> 20.04 <br> 22.04 | quay.io/toolbx/ubuntu-toolbox:16.04 <br> quay.io/toolbx/ubuntu-toolbox:18.04 <br> quay.io/toolbx/ubuntu-toolbox:20.04 <br> quay.io/toolbx/ubuntu-toolbox:22.04 <br> quay.io/toolbx/ubuntu-toolbox:latest |
 | Ublue | bluefin-cli | ghcr.io/ublue-os/bluefin-cli |
