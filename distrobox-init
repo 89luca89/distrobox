@@ -1176,14 +1176,6 @@ setup_pacman()
 	sed -i "s|NoExtract.*||g" /etc/pacman.conf
 	sed -i "s|NoProgressBar.*||g" /etc/pacman.conf
 
-	# In case the locale is not available, install it
-	# will ensure we don't fallback to C.UTF-8
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
-		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
-		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
-		locale-gen -a
-	fi
-
 	pacman -S -u --noconfirm
 	# Check if shell_pkg is available in distro's repo. If not we
 	# fall back to bash, and we set the SHELL variable to bash so
@@ -1238,6 +1230,10 @@ setup_pacman()
 	# shellcheck disable=SC2086,2046
 	pacman -S --needed --noconfirm $(pacman -Ssq | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
 
+	if [ ! -e "/usr/share/i18n/locales${HOST_LOCALE}" ]; then
+		pacman -S --noconfirm glibc
+	fi
+
 	# Setup hooks
 	setup_pacman_exceptions
 
@@ -1246,6 +1242,14 @@ setup_pacman()
 	# ensure population
 	if [ ! -e /usr/share/zoneinfo/UTC ]; then
 		pacman -S --noconfirm tzdata
+	fi
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
+		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
+		locale-gen -a
 	fi
 
 	# Install additional packages passed at distrbox-create time
