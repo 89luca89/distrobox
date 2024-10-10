@@ -690,7 +690,7 @@ generate_create_command()
 	result_command="${result_command}
 		--label \"manager=distrobox\"
 		--label \"distrobox.unshare_groups=${unshare_groups}\"
-		--env \"SHELL=$(basename "${SHELL:-"/bin/bash"}")\"
+		--env \"SHELL=${SHELL:-"/bin/bash"}\"
 		--env \"HOME=${container_user_home}\"
 		--env \"container=${container_manager}\"
 		--env \"TERMINFO_DIRS=/usr/share/terminfo:/run/host/usr/share/terminfo\"
