@@ -33,5 +33,12 @@ graphical apps (X11/Wayland), and audio.
 ## Documentation
 
 Documentation for the [latest release](https://github.com/89luca89/distrobox/releases/latest) is available
-over at [distrobox.it](https://distrobox.it). Documentation on GitHub strictly refers to the code in the
-main branch and is not optimized for being viewed without building it as the website.
+over at [distrobox.it](https://distrobox.it). Documentation in the `docs/content/` directory on GitHub strictly
+refers to the code in the main branch and is not optimized for being viewed without building it as the website.
+
+To build the website:
+
+1. Clone this repository recursively: `git clone --recursive https://github.com/89luca89/distrobox.git`
+2. Install [Zola](https://www.getzola.org) >= v0.19.2.
+3. Enter the `docs` directory.
+4. Run `zola serve`
