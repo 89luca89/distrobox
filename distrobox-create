@@ -374,7 +374,8 @@ while :; do
 			;;
 		-H | --home)
 			if [ -n "$2" ]; then
-				container_user_custom_home="$2"
+				# Remove trailing slashes
+				container_user_custom_home="$(echo "$2" | sed 's:/*$::')"
 				shift
 				shift
 			fi
@@ -1050,5 +1051,5 @@ if eval ${cmd} > /dev/null; then
 else
 	error="$?"
 	printf >&2 "\033[31m [ ERR ]\033[0m failed to create container.\n"
-	exit ${error}
+	exit "${error}"
 fi
