@@ -471,7 +471,7 @@ you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
 ---
 
-![distro-box](./assets/distro-box.png)
+![distro-box](./assets/distro-box.webp)
 
 <sub>This artwork uses [Cardboard Box](https://skfb.ly/6Wq6q) model by [J0Y](https://sketchfab.com/lloydrostek)
 licensed under [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0)  
