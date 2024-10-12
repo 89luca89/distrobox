@@ -60,7 +60,7 @@ jobs:
       # Fetch from compatibility table all the distros supported
       - id: set-matrix
         run: |
-            skip_list="bazzite|slackware|stream8"
+            skip_list="bazzite|slackware|stream8|ublue"
 
             echo "::set-output name=targets::$(sed -n -e '/| Alma/,/| Void/ p' docs/compatibility.md |
             cut -d'|' -f 4 |
