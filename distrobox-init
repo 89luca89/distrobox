@@ -847,6 +847,129 @@ setup_apt()
 	fi
 }
 
+# setup_aptrpm will upgrade or setup all packages for apt-rpm based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_aptrpm()
+{
+	setup_rpm_exceptions
+
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		apt-get update
+		apt-get dist-upgrade -y
+		exit
+	fi
+
+	apt-get update
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! apt-get install -y "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	deps="
+		${shell_pkg}
+		apt-repo-tools
+		apt-rsync
+		bash-completion
+		bc
+		bzip2
+		curl
+		cracklib
+		dialog
+		diffutils
+		eepm
+		findutils
+		fontconfig
+		gettext
+		glibc
+		glibc-i18ndata
+		gnupg
+		gnupg2
+		iconv
+		iproute2
+		iputils
+		keyutils
+		less
+		libcap
+		libEGL
+		libGL
+		libkrb5
+		libnss-mdns
+		libnss-myhostname
+		vte3
+		libvulkan1
+		lsof
+		man-db
+		mount
+		mtr
+		ncurses
+		openssh-clients
+		pam
+		passwd
+		pigz
+		pinentry-common
+		procps
+		su
+		sudo
+		tcpdump
+		time
+		traceroute
+		tree
+		tzdata
+		unzip
+		util-linux
+		wget
+		xauth
+		xorg-dri-intel
+		xorg-dri-radeon
+		xorg-utils
+		xz
+		zip
+	"
+	# shellcheck disable=SC2086,2046
+	apt-get install -y ${deps}
+
+	# Altlinux hooks. Without them the commands su, sudo, sudoreplay and passwd do not work
+	control passwd traditional
+	control sudo public
+	control sudoreplay public
+	control su wheel
+	mkdir /etc/tcb/"${container_user_name}"
+	echo "${container_user_name}::::::::" > /etc/tcb/"${container_user_name}"/shadow
+	sed -i 's/*//g' /etc/passwd
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if [ ! -e /usr/share/i18n/charmaps ]; then
+		apt-get --reinstall install -y glibc-i18ndata iconv
+	fi
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
+	fi
+
+	# Ensure we have tzdata installed and populated, sometimes container
+	# images blank the zoneinfo directory, so we reinstall the package to
+	# ensure population
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		apt-get --reinstall install -y tzdata
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		apt-get install -y ${container_additional_packages}
+	fi
+}
+
 # setup_dnf will upgrade or setup all packages for dnf/yum based systems.
 # Arguments:
 #   manager: yum or dnf
@@ -1672,7 +1795,11 @@ if [ "${upgrade}" -ne 0 ] ||
 	if command -v apk; then
 		setup_apk
 	elif command -v apt-get; then
-		setup_apt
+		if ! grep -q "ID=altlinux" /etc/os-release; then
+			setup_apt
+		else
+			setup_aptrpm
+		fi
 	elif command -v emerge; then
 		setup_emerge
 	elif command -v pacman; then
