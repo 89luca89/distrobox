@@ -240,7 +240,12 @@ while :; do
 			;;
 		-a | --additional-flags)
 			if [ -n "$2" ]; then
-				container_manager_additional_flags="${container_manager_additional_flags} ${2}"
+				if [ -z "${container_manager_additional_flags=}" ]; then
+					container_manager_additional_flags="${2}"
+				else
+					container_manager_additional_flags="${container_manager_additional_flags}
+					${2}"
+				fi
 				shift
 				shift
 			fi
