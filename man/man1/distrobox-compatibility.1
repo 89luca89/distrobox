@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX" "1" "Jul 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Oct 2024" "Distrobox" "User Manual"
 .hy
 .SH COMPATIBILITY
 .PP
@@ -85,12 +85,13 @@ T}
 T{
 Alpine (Toolbox)
 T}@T{
-3.16 3.17 3.18 3.19 edge
+3.16 3.17 3.18 3.19 3.20 edge
 T}@T{
 quay.io/toolbx-images/alpine-toolbox:3.16
 quay.io/toolbx-images/alpine-toolbox:3.17
 quay.io/toolbx-images/alpine-toolbox:3.18
 quay.io/toolbx-images/alpine-toolbox:3.19
+quay.io/toolbx-images/alpine-toolbox:3.20
 quay.io/toolbx-images/alpine-toolbox:edge
 quay.io/toolbx-images/alpine-toolbox:latest
 T}
@@ -140,7 +141,7 @@ T}
 T{
 Fedora (Toolbox)
 T}@T{
-37 38 39 Rawhide
+37 38 39 40 Rawhide
 T}@T{
 registry.fedoraproject.org/fedora-toolbox:37
 registry.fedoraproject.org/fedora-toolbox:38
@@ -161,7 +162,6 @@ T}@T{
 T}@T{
 registry.access.redhat.com/ubi8/toolbox
 registry.access.redhat.com/ubi9/toolbox
-quay.io/toolbx-images/rhel-toolbox:latest
 T}
 T{
 Rocky Linux (Toolbox)
@@ -175,18 +175,28 @@ T}
 T{
 Ubuntu (Toolbox)
 T}@T{
-16.04 18.04 20.04 22.04
+16.04 18.04 20.04 22.04 24.04
 T}@T{
 quay.io/toolbx/ubuntu-toolbox:16.04 quay.io/toolbx/ubuntu-toolbox:18.04
 quay.io/toolbx/ubuntu-toolbox:20.04 quay.io/toolbx/ubuntu-toolbox:22.04
-quay.io/toolbx/ubuntu-toolbox:latest
+quay.io/toolbx/ubuntu-toolbox:24.04 quay.io/toolbx/ubuntu-toolbox:latest
+T}
+T{
+Chainguard Wolfi (Toolbox)
+T}@T{
+T}@T{
+quay.io/toolbx-images/wolfi-toolbox:latest
 T}
 T{
 Ublue
 T}@T{
-bluefin-cli
+bluefin-cli ubuntu-toolbox fedora-toolbox wolfi-toolbox
+archlinux-distrobox powershell-toolbox
 T}@T{
-ghcr.io/ublue-os/bluefin-cli
+ghcr.io/ublue-os/bluefin-cli ghcr.io/ublue-os/bluefin-cli
+ghcr.io/ublue-os/ubuntu-toolbox ghcr.io/ublue-os/fedora-toolbox
+ghcr.io/ublue-os/wolfi-toolbox ghcr.io/ublue-os/arch-distrobox
+ghcr.io/ublue-os/powershell-toolbox
 T}
 T{
 T}@T{
@@ -202,12 +212,12 @@ T}
 T{
 Alpine Linux
 T}@T{
-3.15 3.16 3.17 3.18 3.19 edge
+3.15 3.16 3.17 3.18 3.19 3.20 edge
 T}@T{
 docker.io/library/alpine:3.15 docker.io/library/alpine:3.16
 docker.io/library/alpine:3.17 docker.io/library/alpine:3.18
-docker.io/library/alpine:3.19 docker.io/library/alpine:edge
-docker.io/library/alpine:latest
+docker.io/library/alpine:3.19 docker.io/library/alpine:3.20
+docker.io/library/alpine:edge docker.io/library/alpine:latest
 T}
 T{
 AmazonLinux
@@ -236,13 +246,6 @@ T}@T{
 8 9
 T}@T{
 quay.io/centos/centos:stream8 quay.io/centos/centos:stream9
-T}
-T{
-CentOS
-T}@T{
-7
-T}@T{
-quay.io/centos/centos:7
 T}
 T{
 Chainguard Wolfi
@@ -297,11 +300,11 @@ T}
 T{
 Fedora
 T}@T{
-36 37 38 39 Rawhide
+36 37 38 39 40 Rawhide
 T}@T{
 quay.io/fedora/fedora:36 quay.io/fedora/fedora:37
 quay.io/fedora/fedora:38 quay.io/fedora/fedora:39
-quay.io/fedora/fedora:rawhide
+quay.io/fedora/fedora:40 quay.io/fedora/fedora:rawhide
 T}
 T{
 Gentoo Linux
@@ -385,13 +388,6 @@ T}@T{
 T}@T{
 quay.io/rockylinux/rockylinux:8 quay.io/rockylinux/rockylinux:8-minimal
 quay.io/rockylinux/rockylinux:9 quay.io/rockylinux/rockylinux:latest
-T}
-T{
-Scientific Linux
-T}@T{
-7
-T}@T{
-docker.io/library/sl:7
 T}
 T{
 Slackware
