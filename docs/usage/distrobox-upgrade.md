@@ -1,14 +1,20 @@
++++
+title = "distrobox-upgrade"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox-upgrade
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-upgrade will enter the specified list of containers and will perform
 an upgrade using the container's package manager.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox upgrade**
 
@@ -21,7 +27,7 @@ an upgrade using the container's package manager.
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-# EXAMPLES
+## EXAMPLES
 
 Upgrade all distroboxes
 

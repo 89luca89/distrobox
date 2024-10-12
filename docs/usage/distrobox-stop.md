@@ -1,17 +1,23 @@
++++
+title = "distrobox-stop"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox stop
 	distrobox-stop
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-stop stop a running distrobox.
 
 Distroboxes are left running, even after exiting out of them, so that
 subsequent enters are really quick. This is how they can be stopped.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox stop**
 
@@ -24,7 +30,7 @@ subsequent enters are really quick. This is how they can be stopped.
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-# EXAMPLES
+## EXAMPLES
 
 	distrobox-stop container-name1 container-name2
 	distrobox-stop container-name
@@ -34,7 +40,7 @@ You can also use environment variables to specify container manager and name:
 
 	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-stop
 
-# ENVIRONMENT VARIABLES
+## ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_MANAGER
 	DBX_CONTAINER_NAME

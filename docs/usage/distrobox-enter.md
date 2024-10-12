@@ -1,10 +1,16 @@
++++
+title = "distrobox-enter"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox enter
 	distrobox-enter
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-enter takes care of entering the container with the name specified.
 Default command executed is your SHELL, but you can specify different shells or
@@ -12,7 +18,7 @@ entire commands to execute.
 If using it inside a script, an application, or a service, you can specify the
 --headless mode to disable tty and interactivity.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox enter**
 
@@ -29,7 +35,7 @@ If using it inside a script, an application, or a service, you can specify the
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-# EXAMPLES
+## EXAMPLES
 
 Enter a distrobox named "example"
 
@@ -53,14 +59,14 @@ You can also use environment variables to specify container manager and containe
 
 	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-enter
 
-# ENVIRONMENT VARIABLES
+## ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_NAME
 	DBX_CONTAINER_MANAGER
 	DBX_SKIP_WORKDIR
 	DBX_SUDO_PROGRAM
 
-# EXTRA
+## EXTRA
 
 This command is used to enter the distrobox itself. Personally, I just create multiple profiles in
 my `gnome-terminal` to have multiple distros accessible.

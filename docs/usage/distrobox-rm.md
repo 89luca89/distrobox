@@ -1,14 +1,20 @@
++++
+title = "distrobox-rm"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox rm
 	distrobox-rm
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-rm delete one of the available distroboxes.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox rm**
 
@@ -22,7 +28,7 @@ distrobox-rm delete one of the available distroboxes.
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-# EXAMPLES
+## EXAMPLES
 
 	distrobox-rm container-name [--force] [--all]
 
@@ -30,7 +36,7 @@ You can also use environment variables to specify container manager and name:
 
 	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-rm
 
-# ENVIRONMENT VARIABLES
+## ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_MANAGER
 	DBX_CONTAINER_NAME

@@ -1,9 +1,15 @@
++++
+title = "distrobox-host-exec"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox-host-exec
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-host-exec lets one execute command on the host, while inside of a container.
 
@@ -11,7 +17,7 @@ Under the hood, distrobox-host-exec uses `host-spawn` a project that lets us
 execute commands back on the host.
 If the tool is not found the user will be prompted to install it.
 
-# SYNOPSIS
+## SYNOPSIS
 
 Just pass to "distrobox-host-exec" any command and all its arguments, if any.
 
@@ -33,7 +39,7 @@ Alternatively, use symlinks to make `distrobox-host-exec` execute as that comman
 	~$: podman version
 	...this is executed on host...
 
-# EXAMPLES
+## EXAMPLES
 
 	distrobox-host-exec ls
 	distrobox-host-exec bash -l

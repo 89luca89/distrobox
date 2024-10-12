@@ -1,17 +1,23 @@
++++
+title = "distrobox-create"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox create
 	distrobox-create
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-create takes care of creating the container with input name and image.
 The created container will be tightly integrated with the host, allowing sharing of
 the HOME directory of the user, external storage, external usb devices and
 graphical apps (X11/Wayland), and audio.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox create**
 
@@ -51,14 +57,14 @@ graphical apps (X11/Wayland), and audio.
 
 	--absolutely-disable-root-password-i-am-really-positively-sure: ⚠️ ⚠️  when setting up a rootful distrobox, this will skip user password setup, leaving it blank. ⚠️ ⚠️
 
-# COMPATIBILITY
+## COMPATIBILITY
 
 	for a list of compatible images and container managers, please consult the man page:
 		man distrobox
 		man distrobox-compatibility
 	or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#containers-distros
 
-# EXAMPLES
+## EXAMPLES
 
 Create a distrobox with image alpine, called my-alpine container
 
@@ -124,7 +130,7 @@ Use environment variables to specify container name, image and container manager
 
 	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
 
-# ENVIRONMENT VARIABLES
+## ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_ALWAYS_PULL
 	DBX_CONTAINER_CUSTOM_HOME
@@ -139,7 +145,7 @@ Use environment variables to specify container name, image and container manager
 DBX_CONTAINER_HOME_PREFIX defines where containers' home directories will be located.
 If you define it as ~/dbx then all future containers' home directories will be ~/dbx/$container_name
 
-# EXTRA
+## EXTRA
 
 The `--additional-flags` or `-a` is useful to modify defaults in the container creations.
 For example:
@@ -221,7 +227,7 @@ leaving it blank.
 From version 1.4.0 of distrobox, when you create a new container, it will also generate
 an entry in the applications list.
 
-## NVidia integration
+### NVidia integration
 
 If your host has an NVidia gpu, with installed proprietary drivers, you can integrate
 them with the guests by using the `--nvidia` flag:
