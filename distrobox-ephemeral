@@ -55,7 +55,7 @@ extra_flags=""
 # There's no need for them to pass the --root flag option in such cases.
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
-version="1.7.2.1"
+version="1.8.0"
 container_additional_packages=""
 container_init_hook=" "
 container_manager_additional_flags=""

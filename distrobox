@@ -22,7 +22,7 @@
 set -o errexit
 set -o nounset
 
-version="1.7.2.1"
+version="1.8.0"
 
 # show_help will print usage to stdout.
 # Arguments:

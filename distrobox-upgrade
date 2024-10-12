@@ -44,7 +44,7 @@ distrobox_flags=""
 distrobox_path="$(dirname "$(realpath "${0}")")"
 rootful=0
 verbose=0
-version="1.7.2.1"
+version="1.8.0"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
