@@ -1,136 +1,61 @@
-Latest SteamOS (version 3.5 and later) already pre-installed `distrobox` and `podman`.
+### Install Distrobox and Podman PERMANENT on Steam Deck >= 3.5
 
-Before using `distrobox` on SteamOS, it may be necessary to upgrade to the latest version since the version provided by
-SteamOS may be outdated. You can verify the currently installed version by running the command `distrobox version`. For
-instance, on SteamOS 3.5, version 1.4.2.1-3 of `distrobox` is installed.
+**1 - Modify $PATH for binaries**
+First, verify if ~/.bashrc contains the necessary $PATH modification. Open the file with:
+`sudo nano ~/.bashrc`
+Add the following line if it’s not already there:
+`export PATH=/home/deck/.local/bin:$PATH`
 
-To upgrade `distrobox` on SteamOS, you have two options:
+**2 - Install and configure Distrobox**
+To install Distrobox in the defined $PATH, use one of the following commands depending on whether you need the latest version (`--next`) or not:
+`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --next --prefix ~/.local`
+or
+`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix $HOME/.local`
 
-### Option 1: Install `distrobox` in `$HOME`
-
-By installing `distrobox` in your `$HOME` directory, you can ensure that you have control over the version you're using,
-independent of SteamOS updates. This method prevents your modifications from being reverted when SteamOS is updated.
-
-Note that it's essential to add this new version of `distrobox` to your PATH to ensure it's utilized over the
-SteamOS-provided version.
-
-To install `distrobox` in the `$HOME` directory, run the following command:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix $HOME
+After installing, create the file `~/.distroboxrc` if it doesn't already exist. Open it with:
+`sudo nano ~/.distroboxrc`
+Add the following lines to configure Distrobox:
 ```
-
-For more detailed installation instructions, refer to the documentation
-[here](https://github.com/89luca89/distrobox/blob/main/docs/README.md#alternative-methods).
-
-To upgrade the version of `distrobox`, follow the instructions provided in the documentation link above.
-
-### Option 2: Overwrite the provided `distrobox` installation in SteamOS
-
-An alternative approach is to upgrade the version of `distrobox` provided by SteamOS. While this simplifies management
-as you don't need to modify your PATH and you wouldn't have 2 versions of `distrobox` installed, it comes with the
-downside that your upgrades will be overwritten when SteamOS is updated.
-
-To upgrade the `distrobox` version provided by SteamOS, execute the following commands:
-
-```sh
-sudo steamos-readonly disable
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --prefix /usr
-sudo steamos-readonly enable
-```
-
-Please note that disabling the read-only state is necessary to perform this upgrade. You can find more information about
-this requirement [here](https://help.steampowered.com/en/faqs/view/671A-4453-E8D2-323C).
-
-Once `distrobox` is upgraded, you can use it as normal.
-
----
-
-To run GUI application, add following line to `~/.distroboxrc`.
-
-```sh
+# Ensure the graphical apps can talk to the Xwayland session
 xhost +si:localuser:$USER >/dev/null
-```
-
-This is needed to ensure the graphical apps can talk to the Xwayland session.
-
-You can now start using `distrobox` on the deck, open the terminal and go:
-
-```sh
-distrobox create && distrobox enter
-```
-
-Refer to the [quickstart guide](../README.md#quick-start) and to the [usage docs](../usage/usage.md)
-And don't forget the [useful tips](../useful_tips.md)!
-
-## SteamOS 3.4 and earlier
-
-To install Distrobox on the steamdeck, we can install both `podman` and `distrobox`
-inside the `$HOME` so that containers will survive updates.
-
-## Install Podman
-
-To install podman, [refer to the install guide](install_podman_static.md#):
-
-- Download the latest release of `podman-launcher` and place it in your home and rename it to `podman`,
-  this example will use `~/.local/bin`
-- Make the `podman` binary executable:
-  - `chmod +x ~/.local/bin/podman`
-- Setup `deck` user password using:
-  - `passwd`
-- Setup `deck` user uidmap:
-  - `sudo touch /etc/subuid /etc/subgid`
-  - `sudo usermod --add-subuid 100000-165535 --add-subgid 100000-165535 deck`
-
-And `podman` is ready to use!
-
-### Alternative Install Lilipod
-
-To install [lilipod](https://github.com/89luca89/lilipod), [refer to the install guide](install_lilipod_static.md#):
-
-- Download the latest release of `lilipod` and place it in your home and rename it to `lilipod`,
-  this example will use `~/.local/bin`
-- Setup `deck` user password using:
-  - `passwd`
-- Setup `deck` user uidmap:
-  - `sudo touch /etc/subuid /etc/subgid`
-  - `sudo usermod --add-subuid 100000-165535 --add-subgid 100000-165535 deck`
-
-And `lilipod` is ready to use!
-
-## Install Distrobox
-
-Installing distrobox in HOME is quite straightforward:
-
-- Install `distrobox` in your HOME following the `curl` instructions:
-  - [INSTALL](../README.md#curl-or-wget)
-
-## Setup ~/.distroboxrc
-
-We need to add some tweaks to our `~/.distroboxrc` to have GUI and Audio working
-correctly in SteamOS
-
-Ensure your `~/.distroboxrc` has this content:
-
-```sh
-xhost +si:localuser:$USER >/dev/null
+# Force the use of pulseaudio inside the container
 export PIPEWIRE_RUNTIME_DIR=/dev/null
-export PATH=$PATH:$HOME/.local/bin
+# Needed to ensure distrobox can find the podman binary we previously downloaded
+export PATH=/home/deck/.local/bin:$PATH
+export PATH=$PATH:/home/deck/.local/bin
 ```
 
-This will force the use of `pulseaudio` inside the container, right now `pipewire`
-is not working correctly inside the container, and it's a SteamOS specific issue.
+**3 - Install and configure Podman**
+To install Podman, download the latest version from the GitHub releases page:
+[](https://github.com/89luca89/podman-launcher/releases)
+`curl -L -o /home/deck/Downloads/podman-launcher-amd64 https://github.com/89luca89/podman-launcher/releases/download/v0.0.5/podman-launcher-amd64`
 
-`xhost` is needed to ensure the graphical apps can talk to the Xwayland session.
+Next, move and rename the Podman binary with ROOT permissions to the $PATH:
+`sudo mv /home/deck/Downloads/podman-launcher-amd64 /home/deck/.local/bin/podman`
 
-`PATH` is needed to ensure distrobox can find the `podman` binary we previously
-downloaded.
+Then, make Podman executable:
+`chmod +x /home/deck/.local/bin/podman`
 
-## Start using it
+Configure the deck user’s UID and GID mapping with the following commands:
+`sudo touch /etc/subuid /etc/subgid`
+`sudo usermod --add-subuid 100000-165535 --add-subgid 100000-165535 deck`
 
-You can now start using `distrobox` on the deck, open the terminal and go:
+**4 - Configure Distrobox Icon folder** - (if you install distrobox with sudo)
+To ensure Distrobox can store its icons correctly, set the proper permissions on the` /home/deck/.local/share/icons `folder with:
+`sudo chown deck:deck /home/deck/.local/share/icons`
 
-`distrobox create && distrobox enter`
+**5 - Verify installations**
+After the installation steps, verify that both Distrobox and Podman are properly installed and configured. Use the following commands:
+`which distrobox`
+`which podman`
+`distrobox --version`
+`podman --version`
+`podman info`
 
-Refer to the [quickstart guide](../README.md#quick-start) and to the [usage docs](../usage/usage.md)
-And don't forget the [useful tips](../useful_tips.md)!
+**6 - Create and test distros** - install pulseaudio within the distros
+You can now create and test containers with Distrobox. To create and test a ROOTLESS container, run:
+distrobox create --image docker.io/library/archlinux:latest --name arch
+For a ROOT container, use:
+distrobox create --image docker.io/library/archlinux:latest --name rarch --root
+
+You can either remove the created distros later or keep them for regular use.
