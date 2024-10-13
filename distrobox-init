@@ -2117,6 +2117,10 @@ if status --is-interactive
 		passwd && rm -f /var/tmp/.\$USER.passwd.initialize
 		trap - INT
 	end
+	function fish_prompt
+		set current_dir (basename (pwd))
+		echo "📦[$USER@$CONTAINER_ID $current_dir] "
+	end
 end
 EOF
 fi
