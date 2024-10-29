@@ -1,17 +1,23 @@
++++
+title = "distrobox-assemble"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 MD046 -->
-# NAME
+## NAME
 
 	distrobox assemble
 	distrobox-assemble
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-assemble takes care of creating or destroying containers in batches,
 based on a manifest file.
 The manifest file by default is `./distrobox.ini`, but can be specified using the
 `--file` flag.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox assemble**
 
@@ -22,7 +28,7 @@ The manifest file by default is `./distrobox.ini`, but can be specified using th
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-# EXAMPLES
+## EXAMPLES
 
 This is an example manifest file to create two containers:
 
@@ -119,7 +125,7 @@ declared multiple times to be compounded:
 | additional_flags | string_list | Additional flags to pass to the container manager |
 | additional_packages | string_list | Additional packages to install inside the container |
 | home | string | Which home directory should the container use |
-| image | string | Which image should the container use, look [here](../compatibility.md) for a list |
+| image | string | Which image should the container use, look [here](@/compatibility.md) for a list |
 | init_hooks | string_list | Commands to run inside the container, after the packages setup |
 | pre_init_hooks | string_list | Commands to run inside the container, before the packages setup |
 | volume | string_list | Additional volumes to mount inside the containers |
@@ -138,7 +144,7 @@ declared multiple times to be compounded:
 | unshare_devsys | bool | Specify if the container should unshare /dev (default: false) |
 | unshare_all | bool | Specify if the container should unshare all the previous options (default: false) |
 
-For further explanation of each of the option in the list, take a look at the [distrobox create usage](distrobox-create.md#synopsis),
+For further explanation of each of the option in the list, take a look at the [distrobox create usage](@/usage/distrobox-create.md#synopsis),
 each option corresponds to one of the `create` flags.
 
 **Advanced example**

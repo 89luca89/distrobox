@@ -1,8 +1,8 @@
-- [Distrobox](README.md)
-
----
-
-# Create a dedicated distrobox container
++++
+title = "Create a Dedicated Distrobox Container"
+[extra]
+toc = true
++++
 
 Distrobox wants to be as generic as possible in supporting OCI images,
 but sometimes there could be some problems:
@@ -72,7 +72,7 @@ will simply skip the installation process and work as expected.
 
 To test if all packages requirements are met just run this in the container:
 
-```shell
+```bash
 dependencies="
     bc
     bzip2

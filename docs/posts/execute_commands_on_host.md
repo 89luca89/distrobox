@@ -1,14 +1,8 @@
-- [Distrobox](../README.md)
-  - [Execute a command on the host](#execute-a-command-on-the-host)
-    - [With distrobox-host-exec](#with-distrobox-host-exec)
-    - [Using symlinks](#using-symlinks)
-  - [Integrate host with container seamlessly](#integrate-host-with-container-seamlessly)
-    - [bash or zsh](#bash-or-zsh)
-    - [fish](#fish)
-
----
-
-# Execute a command on the host
++++
+title = "Execute a Command on the Host"
+[extra]
+toc = true
++++
 
 It may be needed to execute commands back on the host. Be it the filemanager, an
 archive manager, a container manager and so on.
@@ -19,9 +13,9 @@ Here are a couple of solutions.
 
 distrobox offers the `distrobox-host-exec` helper, that can be used exactly for this.
 
-See [distrobox-host-exec](../usage/distrobox-host-exec.md).
+See [distrobox-host-exec](@/usage/distrobox-host-exec.md).
 
-```console
+```bash
 user@fedora-distrobox:~$ which podman
 /usr/bin/which: no podman in [...]
 user@fedora-distrobox:~$ distrobox-host-exec podman version # <-- this is executed on host.
@@ -40,11 +34,11 @@ Built:        Thu Jan  1 01:00:00 1970
 OS/Arch:      linux/amd64
 ```
 
-## Using symlinks
+## Using Symlinks
 
 Another way to execute commands on the host, is to create executables symlinking `distrobox-host-exec`:
 
-```console
+```bash
 user@fedora-distrobox:~$ ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
 user@fedora-distrobox:~$ ls -l /usr/local/bin/podman
 lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman -> /usr/bin/distrobox-host-exec
@@ -64,16 +58,16 @@ Built:        Thu Jan  1 01:00:00 1970
 OS/Arch:      linux/amd64
 ```
 
-# Integrate host with container seamlessly
+## Integrate Host with Container Seamlessly
 
 Another cool trick we can pull, is to use the handy `command_not_found_handle` function
 to try and execute missing commands in the container on the host.
 
-## bash or zsh
+### bash or zsh
 
 Place this in your `~/.profile`:
 
-```shell
+```bash
 command_not_found_handle() {
 # don't run if not in a container
   if [ ! -e /run/.containerenv ] && [ ! -e /.dockerenv ]; then
@@ -91,7 +85,7 @@ fi
 
 And then, run `source ~/.profile` to reload `.profile` in the current session.
 
-## fish
+### fish
 
 Place this snippet in a new fish function file (`~/.config/fish/functions/fish_command_not_found.fish`):
 
@@ -109,7 +103,7 @@ end
 And restart your terminal. Now when a command does not exist on your container,
 it will be automatically executed back on the host:
 
-```shell
+```bash
 user@fedora-distrobox:~$ which podman
 /usr/bin/which: no podman in [...]
 user@fedora-distrobox:~$ podman version # <-- this is automatically executed on host.

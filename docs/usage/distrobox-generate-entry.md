@@ -1,14 +1,20 @@
++++
+title = "distrobox-generate-entry"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox generate-entry
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-generate-entry will create a desktop icon for one of the available distroboxes.
 This will be then deleted when you remove the matching distrobox.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox generate-entry**
 
@@ -20,7 +26,7 @@ This will be then deleted when you remove the matching distrobox.
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-# EXAMPLES
+## EXAMPLES
 
 Generate an entry for a container
 

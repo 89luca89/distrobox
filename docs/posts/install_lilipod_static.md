@@ -1,4 +1,6 @@
-# Install Lilipod in a static manner
++++
+title = "Install Lilipod in a Static Manner"
++++
 
 If on your distribution (eg. SteamOS) can be difficult to install something and keep it
 between updates, then you could use this guide to install [lilipod](https://github.com/89luca89/lilipod) in your `$HOME`.

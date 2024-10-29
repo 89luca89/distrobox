@@ -1,20 +1,18 @@
-- [Distrobox](../README.md)
-  - [Run Libvirt using distrobox](run_libvirt_in_distrobox.md)
-    - [Prepare the container](#prepare-the-container)
-    - [Launch from the container](#launch-from-the-container)
-    - [Connect via SSH](#connect-via-ssh)
-
-# Using an immutable distribution
++++
+title = "Using an Immutable Distribution"
+[extra]
+toc = true
++++
 
 If you are on an immutable distribution (Silverblue/Kionite, Aeon/Kalpa) chances are that
 installing lots and lots of packages on the base system is not advisable.
 
 One way is to use a distrobox for them.
 
-## Prepare the container
+## Prepare the Container
 
 To run libvirt/qemu/kvm we need a systemd container and we need a **rootful** container
-to be able to use it, see [this tip](../useful_tips.md#using-init-system-inside-a-distrobox)
+to be able to use it, see [this tip](@/useful_tips.md#using-init-system-inside-a-distrobox)
 to have a list of compatible images.
 We will use in this example OpenSUSE's dedicated distrobox image:
 
@@ -44,14 +42,14 @@ exported_apps="virt-manager"
 
 Alternatively, command line:
 
-```console
+```bash
 distrobox create --pull --root --init --unshare-all --image registry.opensuse.org/opensuse/distrobox:latest --name libvirtd --additional-flags "-p 2222:22" \
   --init-hooks "zypper in -y --no-recommends openssh-server patterns-server-kvm_server patterns-server-kvm_tools qemu-arm qemu-ppc qemu-s390x qemu-extra qemu-linux-user qemu-hw-display-virtio-gpu-pci qemu-hw-display-virtio-gpu && systemctl enable sshd.service && systemctl enable virtqemud.socket virtnetworkd.socket virtstoraged.socket virtnodedevd.socket && usermod -aG libvirt $USER"
 
 distrobox-enter --root libvirtd -- distrobox-export --app virt-manager
 ```
 
-## Launch from the container
+## Launch from the Container
 
 Simply select the `Virt Manager (on libvirt)` entry in your menu, entry your root password and you're done!
 
@@ -84,4 +82,4 @@ with your password, insert the same password as the host:
 
 And you should be good to go!
 
-![image](https://user-images.githubusercontent.com/598882/208442009-fe9df606-e6a8-44f9-94c2-1c2bfba4ca15.png)
+![image](https://user-images.githubusercontent.com/598882/208442009-fe9df606-e6a8-44f9-94c2-1c2bfba4ca15.png#transparent)
