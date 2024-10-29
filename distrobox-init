@@ -808,6 +808,7 @@ setup_apt()
 		xz-utils
 		zip
 		libgl1
+		libegl-mesa0
 		libegl1-mesa
 		libgl1-mesa-glx
 		libegl1
@@ -2062,8 +2063,8 @@ fi
 # toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
 # this will ensure greater compatibility between the two implementations
 if [ -f /run/.toolboxenv ]; then
-    [ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\$CONTAINER_ID \W]\$ "
-    [ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@\$CONTAINER_ID]%~%# "
+    [ "\${BASH_VERSION:-}" != "" ] && export PS1="📦[\u@\$CONTAINER_ID \W]\$ "
+    [ "\${ZSH_VERSION:-}" != "" ] && export PS1="📦[%n@\$CONTAINER_ID]%~%# "
 fi
 
 # This will ensure we have a first-shell password setup for an user if needed.
