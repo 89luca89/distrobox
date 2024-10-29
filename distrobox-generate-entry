@@ -302,6 +302,7 @@ if [ "${icon}" = "auto" ]; then
 	DISTRO_ICON_MAP="
 		alma:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/alma-distrobox.png
 		alpine:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/alpine-distrobox.png
+		alt:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/alt-distrobox.png
 		arch:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/arch-distrobox.png
 		centos:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/centos-distrobox.png
 		clear--os:https://raw.githubusercontent.com/89luca89/distrobox/main/docs/assets/png/distros/clear-distrobox.png
