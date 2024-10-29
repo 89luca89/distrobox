@@ -2119,7 +2119,7 @@ if status --is-interactive
 	end
 	function fish_prompt
 		set current_dir (basename (pwd))
-		echo "📦[$USER@$CONTAINER_ID $current_dir] "
+		echo "📦[\$USER@\$CONTAINER_ID \$current_dir]> "
 	end
 end
 EOF
