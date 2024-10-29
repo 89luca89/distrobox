@@ -709,8 +709,8 @@ if [ "${unshare_groups:-0}" -eq 1 ]; then
 fi
 
 # Generate the exec command and run it
-cmd="$(generate_enter_command | tac)"
-# Reverse it with tac so we can reverse loop and prepend the command's arguments
+cmd="$(generate_enter_command | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--]}')"
+# Reverse it so we can reverse loop and prepend the command's arguments
 # to our positional parameters
 IFS='
 '
