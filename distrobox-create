@@ -75,6 +75,7 @@ container_user_gid="$(id -rg)"
 container_user_home="${HOME:-"/"}"
 container_user_name="${USER}"
 container_user_uid="$(id -ru)"
+dbus=0
 dryrun=0
 init=0
 non_interactive=0
@@ -206,6 +207,7 @@ Options:
 				of the same environment.
 	--home/-H:		select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.
 	--volume:		additional volumes to add to the container
+  --dbus:   adds host dbus connection to the container 
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--additional-packages/-ap:	additional packages to install during initial container setup
 	--init-hooks:		additional commands to execute at the end of container initialization
@@ -399,6 +401,12 @@ while :; do
 				shift
 			fi
 			;;
+    --dbus)
+      if [ -n "$2" ]; then
+        container_manager_additional_flags="${container_manager_additional_flags} --env DBUS_SYSTEM_BUS_ADDRESS=unix:path=/run/host/var/run/dbus/system_bus_socket"
+        shift
+        shift
+      ;;
 		-a | --additional-flags)
 			if [ -n "$2" ]; then
 				container_manager_additional_flags="${container_manager_additional_flags} ${2}"
