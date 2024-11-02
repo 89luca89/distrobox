@@ -400,12 +400,12 @@ while :; do
 				shift
 			fi
 			;;
-    --dbus)
-      if [ -n "$2" ]; then
-        container_manager_additional_flags="${container_manager_additional_flags} --env DBUS_SYSTEM_BUS_ADDRESS=unix:path=/run/host/var/run/dbus/system_bus_socket"
-        shift
-      fi
-      ;;
+		--dbus)
+			if [ -n "$2" ]; then
+				container_manager_additional_flags="${container_manager_additional_flags} --env DBUS_SYSTEM_BUS_ADDRESS=unix:path=/run/host/var/run/dbus/system_bus_socket"
+				shift
+      		fi
+      		;;
 		-a | --additional-flags)
 			if [ -n "$2" ]; then
 				container_manager_additional_flags="${container_manager_additional_flags} ${2}"
