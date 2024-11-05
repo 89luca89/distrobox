@@ -1,5 +1,6 @@
 #compdef distrobox-assemble
 
+_message -r "Create or remove containers in batches, based on a manifest file."
 _arguments \
   '1:command:(create rm)' \
   '--file[path to the distrobox manifest/ini file]:file:_files' \
