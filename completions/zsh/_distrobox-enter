@@ -1,13 +1,35 @@
 #compdef distrobox-enter
 
-_arguments -s \
-  '(--name -n)'{-n,--name}'[name for the distrobox]:distrobox name:' \
-  '--[end arguments and execute the rest as command to execute at login]:command:_command_names' \
-  '(--no-tty -T)'{-T,--no-tty}'[do not instantiate a tty]' \
-  '(--no-workdir -nw)'{-nw,--no-workdir}'[always start the container from container home directory]' \
-  '(--additional-flags -a)'{-a,--additional-flags}'[additional flags to pass to the container manager command]:flags:' \
-  '(--help -h)'{-h,--help}'[show this message]' \
-  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
-  '(--dry-run -d)'{-d,--dry-run}'[only print the container manager command generated]' \
-  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
-  '(--version -V)'{-V,--version}'[show version]'
+_distrobox-enter() {
+    local -a options
+    local expl
+    local state
+    local _db_cc
+
+    _db_cc=("${(@f)$(distrobox list | sed 1d | awk -F'|' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')}")
+
+    options=(
+      '(--name -n)'{-n,--name}'[name for the distrobox]:container:_distrobox_containers'
+      '--[end arguments and execute the rest as command to execute at login]:command:_command_names'
+      '(--no-tty -T)'{-T,--no-tty}'[do not instantiate a tty]'
+      '(--no-workdir -nw)'{-nw,--no-workdir}'[always start the container from container home directory]'
+      '(--additional-flags -a)'{-a,--additional-flags}'[additional flags to pass to the container manager command]:flags:'
+      '(--help -h)'{-h,--help}'[show this message]'
+      '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]'
+      '(--dry-run -d)'{-d,--dry-run}'[only print the container manager command generated]'
+      '(--verbose -v)'{-v,--verbose}'[show more verbosity]'
+      '(--version -V)'{-V,--version}'[show version]'
+    )
+    _message -r "Start and enter a distrobox."
+    if [[ -n "$_db_cc" ]]; then
+      _arguments -C \
+        '1:containers:_distrobox_containers' \
+        $options[@]
+    else
+      _message -r "No containers exist."
+      _arguments $options[@]
+    fi
+
+}
+
+_distrobox-enter

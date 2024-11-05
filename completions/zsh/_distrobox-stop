@@ -1,11 +1,31 @@
 #compdef distrobox-stop
 
-_arguments \
-  '--name[specify container name]:container name:' \
-  '(--all -a)'{-a,--all}'[stop all distroboxes]' \
-  '(--yes -Y)'{-Y,--yes}'[non-interactive, stop without asking]' \
-  '(--help -h)'{-h,--help}'[show this message]' \
-  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
-  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
-  '(--version -V)'{-V,--version}'[show version]' \
-  ':container name:_files'
+_distrobox-stop() {
+    local expl
+    local -a options
+    local _db_rcc
+
+     _db_rcc=($(distrobox list | awk -F'|' '$3 ~ /Up/ { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }'))                                                                     
+
+    options=(
+        '(-a --all)'{-a,--all}'[stop all distroboxes]'
+        '(-Y --yes)'{-Y,--yes}'[non-interactive, stop without asking]'
+        '(-r --root)'{-r,--root}'[launch podman/docker/lilipod with root privileges]'
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+
+    _message -r "Stop running distrobox containers."
+    if [[ -n "$_db_rcc" ]]; then
+      _arguments -C \
+        '*:containers:_distrobox_running_containers' \
+        $options[@]
+    else
+      _message -r "No running containers."
+      _arguments $options[@]
+    fi
+
+}
+
+_distrobox-stop
