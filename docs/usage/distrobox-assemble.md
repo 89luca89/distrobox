@@ -95,6 +95,10 @@ You can always test what distrobox **would do** by using the `--dry-run` flag.
 This command will only print what commands distrobox would do without actually
 running them.
 
+**Clone**
+
+**Disclaimer**: You need to start the container once to ensure it is fully initialized and created before cloning it. The container being copied must also be stopped before the cloning process can proceed.
+
 **Available options**
 
 This is a list of available options with the corresponding type:
@@ -120,6 +124,7 @@ declared multiple times to be compounded:
 | additional_packages | string_list | Additional packages to install inside the container |
 | home | string | Which home directory should the container use |
 | image | string | Which image should the container use, look [here](../compatibility.md) for a list |
+| clone | string | Name of the Distrobox container to use as the base for a new container (the container must be stopped). |
 | init_hooks | string_list | Commands to run inside the container, after the packages setup |
 | pre_init_hooks | string_list | Commands to run inside the container, before the packages setup |
 | volume | string_list | Additional volumes to mount inside the containers |
@@ -168,3 +173,35 @@ each option corresponds to one of the `create` flags.
 	exported_apps="htop"
 	exported_bins="/usr/bin/htop /usr/bin/git"
 	exported_bins_path="~/.local/bin"
+
+**Clone example**
+
+	[ubuntu]
+	additional_packages="git vim tmux"
+	image=ubuntu:latest
+	init=false
+	nvidia=false
+	pull=true
+	root=false
+	replace=true
+	start_now=true
+	
+	[deno_ubuntu]
+	clone=ubuntu
+	init=false
+	nvidia=false
+	pull=true
+	root=false
+	replace=true
+	start_now=true
+	pre_init_hooks=curl -fsSL https://deno.land/install.sh | sh;
+	
+	[bun_ubuntu]
+	clone=ubuntu
+	init=false
+	nvidia=false
+	pull=true
+	root=false
+	replace=true
+	start_now=true
+	pre_init_hooks=curl -fsSL https://bun.sh/install | bash;
