@@ -46,6 +46,7 @@ entry=""
 home=""
 hostname=""
 image=""
+clone=""
 init=""
 init_hooks=""
 nvidia=""
@@ -272,6 +273,7 @@ run_distrobox()
 	home=""
 	hostname=""
 	image=""
+	clone=""
 	init=""
 	init_hooks=""
 	nvidia=""
@@ -341,6 +343,9 @@ run_distrobox()
 	fi
 	if [ -n "${image}" ]; then
 		result_command="${result_command} --image $(sanitize_variable "${image}")"
+	fi
+	if [ -n "${clone}" ]; then
+		result_command="${result_command} --clone $(sanitize_variable "${clone}")"
 	fi
 	if [ -n "${init}" ] && [ "${init}" -eq 1 ]; then
 		result_command="${result_command} --init"
