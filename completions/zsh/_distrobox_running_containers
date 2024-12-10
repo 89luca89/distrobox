@@ -1,0 +1,9 @@
+#autoload
+
+_distrobox_running_containers() {
+    local -a containers
+    containers=($(distrobox list | awk -F'|' '$3 ~ /Up/ { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }'))
+    if (( ${#containers} > 0 )); then
+      _describe -t running-containers 'running containers' containers
+    fi
+}

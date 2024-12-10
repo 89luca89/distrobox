@@ -1,11 +1,35 @@
 #compdef distrobox-generate-entry
 
-_arguments -s \
-  ':container name:_files' \
-  '(--help -h)'{-h,--help}'[show this message]' \
-  '(--all -a)'{-a,--all}'[perform for all distroboxes]' \
-  '(--delete -d)'{-d,--delete}'[delete the entry]' \
-  '(--icon -i)'{-i,--icon}'[specify a custom icon (default auto)]:icon path:_files' \
-  '(--root -r)'{-r,--root}'[perform on rootful distroboxes]' \
-  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
-  '(--version -V)'{-V,--version}'[show version]'
+_distrobox-generate-entry() {
+    # expl is an internal zsh array that gets passed to _arguments bts
+    local expl
+    local -a options
+    local _db_cc
+    # Check for existing containers and store the result into var _db_cc
+    _db_cc=("${(@f)$(distrobox list | sed 1d | awk -F'|' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')}")
+    # Array of optargs to pass to _arguments for matching and completion
+    options=(
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-a --all)'{-a,--all}'[perform for all distroboxes]'
+        '(-d --delete)'{-d,--delete}'[delete the entry]'
+        '(-i --icon)'{-i,--icon}'[specify a custom icon (default auto)]:icon path:(auto _files)'
+        '(-r --root)'{-r,--root}'[perform on rootful distroboxes]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+    _message -r "Create a desktop icon for a distrobox"
+    # If containers exist then do an action
+    if [[ -n "$_db_cc" ]]; then
+      # Match both container names and optargs
+      _arguments \
+        '*:containers:_distrobox_containers' \
+        $options[@]
+    # If no containers exist then do an action
+    else
+      # Display message to user and match optargs only
+      _message -r "No containers exist."
+      _arguments $options[@]
+    fi
+}
+
+_distrobox-generate-entry

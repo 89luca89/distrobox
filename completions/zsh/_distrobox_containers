@@ -1,0 +1,7 @@
+#autoload
+
+_distrobox_containers() {
+    local -a containers
+    containers=("${(@f)$(distrobox list | sed 1d | awk -F'|' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')}")
+    _describe -t containers 'available containers' containers
+}
