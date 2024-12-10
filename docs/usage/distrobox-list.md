@@ -1,15 +1,21 @@
++++
+title = "distrobox-list"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox list
 	distrobox-list
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-list lists available distroboxes. It detects them and lists them separately
 from the rest of normal containers.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox list**
 
@@ -21,7 +27,7 @@ from the rest of normal containers.
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
 
-# EXAMPLES
+## EXAMPLES
 
 	distrobox-list
 
@@ -29,7 +35,7 @@ You can also use environment variables to specify container manager
 
 	DBX_CONTAINER_MANAGER="docker" distrobox-list
 
-# ENVIRONMENT VARIABLES
+## ENVIRONMENT VARIABLES
 
 	DBX_CONTAINER_MANAGER
 	DBX_SUDO_PROGRAM

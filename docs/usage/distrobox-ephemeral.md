@@ -1,15 +1,21 @@
++++
+title = "distrobox-ephemeral"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox ephemeral
 	distrobox-ephemeral
 
-# DESCRIPTION
+## DESCRIPTION
 
 distrobox-ephemeral creates a temporary distrobox that is automatically destroyed
 when the command is terminated.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox ephemeral**
 
@@ -21,19 +27,19 @@ when the command is terminated.
 	--/-e:			end arguments execute the rest as command to execute at login	default: default ${USER}'s shell
 	--version/-V:		show version
 
-# EXAMPLES
+## EXAMPLES
 
 	distrobox-ephemeral --image alpine:latest -- cat /etc/os-release
 	distrobox-ephemeral --root --verbose --image alpine:latest --volume /opt:/opt
 
-You can also use [flags from **distrobox-create**](distrobox-create.md) to customize the ephemeral container to run.
+You can also use [flags from **distrobox-create**](@/usage/distrobox-create.md) to customize the ephemeral container to run.
 
-# SEE ALSO
+## SEE ALSO
 
 	distrobox-create --help
 	man distrobox-create
 
-# ENVIRONMENT VARIABLES
+## ENVIRONMENT VARIABLES
 
 	distrobox-ephemeral calls distrobox-create, SEE ALSO distrobox-create(1) for
 	a list of supported environment variables to use.

@@ -1,10 +1,16 @@
++++
+title = "distrobox-export"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
 
-# NAME
+## NAME
 
 	distrobox-export
 
-# DESCRIPTION
+## DESCRIPTION
 
 **Application and binary exporting**
 
@@ -14,7 +20,7 @@ to the host.
 The exported app will be easily available in your normal launcher and it will
 automatically be launched from the container it is exported from.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox-export**
 
@@ -37,7 +43,7 @@ automatically be launched from the container it is exported from.
 You may want to install graphical applications or CLI tools in your distrobox.
 Using `distrobox-export` from **inside** the container will let you use them from the host itself.
 
-# EXAMPLES
+## EXAMPLES
 
 	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
 	distrobox-export --bin /path/to/bin [--export-path ~/.local/bin] [--extra-flags "flags"] [--delete] [--sudo]
