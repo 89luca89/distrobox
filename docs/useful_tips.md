@@ -279,7 +279,7 @@ user@test:~$ sudo systemctl status sshd
 
 You may want to run a separate instance of docker inside your container.
 In order to do this, create a [container with an init system](#using-init-system-inside-a-distrobox)
-**using a podman rootful container or using docker** using the **unshare-all flag**
+using rootful Podman or Docker and using the **unshare-all** flag.
 
 Example:
 
@@ -323,15 +323,15 @@ luca-linux@tumbleweed:~$ sudo docker run --rm -ti alpine
 ## Using Podman inside a Distrobox
 
 You may want to run a separate instance of podman inside your container.
-In order to do this, create a container using the **unshare-all flag**, the
-container manager can be anyone of choice.
+In order to do this, create a container using using rootful Podman or Docker
+and using the **unshare-all** flag.
 
 Example:
 
 ```sh
-distrobox create \
+distrobox create --root \
   --image registry.opensuse.org/opensuse/distrobox:latest \
-  --additional-packages "podman crun" \
+  --additional-packages "podman" \
   --unshare-all
 ```
 
@@ -367,7 +367,7 @@ luca-linux@tumbleweed:~> sudo podman run --rm -ti alpine
 
 You may want to run an LXC instance inside your container.
 In order to do this, create a [container with an init system](#using-init-system-inside-a-distrobox)
-using the **unshare-all flag**, this works with either docker, rootful podman, or rootless podman.
+using the **unshare-all** flag, this works with either docker, rootful podman, or rootless podman.
 
 Example:
 
