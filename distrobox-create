@@ -592,7 +592,7 @@ get_clone_image()
 	# to perform this we first ensure the source container exists and that the
 	# source container is stopped, else the clone will not work,
 	container_source_status="$(${container_manager} inspect --type container \
-		"${container_clone}" --format '{{.State.Status}}')"
+		--format '{{.State.Status}}' "${container_clone}")"
 	# If the container is not already running, we need to start if first
 	if [ "${container_source_status}" = "running" ]; then
 		printf >&2 "Container %s is running.\nPlease stop it first.\n" "${container_clone}"
@@ -603,7 +603,7 @@ get_clone_image()
 	# Now we can extract the container ID and commit it to use as source image
 	# for the new container.
 	container_source_id="$(${container_manager} inspect --type container \
-		"${container_clone}" --format '{{.ID}}')"
+		--format '{{.ID}}' "${container_clone}")"
 	container_commit_tag="$(echo "${container_clone}:$(date +%F)" | tr '[:upper:]' '[:lower:]')"
 
 	# Commit current container state to a new image tag
@@ -988,6 +988,10 @@ fi
 # if we are using the clone flag, let's set the image variable
 # to the output of container duplication
 if [ -n "${container_clone}" ]; then
+	if ! echo "${container_manager}" | grep -Eq "podman|docker"; then
+		printf >&2 "ERROR: clone is only supported with docker and podman\n"
+		exit 127
+	fi
 	container_image="$(get_clone_image)"
 fi
 
