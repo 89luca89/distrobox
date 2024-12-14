@@ -513,6 +513,8 @@ setup_deb_exceptions()
 #   None
 setup_pacman_exceptions()
 {
+	setup_pkg_manager_hooks
+
 	# Workarounds for pacman. We need to exclude the paths by using a pre-hook to umount them and a
 	# post-hook to remount them. Additionally we neutralize the systemd-post-hooks as they do not
 	# work on a rootless container system.
@@ -1238,7 +1240,7 @@ setup_pacman()
 	pacman -S --needed --noconfirm $(pacman -Ssq | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
 
 	if [ ! -e "/usr/share/i18n/locales${HOST_LOCALE}" ]; then
-		pacman -S --noconfirm glibc
+		pacman -S --noconfirm glibc glibc-locales
 	fi
 
 	# Setup hooks
