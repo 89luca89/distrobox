@@ -1,9 +1,15 @@
++++
+title = "distrobox-init"
+[extra]
+toc = true
++++
+
 <!-- markdownlint-disable MD010 MD036 -->
-# NAME
+## NAME
 
 	distrobox-init
 
-# DESCRIPTION
+## DESCRIPTION
 
 **Init the distrobox (not to be launched manually)**
 
@@ -18,7 +24,7 @@ distrobox-init will take care of installing missing dependencies (eg. sudo), set
 up the user and groups, mount directories from the host to ensure the tight
 integration.
 
-# SYNOPSIS
+## SYNOPSIS
 
 **distrobox-init**
 
@@ -36,7 +42,7 @@ integration.
 	--version/-V:		show version
 	--:			end arguments execute the rest as command to execute during init
 
-# EXAMPLES
+## EXAMPLES
 
 	distrobox-init --name test-user --user 1000 --group 1000 --home /home/test-user
 	distrobox-init --upgrade

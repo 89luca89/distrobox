@@ -1,9 +1,6 @@
-- [Distrobox](README.md)
-  - [Featured articles](#articles)
-  - [Talks](#talks)
-  - [Podcasts](#podcasts)
-
----
++++
+title = "Featured Articles"
++++
 
 ## Articles
 

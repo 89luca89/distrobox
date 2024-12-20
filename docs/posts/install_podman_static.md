@@ -1,4 +1,6 @@
-# Install Podman in a static manner
++++
+title = "Install Podman in a Static Manner"
++++
 
 If on your distribution (eg. SteamOS) can be difficult to install something and keep it
 between updates, then you could use this guide to install `podman` in your `$HOME`.
