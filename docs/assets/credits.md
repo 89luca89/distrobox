@@ -8,7 +8,7 @@ Current logo was created by [daudix-UFO](https://github.com/daudix-UFO)
 
 ## Images
 
-Assets used in `distro-box.png`
+Assets used in `distro-box.webp`
 
 - [Cardboard Box](https://skfb.ly/6Wq6q) model by
   [J0Y](https://sketchfab.com/lloydrostek) licensed under
@@ -19,7 +19,7 @@ Assets used in `distro-box.png`
 - Distro icons by
   [u/walrusz](https://www.reddit.com/r/linux/comments/nt1tm9/i_made_a_uniform_icon_set_of_linux_distribution)
 
-Assets used in `distro-box-alt.png`
+Assets used in `distro-box-alt.webp`
 
 - ['90 Light Commercial Truck](https://skfb.ly/ootyy) model by
   [Daniel Zhabotinsky](https://sketchfab.com/DanielZhabotinsky) licensed under
