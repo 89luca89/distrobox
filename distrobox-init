@@ -46,6 +46,7 @@ HOST_MOUNTS="
 	/run/systemd/sessions
 	/run/systemd/users
 	/run/udev
+	/usr/share/keyrings
 	/var/lib/libvirt
 	/var/mnt"
 
