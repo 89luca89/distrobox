@@ -241,7 +241,7 @@ fi
 
 # Get host $LANG
 if [ -f "/run/host/etc/locale.conf" ]; then
-	HOST_LOCALE=$(grep -e '^LANG=' /run/host/etc/locale.conf | sed 's/LANG=//' | sed 's/"//g')
+	HOST_LOCALE=$(grep -e '^LANG=' /run/host/etc/locale.conf | sed 's/LANG=//' | sed 's/"//g' | sed "s/'//g")
 	HOST_LOCALE_ENCODING=$(echo "${HOST_LOCALE}" | sed -n 's/^[^.]*\.\(.*\)$/\1/p')
 	HOST_LOCALE_LANG=$(echo "${HOST_LOCALE}" | sed -n 's/^\([^.]*\)\..*$/\1/p')
 elif [ -f "/run/host/etc/default/locale" ]; then
