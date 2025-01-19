@@ -97,7 +97,8 @@ running them.
 
 **Clone**
 
-**Disclaimer**: You need to start the container once to ensure it is fully initialized and created before cloning it. The container being copied must also be stopped before the cloning process can proceed.
+**Disclaimer**: You need to start the container once to ensure it is fully initialized and created
+before cloning it. The container being copied must also be stopped before the cloning process can proceed.
 
 **Available options**
 

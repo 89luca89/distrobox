@@ -450,10 +450,10 @@ export_application()
 		# by its launcher name.
 		desktop_files=$(
 			# shellcheck disable=SC2086
-			find "${canon_dirs}" -type f -print0 -o -type l -print0 | 
-    				xargs -0 -I{} grep -l -e "Exec=.*${exported_app}.*" -e "Name=.*${exported_app}.*" "{}" | 
-    				xargs -0 -I{} grep -L -e "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox-enter"}.*" "{}" | 
-    				xargs -0 -I{} printf "%s@" "{}"
+			find "${canon_dirs}" -type f -print0 -o -type l -print0 |
+				xargs -0 -I{} grep -l -e "Exec=.*${exported_app}.*" -e "Name=.*${exported_app}.*" "{}" |
+				xargs -0 -I{} grep -L -e "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox-enter"}.*" "{}" |
+				xargs -0 -I{} printf "%s@" "{}"
 		)
 	fi
 
