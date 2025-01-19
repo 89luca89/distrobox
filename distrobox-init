@@ -827,7 +827,7 @@ setup_apt()
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
 	if [ -e /etc/locale.gen ] && {
-		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
+		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo ${HOST_LOCALE} | tr -d '-' )"
 	}; then
 		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
 		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
@@ -953,7 +953,7 @@ setup_dnf()
 	if [ ! -e /usr/share/i18n/charmaps ]; then
 		${manager} reinstall -y glibc-common
 	fi
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo ${HOST_LOCALE} | tr -d '-' )"; then
 		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 	fi
 
@@ -1030,7 +1030,7 @@ setup_emerge()
 
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo ${HOST_LOCALE} | tr -d '-' )"; then
 		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
 		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
 		locale-gen
@@ -1141,7 +1141,7 @@ setup_microdnf()
 	if [ ! -e /usr/share/zoneinfo/UTC ]; then
 		microdnf reinstall -y tzdata || microdnf install -y glibc-common
 	fi
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo ${HOST_LOCALE} | tr -d '-' )"; then
 		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 	fi
 
@@ -1255,7 +1255,7 @@ setup_pacman()
 
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo ${HOST_LOCALE} | tr -d '-' )"; then
 		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
 		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
 		locale-gen -a
@@ -1489,7 +1489,7 @@ setup_xbps()
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
 	if command -v locale && {
-		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
+		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo ${HOST_LOCALE} | tr -d '-' )"
 	}; then
 		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/default/libc-locales
 		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/default/libc-locales
@@ -1601,7 +1601,7 @@ setup_zypper()
 
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo ${HOST_LOCALE} | tr -d '-' )"; then
 		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}" || true
 	fi
 
