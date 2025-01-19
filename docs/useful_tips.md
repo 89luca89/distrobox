@@ -1,5 +1,5 @@
 - [Distrobox](README.md)
-  - [Launch a distrobox from you applications list](#launch-a-distrobox-from-you-applications-list)
+  - [Launch a distrobox from your applications list](#launch-a-distrobox-from-your-applications-list)
   - [Create a distrobox with a custom HOME directory](#create-a-distrobox-with-a-custom-home-directory)
   - [Mount additional volumes in a distrobox](#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](#use-a-different-shell-than-the-host)
@@ -39,16 +39,16 @@ Being this tightly integrated, it may be useful to know when you're in a contain
 
 To detect you can just check the environment variable `"${CONTAINER_ID}"`, if set, you're in a distrobox.
 
-## Launch a distrobox from you applications list
+## Launch a distrobox from your applications list
 
 Starting from distrobox 1.4.0, containers created will automatically generate a desktop entry.
 For containers generated with older versions, you can use:
 
-`distrobox generate-entry you-container-name`
+`distrobox generate-entry your-container-name`
 
 To delete it:
 
-`distrobox generate-entry you-container-name --delete`
+`distrobox generate-entry your-container-name --delete`
 
 ## Create a distrobox with a custom HOME directory
 
