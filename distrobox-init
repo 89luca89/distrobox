@@ -1859,12 +1859,11 @@ if [ "${nvidia}" -eq 1 ]; then
 	lib64_dir="/usr/lib/"
 	if [ -e "/usr/lib/x86_64-linux-gnu" ]; then
 		lib64_dir="/usr/lib/x86_64-linux-gnu/"
+		lib32_dir="/usr/lib/i386-linux-gnu/"
 	elif [ -e "/usr/lib64" ]; then
 		lib64_dir="/usr/lib64/"
 	fi
-	if [ -e "/usr/lib/i386-linux-gnu" ]; then
-		lib32_dir="/usr/lib/i386-linux-gnu/"
-	elif [ -e "/usr/lib32" ]; then
+	if [ -e "/usr/lib32" ]; then
 		lib32_dir="/usr/lib32/"
 	fi
 
