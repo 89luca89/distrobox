@@ -66,6 +66,7 @@ container_image_default="registry.fedoraproject.org/fedora-toolbox:latest"
 container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
+container_platform=""
 container_name=""
 container_name_default="my-distrobox"
 container_hostname=""
@@ -214,6 +215,7 @@ Options:
 				this will make host's processes not visible from within the container. (assumes --unshare-process)
 				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--platform:		specify which platform to use, eg: linux/arm64
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-groups:          do not forward user's additional groups into the container
 	--unshare-ipc:          do not share ipc namespace with host
@@ -395,6 +397,13 @@ while :; do
 		--volume)
 			if [ -n "$2" ]; then
 				container_additional_volumes="${container_additional_volumes} ${2}"
+				shift
+				shift
+			fi
+			;;
+		--platform)
+			if [ -n "$2" ]; then
+				container_platform="--platform=${2}"
 				shift
 				shift
 			fi
@@ -654,6 +663,7 @@ generate_create_command()
 {
 	# Set the container hostname the same as the container name.
 	result_command="${container_manager} create"
+	result_command="${result_command} ${container_platform}"
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
 		--hostname \"${container_hostname}\"
@@ -1015,7 +1025,7 @@ if [ "${container_always_pull}" -eq 1 ] ||
 	case "${response}" in
 		y | Y | Yes | yes | YES)
 			# Pull the image
-			${container_manager} pull "${container_image}"
+			${container_manager} pull ${container_platform} "${container_image}"
 			;;
 		n | N | No | no | NO)
 			printf >&2 "next time, run this command first:\n"
