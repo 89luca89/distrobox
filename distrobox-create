@@ -1025,6 +1025,7 @@ if [ "${container_always_pull}" -eq 1 ] ||
 	case "${response}" in
 		y | Y | Yes | yes | YES)
 			# Pull the image
+			# shellcheck disable=SC2086
 			${container_manager} pull ${container_platform} "${container_image}"
 			;;
 		n | N | No | no | NO)
