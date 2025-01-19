@@ -821,9 +821,6 @@ setup_apt()
 	# shellcheck disable=SC2086,2046
 	apt-get install -y $(apt-cache show ${deps} 2> /dev/null | grep "Package:" | sort -u | cut -d' ' -f2-)
 
-	# Setup hooks
-	setup_deb_exceptions
-
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
 	if [ -e /etc/locale.gen ] && {
@@ -862,8 +859,6 @@ setup_apt()
 #   None
 setup_dnf()
 {
-	setup_rpm_exceptions
-
 	manager=$1
 
 	# If we need to upgrade, do it and exit, no further action required.
@@ -1060,8 +1055,6 @@ EOF
 #   None
 setup_microdnf()
 {
-	setup_rpm_exceptions
-
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		microdnf upgrade -y
@@ -1243,9 +1236,6 @@ setup_pacman()
 		pacman -S --noconfirm glibc glibc-locales
 	fi
 
-	# Setup hooks
-	setup_pacman_exceptions
-
 	# Ensure we have tzdata installed and populated, sometimes container
 	# images blank the zoneinfo directory, so we reinstall the package to
 	# ensure population
@@ -1425,8 +1415,6 @@ setup_swupd()
 #   None
 setup_xbps()
 {
-	setup_xbps_exceptions
-
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		xbps-install -Syu
@@ -1522,8 +1510,6 @@ setup_xbps()
 #   None
 setup_zypper()
 {
-	setup_rpm_exceptions
-
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		zypper dup -y
@@ -1661,6 +1647,23 @@ done
 
 # Ensure we have the least minimal path of standard Linux File System set
 PATH="${PATH}:/bin:/sbin:/usr/bin:/usr/sbin"
+
+# Setup pkg manager exceptions and excludes
+if command -v apt-get; then
+	setup_deb_exceptions
+elif command -v pacman; then
+	setup_pacman_exceptions
+elif command -v xbps-install; then
+	setup_xbps_exceptions
+elif command -v zypper; then
+	setup_rpm_exceptions
+elif command -v dnf; then
+	setup_rpm_exceptions
+elif command -v microdnf; then
+	setup_rpm_exceptions
+elif command -v yum; then
+	setup_rpm_exceptions
+fi
 
 # Check if dependencies are met for the script to run.
 if [ "${upgrade}" -ne 0 ] ||
