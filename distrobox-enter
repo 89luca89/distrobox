@@ -241,10 +241,10 @@ while :; do
 		-a | --additional-flags)
 			if [ -n "$2" ]; then
 				if [ -z "${container_manager_additional_flags=}" ]; then
-					container_manager_additional_flags="${2}"
+					container_manager_additional_flags="$(echo "${2}" | sed -E "s/(--[a-zA-Z]+) ([^ ]+)/\1=\2/g" | sed 's/ --/\n--/g')"
 				else
 					container_manager_additional_flags="${container_manager_additional_flags}
-					${2}"
+					$(echo "${2}" | sed -E "s/(--[a-zA-Z]+) ([^ ]+)/\1=\2/g" | sed 's/ --/\n--/g')"
 				fi
 				shift
 				shift
@@ -523,13 +523,10 @@ generate_enter_command()
 	fi
 
 	# Add additional flags
-	IFS='
-	'
-	for flag in ${container_manager_additional_flags}; do
-		# ensure the flag name is separated from the value with an '=' (not a ' ')
+	if [ -n "${container_manager_additional_flags}" ]; then
 		result_command="${result_command}
-			$(echo "${flag}" | sed -e 's,^\( *[^= ]*\)[= ],\1=,')"
-	done
+			${container_manager_additional_flags}"
+	fi
 
 	# Run selected container with specified command.
 	result_command="${result_command}
