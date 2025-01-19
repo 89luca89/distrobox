@@ -594,8 +594,16 @@ Alternatively from the `--nvidia` flag, you can use NVidia's own [nvidia-contain
 After following the [official guide to set nvidia-ctk up](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html)
 you can use it from distrobox doing:
 
+In case of podman container manager, run:
+
 ```console
-distrobox create --name example-nvidia-toolkit --additional-flags "--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all" --image nvidia/cuda
+distrobox create --name example-nvidia-toolkit --additional-flags "--gpus all" --image  docker.io/nvidia/cuda
+```
+
+In case of docker container manager, run:
+
+```console
+distrobox create --name example-nvidia-toolkit --additional-flags "--gpus all --device=nvidia.com/gpu=all" --image  docker.io/nvidia/cuda
 ```
 
 ## Slow creation on podman and image size getting bigger with distrobox create
