@@ -70,7 +70,7 @@ inside the `$HOME` so that containers will survive updates.
 
 ## Install Podman
 
-To install podman, [refer to the install guide](install_podman_static.md#):
+To install podman, [refer to the install guide](./install_podman_static.md):
 
 - Download the latest release of `podman-launcher` and place it in your home and rename it to `podman`,
   this example will use `~/.local/bin`

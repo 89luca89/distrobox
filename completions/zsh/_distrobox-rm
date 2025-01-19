@@ -1,11 +1,36 @@
 #compdef distrobox-rm
 
-_arguments \
-  '(--all -a)'{-a,--all}'[delete all distroboxes]' \
-  '(--force -f)'{-f,--force}'[force deletion]' \
-  '--rm-home[remove the mounted home if it differs from the host users one]' \
-  '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
-  '(--help -h)'{-h,--help}'[show this message]' \
-  '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
-  '(--version -V)'{-V,--version}'[show version]' \
-  '*:container name:_files'
+_distrobox-rm() {
+    # expl is an internal zsh array that gets passed to _arguments bts
+    local expl
+    local -a options
+    local _db_cc
+    # Check for existing containers and store the result into var _db_cc
+    _db_cc=("${(@f)$(distrobox list | sed 1d | awk -F'|' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')}")
+    # Array of optargs to pass to _arguments for matching and completion
+    options=(
+        '(-a --all)'{-a,--all}'[delete all distroboxes]'
+        '(-f --force)'{-f,--force}'[force deletion]'
+        '--rm-home[remove the mounted home if it differs from the host users one]'
+        '(-r --root)'{-r,--root}'[launch podman/docker/lilipod with root privileges]'
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+    _message -r "Delete one or more distroboxes."
+    # If containers exist then do an action
+    if [[ -n "$_db_cc" ]]; then
+      # Match both container names and optargs
+      _arguments \
+        '*:containers:_distrobox_containers' \
+        $options[@]
+    # If no containers exist then do an action
+    else
+      # Display message to user and match optargs only
+      _message -r "No containers exist."
+      _arguments $options[@]
+    fi
+
+}
+
+_distrobox-rm

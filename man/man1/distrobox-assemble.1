@@ -15,7 +15,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "DISTROBOX-ASSEMBLE" "1" "Dec 2024" "Distrobox" "User Manual"
+.TH "DISTROBOX-ASSEMBLE" "1" "Jan 2025" "Distrobox" "User Manual"
 .hy
 .SH NAME
 .IP
@@ -150,6 +150,13 @@ You can always test what distrobox \f[B]would do\f[R] by using the
 This command will only print what commands distrobox would do without
 actually running them.
 .PP
+\f[B]Clone\f[R]
+.PP
+\f[B]Disclaimer\f[R]: You need to start the container once to ensure it
+is fully initialized and created before cloning it.
+The container being copied must also be stopped before the cloning
+process can proceed.
+.PP
 \f[B]Available options\f[R]
 .PP
 This is a list of available options with the corresponding type:
@@ -215,6 +222,14 @@ T}@T{
 string
 T}@T{
 Which image should the container use, look here for a list
+T}
+T{
+clone
+T}@T{
+string
+T}@T{
+Name of the Distrobox container to use as the base for a new container
+(the container must be stopped).
 T}
 T{
 init_hooks
@@ -375,5 +390,41 @@ init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open;
 exported_apps=\[dq]htop\[dq]
 exported_bins=\[dq]/usr/bin/htop /usr/bin/git\[dq]
 exported_bins_path=\[dq]\[ti]/.local/bin\[dq]
+\f[R]
+.fi
+.PP
+\f[B]Clone example\f[R]
+.IP
+.nf
+\f[C]
+[ubuntu]
+additional_packages=\[dq]git vim tmux\[dq]
+image=ubuntu:latest
+init=false
+nvidia=false
+pull=true
+root=false
+replace=true
+start_now=true
+
+[deno_ubuntu]
+clone=ubuntu
+init=false
+nvidia=false
+pull=true
+root=false
+replace=true
+start_now=true
+pre_init_hooks=curl -fsSL https://deno.land/install.sh | sh;
+
+[bun_ubuntu]
+clone=ubuntu
+init=false
+nvidia=false
+pull=true
+root=false
+replace=true
+start_now=true
+pre_init_hooks=curl -fsSL https://bun.sh/install | bash;
 \f[R]
 .fi

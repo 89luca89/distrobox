@@ -388,7 +388,7 @@ generate_enter_command()
 			--user=root"
 	else
 		result_command="${result_command}
-			--user ${USER}"
+			--user=${USER}"
 	fi
 
 	# For some usage, like use in service, or launched by non-terminal
@@ -421,24 +421,24 @@ generate_enter_command()
 	fi
 
 	result_command="${result_command}
-		--workdir ${workdir}"
+		--workdir=${workdir}"
 	result_command="${result_command}
-		--env CONTAINER_ID=${container_name}"
+		--env=CONTAINER_ID=${container_name}"
 	result_command="${result_command}
-		--env DISTROBOX_ENTER_PATH=${distrobox_enter_path}"
+		--env=DISTROBOX_ENTER_PATH=${distrobox_enter_path}"
 
 	# Loop through all the environment vars
 	# and export them to the container.
 	set +o xtrace
 	# disable logging for this snippet, or it will be too talkative.
 	for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
-		grep -Ev '^(CONTAINER_ID|HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)'); do
+		grep -Ev '^(CONTAINER_ID|FPATH|HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)'); do
 		# We filter the environment so that we do not have strange variables,
 		# multiline or containing spaces.
 		# We also NEED to ignore the HOME variable, as this is set at create time
 		# and needs to stay that way to use custom home dirs.
 		result_command="${result_command}
-			--env ${i}"
+			--env=${i}"
 	done
 
 	# Start with the $PATH set in the container's config
@@ -476,7 +476,7 @@ generate_enter_command()
 	fi
 
 	result_command="${result_command}
-		--env PATH=${container_paths}"
+		--env=PATH=${container_paths}"
 
 	# Ensure the standard FHS program paths are in XDG_DATA_DIRS environment
 	standard_paths="/usr/local/share /usr/share"
@@ -491,16 +491,16 @@ generate_enter_command()
 		fi
 	done
 	result_command="${result_command}
-		--env XDG_DATA_DIRS=${container_paths}"
+		--env=XDG_DATA_DIRS=${container_paths}"
 
 	# This correctly sets the XDG_* dirs to the container_home
 	# it will be $HOME if using regular home dirs
 	# if will be $container_home if using a custom home during create
 	result_command="${result_command}
-		--env XDG_CACHE_HOME=${container_home}/.cache
-		--env XDG_CONFIG_HOME=${container_home}/.config
-		--env XDG_DATA_HOME=${container_home}/.local/share
-		--env XDG_STATE_HOME=${container_home}/.local/state"
+		--env=XDG_CACHE_HOME=${container_home}/.cache
+		--env=XDG_CONFIG_HOME=${container_home}/.config
+		--env=XDG_DATA_HOME=${container_home}/.local/share
+		--env=XDG_STATE_HOME=${container_home}/.local/state"
 
 	# Ensure the standard FHS program paths are in XDG_CONFIG_DIRS environment
 	standard_paths="/etc/xdg"
@@ -515,7 +515,7 @@ generate_enter_command()
 		fi
 	done
 	result_command="${result_command}
-		--env XDG_CONFIG_DIRS=${container_paths}"
+		--env=XDG_CONFIG_DIRS=${container_paths}"
 
 	# re-enable logging if it was enabled previously.
 	if [ "${verbose}" -ne 0 ]; then
@@ -523,10 +523,13 @@ generate_enter_command()
 	fi
 
 	# Add additional flags
-	if [ -n "${container_manager_additional_flags}" ]; then
+	IFS='
+	'
+	for flag in ${container_manager_additional_flags}; do
+		# ensure the flag name is separated from the value with an '=' (not a ' ')
 		result_command="${result_command}
-			${container_manager_additional_flags}"
-	fi
+			$(echo "${flag}" | sed -e 's,^\( *[^= ]*\)[= ],\1=,')"
+	done
 
 	# Run selected container with specified command.
 	result_command="${result_command}
@@ -709,17 +712,13 @@ if [ "${unshare_groups:-0}" -eq 1 ]; then
 fi
 
 # Generate the exec command and run it
-cmd="$(generate_enter_command | tac)"
-# Reverse it with tac so we can reverse loop and prepend the command's arguments
+cmd="$(generate_enter_command | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--]}')"
+# Reverse it so we can reverse loop and prepend the command's arguments
 # to our positional parameters
 IFS='
 '
 for arg in ${cmd}; do
-	if echo "${arg}" | grep -q " "; then
-		set - "$(echo "${arg}" | cut -d' ' -f1)" "$(echo "${arg}" | cut -d' ' -f2-)" "$@"
-	else
-		set - "${arg}" "$@"
-	fi
+	set - "${arg}" "$@"
 done
 
 # Prepend the container manager command
