@@ -1887,6 +1887,10 @@ if [ "${nvidia}" -eq 1 ]; then
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
 
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+			continue
+		fi
 		# Mounting read-only in a user namespace will trigger a check to see if certain
 		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
 		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
@@ -1908,6 +1912,10 @@ if [ "${nvidia}" -eq 1 ]; then
 	for nvidia_file in ${NVIDIA_FILES}; do
 		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
 
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+			continue
+		fi
 		# Mounting read-only in a user namespace will trigger a check to see if certain
 		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
 		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
@@ -1966,6 +1974,11 @@ if [ "${nvidia}" -eq 1 ]; then
 		# where the directory is already bind mounted (ro) and we don't need
 		# to mount further files in it.
 		if [ -e "${dest_file}" ]; then
+			continue
+		fi
+
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
 			continue
 		fi
 
