@@ -1,5 +1,6 @@
 #compdef distrobox-init
 
+_message -r "Init the distrobox (not to be launched manually)"
 _arguments \
   '(--name -n)'{-n,--name}'[user name]:user name:' \
   '(--user -u)'{-u,--user}'[uid of the user]:uid:' \

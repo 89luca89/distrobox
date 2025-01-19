@@ -1,5 +1,6 @@
 #compdef distrobox-list
 
+_message -r "List available distroboxes."
 _arguments \
   '(--help -h)'{-h,--help}'[show this message]' \
   '--no-color[disable color formatting]' \
