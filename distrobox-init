@@ -323,6 +323,25 @@ init_readlink()
 	ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2- | sed 's|\.\./|/|g'
 }
 
+# init_readlink_rec will recursively resolve links
+# Arguments:
+#	source file
+# Expected env variables:
+#	None
+# Expected global variables:
+#	None
+# Outputs:
+#	original path the link is pointing
+init_readlink_rec()
+{
+	# shellcheck disable=SC2010
+	resolved="$(ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2- | sed 's|\.\./|/|g')"
+	if [ -L "${resolved}" ]; then
+		resolved="$(init_readlink_rec "${resolved}")"
+	fi
+	echo "${resolved}"
+}
+
 # mount_bind will perform a bind mount for inputs or error
 # Arguments:
 #   source_dir: string what to mount
@@ -1850,12 +1869,107 @@ if [ "${nvidia}" -eq 1 ]; then
 	# Refresh ldconfig cache, also detect if there are empty files remaining
 	# and clean them.
 	# This could happen when upgrading drivers and changing versions.
-	empty_libs="$(ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2)"
-	if [ -n "${empty_libs}" ]; then
-		# shellcheck disable=SC2086
-		find ${empty_libs} -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
-		find /usr/ /etc/ -empty -iname "*nvidia*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
-	fi
+	find /usr/lib* -empty -iname "*.so.*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
+	find /usr/ /etc/ -empty -iname "*nvidia*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
+
+	# First we find all generic config files we might need
+	NVIDIA_FILES="$(find /run/host/etc/ -not -type d \
+		-wholename "*nvidia*" || :)"
+	for nvidia_file in ${NVIDIA_FILES}; do
+		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
+
+		if [ ! -e "$(dirname "${dest_file}")" ]; then
+			if ! mkdir -p "$(dirname "${dest_file}")"; then
+				printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+				continue
+			fi
+		fi
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+			continue
+		fi
+
+		type="file"
+		if [ -L "${nvidia_file}" ]; then
+			type="link"
+		fi
+
+		if [ "${type}" = "link" ]; then
+			nvidia_file="/run/host/$(init_readlink_rec "${nvidia_file}")"
+		fi
+		# Mounting read-only in a user namespace will trigger a check to see if certain
+		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
+		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
+		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
+	done
+
+	# Then we find all non-lib files we need, this includes
+	#       - egl files
+	#       - icd files
+	#       - doc files
+	#       - src files
+	NVIDIA_CONFS="$(find /run/host/usr/ -not -type d \
+		-wholename "*glvnd/egl_vendor.d/10_nvidia.json" \
+		-o -wholename "*X11/xorg.conf.d/10-nvidia.conf" \
+		-o -wholename "*X11/xorg.conf.d/nvidia-drm-outputclass.conf" \
+		-o -wholename "*egl/egl_external_platform.d/10_nvidia_wayland.json" \
+		-o -wholename "*egl/egl_external_platform.d/15_nvidia_gbm.json" \
+		-o -wholename "*nvidia/nvoptix.bin" \
+		-o -wholename "*vulkan/icd.d/nvidia_icd.json" \
+		-o -wholename "*vulkan/icd.d/nvidia_layers.json" \
+		-o -wholename "*vulkan/implicit_layer.d/nvidia_layers.json" \
+		-o -wholename "*nvidia.icd" \
+		-o -wholename "*nvidia.yaml" \
+		-o -wholename "*nvidia.json" || :)"
+	for nvidia_file in ${NVIDIA_CONFS}; do
+		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
+
+		if [ ! -e "$(dirname "${dest_file}")" ]; then
+			if ! mkdir -p "$(dirname "${dest_file}")"; then
+				printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+				continue
+			fi
+		fi
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+			continue
+		fi
+		# Mounting read-only in a user namespace will trigger a check to see if certain
+		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
+		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
+		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
+	done
+
+	# Then we find all the CLI utilities
+	NVIDIA_BINARIES="$(find /run/host/bin/ /run/host/sbin/ /run/host/usr/bin/ /run/host/usr/sbin/ -not -type d \
+		-iname "*nvidia*" || :)"
+	for nvidia_file in ${NVIDIA_BINARIES}; do
+		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
+
+		if [ ! -e "$(dirname "${dest_file}")" ]; then
+			if ! mkdir -p "$(dirname "${dest_file}")"; then
+				printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+				continue
+			fi
+		fi
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+			continue
+		fi
+
+		type="file"
+		if [ -L "${nvidia_file}" ]; then
+			type="link"
+		fi
+
+		if [ "${type}" = "link" ]; then
+			nvidia_file="/run/host/$(init_readlink_rec "${nvidia_file}")"
+		fi
+		# Mounting read-only in a user namespace will trigger a check to see if certain
+		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
+		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
+		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
+	done
 
 	# Find where the system expects libraries to be put
 	lib32_dir="/usr/lib/"
@@ -1870,100 +1984,18 @@ if [ "${nvidia}" -eq 1 ]; then
 		lib32_dir="/usr/lib32/"
 	fi
 
-	# First we find all non-lib files we need, this includes
-	#	- binaries
-	#	- confs
-	#	Excluding here the libs, we will threat them later specifically
-	NVIDIA_FILES="$(find /run/host/etc/ /run/host/usr/ \
-		-path "/run/host/usr/lib/i386-linux-gnu/*" -prune -o \
-		-path "/run/host/usr/lib/x86_64-linux-gnu/*" -prune -o \
-		-path "/run/host/usr/lib32/*" -prune -o \
-		-path "/run/host/usr/lib64/*" -prune -o \
-		-path "/run/host/usr/lib/*" -prune -o \
-		-path "/run/host/usr/share/*" -prune -o \
-		-path "/run/host/usr/src/*" -prune -o \
-		-path "/run/host/usr/include/*" -prune -o \
-		-path "*.png" -prune -o \
-		-path "*.svg" -prune -o \
-		-path "*.repo" -prune -o \
-		-iname "*nvidia*" -not -type d -print 2> /dev/null || :)"
-	for nvidia_file in ${NVIDIA_FILES}; do
-		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
-
-		if [ ! -w "$(dirname "${dest_file}")" ]; then
-			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
-			continue
-		fi
-		# Mounting read-only in a user namespace will trigger a check to see if certain
-		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
-		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
-		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
-	done
-
-	# First we find all non-lib files we need, this includes
-	#	- egl files
-	#	- icd files
-	#	- doc files
-	#	- src files
-	#	Excluding here the libs, we will threat them later specifically
-	NVIDIA_FILES="$(find \
-		/run/host/usr/share/*nvidia* \
-		/run/host/usr/share/*vulkan* \
-		/run/host/usr/share/doc/*nvidia* \
-		/run/host/usr/src/*nvidia* \
-		-not -type d -print 2> /dev/null || :)"
-	for nvidia_file in ${NVIDIA_FILES}; do
-		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
-
-		if [ ! -w "$(dirname "${dest_file}")" ]; then
-			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
-			continue
-		fi
-		# Mounting read-only in a user namespace will trigger a check to see if certain
-		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
-		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
-		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
-	done
-
-	# Then we find all directories with nvidia in the name and just mount them
-	NVIDIA_DIRS="$(find /run/host/etc /run/host/usr -iname "*nvidia*" -type d 2> /dev/null || :)"
-	for nvidia_dir in ${NVIDIA_DIRS}; do
-		# /usr/lib64 is common in Arch or RPM based distros, while /usr/lib/x86_64-linux-gnu is
-		# common on Debian derivatives, so we need to adapt between the two nomenclatures.
-		if printf "%s" "${nvidia_dir}" | grep -Eq "lib32|lib64|x86_64-linux-gnu|i386-linux-gnu"; then
-
-			# Remove origin so we plug our own
-			dest_dir="$(printf "%s" "${nvidia_dir}" |
-				sed "s|/run/host/usr/lib/x86_64-linux-gnu/|${lib64_dir}|g" |
-				sed "s|/run/host/usr/lib/i386-linux-gnu/|${lib32_dir}|g" |
-				sed "s|/run/host/usr/lib64/|${lib64_dir}|g" |
-				sed "s|/run/host/usr/lib32/|${lib32_dir}|g")"
-		else
-			dest_dir="$(printf "%s" "${nvidia_dir}" | sed 's|/run/host||g')"
-		fi
-
-		# Mounting read-only in a user namespace will trigger a check to see if certain
-		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
-		locked_flags="$(get_locked_mount_flags "${nvidia_dir}")"
-		mount_bind "${nvidia_dir}" "${dest_dir}" ro"${locked_flags:+,${locked_flags}}"
-	done
-
-	# Then we find all the ".so" libraries, there are searched separately
+	# Then we find all the ".so" libraries, these are searched separately
 	# because we need to extract the relative path to mount them in the
 	# correct path based on the guest's setup
 	#
 	# /usr/lib64 is common in Arch or RPM based distros, while /usr/lib/x86_64-linux-gnu is
 	# common on Debian derivatives, so we need to adapt between the two nomenclatures.
-	NVIDIA_LIBS="$(find \
-		/run/host/usr/lib/i386-linux-gnu/ \
-		/run/host/usr/lib/x86_64-linux-gnu/ \
-		/run/host/usr/lib/ \
-		/run/host/usr/lib32/ \
-		/run/host/usr/lib64/ \
-		-iname "*nvidia*.so*" \
-		-o -iname "libcuda*.so*" \
-		-o -iname "libnvcuvid*.so*" \
-		-o -iname "libnvoptix*.so*" 2> /dev/null || :)"
+	NVIDIA_LIBS="$(find /run/host/usr/lib*/ -not -type d \
+		-iname "*lib*nvidia*.so*" \
+		-o -iname "*nvidia*.so*" \
+		-o -iname "*cuda*.so*" \
+		-o -iname "libnvcuvid*" \
+		-o -iname "libnvoptix*" || :)"
 	for nvidia_lib in ${NVIDIA_LIBS}; do
 		dest_file="$(printf "%s" "${nvidia_lib}" |
 			sed "s|/run/host/usr/lib/x86_64-linux-gnu/|${lib64_dir}|g" |
@@ -1980,6 +2012,12 @@ if [ "${nvidia}" -eq 1 ]; then
 			continue
 		fi
 
+		if [ ! -e "$(dirname "${dest_file}")" ]; then
+			if ! mkdir -p "$(dirname "${dest_file}")"; then
+				printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+				continue
+			fi
+		fi
 		if [ ! -w "$(dirname "${dest_file}")" ]; then
 			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
 			continue
@@ -1991,11 +2029,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		fi
 
 		if [ "${type}" = "link" ]; then
-			mkdir -p "$(dirname "${dest_file}")"
-			if [ "$(md5sum "${nvidia_lib}" | cut -d ' ' -f 1)" != "$(md5sum "${dest_file}" | cut -d ' ' -f 1)" ]; then
-				cp -d "${nvidia_lib}" "${dest_file}"
-			fi
-			continue
+			nvidia_lib="/run/host/$(init_readlink_rec "${nvidia_lib}")"
 		fi
 
 		# Mounting read-only in a user namespace will trigger a check to see if certain
