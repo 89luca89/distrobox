@@ -52,7 +52,7 @@ jobs:
       # Fetch from compatibility table all the distros supported
       - id: generate
         run: |
-          VERSION=2.19.2
+          VERSION=3.6.1
           RELEASE="jgm/pandoc/releases/download/${VERSION}/pandoc-${VERSION}-1-amd64.deb"
           NAME=$(echo $RELEASE | rev | cut -d'/' -f1 | rev)
 
