@@ -1,71 +1,48 @@
 .\
 .\"
-.\" Define V font for inline verbatim, using C font in formats
-.\" that render this, and otherwise B font.
-.ie "\f[CB]x\f[]"x" \{\
-. ftr V B
-. ftr VI BI
-. ftr VB B
-. ftr VBI BI
-.\}
-.el \{\
-. ftr V CR
-. ftr VI CI
-. ftr VB CB
-. ftr VBI CBI
-.\}
-.TH "DISTROBOX-LIST" "1" "Jan 2025" "Distrobox" "User Manual"
-.hy
+.TH "DISTROBOX\-LIST" "1" "Jan 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
-.nf
-\f[C]
+.EX
 distrobox list
-distrobox-list
-\f[R]
-.fi
+distrobox\-list
+.EE
 .SH DESCRIPTION
-.PP
-distrobox-list lists available distroboxes.
+distrobox\-list lists available distroboxes.
 It detects them and lists them separately from the rest of normal
 containers.
 .SH SYNOPSIS
-.PP
 \f[B]distrobox list\f[R]
 .IP
-.nf
-\f[C]
---help/-h:      show this message
---no-color:     disable color formatting
---root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
+.EX
+\-\-help/\-h:      show this message
+\-\-no\-color:     disable color formatting
+\-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
---verbose/-v:       show more verbosity
---version/-V:       show version
-\f[R]
-.fi
+\-\-verbose/\-v:       show more verbosity
+\-\-version/\-V:       show version
+.EE
 .SH EXAMPLES
 .IP
-.nf
-\f[C]
-distrobox-list
-\f[R]
-.fi
+.EX
+distrobox\-list
+.EE
 .PP
 You can also use environment variables to specify container manager
 .IP
-.nf
-\f[C]
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] distrobox-list
-\f[R]
-.fi
+.EX
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] distrobox\-list
+.EE
 .SH ENVIRONMENT VARIABLES
 .IP
-.nf
-\f[C]
+.EX
 DBX_CONTAINER_MANAGER
 DBX_SUDO_PROGRAM
-\f[R]
-.fi
-.PP
-[IMAGE: image (https://user-images.githubusercontent.com/598882/147831082-24b5bc2e-b47e-49ac-9b1a-a209478c9705.png)]
+.EE
+[IMAGE: \c
+.UR https://user-images.githubusercontent.com/598882/147831082-24b5bc2e-b47e-49ac-9b1a-a209478c9705.png
+image
+.UE \c
+]
+image

@@ -1,56 +1,33 @@
 '\" t
 .\
 .\"
-.\" Define V font for inline verbatim, using C font in formats
-.\" that render this, and otherwise B font.
-.ie "\f[CB]x\f[]"x" \{\
-. ftr V B
-. ftr VI BI
-. ftr VB B
-. ftr VBI BI
-.\}
-.el \{\
-. ftr V CR
-. ftr VI CI
-. ftr VB CB
-. ftr VBI CBI
-.\}
-.TH "DISTROBOX-ASSEMBLE" "1" "Jan 2025" "Distrobox" "User Manual"
-.hy
+.TH "DISTROBOX\-ASSEMBLE" "1" "Jan 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
-.nf
-\f[C]
+.EX
 distrobox assemble
-distrobox-assemble
-\f[R]
-.fi
+distrobox\-assemble
+.EE
 .SH DESCRIPTION
-.PP
-distrobox-assemble takes care of creating or destroying containers in
+distrobox\-assemble takes care of creating or destroying containers in
 batches, based on a manifest file.
-The manifest file by default is \f[V]./distrobox.ini\f[R], but can be
-specified using the \f[V]--file\f[R] flag.
+The manifest file by default is \f[CR]./distrobox.ini\f[R], but can be
+specified using the \f[CR]\-\-file\f[R] flag.
 .SH SYNOPSIS
-.PP
 \f[B]distrobox assemble\f[R]
 .IP
-.nf
-\f[C]
---file:         path or URL to the distrobox manifest/ini file
---name/-n:      run against a single entry in the manifest/ini file
---replace/-R:       replace already existing distroboxes with matching names
---dry-run/-d:       only print the container manager command generated
---verbose/-v:       show more verbosity
---version/-V:       show version
-\f[R]
-.fi
+.EX
+\-\-file:         path or URL to the distrobox manifest/ini file
+\-\-name/\-n:      run against a single entry in the manifest/ini file
+\-\-replace/\-R:       replace already existing distroboxes with matching names
+\-\-dry\-run/\-d:       only print the container manager command generated
+\-\-verbose/\-v:       show more verbosity
+\-\-version/\-V:       show version
+.EE
 .SH EXAMPLES
-.PP
 This is an example manifest file to create two containers:
 .IP
-.nf
-\f[C]
+.EX
 [ubuntu]
 additional_packages=\[dq]git vim tmux nodejs\[dq]
 image=ubuntu:latest
@@ -68,85 +45,72 @@ home=/tmp/home
 image=archlinux:latest
 init=false
 start_now=true
-init_hooks=\[dq]touch /init-normal\[dq]
+init_hooks=\[dq]touch /init\-normal\[dq]
 nvidia=true
-pre_init_hooks=\[dq]touch /pre-init\[dq]
+pre_init_hooks=\[dq]touch /pre\-init\[dq]
 pull=true
 root=false
 replace=false
 volume=\[dq]/tmp/test:/run/a /tmp/test:/run/b\[dq]
-\f[R]
-.fi
+.EE
 .PP
 \f[B]Create\f[R]
 .PP
 We can bring them up simply using
 .IP
-.nf
-\f[C]
+.EX
 distrobox assemble create
-\f[R]
-.fi
+.EE
 .PP
-If the file is called \f[V]distrobox.ini\f[R] and is in the same
+If the file is called \f[CR]distrobox.ini\f[R] and is in the same
 directory you\[cq]re launching the command, no further arguments are
 needed.
 You can specify a custom path for the file using
 .IP
-.nf
-\f[C]
-distrobox assemble create --file /my/custom/path.ini
-\f[R]
-.fi
+.EX
+distrobox assemble create \-\-file /my/custom/path.ini
+.EE
 .PP
 Or even specify a remote file, by using an URL:
 .IP
-.nf
-\f[C]
-distrobox-assemble create --file https://raw.githubusercontent.com/89luca89/dotfiles/master/distrobox.ini
-\f[R]
-.fi
+.EX
+distrobox\-assemble create \-\-file https://raw.githubusercontent.com/89luca89/dotfiles/master/distrobox.ini
+.EE
 .PP
 \f[B]Replace\f[R]
 .PP
-By default, \f[V]distrobox assemble\f[R] will replace a container only
-if \f[V]replace=true\f[R] is specified in the manifest file.
+By default, \f[CR]distrobox assemble\f[R] will replace a container only
+if \f[CR]replace=true\f[R] is specified in the manifest file.
 .PP
 In the example of the manifest above, the ubuntu container will always
-be replaced when running \f[V]distrobox assemble create\f[R], while the
+be replaced when running \f[CR]distrobox assemble create\f[R], while the
 arch container will not.
 .PP
 To force a replace for all containers in a manifest use the
-\f[V]--replace\f[R] flag
+\f[CR]\-\-replace\f[R] flag
 .IP
-.nf
-\f[C]
-distrobox assemble create --replace [--file my/custom/path.ini]
-\f[R]
-.fi
+.EX
+distrobox assemble create \-\-replace [\-\-file my/custom/path.ini]
+.EE
 .PP
 \f[B]Remove\f[R]
 .PP
 We can bring down all the containers in a manifest file by simply doing
 .IP
-.nf
-\f[C]
+.EX
 distrobox assemble rm
-\f[R]
-.fi
+.EE
 .PP
 Or using a custom path for the ini file
 .IP
-.nf
-\f[C]
-distrobox assemble rm --file my/custom/path.ini
-\f[R]
-.fi
+.EX
+distrobox assemble rm \-\-file my/custom/path.ini
+.EE
 .PP
 \f[B]Test\f[R]
 .PP
 You can always test what distrobox \f[B]would do\f[R] by using the
-\f[V]--dry-run\f[R] flag.
+\f[CR]\-\-dry\-run\f[R] flag.
 This command will only print what commands distrobox would do without
 actually running them.
 .PP
@@ -166,23 +130,21 @@ Types legend:
 bool: true or false
 .IP \[bu] 2
 string: a single string, for example
-\f[V]home=\[dq]/home/luca-linux/dbox\[dq]\f[R]
+\f[CR]home=\[dq]/home/luca\-linux/dbox\[dq]\f[R]
 .IP \[bu] 2
 string_list: multiple strings, for example
-\f[V]additional_packages=\[dq]htop vim git\[dq]\f[R].
-Note that \f[V]string_list\f[R] can be declared multiple times to be
+\f[CR]additional_packages=\[dq]htop vim git\[dq]\f[R].
+Note that \f[CR]string_list\f[R] can be declared multiple times to be
 compounded:
 .RS 2
 .IP
-.nf
-\f[C]
-[ubuntu]
+.EX
+\f[B][ubuntu]\f[R]
 image=ubuntu:latest
 additional_packages=\[dq]git vim tmux nodejs\[dq]
 additional_packages=\[dq]htop iftop iotop\[dq]
 additional_packages=\[dq]zsh fish\[dq]
-\f[R]
-.fi
+.EE
 .RE
 .PP
 .TS
@@ -359,44 +321,41 @@ T}
 .PP
 For further explanation of each of the option in the list, take a look
 at the distrobox create usage, each option corresponds to one of the
-\f[V]create\f[R] flags.
+\f[CR]create\f[R] flags.
 .PP
 \f[B]Advanced example\f[R]
 .IP
-.nf
-\f[C]
+.EX
 [tumbleweed_distrobox]
 image=registry.opensuse.org/opensuse/distrobox
 pull=true
-additional_packages=\[dq]acpi bash-completion findutils iproute iputils sensors inotify-tools unzip\[dq]
-additional_packages=\[dq]net-tools nmap openssl procps psmisc rsync man tig tmux tree vim htop xclip yt-dlp\[dq]
-additional_packages=\[dq]git git-credential-libsecret\[dq]
-additional_packages=\[dq]patterns-devel-base-devel_basis\[dq]
-additional_packages=\[dq]ShellCheck ansible-lint clang clang-tools codespell ctags desktop-file-utils gcc golang jq python3\[dq]
-additional_packages=\[dq]python3-bashate python3-flake8 python3-mypy python3-pipx python3-pycodestyle python3-pyflakes python3-pylint python3-python-lsp-server python3-rstcheck python3-yapf python3-yamllint rustup shfmt\[dq]
-additional_packages=\[dq]kubernetes-client helm\[dq]
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/golangci/golangci-lint/cmd/golangci-lint\[at]latest;
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo\[at]latest;
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports\[at]latest;
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/gopls\[at]latest;
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system-go\[dq] GOBIN=/usr/local/bin go install sigs.k8s.io/kind\[at]latest;
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/conmon;
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/crun;
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker;
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/docker-compose;
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/flatpak;
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/podman;
-init_hooks=ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open;
+additional_packages=\[dq]acpi bash\-completion findutils iproute iputils sensors inotify\-tools unzip\[dq]
+additional_packages=\[dq]net\-tools nmap openssl procps psmisc rsync man tig tmux tree vim htop xclip yt\-dlp\[dq]
+additional_packages=\[dq]git git\-credential\-libsecret\[dq]
+additional_packages=\[dq]patterns\-devel\-base\-devel_basis\[dq]
+additional_packages=\[dq]ShellCheck ansible\-lint clang clang\-tools codespell ctags desktop\-file\-utils gcc golang jq python3\[dq]
+additional_packages=\[dq]python3\-bashate python3\-flake8 python3\-mypy python3\-pipx python3\-pycodestyle python3\-pyflakes python3\-pylint python3\-python\-lsp\-server python3\-rstcheck python3\-yapf python3\-yamllint rustup shfmt\[dq]
+additional_packages=\[dq]kubernetes\-client helm\[dq]
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install github.com/golangci/golangci\-lint/cmd/golangci\-lint\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/gopls\[at]latest;
+init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install sigs.k8s.io/kind\[at]latest;
+init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/conmon;
+init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/crun;
+init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/docker;
+init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/docker\-compose;
+init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/flatpak;
+init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/podman;
+init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/xdg\-open;
 exported_apps=\[dq]htop\[dq]
 exported_bins=\[dq]/usr/bin/htop /usr/bin/git\[dq]
 exported_bins_path=\[dq]\[ti]/.local/bin\[dq]
-\f[R]
-.fi
+.EE
 .PP
 \f[B]Clone example\f[R]
 .IP
-.nf
-\f[C]
+.EX
 [ubuntu]
 additional_packages=\[dq]git vim tmux\[dq]
 image=ubuntu:latest
@@ -415,7 +374,7 @@ pull=true
 root=false
 replace=true
 start_now=true
-pre_init_hooks=curl -fsSL https://deno.land/install.sh | sh;
+pre_init_hooks=curl \-fsSL https://deno.land/install.sh | sh;
 
 [bun_ubuntu]
 clone=ubuntu
@@ -425,6 +384,5 @@ pull=true
 root=false
 replace=true
 start_now=true
-pre_init_hooks=curl -fsSL https://bun.sh/install | bash;
-\f[R]
-.fi
+pre_init_hooks=curl \-fsSL https://bun.sh/install | bash;
+.EE

@@ -1,227 +1,170 @@
 .\
 .\"
-.\" Define V font for inline verbatim, using C font in formats
-.\" that render this, and otherwise B font.
-.ie "\f[CB]x\f[]"x" \{\
-. ftr V B
-. ftr VI BI
-. ftr VB B
-. ftr VBI BI
-.\}
-.el \{\
-. ftr V CR
-. ftr VI CI
-. ftr VB CB
-. ftr VBI CBI
-.\}
-.TH "DISTROBOX-CREATE" "1" "Jan 2025" "Distrobox" "User Manual"
-.hy
+.TH "DISTROBOX\-CREATE" "1" "Jan 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
-.nf
-\f[C]
+.EX
 distrobox create
-distrobox-create
-\f[R]
-.fi
+distrobox\-create
+.EE
 .SH DESCRIPTION
-.PP
-distrobox-create takes care of creating the container with input name
+distrobox\-create takes care of creating the container with input name
 and image.
 The created container will be tightly integrated with the host, allowing
 sharing of the HOME directory of the user, external storage, external
 usb devices and graphical apps (X11/Wayland), and audio.
 .SH SYNOPSIS
-.PP
 \f[B]distrobox create\f[R]
 .IP
-.nf
-\f[C]
---image/-i:     image to use for the container  default: ${container_image_default}
---name/-n:      name for the distrobox          default: ${container_name_default}
---hostname:     hostname for the distrobox      default: <container-name>.$(uname -n)
---pull/-p:      pull the image even if it exists locally (implies --yes)
---yes/-Y:       non-interactive, pull images without asking
---root/-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
+.EX
+\-\-image/\-i:     image to use for the container  default: ${container_image_default}
+\-\-name/\-n:      name for the distrobox          default: ${container_name_default}
+\-\-hostname:     hostname for the distrobox      default: <container\-name>.$(uname \-n)
+\-\-pull/\-p:      pull the image even if it exists locally (implies \-\-yes)
+\-\-yes/\-Y:       non\-interactive, pull images without asking
+\-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
             specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
---clone/-c:     name of the distrobox container to use as base for a new container
+\-\-clone/\-c:     name of the distrobox container to use as base for a new container
             this will be useful to either rename an existing distrobox or have multiple copies
             of the same environment.
---home/-H:      select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
---volume:       additional volumes to add to the container
---additional-flags/-a:  additional flags to pass to the container manager command
---additional-packages/-ap:  additional packages to install during initial container setup
---init-hooks:       additional commands to execute at the end of container initialization
---pre-init-hooks:   additional commands to execute at the start of container initialization
---init/-I:      use init system (like systemd) inside the container.
-            this will make host\[aq]s processes not visible from within the container. (assumes --unshare-process)
-            may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
---nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
---platform:     specify which platform to use, eg: linux/arm64
---unshare-devsys:          do not share host devices and sysfs dirs from host
---unshare-groups:          do not forward user\[aq]s additional groups into the container
---unshare-ipc:          do not share ipc namespace with host
---unshare-netns:        do not share the net namespace with host
---unshare-process:          do not share process namespace with host
---unshare-all:          activate all the unshare flags below
---compatibility/-C: show list of compatible images
---help/-h:      show this message
---no-entry:     do not generate a container entry in the application list
---dry-run/-d:       only print the container manager command generated
---verbose/-v:       show more verbosity
---version/-V:       show version
+\-\-home/\-H:      select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
+\-\-volume:       additional volumes to add to the container
+\-\-additional\-flags/\-a:  additional flags to pass to the container manager command
+\-\-additional\-packages/\-ap:  additional packages to install during initial container setup
+\-\-init\-hooks:       additional commands to execute at the end of container initialization
+\-\-pre\-init\-hooks:   additional commands to execute at the start of container initialization
+\-\-init/\-I:      use init system (like systemd) inside the container.
+            this will make host\[aq]s processes not visible from within the container. (assumes \-\-unshare\-process)
+            may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using\-init\-system\-inside\-a\-distrobox
+\-\-nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
+\-\-platform:     specify which platform to use, eg: linux/arm64
+\-\-unshare\-devsys:          do not share host devices and sysfs dirs from host
+\-\-unshare\-groups:          do not forward user\[aq]s additional groups into the container
+\-\-unshare\-ipc:          do not share ipc namespace with host
+\-\-unshare\-netns:        do not share the net namespace with host
+\-\-unshare\-process:          do not share process namespace with host
+\-\-unshare\-all:          activate all the unshare flags below
+\-\-compatibility/\-C: show list of compatible images
+\-\-help/\-h:      show this message
+\-\-no\-entry:     do not generate a container entry in the application list
+\-\-dry\-run/\-d:       only print the container manager command generated
+\-\-verbose/\-v:       show more verbosity
+\-\-version/\-V:       show version
 
---absolutely-disable-root-password-i-am-really-positively-sure: \[u26A0]\[uFE0F] \[u26A0]\[uFE0F]  when setting up a rootful distrobox, this will skip user password setup, leaving it blank. \[u26A0]\[uFE0F] \[u26A0]\[uFE0F]
-\f[R]
-.fi
+\-\-absolutely\-disable\-root\-password\-i\-am\-really\-positively\-sure: ⚠️ ⚠️  when setting up a rootful distrobox, this will skip user password setup, leaving it blank. ⚠️ ⚠️
+.EE
 .SH COMPATIBILITY
 .IP
-.nf
-\f[C]
+.EX
 for a list of compatible images and container managers, please consult the man page:
     man distrobox
-    man distrobox-compatibility
-or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#containers-distros
-\f[R]
-.fi
+    man distrobox\-compatibility
+or consult the documentation page on: https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#containers\-distros
+.EE
 .SH EXAMPLES
-.PP
-Create a distrobox with image alpine, called my-alpine container
+Create a distrobox with image alpine, called my\-alpine container
 .IP
-.nf
-\f[C]
-distrobox create --image alpine my-alpine-container
-\f[R]
-.fi
+.EX
+distrobox create \-\-image alpine my\-alpine\-container
+.EE
 .PP
-Create a distrobox from fedora-toolbox:35 image
+Create a distrobox from fedora\-toolbox:35 image
 .IP
-.nf
-\f[C]
-distrobox create --image registry.fedoraproject.org/fedora-toolbox:35 --name fedora-toolbox-35
-\f[R]
-.fi
+.EX
+distrobox create \-\-image registry.fedoraproject.org/fedora\-toolbox:35 \-\-name fedora\-toolbox\-35
+.EE
 .PP
 Clone an existing distrobox container
 .IP
-.nf
-\f[C]
-distrobox create --clone fedora-35 --name fedora-35-copy
-\f[R]
-.fi
+.EX
+distrobox create \-\-clone fedora\-35 \-\-name fedora\-35\-copy
+.EE
 .PP
 Always pull for the new image when creating a distrobox
 .IP
-.nf
-\f[C]
-distrobox create --pull --image centos:stream9 --home \[ti]/distrobox/centos9
-\f[R]
-.fi
+.EX
+distrobox create \-\-pull \-\-image centos:stream9 \-\-home \[ti]/distrobox/centos9
+.EE
 .PP
 Add additional environment variables to the container
 .IP
-.nf
-\f[C]
-distrobox create --image fedora:35 --name test --additional-flags \[dq]--env MY_VAR=value\[dq]
-\f[R]
-.fi
+.EX
+distrobox create \-\-image fedora:35 \-\-name test \-\-additional\-flags \[dq]\-\-env MY_VAR=value\[dq]
+.EE
 .PP
 Add additional volumes to the container
 .IP
-.nf
-\f[C]
-distrobox create --image fedora:35 --name test --volume /opt/my-dir:/usr/local/my-dir:rw --additional-flags \[dq]--pids-limit -1\[dq]
-\f[R]
-.fi
+.EX
+distrobox create \-\-image fedora:35 \-\-name test \-\-volume /opt/my\-dir:/usr/local/my\-dir:rw \-\-additional\-flags \[dq]\-\-pids\-limit \-1\[dq]
+.EE
 .PP
 Add additional packages to the container
 .IP
-.nf
-\f[C]
-distrobox create --image alpine:latest --name test2 --additional-packages \[dq]git tmux vim\[dq]
-\f[R]
-.fi
+.EX
+distrobox create \-\-image alpine:latest \-\-name test2 \-\-additional\-packages \[dq]git tmux vim\[dq]
+.EE
 .PP
-Use init-hooks to perform an action during container startup
+Use init\-hooks to perform an action during container startup
 .IP
-.nf
-\f[C]
-distrobox create --image alpine:latest --name test --init-hooks \[dq]touch /var/tmp/test1 && touch /var/tmp/test2\[dq]
-\f[R]
-.fi
+.EX
+distrobox create \-\-image alpine:latest \-\-name test \-\-init\-hooks \[dq]touch /var/tmp/test1 && touch /var/tmp/test2\[dq]
+.EE
 .PP
-Use pre-init-hooks to perform an action at the beginning of the
+Use pre\-init\-hooks to perform an action at the beginning of the
 container startup (before any package manager starts)
 .IP
-.nf
-\f[C]
-distrobox create -i docker.io/almalinux/8-init --init --name test --pre-init-hooks \[dq]dnf config-manager --enable powertools && dnf -y install epel-release\[dq]
-\f[R]
-.fi
+.EX
+distrobox create \-i docker.io/almalinux/8\-init \-\-init \-\-name test \-\-pre\-init\-hooks \[dq]dnf config\-manager \-\-enable powertools && dnf \-y install epel\-release\[dq]
+.EE
 .PP
 Use init to create a Systemd container (acts similar to an LXC):
 .IP
-.nf
-\f[C]
-distrobox create -i ubuntu:latest --name test --additional-packages \[dq]systemd libpam-systemd pipewire-audio-client-libraries\[dq] --init
-\f[R]
-.fi
+.EX
+distrobox create \-i ubuntu:latest \-\-name test \-\-additional\-packages \[dq]systemd libpam\-systemd pipewire\-audio\-client\-libraries\[dq] \-\-init
+.EE
 .PP
 Use init to create a OpenRC container (acts similar to an LXC):
 .IP
-.nf
-\f[C]
-distrobox create -i alpine:latest --name test --additional-packages \[dq]openrc\[dq] --init
-\f[R]
-.fi
+.EX
+distrobox create \-i alpine:latest \-\-name test \-\-additional\-packages \[dq]openrc\[dq] \-\-init
+.EE
 .PP
 Use host\[cq]s NVidia drivers integration
 .IP
-.nf
-\f[C]
-distrobox create --image ubuntu:22.04 --name ubuntu-nvidia --nvidia
-\f[R]
-.fi
+.EX
+distrobox create \-\-image ubuntu:22.04 \-\-name ubuntu\-nvidia \-\-nvidia
+.EE
 .PP
 Do not use host\[cq]s IP inside the container:
 .IP
-.nf
-\f[C]
-distrobox create --image ubuntu:latest --name test --unshare-netns
-\f[R]
-.fi
+.EX
+distrobox create \-\-image ubuntu:latest \-\-name test \-\-unshare\-netns
+.EE
 .PP
 Create a more isolated container, where only the $HOME, basic sockets
 and host\[cq]s FS (in /run/host) is shared:
 .IP
-.nf
-\f[C]
-distrobox create --name unshared-test --unshare-all
-\f[R]
-.fi
+.EX
+distrobox create \-\-name unshared\-test \-\-unshare\-all
+.EE
 .PP
 Create a more isolated container, with it\[cq]s own init system, this
 will act very similar to a full LXC container:
 .IP
-.nf
-\f[C]
-distrobox create --name unshared-init-test --unshare-all --init --image fedora:latest
-\f[R]
-.fi
+.EX
+distrobox create \-\-name unshared\-init\-test \-\-unshare\-all \-\-init \-\-image fedora:latest
+.EE
 .PP
 Use environment variables to specify container name, image and container
 manager:
 .IP
-.nf
-\f[C]
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
-\f[R]
-.fi
+.EX
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test\-alpine DBX_CONTAINER_IMAGE=alpine distrobox\-create
+.EE
 .SH ENVIRONMENT VARIABLES
 .IP
-.nf
-\f[C]
+.EX
 DBX_CONTAINER_ALWAYS_PULL
 DBX_CONTAINER_CUSTOM_HOME
 DBX_CONTAINER_HOME_PREFIX
@@ -231,132 +174,118 @@ DBX_CONTAINER_NAME
 DBX_CONTAINER_HOSTNAME
 DBX_NON_INTERACTIVE
 DBX_SUDO_PROGRAM
-\f[R]
-.fi
+.EE
 .PP
 DBX_CONTAINER_HOME_PREFIX defines where containers\[cq] home directories
 will be located.
 If you define it as \[ti]/dbx then all future containers\[cq] home
 directories will be \[ti]/dbx/$container_name
 .SH EXTRA
-.PP
-The \f[V]--additional-flags\f[R] or \f[V]-a\f[R] is useful to modify
-defaults in the container creations.
+The \f[CR]\-\-additional\-flags\f[R] or \f[CR]\-a\f[R] is useful to
+modify defaults in the container creations.
 For example:
 .IP
-.nf
-\f[C]
-distrobox create -i docker.io/library/archlinux -n dev-arch
+.EX
+distrobox create \-i docker.io/library/archlinux \-n dev\-arch
 
-podman container inspect dev-arch | jq \[aq].[0].HostConfig.PidsLimit\[aq]
+podman container inspect dev\-arch | jq \[aq].[0].HostConfig.PidsLimit\[aq]
 2048
 
-distrobox rm -f dev-arch
-distrobox create -i docker.io/library/archlinux -n dev-arch --volume $CBL_TC:/tc --additional-flags \[dq]--pids-limit -1\[dq]
+distrobox rm \-f dev\-arch
+distrobox create \-i docker.io/library/archlinux \-n dev\-arch \-\-volume $CBL_TC:/tc \-\-additional\-flags \[dq]\-\-pids\-limit \-1\[dq]
 
-podman container inspect dev-arch | jq \[aq].[0].HostConfig,.PidsLimit\[aq]
+podman container inspect dev\-arch | jq \[aq].[0].HostConfig,.PidsLimit\[aq]
 0
-\f[R]
-.fi
+.EE
 .PP
-Additional volumes can be specified using the \f[V]--volume\f[R] flag.
-This flag follows the same standard as \f[V]docker\f[R] and
-\f[V]podman\f[R] to specify the mount point so
-\f[V]--volume SOURCE_PATH:DEST_PATH:MODE\f[R].
+Additional volumes can be specified using the \f[CR]\-\-volume\f[R]
+flag.
+This flag follows the same standard as \f[CR]docker\f[R] and
+\f[CR]podman\f[R] to specify the mount point so
+\f[CR]\-\-volume SOURCE_PATH:DEST_PATH:MODE\f[R].
 .IP
-.nf
-\f[C]
-distrobox create --image docker.io/library/archlinux --name dev-arch --volume /usr/share/:/var/test:ro
-\f[R]
-.fi
+.EX
+distrobox create \-\-image docker.io/library/archlinux \-\-name dev\-arch \-\-volume /usr/share/:/var/test:ro
+.EE
 .PP
 During container creation, it is possible to specify (using the
-additional-flags) some environment variables that will persist in the
+additional\-flags) some environment variables that will persist in the
 container and be independent from your environment:
 .IP
-.nf
-\f[C]
-distrobox create --image fedora:35 --name test --additional-flags \[dq]--env MY_VAR=value\[dq]
-\f[R]
-.fi
+.EX
+distrobox create \-\-image fedora:35 \-\-name test \-\-additional\-flags \[dq]\-\-env MY_VAR=value\[dq]
+.EE
 .PP
-The \f[V]--init-hooks\f[R] is useful to add commands to the entrypoint
-(init) of the container.
+The \f[CR]\-\-init\-hooks\f[R] is useful to add commands to the
+entrypoint (init) of the container.
 This could be useful to create containers with a set of programs already
 installed, add users, groups.
 .IP
-.nf
-\f[C]
-distrobox create  --image fedora:35 --name test --init-hooks \[dq]dnf groupinstall -y \[rs]\[dq]C Development Tools and Libraries\[rs]\[dq]\[dq]
-\f[R]
-.fi
+.EX
+distrobox create  \-\-image fedora:35 \-\-name test \-\-init\-hooks \[dq]dnf groupinstall \-y \[rs]\[dq]C Development Tools and Libraries\[rs]\[dq]\[dq]
+.EE
 .PP
-The \f[V]--init\f[R] is useful to create a container that will use its
-own separate init system within.
+The \f[CR]\-\-init\f[R] is useful to create a container that will use
+its own separate init system within.
 For example using:
 .IP
-.nf
-\f[C]
-distrobox create -i docker.io/almalinux/8-init --init --name test
-distrobox create -i docker.io/library/debian --additional-packages \[dq]systemd\[dq] --init --name test-debian
-\f[R]
-.fi
+.EX
+distrobox create \-i docker.io/almalinux/8\-init \-\-init \-\-name test
+distrobox create \-i docker.io/library/debian \-\-additional\-packages \[dq]systemd\[dq] \-\-init \-\-name test\-debian
+.EE
 .PP
 Inside the container we will be able to use normal systemd units:
 .IP
-.nf
-\f[C]
+.EX
 \[ti]$ distrobox enter test
-user\[at]test:\[ti]$ sudo systemctl enable --now sshd
+user\[at]test:\[ti]$ sudo systemctl enable \-\-now sshd
 user\[at]test:\[ti]$ sudo systemctl status sshd
-    \[u25CF] sshd.service - OpenSSH server daemon
+    ● sshd.service \- OpenSSH server daemon
        Loaded: loaded (/usr/lib/systemd/system/sshd.service; enabled; vendor preset: enabled)
-       Active: active (running) since Fri 2022-01-28 22:54:50 CET; 17s ago
+       Active: active (running) since Fri 2022\-01\-28 22:54:50 CET; 17s ago
          Docs: man:sshd(8)
                man:sshd_config(5)
      Main PID: 291 (sshd)
-\f[R]
-.fi
+.EE
 .PP
-Note that enabling \f[V]--init\f[R] \f[B]will disable host\[cq]s process
-integration\f[R].
+Note that enabling \f[CR]\-\-init\f[R] \f[B]will disable host\[cq]s
+process integration\f[R].
 From within the container you will not be able to see and manage
 host\[cq]s processes.
-This is needed because \f[V]/sbin/init\f[R] must be pid 1.
+This is needed because \f[CR]/sbin/init\f[R] must be pid 1.
 .PP
-If you want to use a non-pre-create image, you\[cq]ll need to add the
+If you want to use a non\-pre\-create image, you\[cq]ll need to add the
 additional package:
 .IP
-.nf
-\f[C]
-distrobox create -i alpine:latest --init --additional-packages \[dq]openrc\[dq] -n test
-distrobox create -i debian:stable --init --additional-packages \[dq]systemd libpam-systemd pipewire-audio-client-libraries\[dq] -n test
-distrobox create -i ubuntu:22.04 --init --additional-packages \[dq]systemd libpam-systemd pipewire-audio-client-libraries\[dq] -n test
-distrobox create -i archlinux:latest --init --additional-packages \[dq]systemd\[dq] -n test
-distrobox create -i registry.opensuse.org/opensuse/tumbleweed:latest --init --additional-packages \[dq]systemd\[dq] -n test
-distrobox create -i registry.fedoraproject.org/fedora:39 --init --additional-packages \[dq]systemd\[dq] -n test
-\f[R]
-.fi
+.EX
+distrobox create \-i alpine:latest \-\-init \-\-additional\-packages \[dq]openrc\[dq] \-n test
+distrobox create \-i debian:stable \-\-init \-\-additional\-packages \[dq]systemd libpam\-systemd pipewire\-audio\-client\-libraries\[dq] \-n test
+distrobox create \-i ubuntu:22.04 \-\-init \-\-additional\-packages \[dq]systemd libpam\-systemd pipewire\-audio\-client\-libraries\[dq] \-n test
+distrobox create \-i archlinux:latest \-\-init \-\-additional\-packages \[dq]systemd\[dq] \-n test
+distrobox create \-i registry.opensuse.org/opensuse/tumbleweed:latest \-\-init \-\-additional\-packages \[dq]systemd\[dq] \-n test
+distrobox create \-i registry.fedoraproject.org/fedora:39 \-\-init \-\-additional\-packages \[dq]systemd\[dq] \-n test
+.EE
 .PP
-The \f[V]--init\f[R] flag is useful to create system containers, where
-the container acts more similar to a full VM than an
-application-container.
-Inside you\[cq]ll have a separate init, user-session, daemons and so on.
+The \f[CR]\-\-init\f[R] flag is useful to create system containers,
+where the container acts more similar to a full VM than an
+application\-container.
+Inside you\[cq]ll have a separate init, user\-session, daemons and so
+on.
 .PP
-The \f[V]--home\f[R] flag let\[cq]s you specify a custom HOME for the
+The \f[CR]\-\-home\f[R] flag let\[cq]s you specify a custom HOME for the
 container.
 Note that this will NOT prevent the mount of the host\[cq]s home
 directory, but will ensure that configs and dotfiles will not litter it.
 .PP
-The \f[V]--root\f[R] flag will let you create a container with real root
-privileges.
-At first \f[V]enter\f[R] the user will be required to setup a password.
+The \f[CR]\-\-root\f[R] flag will let you create a container with real
+root privileges.
+At first \f[CR]enter\f[R] the user will be required to setup a password.
 This is done in order to not enable passwordless sudo/su, in a
 \f[B]rootful\f[R] container, this is needed because \f[B]in this mode,
 root inside the container is also root outside the container!\f[R]
 .PP
 The
-\f[V]--absolutely-disable-root-password-i-am-really-positively-sure\f[R]
+\f[CR]\-\-absolutely\-disable\-root\-password\-i\-am\-really\-positively\-sure\f[R]
 will skip user password setup, leaving it blank.
 \f[B]This is genuinely dangerous and you really, positively should NOT
 enable this\f[R].
@@ -364,13 +293,13 @@ enable this\f[R].
 From version 1.4.0 of distrobox, when you create a new container, it
 will also generate an entry in the applications list.
 .SS NVidia integration
-.PP
 If your host has an NVidia gpu, with installed proprietary drivers, you
-can integrate them with the guests by using the \f[V]--nvidia\f[R] flag:
+can integrate them with the guests by using the \f[CR]\-\-nvidia\f[R]
+flag:
 .PP
-\f[V]distrobox create --nvidia --image ubuntu:latest --name ubuntu-nvidia\f[R]
+\f[CR]distrobox create \-\-nvidia \-\-image ubuntu:latest \-\-name ubuntu\-nvidia\f[R]
 .PP
-Be aware that \f[B]this is not compatible with non-glibc systems\f[R]
+Be aware that \f[B]this is not compatible with non\-glibc systems\f[R]
 and \f[B]needs somewhat newer distributions to work\f[R].
 .PP
 This feature was tested working on:
