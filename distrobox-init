@@ -2460,6 +2460,22 @@ if [ -n "${init_hook}" ]; then
 fi
 ###############################################################################
 
+HOST_WATCH="
+	/etc/hostname
+	/etc/hosts
+	/etc/localtime
+	/etc/resolv.conf
+"
+id="${CONTAINER_ID:-}"
+if [ -e /run/.containerenv ]; then
+	# shellcheck disable=SC1091,SC2034
+	. /run/.containerenv
+elif [ -e /.dockerenv ]; then
+	id="$(curl -s --unix-socket /run/docker.sock http://docker/containers/"${CONTAINER_ID:-$(hostname | cut -d'.' -f1)}"/json |
+		grep -Eo '"Id":"[a-zA-Z0-9]{64}",' | cut -d '"' -f4)"
+fi
+
+
 ###############################################################################
 # If init support is disabled, let's do our routine to keep the container
 # up, running and in sync with host.
@@ -2468,22 +2484,6 @@ fi
 if [ "${init}" -eq 0 ]; then
 	printf "container_setup_done\n"
 	# Keepalive loop
-	HOST_WATCH="
-		/etc/hostname
-		/etc/hosts
-		/etc/localtime
-		/etc/resolv.conf
-	"
-
-	id="${CONTAINER_ID:-}"
-	if [ -e /run/.containerenv ]; then
-		# shellcheck disable=SC1091,SC2034
-		. /run/.containerenv
-	elif [ -e /.dockerenv ]; then
-		id="$(curl -s --unix-socket /run/docker.sock http://docker/containers/"${CONTAINER_ID:-$(hostname | cut -d'.' -f1)}"/json |
-			grep -Eo '"Id":"[a-zA-Z0-9]{64}",' | cut -d '"' -f4)"
-	fi
-
 	# disable verbose logging for this phase.
 	set +x
 	while true; do
@@ -2614,6 +2614,17 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/hibernate.target
 		/usr/lib/systemd/system/hybrid-sleep.target
 	"
+
+	# in case /etc/resolv.conf is a mount, we need to mask resolved
+	# in this case we're using network=host and systemd-resolved won't
+	# be able to bind to localhost:53
+	mount_source="$(findmnt -no SOURCE /etc/resolv.conf)" || :
+	if [ -n "${mount_source}" ] && ! echo "${mount_source}" | grep -q "${id}"; then
+		UNIT_TARGETS="${UNIT_TARGETS}
+			/usr/lib/systemd/system/systemd-resolved.service
+		"
+	fi
+
 	# shellcheck disable=SC2086,SC2044
 	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
 		systemctl mask "$(basename "${unit}")" || :
