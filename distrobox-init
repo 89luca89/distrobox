@@ -2475,7 +2475,6 @@ elif [ -e /.dockerenv ]; then
 		grep -Eo '"Id":"[a-zA-Z0-9]{64}",' | cut -d '"' -f4)"
 fi
 
-
 ###############################################################################
 # If init support is disabled, let's do our routine to keep the container
 # up, running and in sync with host.
