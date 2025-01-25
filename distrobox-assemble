@@ -38,7 +38,7 @@ root_flag=""
 tmpfile="$(mktemp -u)"
 tmp_download_file="$(mktemp -u)"
 verbose=0
-version="1.8.1.1"
+version="1.8.1.2"
 # initializing block of variables used in the manifest
 additional_flags=""
 additional_packages=""
