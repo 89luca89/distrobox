@@ -323,25 +323,6 @@ init_readlink()
 	ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2- | sed 's|\.\./|/|g'
 }
 
-# init_readlink_rec will recursively resolve links
-# Arguments:
-#	source file
-# Expected env variables:
-#	None
-# Expected global variables:
-#	None
-# Outputs:
-#	original path the link is pointing
-init_readlink_rec()
-{
-	# shellcheck disable=SC2010
-	resolved="$(ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2- | sed 's|\.\./|/|g')"
-	if [ -L "${resolved}" ]; then
-		resolved="$(init_readlink_rec "${resolved}")"
-	fi
-	echo "${resolved}"
-}
-
 # mount_bind will perform a bind mount for inputs or error
 # Arguments:
 #   source_dir: string what to mount
@@ -1895,7 +1876,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		fi
 
 		if [ "${type}" = "link" ]; then
-			nvidia_file="/run/host/$(init_readlink_rec "${nvidia_file}")"
+			nvidia_file="$(readlink -fm "${nvidia_file}")"
 		fi
 		# Mounting read-only in a user namespace will trigger a check to see if certain
 		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
@@ -1963,7 +1944,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		fi
 
 		if [ "${type}" = "link" ]; then
-			nvidia_file="/run/host/$(init_readlink_rec "${nvidia_file}")"
+			nvidia_file="$(readlink -fm "${nvidia_file}")"
 		fi
 		# Mounting read-only in a user namespace will trigger a check to see if certain
 		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
@@ -2029,7 +2010,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		fi
 
 		if [ "${type}" = "link" ]; then
-			nvidia_lib="/run/host/$(init_readlink_rec "${nvidia_lib}")"
+			nvidia_lib="$(readlink -fm "${nvidia_lib}")"
 		fi
 
 		# Mounting read-only in a user namespace will trigger a check to see if certain
