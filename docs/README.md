@@ -193,7 +193,7 @@ Fedora Silverblue for the [uBlue](https://github.com/ublue-os) project
 ## Why
 
 - Provide a mutable environment on an immutable OS, like [ChromeOS, Endless OS,
-  Fedora Silverblue, OpenSUSE Aeon/Kalpa, Vanilla OS](compatibility.md#host-distros), or [SteamOS3](posts/steamdeck_guide.md)
+  Fedora Atomic Desktops, OpenSUSE Aeon/Kalpa, Vanilla OS](compatibility.md#host-distros), or [SteamOS3](posts/steamdeck_guide.md)
 - Provide a locally privileged environment for sudoless setups
   (eg. company-provided laptops, security reasons, etc...)
 - To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat)
