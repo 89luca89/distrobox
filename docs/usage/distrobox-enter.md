@@ -18,8 +18,12 @@ If using it inside a script, an application, or a service, you can specify the
 
 	--name/-n:		name for the distrobox						default: my-distrobox
 	--/-e:			end arguments execute the rest as command to execute at login	default: default ${USER}'s shell
+	--clean-path:		reset PATH inside container to FHS standard
 	--no-tty/-T:		do not instantiate a tty
 	--no-workdir/-nw:	always start the container from container's home directory
+	--no-envvars:		don't copy host environment variables (default is to copy whenever reasonable)
+	--additional-envvars:	comma-separated list of additional host environment variables to copy
+							(overrides --no-envvars)
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
