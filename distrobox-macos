@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# Get the macOS hostname for X11 display
+MACOS_HOST=$(scutil --get LocalHostName)
+
+case "$1" in
+    "create")
+        shift
+        container_name="${@: -1}"  # Get the last argument as container name
+        
+        # Clean up existing container and volume
+        docker rm -f "$container_name" 2>/dev/null || true
+        docker volume rm distrobox_sys 2>/dev/null || true
+        
+        # Create fresh volume
+        docker volume create distrobox_sys
+        
+        # Get image name from arguments
+        image_name=$(echo "$@" | grep -o '\-\-image [^ ]*' | cut -d' ' -f2)
+        
+        # Get user's home directory and details
+        USER_HOME="$HOME"
+        USER_NAME=$(id -un)
+        USER_ID=$(id -u)
+        GROUP_ID=$(id -g)
+        
+        # Create container with modified mount options and standard distrobox settings
+        docker create \
+            --name "$container_name" \
+            --mount type=volume,source=distrobox_sys,target=/sys \
+            --privileged \
+            --security-opt label=disable \
+            --security-opt apparmor=unconfined \
+            --hostname "distrobox-$container_name" \
+            -v "$USER_HOME:$USER_HOME:rslave" \
+            -v /private/tmp:/tmp:rslave \
+            -e "DISPLAY=$MACOS_HOST:0" \
+            -e "USER=$USER_NAME" \
+            -e "HOME=$USER_HOME" \
+            --entrypoint "/bin/sh" \
+            "$image_name" \
+            -c 'trap "exit 0" TERM; while true; do sleep 1000 & wait $!; done'
+        
+        # Start the container
+        echo "Starting container..."
+        docker start "$container_name"
+        
+        # Set up user and sudo in container
+        docker exec "$container_name" /bin/sh -c "
+            # Update and install sudo
+            apt-get update && apt-get install -y sudo
+
+            # Add user and group
+            groupadd -g $GROUP_ID $USER_NAME 2>/dev/null || true
+            useradd -m -u $USER_ID -g $GROUP_ID -s /bin/bash $USER_NAME 2>/dev/null || true
+            
+            # Configure sudo access
+            echo '$USER_NAME ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/$USER_NAME
+            chmod 0440 /etc/sudoers.d/$USER_NAME
+            
+            # Add user to sudo group
+            usermod -aG sudo $USER_NAME
+        "
+        
+        echo "Container $container_name created successfully"
+        ;;
+    "enter")
+        shift
+        container_name="$1"
+        
+        # Make sure container is running
+        if ! docker container inspect -f '{{.State.Running}}' "$container_name" 2>/dev/null | grep -q "true"; then
+            echo "Starting container..."
+            docker start "$container_name"
+            sleep 2
+        fi
+        
+        # Enter container directly using docker exec
+        exec docker exec \
+            -it \
+            --user "$(id -u):$(id -g)" \
+            --workdir "$HOME" \
+            -e "USER=$USER" \
+            -e "HOME=$HOME" \
+            -e "DISPLAY=$MACOS_HOST.local:0" \
+            "$container_name" \
+            /bin/bash -l
+        ;;
+    *)
+        exec ./distrobox "$@"
+        ;;
+esac 
