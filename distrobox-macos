@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Get the macOS hostname for X11 display
+# Get the macOS hostname for XQuartz display
 MACOS_HOST=$(scutil --get LocalHostName)
 
 case "$1" in
