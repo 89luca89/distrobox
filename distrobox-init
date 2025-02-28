@@ -2593,6 +2593,7 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/suspend.target
 		/usr/lib/systemd/system/hibernate.target
 		/usr/lib/systemd/system/hybrid-sleep.target
+		/usr/lib/systemd/system/systemd-remount-fs.service
 	"
 
 	# in case /etc/resolv.conf is a mount, we need to mask resolved
