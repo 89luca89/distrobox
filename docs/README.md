@@ -288,6 +288,15 @@ eg. Ubuntu 20.04:**
 You can check [HERE for more advanced usage](usage/usage.md)
 and check a [comprehensive list of useful tips HERE](useful_tips.md)
 
+## Mac OS support
+
+To use distrobox on MacOS, make sure to have XQuartz installed and running. 
+You can use distrobox from sources with : 
+
+```shell
+./distrobox-macos
+```
+
 # Assemble Distrobox
 
 Manifest files can be used to declare a set of distroboxes and use
