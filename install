@@ -20,6 +20,7 @@
 # POSIX
 
 next=0
+no_color=0
 verbose=0
 version=1.8.1.2
 
@@ -36,6 +37,7 @@ install --prefix /usr/local
 Options:
 	--prefix/-P:		base bath where all files will be deployed (default /usr/local if root, ~/.local if not)
 	--next/-N:		install latest development version from git, instead of the latest stable release.
+	--no-color:		disable color formatting
 	--help/-h:		show this message
 	-v:			show more verbosity
 EOF
@@ -48,6 +50,10 @@ while :; do
 			# Call a "show_help" function to display a synopsis, then exit.
 			show_help
 			exit
+			;;
+		--no-color)
+			shift
+			no_color=1
 			;;
 		-v | --verbose)
 			shift
@@ -68,6 +74,17 @@ while :; do
 			break ;;
 	esac
 done
+
+# if we're in not a tty, don't use colors
+BOLD_GREEN=""
+BOLD_RED=""
+CLEAR=""
+if [ -t 0 ] && [ -t 1 ] && [ "${no_color}" -ne 1 ]; then
+	# we're in a tty, use colors
+	BOLD_GREEN='\033[1;32m'
+	BOLD_RED='\033[1;31m'
+	CLEAR='\033[0m'
+fi
 
 if  [ -z "${prefix}" ]; then
 	prefix="/usr/local"
@@ -131,7 +148,7 @@ if [ -e "${curr_dir}/distrobox-enter" ]; then
 		done
 	fi
 else
-	printf >&2 "\033[1;31m Checking dependencies...\n\033[0m"
+	printf >&2 "%b Checking dependencies...\n%b" "${BOLD_GREEN}" "${CLEAR}"
 	# check that we have base dependencies
 	if ! {
 		command -v curl > /dev/null || command -v wget > /dev/null
@@ -147,7 +164,7 @@ else
 		download="wget -qO"
 	fi
 
-	printf >&2 "\033[1;31m Downloading...\n\033[0m"
+	printf >&2 "%b Downloading...\n%b" "${BOLD_RED}" "${CLEAR}"
 	if [ "${next}" -eq 0 ]; then
 		release_ver="89luca89/distrobox/archive/refs/tags/${version}.tar.gz"
 		release_name=$(basename "${release_ver}")
@@ -161,7 +178,7 @@ else
 	# download our target
 	${download} "${release_name}" "https://github.com/${release_ver}"
 	# uncompress
-	printf >&2 "\033[1;31m Unpacking...\n\033[0m"
+	printf >&2 "%b Unpacking...\n%b" "${BOLD_RED}" "${CLEAR}"
 	if [ "${verbose}" -ne 0 ]; then
 		tar xvf "${release_name}"
 	else
@@ -214,10 +231,10 @@ fi
 [ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
 [ ! -w "${man_dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${man_dest_path}" && exit 1
 
-printf >&2 "\033[1;32m Installation successful!\n\033[0m"
-printf >&2 "\033[0m Shell scripts are located in \033[1;31m%s\n\033[0m" "${dest_path}"
-printf >&2 "\033[0m Manpages are located in \033[1;31m%s\n\033[0m" "${man_dest_path}"
+printf >&2 "%b Installation successful!\n%b" "${BOLD_GREEN}" "${CLEAR}"
+printf >&2 "%b Shell scripts are located in %b%s\n%b" "${CLEAR}" "${BOLD_RED}" "${dest_path}" "${CLEAR}"
+printf >&2 "%b Manpages are located in %b%s\n%b" "${CLEAR}" "${BOLD_RED}" "${man_dest_path}" "${CLEAR}"
 
 if ! echo "${PATH}" | grep -q "${dest_path}"; then
-	printf >&2 "\033[0m Be sure that \033[1;31m%s\033[0m is in your \033[1;31m\$PATH\033[0m environment variable to be able to use distrobox without specifying the full path.\n\033[0m" "${dest_path}"
+	printf >&2 "%b Be sure that %b%s%b is in your %b\$PATH%b environment variable to be able to use distrobox without specifying the full path.\n%s" "${CLEAR}" "${BOLD_RED}" "${dest_path}" "${CLEAR}" "${BOLD_RED}" "${CLEAR}" "${CLEAR}"
 fi

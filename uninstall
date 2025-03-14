@@ -19,6 +19,7 @@
 
 # POSIX
 
+no_color=0
 verbose=0
 
 # Print usage to stdout.
@@ -32,6 +33,7 @@ show_help()
 uninstall --prefix /usr/local
 
 Options:
+	--no-color:		disable color formatting
 	--prefix/-P:		base bath where all files will be deployed (default /usr/local if root, ~/.local if not)
 	--help/-h:		show this message
 	-v:			show more verbosity
@@ -45,6 +47,10 @@ while :; do
 			# Call a "show_help" function to display a synopsis, then exit.
 			show_help
 			exit
+			;;
+		--no-color)
+			shift
+			no_color=1
 			;;
 		-v | --verbose)
 			shift
@@ -68,6 +74,17 @@ while :; do
 			break ;;
 	esac
 done
+
+# if we're in not a tty, don't use colors
+BOLD_GREEN=""
+BOLD_RED=""
+CLEAR=""
+if [ -t 0 ] && [ -t 1 ] && [ "${no_color}" -ne 1 ]; then
+	# we're in a tty, use colors
+	BOLD_GREEN='\033[1;32m'
+	BOLD_RED='\033[1;31m'
+	CLEAR='\033[0m'
+fi
 
 if  [ -z "${prefix}" ]; then
 	prefix="/usr/local"
@@ -104,6 +121,6 @@ done
 [  -e "${icon_dest_path}"/terminal-distrobox-icon.svg ] && rm "${icon_dest_path}"/terminal-distrobox-icon.svg
 [  -e "${icon_dest_path}"/distrobox ] && rm -rf "${icon_dest_path}"/distrobox
 
-printf >&2 "\033[1;32m Thank you for using Distrobox. Uninstall complete.\n\033[0m"
-printf >&2 "\033[0m Removed shell scripts located in \033[1;31m%s\n\033[0m" "${dest_path}"
-printf >&2 "\033[0m Removed manpages located in \033[1;31m%s\n\033[0m" "${man_dest_path}"
+printf >&2 "%b Thank you for using Distrobox. Uninstall complete.\n%b" "${BOLD_GREEN}" "${CLEAR}"
+printf >&2 "%b Removed shell scripts located in %b%s\n%b" "${CLEAR}" "${BOLD_RED}" "${dest_path}" "${CLEAR}"
+printf >&2 "%b Removed manpages located in %b%s\n%b" "${CLEAR}" "${BOLD_RED}" "${man_dest_path}" "${CLEAR}"
