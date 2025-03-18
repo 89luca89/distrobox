@@ -574,8 +574,7 @@ parse_file()
 
 	IFS='
 	'
-	# shellcheck disable=SC2013
-	for line in $(cat "${file}"); do
+	while read -r line; do
 		# Remove comments and trailing spaces
 		line="$(echo "${line}" |
 			sed 's/\t/ /g' |
@@ -631,7 +630,7 @@ parse_file()
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
 		fi
-	done
+	done < "${file}"
 	# Execute now one last time for the last block
 	run_distrobox "${name}"
 }
