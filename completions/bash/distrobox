@@ -19,7 +19,11 @@ _generate_from_help() {
 	fileopts="--file"
 
 	if [[ ${prev} =~ ${diropts} ]]; then
-		COMPREPLY=($(compgen -d -- ${cur}))
+		mapfile -t COMPREPLY < <(
+			IFS=$'\n'
+			realpath $(compgen -d -- ${cur}) 2> /dev/null
+		)
+		compopt -o filenames
 		return 0
 	fi
 
