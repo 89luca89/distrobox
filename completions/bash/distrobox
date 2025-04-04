@@ -13,7 +13,7 @@ _generate_from_help() {
 
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD - 1]}"
-	opts="$($command --help | sed 's|^\t||g' | grep '^--' | cut -d':' -f1 | tr '/' ' ' | tr '\n' ' ')"
+	opts="$($command --help 2>/dev/null | sed 's|^\t||g' | grep '^--' | cut -d':' -f1 | tr '/' ' ' | tr '\n' ' ')"
 	totalopts="$(echo $opts | tr ' ' '|')"
 	diropts="-H|--home|--volume"
 	fileopts="--file"
