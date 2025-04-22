@@ -198,6 +198,7 @@ Options:
 	--name/-n:		name for the distrobox          default: ${container_name_default}
 	--hostname:		hostname for the distrobox      default: $(uname -n)
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
+	--cached-image/-ci:	use cached image if it exists locally otherwise pull
 	--yes/-Y:		non-interactive, pull images without asking
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
@@ -384,6 +385,10 @@ while :; do
 			;;
 		-p | --pull)
 			container_always_pull=1
+			shift
+			;;
+		-ci | --cached-image)
+			container_always_pull=0
 			shift
 			;;
 		--nvidia)

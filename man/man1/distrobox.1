@@ -892,6 +892,7 @@ usb devices and graphical apps (X11/Wayland), and audio.
 \-\-name/\-n:      name for the distrobox          default: ${container_name_default}
 \-\-hostname:     hostname for the distrobox      default: <container\-name>.$(uname \-n)
 \-\-pull/\-p:      pull the image even if it exists locally (implies \-\-yes)
+\-\-cached-image/\-ci:      use cached image if it exists locally otherwise pull
 \-\-yes/\-Y:       non\-interactive, pull images without asking
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
             way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
