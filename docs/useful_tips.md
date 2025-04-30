@@ -77,6 +77,11 @@ by default. So, just change the default shell in the container using:
 
 exit and log back in the container.
 
+To use a different shell automatically for every run of distrobox is possible to add an 
+alias in your shell configuration:
+
+`alias distrobox="SHELL=/bin/shell-to-use command distrobox"`
+
 For version older than 1.4.0, distrobox will pick up the shell from the host and use it inside the container.
 If you want a different one you can use:
 
