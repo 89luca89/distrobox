@@ -1,7 +1,7 @@
 '\" t
 .\
 .\"
-.TH "DISTROBOX\-ASSEMBLE" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ASSEMBLE" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -389,7 +389,7 @@ pre_init_hooks=curl \-fsSL https://bun.sh/install | bash;
 '\" t
 .\
 .\"
-.TH "DISTROBOX" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH COMPATIBILITY
 This project \f[B]does not need a dedicated image\f[R].
 It can use any OCI images from docker\-hub, quay.io, or any registry of
@@ -742,7 +742,8 @@ Tumbleweed
 T}@T{
 registry.opensuse.org/opensuse/distrobox:latest 
 registry.opensuse.org/opensuse/tumbleweed:latest 
-registry.opensuse.org/opensuse/toolbox:latest
+registry.opensuse.org/opensuse/toolbox:latest 
+registry.opensuse.org/opensuse/distrobox\-bpftrace:latest
 T}
 T{
 Oracle Linux
@@ -871,7 +872,7 @@ Alternatively, you can use the nvidia\-container\-toolkit utility to set
 up the integration independently from the distrobox\[cq]s own flag.
 .\
 .\"
-.TH "DISTROBOX\-CREATE" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-CREATE" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1196,7 +1197,7 @@ Ubuntu 18.04 and newer
 Void Linux (glibc)
 .\
 .\"
-.TH "DISTROBOX\-ENTER" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ENTER" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1305,7 +1306,7 @@ such as \f[CR]\[ti]/.distroboxrc\f[R], you can also append the line
 run distrobox commands involving rootful containers using `doas'.
 .\
 .\"
-.TH "DISTROBOX\-EPHEMERAL" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EPHEMERAL" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1350,7 +1351,7 @@ a list of supported environment variables to use.
 .EE
 .\
 .\"
-.TH "DISTROBOX\-EXPORT" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EXPORT" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1478,7 +1479,7 @@ option to provide a series of flags, for example:
 \f[CR]distrobox\-export \-\-app atom \-\-extra\-flags \[dq]\-\-foreground\[dq]\f[R]
 .\
 .\"
-.TH "DISTROBOX\-GENERATE\-ENTRY" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-GENERATE\-ENTRY" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1526,7 +1527,7 @@ distrobox generate\-entry container\-name \-\-delete
 .EE
 .\
 .\"
-.TH "DISTROBOX\-HOST\-EXEC" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-HOST\-EXEC" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1575,7 +1576,7 @@ distrobox\-host\-exec podman ps \-a
 .EE
 .\
 .\"
-.TH "DISTROBOX\-INIT" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-INIT" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1620,7 +1621,7 @@ distrobox\-init \-\-upgrade
 .EE
 .\
 .\"
-.TH "DISTROBOX\-LIST" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-LIST" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1668,7 +1669,7 @@ image
 image
 .\
 .\"
-.TH "DISTROBOX\-RM" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-RM" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1713,7 +1714,7 @@ DBX_SUDO_PROGRAM
 .EE
 .\
 .\"
-.TH "DISTROBOX\-STOP" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-STOP" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1763,7 +1764,7 @@ DBX_SUDO_PROGRAM
 .EE
 .\
 .\"
-.TH "DISTROBOX\-UPGRADE" "1" "Jan 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-UPGRADE" "1" "Apr 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
