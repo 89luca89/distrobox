@@ -441,16 +441,17 @@ export_application()
 		fi
 		unset IFS
 
-		# In this phase we search for applications to export.
-		# First find command will grep through all files in the canonical directories
-		# and only list files that contain the $exported_app, excluding those that
-		# already contains a distrobox-enter command. So skipping already exported apps.
-		# Second find will list all files that contain the name specified, so that
-		# it is possible to export an app not only by its executable name but also
-		# by its launcher name.
+		# In this phase we search for applications to export. First find command
+		# will grep through all files in the canonical directories, resolving
+		# symbolic links and only listing files that contain the $exported_app,
+		# excluding those that already contains a distrobox-enter command. So
+		# skipping already exported apps. Second find will list all files that
+		# contain the name specified, so that it is possible to export an app
+		# not only by its executable name but also by its launcher name.
 		desktop_files=$(
 			# shellcheck disable=SC2086
 			find ${canon_dirs} -type f -print -o -type l -print | sed 's/./\\&/g' |
+				xargs -I{} readlink -e "{}" | sed 's/./\\&/g' |
 				xargs -I{} grep -l -e "Exec=.*${exported_app}.*" -e "Name=.*${exported_app}.*" "{}" | sed 's/./\\&/g' |
 				xargs -I{} grep -L -e "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox.*enter"}.*" "{}" | sed 's/./\\&/g' |
 				xargs -I{} printf "%s¤" "{}"
