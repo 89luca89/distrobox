@@ -76,7 +76,7 @@ graphical apps (X11/Wayland), and audio.
     - [distrobox-init](usage/distrobox-init.md)
   - [Configure distrobox](#configure-distrobox)
 - [Useful tips](useful_tips.md)
-  - [Launch a distrobox from you applications list](useful_tips.md#launch-a-distrobox-from-you-applications-list)
+  - [Launch a distrobox from your applications list](useful_tips.md#launch-a-distrobox-from-your-applications-list)
   - [Create a distrobox with a custom HOME directory](useful_tips.md#create-a-distrobox-with-a-custom-home-directory)
   - [Mount additional volumes in a distrobox](useful_tips.md#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](useful_tips.md#use-a-different-shell-than-the-host)
