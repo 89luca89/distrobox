@@ -934,6 +934,11 @@ generate_create_command()
 			result_command="${result_command}
 				--userns keep-id"
 		fi
+
+		# Add :size=65536 if possible
+		if podman run --rm --userns=keep-id:size=65536 ${container_image} /bin/true 2>/dev/null || [ "$?" -eq 127 ] ; then
+			result_command="${result_command}:size=65536"
+		fi
 	fi
 
 	# Add additional flags
