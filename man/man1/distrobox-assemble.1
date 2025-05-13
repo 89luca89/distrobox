@@ -1,29 +1,64 @@
-'\" t
-.\
-.\"
-.TH "DISTROBOX\-ASSEMBLE" "1" "Apr 2025" "Distrobox" "User Manual"
+.nh
+.TH distrobox-assemble 1
 .SH NAME
-.IP
-.EX
-distrobox assemble
-distrobox\-assemble
-.EE
+.PP
+distrobox-assemble - Create and destroy containers based on a config file.
+
+.SH SYNOPSIS
+\fBdistrobox assemble\fP [\fI--file PATH\fP]
+        [\fI--name NAME\fP | \fI-n NAME\fP]
+        [\fI--replace\fP | \fI-R\fP]
+        [\fI--dry-run\fP | \fI-d\fP]
+        [\fI--verbose\fP | \fI-v\fP]
+        [\fI--version\fP | \fI-V\fP]
+
 .SH DESCRIPTION
 distrobox\-assemble takes care of creating or destroying containers in
 batches, based on a manifest file.
 The manifest file by default is \f[CR]./distrobox.ini\f[R], but can be
 specified using the \f[CR]\-\-file\f[R] flag.
-.SH SYNOPSIS
-\f[B]distrobox assemble\f[R]
-.IP
-.EX
-\-\-file:         path or URL to the distrobox manifest/ini file
-\-\-name/\-n:      run against a single entry in the manifest/ini file
-\-\-replace/\-R:       replace already existing distroboxes with matching names
-\-\-dry\-run/\-d:       only print the container manager command generated
-\-\-verbose/\-v:       show more verbosity
-\-\-version/\-V:       show version
-.EE
+
+.SH OPTIONS
+.PP
+The following options are understood:
+
+.PP
+\fB--file\fP PATH
+
+.PP
+Path or URL to the distrobox manifest/ini file.
+
+.PP
+\fB--name\fP NAME, \fB-n\fP NAME
+
+.PP
+Run against a single entry in the manifest/ini file.
+
+.PP
+\fB--replace\fP, \fB-R\fP
+
+.PP
+Replace already existing distroboxes with matching names.
+
+.PP
+\fB--dry-run\fP, \fB-d\fP
+
+.PP
+Only print the container manager command generated.
+
+.PP
+\fB--verbose\fP, \fB-v\fP
+
+.PP
+Show more verbosity.
+
+.PP
+\fB--version\fP, \fB-V\fP
+
+.PP
+Show version.
+
+.PP
 .SH EXAMPLES
 This is an example manifest file to create two containers:
 .IP
@@ -386,3 +421,7 @@ replace=true
 start_now=true
 pre_init_hooks=curl \-fsSL https://bun.sh/install | bash;
 .EE
+
+.SH SEE ALSO
+.PP
+\fBdistrobox(1)\fR
