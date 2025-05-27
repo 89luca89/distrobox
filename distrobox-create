@@ -920,6 +920,12 @@ generate_create_command()
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
 	if echo "${container_manager}" | grep -q "podman"; then
+		# If possible, always prefer crun, as it allows keeping original groups.
+		# useful for rootless containers.
+		if command -v crun > /dev/null 2>&1; then
+			result_command="${result_command}
+				--runtime=crun"
+		fi
 		result_command="${result_command}
 			--annotation run.oci.keep_original_groups=1
 			--ulimit host"
