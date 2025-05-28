@@ -282,8 +282,14 @@ fi
 container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} "
 
 if [ -n "${rootful}" ]; then
-	container_command_prefix="env SUDO_ASKPASS=\"${sudo_askpass_path}\" DBX_SUDO_PROGRAM=\"sudo --askpass\" ${container_command_prefix}"
+	container_command_prefix="SUDO_ASKPASS=\"${sudo_askpass_path}\" DBX_SUDO_PROGRAM=\"sudo --askpass\" ${container_command_prefix}"
 fi
+
+### always identify container manager if possible - support usage of multiple container managers on a single host system
+if [ -n "${DBX_CONTAINER_MANAGER}" ]; then
+	container_manager_prefix="DBX_CONTAINER_MANAGER=\"${DBX_CONTAINER_MANAGER}\""
+fi
+container_command_prefix="env  ${container_manager_prefix:-} ${container_command_prefix}"
 
 if [ -z "${exported_app_label}" ]; then
 	exported_app_label=" (on ${container_name})"
@@ -320,7 +326,8 @@ generate_script()
 # distrobox_binary
 # name: ${container_name}
 if [ -z "\${CONTAINER_ID}" ]; then
-	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} ${container_command_suffix}
+	### always identify container manager if possible - support usage of multiple container managers on a single host system
+	${container_manager_prefix:-} exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} ${container_command_suffix}
 elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
 	exec distrobox-host-exec '${dest_path}/$(basename "${exported_bin}")' "\$@"
 else
