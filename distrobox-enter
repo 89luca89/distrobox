@@ -107,6 +107,8 @@ headless=0
 # There's no need for them to pass the --root flag option in such cases.
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 skip_workdir=0
+no_envvars=0
+additional_envvars=""
 verbose=0
 clean_path=0
 version="1.8.1.2.1"
@@ -188,6 +190,9 @@ Options:
 	--clean-path:		reset PATH inside container to FHS standard
 	--no-tty/-T:		do not instantiate a tty
 	--no-workdir/-nw:	always start the container from container's home directory
+	--no-envvars:		don't copy host environment variables (default is to copy whenever reasonable)
+	--additional-envvars:	comma-separated list of additional host environment variables to copy
+							(overrides --no-envvars)
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
@@ -230,6 +235,17 @@ while :; do
 		-nw | --no-workdir)
 			shift
 			skip_workdir=1
+			;;
+		--no-envvars)
+			shift
+			no_envvars=1
+			;;
+		--additional-envvars)
+			if [ -n "$2" ]; then
+				additional_envvars="$2"
+				shift
+				shift
+			fi
 			;;
 		-n | --name)
 			if [ -n "$2" ]; then
@@ -429,14 +445,21 @@ generate_enter_command()
 
 	# Loop through all the environment vars
 	# and export them to the container.
-	set +o xtrace
-	# disable logging for this snippet, or it will be too talkative.
-	for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
-		grep -Ev '^(CONTAINER_ID|FPATH|HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)'); do
-		# We filter the environment so that we do not have strange variables,
-		# multiline or containing spaces.
-		# We also NEED to ignore the HOME variable, as this is set at create time
-		# and needs to stay that way to use custom home dirs.
+	if [ "${no_envvars}" -eq 0 ]; then
+		set +o xtrace
+		# disable logging for this snippet, or it will be too talkative.
+		for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
+					   grep -Ev '^(CONTAINER_ID|FPATH|HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)'); do
+			# We filter the environment so that we do not have strange variables,
+			# multiline or containing spaces.
+			# We also NEED to ignore the HOME variable, as this is set at create time
+			# and needs to stay that way to use custom home dirs.
+			result_command="${result_command}
+			--env=${i}"
+		done
+	fi
+	# Export all environment variables passed via --additional-envvars
+	for i in $(echo "$additional_envvars" | sed 's/,/ /g'); do
 		result_command="${result_command}
 			--env=${i}"
 	done
