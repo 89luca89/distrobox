@@ -38,14 +38,18 @@ This is an example manifest file to create two containers:
 
 	# You can add comments using this #
 	[arch] # also inline comments are supported
-	additional_packages="git vim tmux nodejs"
+	additional_packages="paru"
 	home=/tmp/home
 	image=archlinux:latest
 	init=false
 	start_now=true
-	init_hooks="touch /init-normal"
+	init_hooks=paru -S --noconfirm downgrade
 	nvidia=true
-	pre_init_hooks="touch /pre-init"
+	pre_init_hooks=echo -e "[archlinuxcn]\nServer = https://repo.archlinuxcn.org/\$arch" >> /etc/pacman.conf && pacman -Sy && pacman-key --init && pacman -S --noconfirm archlinuxcn-keyring
+	# Avoid using commands like echo '$a_word' here,
+	# because distrobox uses 'eval' to execute commands.
+	# If $a_word is unescaped, it will be treated as a variable,
+	# potentially causing unexpected behavior or errors.
 	pull=true
 	root=false
 	replace=false
