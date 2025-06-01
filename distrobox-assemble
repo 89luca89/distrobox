@@ -54,6 +54,7 @@ pre_init_hooks=""
 pull=""
 root=""
 start_now=""
+unshare_groups=""
 unshare_ipc=""
 unshare_netns=""
 unshare_process=""
@@ -281,6 +282,7 @@ run_distrobox()
 	pull=""
 	root=""
 	start_now=""
+	unshare_groups=""
 	unshare_ipc=""
 	unshare_netns=""
 	unshare_process=""
@@ -364,6 +366,9 @@ run_distrobox()
 	fi
 	if [ -n "${unshare_netns}" ] && [ "${unshare_netns}" -eq 1 ]; then
 		result_command="${result_command} --unshare-netns"
+	fi
+	if [ -n "${unshare_groups}" ] && [ "${unshare_groups}" -eq 1 ]; then
+		result_command="${result_command} --unshare-groups"
 	fi
 	if [ -n "${unshare_ipc}" ] && [ "${unshare_ipc}" -eq 1 ]; then
 		result_command="${result_command} --unshare-ipc"
