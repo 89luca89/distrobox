@@ -10,6 +10,7 @@ _distrobox-create() {
         '(-n --name)'{-n,--name}'[Specify name for the distrobox]:distrobox name:'
         '--hostname[Specify hostname for the distrobox]:hostname:'
         '(-p --pull)'{-p,--pull}'[Pull the image even if it exists locally (implies --yes)]'
+        '(-ci --cached-image)'{-ci,--cached-image}'[Use cached image if it exists locally otherwise pull]'
         '(-Y --yes)'{-Y,--yes}'[Non-interactive, pull images without asking]'
         '(-r --root)'{-r,--root}'[Launch with root privileges using podman/docker/lilipod]'
         '(-c --clone)'{-c,--clone}'[Name of the distrobox container to use as base for a new container]:clone container name:'
