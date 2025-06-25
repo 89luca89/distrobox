@@ -658,6 +658,30 @@ setup_apk()
 			$(apk search -q mesa-dri)
 			$(apk search -q mesa-vulkan)
 		"
+	elif apk add base-bootstrap; then
+		# Prevent "ADB schema error" while installing tzdb in rootful container on currently old image
+		apk upgrade -Ua
+		# Prevent "fchownat() of /tmp failed: Operation not permitted" from sd-tools trigger script
+		sed -i '' '/^q \/tmp/ s/^/#/' /usr/lib/tmpfiles.d/tmp.conf
+		# Setup rest of packages while also allowing install of extras from user repo
+		apk add chimera-repo-user
+		apk update
+		deps="
+			base-core-man
+			bash-completion
+			bc-gh
+			gtar
+			libarchive-progs
+			libcap-progs
+			lsof
+			mesa-dri
+			ncurses-term
+			opendoas
+			openssh
+			util-linux-mount
+			vte
+			wget2
+		"
 	fi
 	deps="${deps:-}
 		${shell_pkg}
