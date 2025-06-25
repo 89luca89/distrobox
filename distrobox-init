@@ -2201,6 +2201,15 @@ Defaults !fqdn
 %sudo ALL=(ALL:ALL) ALL
 %root ALL=(ALL:ALL) ALL
 EOF
+# ditto for doas
+if [ -e /etc/doas.conf ]; then
+	cat << EOF > /etc/doas.conf
+permit persist :root
+permit persist :wheel
+permit nopass root
+permit nopass keepenv setenv { PATH } root as root
+EOF
+fi
 
 # PAM config for "su" command
 if [ ! -e /etc/pam.d/su ]; then
@@ -2226,6 +2235,10 @@ fi
 if [ "${container_user_uid}" -ne 0 ] && [ "${rootful}" -eq 0 ]; then
 	# Ensure passwordless sudo is set up for user
 	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
+	# ditto for doas
+	if [ -e /etc/doas.conf ]; then
+		printf "permit %s\n" "${container_user_name}" >> /etc/doas.conf
+	fi
 fi
 ###############################################################################
 
