@@ -177,9 +177,24 @@ if ! command -v host-spawn > /dev/null ||
 			# Download matching version with current distrobox
 			if ! ${download_command} /tmp/host-spawn \
 				"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-${architecture}"; then
+				printf "Warning: Cannot download host-spawn, building from source\n"
 
-				printf "Error: Cannot download host-spawn\n"
-				exit 1
+				# Build from source
+				if ! command -v tar > /dev/null 2>&1 && command -v go > /dev/null 2>&1; then
+					printf "Error: Cannot build host-spawn (need tar and go)\n"
+					exit 1
+				fi
+				if ! ${download_command} /tmp/host-spawn.tar.gz \
+				"https://github.com/1player/host-spawn/archive/refs/tags/${host_spawn_version}.tar.gz"; then
+					printf "Error: Cannot download host-spawn source\n"
+					exit 1
+				fi
+				tar -xf /tmp/host-spawn.tar.gz -C /tmp
+				if ! "/tmp/host-spawn-${host_spawn_version#v}/build.sh" "${architecture}"; then
+					printf "Error: Cannot build host-spawn\n"
+					exit 1
+				fi
+				mv "/tmp/host-spawn-${host_spawn_version#v}/build/host-spawn-${architecture}" /tmp/host-spawn
 			fi
 			if [ -e /tmp/host-spawn ]; then
 				${sudo_command} sh -c "mv /tmp/host-spawn /usr/bin/"
