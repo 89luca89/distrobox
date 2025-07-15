@@ -1043,115 +1043,6 @@ EOF
 	fi
 }
 
-# setup_microdnf will upgrade or setup all packages for microdnf based systems.
-# Arguments:
-#   None
-# Expected global variables:
-#   upgrade: if we need to upgrade or not
-#   container_additional_packages: additional packages to install during this phase
-# Expected env variables:
-#   None
-# Outputs:
-#   None
-setup_microdnf()
-{
-	# If we need to upgrade, do it and exit, no further action required.
-	if [ "${upgrade}" -ne 0 ]; then
-		microdnf upgrade -y
-		exit
-	fi
-	# Check if shell_pkg is available in distro's repo. If not we
-	# fall back to bash, and we set the SHELL variable to bash so
-	# that it is set up correctly for the user.
-	if ! microdnf install -y "${shell_pkg}"; then
-		shell_pkg="bash"
-	fi
-	deps="
-		${shell_pkg}
-		bash-completion
-		bc
-		bzip2
-		cracklib-dicts
-		diffutils
-		dnf-plugins-core
-		findutils
-		glibc-all-langpacks
-		glibc-common
-		glibc-locale-source
-		gnupg2
-		gnupg2-smime
-		hostname
-		iproute
-		iputils
-		keyutils
-		krb5-libs
-		less
-		lsof
-		man-db
-		man-pages
-		mtr
-		ncurses
-		nss-mdns
-		openssh-clients
-		pam
-		passwd
-		pigz
-		pinentry
-		procps-ng
-		rsync
-		shadow-utils
-		sudo
-		tcpdump
-		time
-		traceroute
-		tree
-		tzdata
-		unzip
-		util-linux
-		vte-profile
-		wget
-		which
-		whois
-		words
-		xorg-x11-xauth
-		xz
-		zip
-		mesa-dri-drivers
-		mesa-vulkan-drivers
-		vulkan
-	"
-	install_pkg=""
-	for dep in ${deps}; do
-		if [ "$(microdnf repoquery "${dep}" | wc -l)" -gt 0 ]; then
-			install_pkg="${install_pkg} ${dep}"
-		fi
-	done
-	# shellcheck disable=SC2086,SC2046
-	microdnf install -y ${install_pkg}
-
-	# In case the locale is not available, install it
-	# will ensure we don't fallback to C.UTF-8
-	if [ ! -e /usr/share/zoneinfo/UTC ]; then
-		microdnf reinstall -y tzdata || microdnf install -y glibc-common
-	fi
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo "${HOST_LOCALE}" | tr -d '-')"; then
-		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
-	fi
-
-	# Ensure we have tzdata installed and populated, sometimes container
-	# images blank the zoneinfo directory, so we reinstall the package to
-	# ensure population
-	if [ ! -e /usr/share/zoneinfo/UTC ]; then
-		microdnf reinstall -y tzdata || microdnf install -y tzdata
-	fi
-
-	# Install additional packages passed at distrbox-create time
-	if [ -n "${container_additional_packages}" ]; then
-		# shellcheck disable=SC2086
-		microdnf install -y ${container_additional_packages}
-	fi
-}
-
 # setup_pacman will upgrade or setup all packages for pacman based systems.
 # Arguments:
 #   None
@@ -1649,19 +1540,19 @@ done
 PATH="${PATH}:/bin:/sbin:/usr/bin:/usr/sbin"
 
 # Setup pkg manager exceptions and excludes
-if command -v apt-get; then
+if cat /etc/os-release | grep debian >/dev/null;then
 	setup_deb_exceptions
-elif command -v pacman; then
+elif cat /etc/os-release | grep ubuntu >/dev/null; then
+	setup_deb_exceptions
+elif cat /etc/os-release | grep arch >/dev/null; then
 	setup_pacman_exceptions
-elif command -v xbps-install; then
+elif cat /etc/os-release | grep void >/dev/null; then
 	setup_xbps_exceptions
-elif command -v zypper; then
+elif cat /etc/os-release | grep suse >/dev/null; then
 	setup_rpm_exceptions
-elif command -v dnf; then
+elif cat /etc/os-release | grep fedora >/dev/null; then
 	setup_rpm_exceptions
-elif command -v microdnf; then
-	setup_rpm_exceptions
-elif command -v yum; then
+elif cat /etc/os-release | grep centos >/dev/null; then
 	setup_rpm_exceptions
 fi
 
@@ -1675,27 +1566,27 @@ if [ "${upgrade}" -ne 0 ] ||
 	# Detect the available package manager
 	# install minimal dependencies needed to bootstrap the container:
 	#	the same shell that's on the host + ${dependencies}
-	if command -v apk; then
+	if cat /etc/os-release | grep alpine >/dev/null; then
 		setup_apk
-	elif command -v apt-get; then
+	elif cat /etc/os-release | grep debian >/dev/null; then
 		setup_apt
-	elif command -v emerge; then
+	elif cat /etc/os-release | grep ubuntu >/dev/null; then
+		setup_apt
+	elif cat /etc/os-release | grep gentoo >/dev/null; then
 		setup_emerge
-	elif command -v pacman; then
+	elif cat /etc/os-release | grep arch >/dev/null; then
 		setup_pacman
-	elif command -v slackpkg; then
+	elif cat /etc/os-release | slackware >/dev/null; then
 		setup_slackpkg
-	elif command -v swupd; then
+	elif cat /etc/os-release | grep clear >/dev/null; then
 		setup_swupd
-	elif command -v xbps-install; then
+	elif cat /etc/os-release | grep clear >/dev/null; then
 		setup_xbps
-	elif command -v zypper; then
+	elif cat /etc/os-release | grep suse >/dev/null; then
 		setup_zypper
-	elif command -v dnf; then
+	elif cat /etc/os-release | grep fedora >/dev/null; then
 		setup_dnf dnf
-	elif command -v microdnf; then
-		setup_microdnf
-	elif command -v yum; then
+	elif cat /etc/os-release | grep centos >/dev/null; then
 		setup_dnf yum
 	else
 		printf "Error: could not find a supported package manager.\n"
