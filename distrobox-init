@@ -1796,9 +1796,15 @@ printf "distrobox: Setting up read-write mounts...\n"
 # On some ostree systems, home is in /var/home, but most of the software expects
 # it to be in /home. In the hosts systems this is fixed by using a symlink.
 # Do something similar here with a bind mount.
+# Skip this if --unshare-home was used during container creation.
 if [ -e "/var/home/${container_user_name}" ]; then
-	if ! mount_bind "/run/host/var/home/${container_user_name}" "/home/${container_user_name}"; then
-		printf "Warning: Cannot bind mount %s to /run/host%s\n" "/var/home" "/home"
+	unshare_home="${DISTROBOX_UNSHARE_HOME:-0}"
+	if [ "${unshare_home:-0}" -eq 0 ]; then
+		if ! mount_bind "/run/host/var/home/${container_user_name}" "/home/${container_user_name}"; then
+			printf "Warning: Cannot bind mount %s to /run/host%s\n" "/var/home" "/home"
+		fi
+	else
+		printf "distrobox: Skipping /var/home bind mount due to --unshare-home flag\n"
 	fi
 fi
 

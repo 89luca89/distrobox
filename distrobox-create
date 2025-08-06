@@ -714,6 +714,7 @@ generate_create_command()
 		--env \"container=${container_manager}\"
 		--env \"TERMINFO_DIRS=/usr/share/terminfo:/run/host/usr/share/terminfo\"
 		--env \"CONTAINER_ID=${container_name}\"
+		--env \"DISTROBOX_UNSHARE_HOME=${unshare_home}\"
 		--volume /tmp:/tmp:rslave
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
