@@ -23,6 +23,7 @@ _distrobox-ephemeral() {
         '--nvidia[Try to integrate host nVidia drivers into the guest]'
         '--unshare-devsys[Do not share host devices and sysfs dirs from host]'
         '--unshare-groups[Do not forward users additional groups into the container]'
+        '--unshare-home[Do not share host home directory with container]'
         '--unshare-ipc[Do not share ipc namespace with host]'
         '--unshare-netns[Do not share the net namespace with host]'
         '--unshare-process[Do not share process namespace with host]'

@@ -410,6 +410,7 @@ generate_enter_command()
 	# Since user $HOME is very likely present in container, enter there directly
 	# to avoid confusing the user about shifted paths.
 	# pass distrobox-enter path, it will be used in the distrobox-export tool.
+	#
 	if [ "${skip_workdir}" -eq 0 ]; then
 		workdir="${PWD:-${container_home:-"/"}}"
 		if [ -n "${workdir##*"${container_home}"*}" ]; then
@@ -541,14 +542,22 @@ generate_enter_command()
 container_home="${HOME}"
 container_path="${PATH}"
 unshare_groups=0
+unshare_home=0
 # Now inspect the container we're working with.
 container_status="unknown"
 eval "$(${container_manager} inspect --type container --format \
 	'container_status={{.State.Status}};
 	unshare_groups={{ index .Config.Labels "distrobox.unshare_groups" }};
+	unshare_home={{ index .Config.Labels "distrobox.unshare_home" }};
 	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "HOME=")}}container_home={{slice . 5 | printf "%q"}}{{end}}{{end}};
 	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "PATH=")}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
 	"${container_name}")"
+
+# If container was created with --unshare-home, automatically skip workdir
+# since the host's home directory paths are not available in the container
+if [ "${unshare_home:-0}" -eq 1 ]; then
+	skip_workdir=1
+fi
 
 # dry run mode, just generate the command and print it. No execution.
 if [ "${dryrun}" -ne 0 ]; then

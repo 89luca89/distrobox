@@ -81,6 +81,7 @@ init=0
 non_interactive=0
 nvidia=0
 nopasswd=0
+unshare_home=0
 unshare_ipc=0
 unshare_groups=0
 unshare_netns=0
@@ -218,6 +219,7 @@ Options:
 	--platform:		specify which platform to use, eg: linux/arm64
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-groups:          do not forward user's additional groups into the container
+	--unshare-home:            do not share host home directory with container
 	--unshare-ipc:          do not share ipc namespace with host
 	--unshare-netns:        do not share the net namespace with host
 	--unshare-process:          do not share process namespace with host
@@ -334,10 +336,15 @@ while :; do
 			shift
 			unshare_devsys=1
 			;;
+		--unshare-home)
+			shift
+			unshare_home=1
+			;;
 		--unshare-all)
 			shift
 			unshare_devsys=1
 			unshare_groups=1
+			unshare_home=1
 			unshare_ipc=1
 			unshare_netns=1
 			unshare_process=1
@@ -701,6 +708,7 @@ generate_create_command()
 	result_command="${result_command}
 		--label \"manager=distrobox\"
 		--label \"distrobox.unshare_groups=${unshare_groups}\"
+		--label \"distrobox.unshare_home=${unshare_home}\"
 		--env \"SHELL=$(basename "${SHELL:-"/bin/bash"}")\"
 		--env \"HOME=${container_user_home}\"
 		--env \"container=${container_manager}\"
@@ -709,8 +717,13 @@ generate_create_command()
 		--volume /tmp:/tmp:rslave
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
-		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
-		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro"
+
+	# Mount the user's home directory unless --unshare-home is set
+	if [ "${unshare_home}" -eq 0 ]; then
+		result_command="${result_command}
+			--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+	fi
 
 	# Due to breaking change in https://github.com/opencontainers/runc/commit/d4b670fca6d0ac606777376440ffe49686ce15f4
 	# now we cannot mount /:/run/host as before, as it will try to mount RO partitions as RW thus breaking things.
@@ -873,8 +886,8 @@ generate_create_command()
 	fi
 
 	# Mount also the /var/home dir on ostree based systems
-	# do this only if $HOME was not already set to /var/home/username
-	if [ "${container_user_home}" != "/var/home/${container_user_name}" ] &&
+	# do this only if $HOME was not already set to /var/home/username and --unshare-home is not set
+	if [ "${unshare_home}" -eq 0 ] && [ "${container_user_home}" != "/var/home/${container_user_name}" ] &&
 		[ -d "/var/home/${container_user_name}" ]; then
 
 		result_command="${result_command}
@@ -883,8 +896,8 @@ generate_create_command()
 
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
 	# This is skipped in case of initful containers, so that a dedicated
-	# systemd user session can be used.
-	if [ -d "/run/user/${container_user_uid}" ] && [ "${init}" -eq 0 ]; then
+	# systemd user session can be used. Also skip if --unshare-home is set.
+	if [ "${unshare_home}" -eq 0 ] && [ -d "/run/user/${container_user_uid}" ] && [ "${init}" -eq 0 ]; then
 		result_command="${result_command}
 			--volume /run/user/${container_user_uid}:/run/user/${container_user_uid}:rslave"
 	fi

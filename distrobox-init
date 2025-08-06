@@ -2401,6 +2401,16 @@ fi
 
 # Now we're done
 touch /etc/passwd.done
+
+# Ensure the user's home directory exists and has correct ownership
+# This is especially important for --unshare-home containers where
+# the home directory is not mounted from the host
+if [ ! -d "${container_user_home}" ]; then
+	printf "distrobox: Creating user home directory...\n"
+	mkdir -p "${container_user_home}"
+	chown "${container_user_uid}:${container_user_gid}" "${container_user_home}"
+	chmod 755 "${container_user_home}"
+fi
 ###############################################################################
 
 ###############################################################################
