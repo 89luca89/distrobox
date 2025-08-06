@@ -39,6 +39,7 @@ graphical apps (X11/Wayland), and audio.
 	--platform:		specify which platform to use, eg: linux/arm64
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-groups:          do not forward user's additional groups into the container
+	--unshare-home:            do not share host home directory with container
 	--unshare-ipc:          do not share ipc namespace with host
 	--unshare-netns:        do not share the net namespace with host
 	--unshare-process:          do not share process namespace with host
@@ -113,7 +114,11 @@ Do not use host's IP inside the container:
 
 	distrobox create --image ubuntu:latest --name test --unshare-netns
 
-Create a more isolated container, where only the $HOME, basic sockets and host's FS (in /run/host) is shared:
+Create a container with isolated home directory (host home is not mounted):
+
+	distrobox create --image ubuntu:latest --name test --unshare-home
+
+Create a more isolated container, where only basic sockets and host's FS (in /run/host) is shared:
 
 	distrobox create --name unshared-test --unshare-all
 
@@ -209,6 +214,12 @@ Inside you'll have a separate init, user-session, daemons and so on.
 The `--home` flag let's you specify a custom HOME for the container.
 Note that this will NOT prevent the mount of the host's home directory,
 but will ensure that configs and dotfiles will not litter it.
+
+The `--unshare-home` flag creates a container with an isolated home directory.
+When this flag is enabled, the host's home directory is not mounted into the container.
+
+This is useful for creating clean, isolated environments or when you want to prevent
+containers from accessing or modifying files in your host home directory.
 
 The `--root` flag will let you create a container with real root privileges. At
 first `enter` the user will be required to setup a password. This is done in order

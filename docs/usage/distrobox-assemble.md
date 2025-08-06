@@ -142,6 +142,8 @@ declared multiple times to be compounded:
 | unshare_netns | bool | Specify if the container should unshare the network namespace (default: false) |
 | unshare_process | bool | Specify if the container should unshare the process (pid) namespace (default: false) |
 | unshare_devsys | bool | Specify if the container should unshare /dev (default: false) |
+| unshare_groups | bool | Specify if the container should not forward user's additional groups (default: false) |
+| unshare_home | bool | Specify if the container should not share host home directory (default: false) |
 | unshare_all | bool | Specify if the container should unshare all the previous options (default: false) |
 
 For further explanation of each of the option in the list, take a look at the [distrobox create usage](distrobox-create.md#synopsis),
