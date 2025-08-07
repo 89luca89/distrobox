@@ -125,7 +125,6 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-stop --name container-name
 	distrobox-stop container-name
 
 Options:
