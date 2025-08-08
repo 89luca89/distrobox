@@ -6,4 +6,5 @@ _arguments \
   '(--help -h)'{-h,--help}'[show this message]' \
   '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
   '(--version -V)'{-V,--version}'[show version]' \
-  '(--yes -Y)'{-Y,--yes}'[Automatically answer yes to prompt host-spawn will be installed on the guest system if not detected]'
+  '(--yes -Y)'{-Y,--yes}'[Automatically answer yes to prompt host-spawn will be installed on the guest system if not detected]' \
+  '(--current-work-dir -cwd)'{--current-work-dir=-,-cwd=}'[Set working directory on the host]:path:_files'

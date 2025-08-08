@@ -26,6 +26,7 @@
 # Defaults
 host_command=""
 non_interactive=0
+current_work_dir=""
 # If we're in a non-interactive shell, let's act accordingly
 if [ ! -t 1 ] ||
 	! tty > /dev/null 2>&1; then
@@ -70,6 +71,15 @@ Options:
                                 host-spawn will be installed on the guest system
                                 if host-spawn is not detected.
                                 This behaviour is default when running in a non-interactive shell.
+	--current-work-dir=PATH, -cwd PATH:
+				Set working directory on the host before executing the command.
+				Useful when the current directory in the container does not exist on the host.
+
+Notes:
+	If the current working directory inside the container does not exist on the host
+	(e.g., you are in ~/test in the container but ~/test does not exist on the host),
+	invoking distrobox-host-exec from that directory may fail. 
+	Consider specifying --current-work-dir to an existing path on the host.
 EOF
 }
 
@@ -98,6 +108,31 @@ if [ -z "${host_command}" ]; then
 				;;
 			-Y | --yes)
 				non_interactive=1
+				shift
+				;;
+			--current-work-dir)
+				# Next argument is the path
+				shift
+				if [ -z "${1:-}" ]; then
+					printf >&2 "ERROR: --current-work-dir requires a path argument\n\n"
+					show_help
+					exit 1
+				fi
+				current_work_dir="$1"
+				shift
+				;;
+			--current-work-dir=*)
+				current_work_dir="${1#*=}"
+				shift
+				;;
+			-cwd)
+				shift
+				if [ -z "${1:-}" ]; then
+					printf >&2 "ERROR: -cwd requires a path argument\n\n"
+					show_help
+					exit 1
+				fi
+				current_work_dir="$1"
 				shift
 				;;
 			--) # End of all options.
@@ -207,6 +242,19 @@ fi
 XDG_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR}"
 DBUS_SESSION_BUS_ADDRESS="unix:path=/run/host/$(echo "${DBUS_SESSION_BUS_ADDRESS}" | cut -d '=' -f2-)"
 
+# Warn if PWD inside the container does not exist on the host when no explicit cwd was provided
+if [ -z "${current_work_dir}" ]; then
+	if [ -n "${PWD:-}" ] && [ ! -e "/run/host${PWD}" ]; then
+		printf >&2 "Warning: current working directory '%s' does not exist on the host.\n" "${PWD}"
+		printf >&2 "         Consider using --current-work-dir to set an existing host path.\n"
+	fi
+else
+	# If user provided an explicit cwd, warn if it doesn't exist on host
+	if [ ! -e "/run/host${current_work_dir}" ]; then
+		printf >&2 "Warning: specified --current-work-dir '%s' does not exist on the host.\n" "${current_work_dir}"
+	fi
+fi
+
 ###
 # This workaround is needed because of a bug in gio (used by xdg-open) where
 # a race condition happens when allocating a pty, leading to the command
@@ -224,11 +272,19 @@ if [ "$(basename "${host_command}")" = "xdg-open" ] ||
 	[ ! -t 1 ] ||
 	! tty > /dev/null 2>&1; then
 
-	host-spawn --no-pty "${host_command}" "$@"
+	if [ -n "${current_work_dir}" ]; then
+		host-spawn --no-pty --cwd "${current_work_dir}" "${host_command}" "$@"
+	else
+		host-spawn --no-pty "${host_command}" "$@"
+	fi
 	# Exit here, we don't continue execution
 	exit $?
 fi
 
-host-spawn "${host_command}" "$@"
+if [ -n "${current_work_dir}" ]; then
+	host-spawn --cwd "${current_work_dir}" "${host_command}" "$@"
+else
+	host-spawn "${host_command}" "$@"
+fi
 # Exit here, we don't continue execution
 exit $?

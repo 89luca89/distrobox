@@ -21,6 +21,10 @@ distrobox offers the `distrobox-host-exec` helper, that can be used exactly for 
 
 See [distrobox-host-exec](../usage/distrobox-host-exec.md).
 
+Note: If the directory you are currently in inside the container does not exist on the host,
+`distrobox-host-exec` will warn you and still attempt execution. You can override the host
+working directory with `--current-work-dir` (or `-cwd`).
+
 ```console
 user@fedora-distrobox:~$ which podman
 /usr/bin/which: no podman in [...]
