@@ -553,10 +553,38 @@ eval "$(${container_manager} inspect --type container --format \
 	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "PATH=")}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
 	"${container_name}")"
 
-# If container was created with --unshare-home, automatically skip workdir
-# since the host's home directory paths are not available in the container
+# If container was created with --unshare-home, we try to preserve  workdir it is under HOME and is mounted.
+# Otherwise, we skip workdir
 if [ "${unshare_home:-0}" -eq 1 ]; then
-	skip_workdir=1
+	case "${PWD:-}" in
+		"${HOME}"|"${HOME}"/*)
+			covered=0
+			mount_dests="$(${container_manager} inspect --type container --format '{{range .Mounts}}{{println .Destination}}{{end}}' "${container_name}" 2>/dev/null || true)"
+			if [ -n "${PWD:-}" ] && [ -n "${mount_dests}" ]; then
+				# iterate through mount destinations using printf
+				# Note: we can't use a pipeline here because it creates a subshell
+				# and the 'covered' variable won't be updated in the parent shell
+				while IFS= read -r dest; do
+					[ -z "${dest}" ] && continue
+					# Ignore generic /run/host mount when checking same-path availability
+					case "${dest}" in
+						/run/host|/run/host/*) continue ;;
+					esac
+					case "${PWD}" in
+						"${dest}"|"${dest}"/*)
+							covered=1
+							break
+							;;
+				esac
+				done <<EOF
+${mount_dests}
+EOF
+			fi
+			# If not covered by a mount, skip workdir
+			if [ "${covered}" -eq 0 ]; then
+				skip_workdir=1
+			fi
+	esac
 fi
 
 # dry run mode, just generate the command and print it. No execution.
