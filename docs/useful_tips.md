@@ -9,6 +9,7 @@
   - [Duplicate an existing distrobox](#duplicate-an-existing-distrobox)
   - [Export to the host](#export-to-the-host)
   - [Execute commands on the host](#execute-commands-on-the-host)
+  <!-- markdownlint-disable-next-line MD051 -->
   - [Resolve "Error cannot open display: :0"](#resolve-error-cannot-open-display-0)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using Docker inside a Distrobox](#using-docker-inside-a-distrobox)
