@@ -27,11 +27,12 @@ Run the commands with `--verbose` and post the log here as a file upload
 Attach also the output of `podman logs` or `docker logs`, possibly with `--latest` flag
 
 **Desktop (please complete the following information):**
- - Are you using podman, docker or lilipod?
- - Which version or podman, docker or lilipod?
- - Which version of distrobox?
- - Which host distribution?
- - How did you install distrobox?
+
+- Are you using podman, docker or lilipod?
+- Which version or podman, docker or lilipod?
+- Which version of distrobox?
+- Which host distribution?
+- How did you install distrobox?
 
 **Additional context**
 Add any other context about the problem here.
