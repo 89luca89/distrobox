@@ -120,7 +120,7 @@ Distrobox guests tested successfully with the following container images:
 | Archlinux (Toolbox) | | quay.io/toolbx/arch-toolbox:latest |
 | Bazzite Arch | | ghcr.io/ublue-os/bazzite-arch:latest <br> ghcr.io/ublue-os/bazzite-arch-gnome:latest |
 | Centos (Toolbox) | stream8 <br> stream9 | quay.io/toolbx-images/centos-toolbox:stream8 <br> quay.io/toolbx-images/centos-toolbox:stream9 <br> quay.io/toolbx-images/centos-toolbox:latest |
-| Debian (Toolbox) | 10 <br> 11 <br> 12 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:10 <br> quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br> quay.io/toolbx-images/debian-toolbox:testing <br> quay.io/toolbx-images/debian-toolbox:unstable <br> quay.io/toolbx-images/debian-toolbox:latest |
+| Debian (Toolbox) | 11 <br> 12 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br> quay.io/toolbx-images/debian-toolbox:testing <br> quay.io/toolbx-images/debian-toolbox:unstable <br> quay.io/toolbx-images/debian-toolbox:latest |
 | Fedora (Toolbox) | 37 <br> 38 <br> 39 <br> 40 <br> 41 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox:37 <br> registry.fedoraproject.org/fedora-toolbox:38 <br> registry.fedoraproject.org/fedora-toolbox:39 <br> registry.fedoraproject.org/fedora-toolbox:40 <br> quay.io/fedora/fedora-toolbox:41 <br> quay.io/fedora/fedora-toolbox:rawhide |
 | openSUSE (Toolbox) | | registry.opensuse.org/opensuse/distrobox:latest |
 | RedHat (Toolbox) | 8 <br> 9 | registry.access.redhat.com/ubi8/toolbox <br> registry.access.redhat.com/ubi9/toolbox |
@@ -138,7 +138,7 @@ Distrobox guests tested successfully with the following container images:
 | Chainguard Wolfi | | cgr.dev/chainguard/wolfi-base:latest |
 | ClearLinux |      | docker.io/library/clearlinux:latest <br> docker.io/library/clearlinux:base    |
 | Crystal Linux | | registry.gitlab.com/crystal-linux/misc/docker:latest  |
-| Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 <br> 12 | docker.io/debian/eol:wheezy <br> docker.io/library/debian:buster <br> docker.io/library/debian:bullseye-backports <br> docker.io/library/debian:bookworm-backports <br> docker.io/library/debian:stable-backports |
+| Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 <br> 12 <br> 13 | docker.io/debian/eol:wheezy <br> docker.io/debian/eol:buster <br> docker.io/debian/eol:bullseye <br> docker.io/library/debian:bookworm-backports <br> docker.io/library/debian:stable-backports |
 | Debian | Testing    | docker.io/library/debian:testing  <br>  docker.io/library/debian:testing-backports    |
 | Debian | Unstable | docker.io/library/debian:unstable    |
 | deepin | 20 (apricot) <br> 23 (beige) | docker.io/linuxdeepin/apricot <br> docker.io/linuxdeepin/deepin:beige |
@@ -147,7 +147,7 @@ Distrobox guests tested successfully with the following container images:
 | KDE neon | Latest | invent-registry.kde.org/neon/docker-images/plasma:latest |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
 | Mint | 21.1 | docker.io/linuxmintd/mint21.1-amd64 |
-| Neurodebian | nd100 | docker.io/library/neurodebian:nd100 |
+| Neurodebian | nd120 | docker.io/library/neurodebian:nd120 |
 | openSUSE | Leap | registry.opensuse.org/opensuse/leap:latest    |
 | openSUSE | Tumbleweed | registry.opensuse.org/opensuse/distrobox:latest  <br> registry.opensuse.org/opensuse/tumbleweed:latest  <br>  registry.opensuse.org/opensuse/toolbox:latest <br> registry.opensuse.org/opensuse/distrobox-bpftrace:latest   |
 | Oracle Linux | 7 <br> 7-slim <br> 8 <br> 8-slim <br> 9 <br> 9-slim |container-registry.oracle.com/os/oraclelinux:7 <br> container-registry.oracle.com/os/oraclelinux:7-slim <br> container-registry.oracle.com/os/oraclelinux:8 <br> container-registry.oracle.com/os/oraclelinux:8-slim <br> container-registry.oracle.com/os/oraclelinux:9 <br> container-registry.oracle.com/os/oraclelinux:9-slim  |
