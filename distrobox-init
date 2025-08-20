@@ -1896,7 +1896,7 @@ if [ "${nvidia}" -eq 1 ]; then
 		-o -wholename "*egl/egl_external_platform.d/10_nvidia_wayland.json" \
 		-o -wholename "*egl/egl_external_platform.d/15_nvidia_gbm.json" \
 		-o -wholename "*nvidia/nvoptix.bin" \
-		-o -wholename "*vulkan/icd.d/nvidia_icd.json" \
+		-o -wholename "*vulkan/icd.d/nvidia_icd*.json" \
 		-o -wholename "*vulkan/icd.d/nvidia_layers.json" \
 		-o -wholename "*vulkan/implicit_layer.d/nvidia_layers.json" \
 		-o -wholename "*nvidia.icd" \
