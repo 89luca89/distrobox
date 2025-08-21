@@ -138,6 +138,7 @@ declared multiple times to be compounded:
 | nvidia | bool | Specify if you want to enable NVidia drivers integration (default: false) |
 | pull | bool | Specify if you want to pull the image every time (default: false) |
 | root | bool | Specify if the container is rootful (default: false) |
+| unshare_groups | bool | Specify if the container should unshare users additional groups (default: false) |
 | unshare_ipc | bool | Specify if the container should unshare the ipc namespace (default: false) |
 | unshare_netns | bool | Specify if the container should unshare the network namespace (default: false) |
 | unshare_process | bool | Specify if the container should unshare the process (pid) namespace (default: false) |
