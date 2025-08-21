@@ -145,7 +145,7 @@ if [ "$(id -ru)" -ne 0 ]; then
 fi
 
 if  command -v curl > /dev/null 2>&1; then
-	download_command="curl -sLo"
+	download_command="curl -sLfo"
 elif  command -v wget > /dev/null 2>&1; then
 	download_command="wget -qO"
 fi
