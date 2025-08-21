@@ -1714,9 +1714,10 @@ SHELL="$(command -v "${shell_pkg}")"
 # continue in that case
 /usr/bin/distrobox-host-exec -Y test 2> /dev/null > /dev/null || :
 
-# If xdg-open is not present, do a link of it. This is handy to handle opening of
-# links, files and apps from inside the container into the host.
-if ! command -v xdg-open; then
+# If xdg-open is not present and we don't have an init system, do a link of it.
+# This is handy to handle opening of links, files and apps from inside the container
+# into the host.
+if [ "${init}" -eq 0 ] && ! command -v xdg-open; then
 	mkdir -p /usr/local/bin/
 	ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
 fi
