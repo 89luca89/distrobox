@@ -394,3 +394,11 @@ replace=true
 start_now=true
 pre_init_hooks=curl \-fsSL https://bun.sh/install | bash;
 .EE
+.PP
+\f[B]Custom login shell example\f[R]
+.IP
+.EX
+[ubuntu]
+image=ubuntu:latest
+pre_init_hooks=\[dq]export SHELL=/bin/bash;\[dq]
+.EE
