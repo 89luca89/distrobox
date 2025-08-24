@@ -236,7 +236,7 @@ fi
 if stat /run/host/etc/shadow > /dev/null &&
 	{
 		[ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] || [ "$(stat -f "%u" /run/host/etc/shadow)" = "0" ]
-	}                                                                                                     &&
+	}                                                                                                   &&
 	[ ! -e /run/.nopasswd ]; then
 	rootful=1
 fi
