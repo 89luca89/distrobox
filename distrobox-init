@@ -1499,58 +1499,6 @@ setup_slackpkg()
 	fi
 }
 
-# setup_swupd will upgrade or setup all packages for clearlinux based systems.
-# Arguments:
-#   None
-# Expected global variables:
-#   upgrade: if we need to upgrade or not
-#   container_additional_packages: additional packages to install during this phase
-# Expected env variables:
-#   None
-# Outputs:
-#   None
-setup_swupd()
-{
-	# If we need to upgrade, do it and exit, no further action required.
-	if [ "${upgrade}" -ne 0 ]; then
-		swupd update
-		exit
-	fi
-
-	swupd bundle-add os-core-search
-
-	deps="
-		bc
-		cryptography
-		curl
-		network-basic
-		procps-ng
-		rsync
-		shells
-		sysadmin-basic
-		unzip
-		wget
-		x11-tools
-		zip
-		devpkg-Vulkan-Loader
-		lib-opengl
-	"
-	install_pkg=""
-	for dep in ${deps}; do
-		if swupd search "${dep}" > /dev/null; then
-			install_pkg="${install_pkg} ${dep}"
-		fi
-	done
-	# shellcheck disable=SC2086
-	swupd bundle-add ${install_pkg}
-
-	# Install additional packages passed at distrbox-create time
-	if [ -n "${container_additional_packages}" ]; then
-		# shellcheck disable=SC2086
-		swupd bundle-add ${container_additional_packages}
-	fi
-}
-
 # setup_xbps will upgrade or setup all packages for xbps based systems.
 # Arguments:
 #   None
@@ -1841,8 +1789,6 @@ if [ "${upgrade}" -ne 0 ] ||
 		setup_pacman
 	elif command -v slackpkg; then
 		setup_slackpkg
-	elif command -v swupd; then
-		setup_swupd
 	elif command -v xbps-install; then
 		setup_xbps
 	elif command -v zypper; then
