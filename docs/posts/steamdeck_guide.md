@@ -15,6 +15,7 @@ or
 After installing, create the file `~/.distroboxrc` if it doesn't already exist. Open it with:
 `sudo nano ~/.distroboxrc`
 Add the following lines to configure Distrobox:
+
 ```
 # Ensure the graphical apps can talk to the Xwayland session
 xhost +si:localuser:$USER >/dev/null

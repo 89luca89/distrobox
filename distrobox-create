@@ -66,6 +66,7 @@ container_image_default="registry.fedoraproject.org/fedora-toolbox:latest"
 container_init_hook=""
 container_manager="autodetect"
 container_manager_additional_flags=""
+container_platform=""
 container_name=""
 container_name_default="my-distrobox"
 container_hostname=""
@@ -104,7 +105,7 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 # There's no need for them to pass the --root flag option in such cases.
 [ "${container_user_uid}" -eq 0 ] && rootful=1 || rootful=0
 verbose=0
-version="1.8.0"
+version="1.8.1.2"
 
 app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
 
@@ -214,6 +215,7 @@ Options:
 				this will make host's processes not visible from within the container. (assumes --unshare-process)
 				may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using-init-system-inside-a-distrobox
 	--nvidia:		try to integrate host's nVidia drivers in the guest
+	--platform:		specify which platform to use, eg: linux/arm64
 	--unshare-devsys:          do not share host devices and sysfs dirs from host
 	--unshare-groups:          do not forward user's additional groups into the container
 	--unshare-ipc:          do not share ipc namespace with host
@@ -395,6 +397,13 @@ while :; do
 		--volume)
 			if [ -n "$2" ]; then
 				container_additional_volumes="${container_additional_volumes} ${2}"
+				shift
+				shift
+			fi
+			;;
+		--platform)
+			if [ -n "$2" ]; then
+				container_platform="--platform=${2}"
 				shift
 				shift
 			fi
@@ -592,7 +601,7 @@ get_clone_image()
 	# to perform this we first ensure the source container exists and that the
 	# source container is stopped, else the clone will not work,
 	container_source_status="$(${container_manager} inspect --type container \
-		"${container_clone}" --format '{{.State.Status}}')"
+		--format '{{.State.Status}}' "${container_clone}")"
 	# If the container is not already running, we need to start if first
 	if [ "${container_source_status}" = "running" ]; then
 		printf >&2 "Container %s is running.\nPlease stop it first.\n" "${container_clone}"
@@ -603,7 +612,7 @@ get_clone_image()
 	# Now we can extract the container ID and commit it to use as source image
 	# for the new container.
 	container_source_id="$(${container_manager} inspect --type container \
-		"${container_clone}" --format '{{.ID}}')"
+		--format '{{.ID}}' "${container_clone}")"
 	container_commit_tag="$(echo "${container_clone}:$(date +%F)" | tr '[:upper:]' '[:lower:]')"
 
 	# Commit current container state to a new image tag
@@ -654,6 +663,7 @@ generate_create_command()
 {
 	# Set the container hostname the same as the container name.
 	result_command="${container_manager} create"
+	result_command="${result_command} ${container_platform}"
 	# use the host's namespace for ipc, network, pid, ulimit
 	result_command="${result_command}
 		--hostname \"${container_hostname}\"
@@ -910,6 +920,12 @@ generate_create_command()
 	# These flags are not supported by docker, so we use them only if our
 	# container manager is podman.
 	if echo "${container_manager}" | grep -q "podman"; then
+		# If possible, always prefer crun, as it allows keeping original groups.
+		# useful for rootless containers.
+		if command -v crun > /dev/null 2>&1; then
+			result_command="${result_command}
+				--runtime=crun"
+		fi
 		result_command="${result_command}
 			--annotation run.oci.keep_original_groups=1
 			--ulimit host"
@@ -988,6 +1004,10 @@ fi
 # if we are using the clone flag, let's set the image variable
 # to the output of container duplication
 if [ -n "${container_clone}" ]; then
+	if ! echo "${container_manager}" | grep -Eq "podman|docker"; then
+		printf >&2 "ERROR: clone is only supported with docker and podman\n"
+		exit 127
+	fi
 	container_image="$(get_clone_image)"
 fi
 
@@ -1011,7 +1031,8 @@ if [ "${container_always_pull}" -eq 1 ] ||
 	case "${response}" in
 		y | Y | Yes | yes | YES)
 			# Pull the image
-			${container_manager} pull "${container_image}"
+			# shellcheck disable=SC2086
+			${container_manager} pull ${container_platform} "${container_image}"
 			;;
 		n | N | No | no | NO)
 			printf >&2 "next time, run this command first:\n"

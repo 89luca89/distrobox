@@ -38,7 +38,7 @@ root_flag=""
 tmpfile="$(mktemp -u)"
 tmp_download_file="$(mktemp -u)"
 verbose=0
-version="1.8.0"
+version="1.8.1.2"
 # initializing block of variables used in the manifest
 additional_flags=""
 additional_packages=""
@@ -46,6 +46,7 @@ entry=""
 home=""
 hostname=""
 image=""
+clone=""
 init=""
 init_hooks=""
 nvidia=""
@@ -53,6 +54,7 @@ pre_init_hooks=""
 pull=""
 root=""
 start_now=""
+unshare_groups=""
 unshare_ipc=""
 unshare_netns=""
 unshare_process=""
@@ -272,6 +274,7 @@ run_distrobox()
 	home=""
 	hostname=""
 	image=""
+	clone=""
 	init=""
 	init_hooks=""
 	nvidia=""
@@ -279,6 +282,7 @@ run_distrobox()
 	pull=""
 	root=""
 	start_now=""
+	unshare_groups=""
 	unshare_ipc=""
 	unshare_netns=""
 	unshare_process=""
@@ -342,6 +346,9 @@ run_distrobox()
 	if [ -n "${image}" ]; then
 		result_command="${result_command} --image $(sanitize_variable "${image}")"
 	fi
+	if [ -n "${clone}" ]; then
+		result_command="${result_command} --clone $(sanitize_variable "${clone}")"
+	fi
 	if [ -n "${init}" ] && [ "${init}" -eq 1 ]; then
 		result_command="${result_command} --init"
 	fi
@@ -359,6 +366,9 @@ run_distrobox()
 	fi
 	if [ -n "${unshare_netns}" ] && [ "${unshare_netns}" -eq 1 ]; then
 		result_command="${result_command} --unshare-netns"
+	fi
+	if [ -n "${unshare_groups}" ] && [ "${unshare_groups}" -eq 1 ]; then
+		result_command="${result_command} --unshare-groups"
 	fi
 	if [ -n "${unshare_ipc}" ] && [ "${unshare_ipc}" -eq 1 ]; then
 		result_command="${result_command} --unshare-ipc"
@@ -569,8 +579,7 @@ parse_file()
 
 	IFS='
 	'
-	# shellcheck disable=SC2013
-	for line in $(cat "${file}"); do
+	while read -r line; do
 		# Remove comments and trailing spaces
 		line="$(echo "${line}" |
 			sed 's/\t/ /g' |
@@ -626,7 +635,7 @@ parse_file()
 			fi
 			echo "${key}=${value}" >> "${tmpfile}"
 		fi
-	done
+	done < "${file}"
 	# Execute now one last time for the last block
 	run_distrobox "${name}"
 }

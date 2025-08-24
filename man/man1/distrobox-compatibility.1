@@ -1,48 +1,37 @@
 '\" t
 .\
 .\"
-.\" Define V font for inline verbatim, using C font in formats
-.\" that render this, and otherwise B font.
-.ie "\f[CB]x\f[]"x" \{\
-. ftr V B
-. ftr VI BI
-. ftr VB B
-. ftr VBI BI
-.\}
-.el \{\
-. ftr V CR
-. ftr VI CI
-. ftr VB CB
-. ftr VBI CBI
-.\}
-.TH "DISTROBOX" "1" "Oct 2024" "Distrobox" "User Manual"
-.hy
+.TH "DISTROBOX" "1" "Aug 2025" "Distrobox" "User Manual"
 .SH COMPATIBILITY
-.PP
 This project \f[B]does not need a dedicated image\f[R].
-It can use any OCI images from docker-hub, quay.io, or any registry of
+It can use any OCI images from docker\-hub, quay.io, or any registry of
 your choice.
 .PP
 Many cloud images are stripped down on purpose to save size and may not
-include commands such as \f[V]which\f[R], \f[V]mount\f[R],
-\f[V]less\f[R] or \f[V]vi\f[R]).
+include commands such as \f[CR]which\f[R], \f[CR]mount\f[R],
+\f[CR]less\f[R] or \f[CR]vi\f[R]).
 Additional packages can be installed once inside the container.
 We recommend using your preferred automation tool inside the container
 if you find yourself having to repeatedly create new containers.
 Maintaining your own custom image is also an option.
 .PP
-The main concern is having basic Linux utilities (\f[V]mount\f[R]),
-basic user management utilities (\f[V]usermod, passwd\f[R]), and
-\f[V]sudo\f[R] correctly set.
+The main concern is having basic Linux utilities (\f[CR]mount\f[R]),
+basic user management utilities (\f[CR]usermod, passwd\f[R]), and
+\f[CR]sudo\f[R] correctly set.
 .SS SUPPORTED CONTAINER MANAGERS
+\f[CR]distrobox\f[R] can run on either \f[CR]podman\f[R],
+\f[CR]docker\f[R] or \c
+.UR https://github.com/89luca89/lilipod
+\f[CR]lilipod\f[R]
+.UE \c
 .PP
-\f[V]distrobox\f[R] can run on either \f[V]podman\f[R], \f[V]docker\f[R]
-or \f[V]lilipod\f[R] (https://github.com/89luca89/lilipod)
-.PP
-It depends either on \f[V]podman\f[R] configured in
-\f[V]rootless mode\f[R] or on \f[V]docker\f[R] configured without sudo
-(follow THESE
-instructions (https://docs.docker.com/engine/install/linux-postinstall/))
+It depends either on \f[CR]podman\f[R] configured in
+\f[CR]rootless mode\f[R] or on \f[CR]docker\f[R] configured without sudo
+(follow \c
+.UR https://docs.docker.com/engine/install/linux-postinstall/
+THESE instructions
+.UE \c
+)
 .IP \[bu] 2
 Minimum podman version: \f[B]2.1.0\f[R]
 .IP \[bu] 2
@@ -52,13 +41,18 @@ Minimum lilipod version: \f[B]v0.0.1\f[R]
 .PP
 Follow the official installation guide here:
 .IP \[bu] 2
-<https://podman.io/getting-started/installation>
+\c
+.UR https://podman.io/getting-started/installation
+.UE \c
 .IP \[bu] 2
-<https://docs.docker.com/engine/install>
+\c
+.UR https://docs.docker.com/engine/install
+.UE \c
 .IP \[bu] 2
-<https://docs.docker.com/engine/install/linux-postinstall/>
+\c
+.UR https://docs.docker.com/engine/install/linux-postinstall/
+.UE \c
 .SS CONTAINERS DISTROS
-.PP
 Distrobox guests tested successfully with the following container
 images:
 .PP
@@ -76,78 +70,87 @@ _
 T{
 AlmaLinux (Toolbox)
 T}@T{
-8 9
+8  9
 T}@T{
-quay.io/toolbx-images/almalinux-toolbox:8
-quay.io/toolbx-images/almalinux-toolbox:9
-quay.io/toolbx-images/almalinux-toolbox:latest
+quay.io/toolbx\-images/almalinux\-toolbox:8 
+quay.io/toolbx\-images/almalinux\-toolbox:9 
+quay.io/toolbx\-images/almalinux\-toolbox:latest
 T}
 T{
 Alpine (Toolbox)
 T}@T{
-3.16 3.17 3.18 3.19 3.20 edge
+3.16  3.17  3.18  3.19  3.20  edge
 T}@T{
-quay.io/toolbx-images/alpine-toolbox:3.16
-quay.io/toolbx-images/alpine-toolbox:3.17
-quay.io/toolbx-images/alpine-toolbox:3.18
-quay.io/toolbx-images/alpine-toolbox:3.19
-quay.io/toolbx-images/alpine-toolbox:3.20
-quay.io/toolbx-images/alpine-toolbox:edge
-quay.io/toolbx-images/alpine-toolbox:latest
+quay.io/toolbx\-images/alpine\-toolbox:3.16 
+quay.io/toolbx\-images/alpine\-toolbox:3.17 
+quay.io/toolbx\-images/alpine\-toolbox:3.18 
+quay.io/toolbx\-images/alpine\-toolbox:3.19 
+quay.io/toolbx\-images/alpine\-toolbox:3.20 
+quay.io/toolbx\-images/alpine\-toolbox:edge 
+quay.io/toolbx\-images/alpine\-toolbox:latest
 T}
 T{
 AmazonLinux (Toolbox)
 T}@T{
-2 2022
+2  2022
 T}@T{
-quay.io/toolbx-images/amazonlinux-toolbox:2
-quay.io/toolbx-images/amazonlinux-toolbox:2023
-quay.io/toolbx-images/amazonlinux-toolbox:latest
+quay.io/toolbx\-images/amazonlinux\-toolbox:2 
+quay.io/toolbx\-images/amazonlinux\-toolbox:2023 
+quay.io/toolbx\-images/amazonlinux\-toolbox:latest
 T}
 T{
 Archlinux (Toolbox)
 T}@T{
 T}@T{
-quay.io/toolbx/arch-toolbox:latest
+quay.io/toolbx/arch\-toolbox:latest
+T}
+T{
+Alt Linux
+T}@T{
+p10  p11  sisyphus
+T}@T{
+docker.io/library/alt:p10  docker.io/library/alt:p11 
+docker.io/library/alt:sisyphus
 T}
 T{
 Bazzite Arch
 T}@T{
 T}@T{
-ghcr.io/ublue-os/bazzite-arch:latest
-ghcr.io/ublue-os/bazzite-arch-gnome:latest
+ghcr.io/ublue\-os/bazzite\-arch:latest 
+ghcr.io/ublue\-os/bazzite\-arch\-gnome:latest
 T}
 T{
 Centos (Toolbox)
 T}@T{
-stream8 stream9
+stream8  stream9
 T}@T{
-quay.io/toolbx-images/centos-toolbox:stream8
-quay.io/toolbx-images/centos-toolbox:stream9
-quay.io/toolbx-images/centos-toolbox:latest
+quay.io/toolbx\-images/centos\-toolbox:stream8 
+quay.io/toolbx\-images/centos\-toolbox:stream9 
+quay.io/toolbx\-images/centos\-toolbox:latest
 T}
 T{
 Debian (Toolbox)
 T}@T{
-10 11 12 testing unstable
+11  12  13  testing  unstable
 T}@T{
-quay.io/toolbx-images/debian-toolbox:10
-quay.io/toolbx-images/debian-toolbox:11
-quay.io/toolbx-images/debian-toolbox:12
-quay.io/toolbx-images/debian-toolbox:testing
-quay.io/toolbx-images/debian-toolbox:unstable
-quay.io/toolbx-images/debian-toolbox:latest
+quay.io/toolbx\-images/debian\-toolbox:11 
+quay.io/toolbx\-images/debian\-toolbox:12 
+quay.io/toolbx\-images/debian\-toolbox:13 
+quay.io/toolbx\-images/debian\-toolbox:testing 
+quay.io/toolbx\-images/debian\-toolbox:unstable 
+quay.io/toolbx\-images/debian\-toolbox:latest
 T}
 T{
 Fedora (Toolbox)
 T}@T{
-37 38 39 40 Rawhide
+37  38  39  40  41  42  Rawhide
 T}@T{
-registry.fedoraproject.org/fedora-toolbox:37
-registry.fedoraproject.org/fedora-toolbox:38
-registry.fedoraproject.org/fedora-toolbox:39
-registry.fedoraproject.org/fedora-toolbox:40
-registry.fedoraproject.org/fedora-toolbox:rawhide
+registry.fedoraproject.org/fedora\-toolbox:37 
+registry.fedoraproject.org/fedora\-toolbox:38 
+registry.fedoraproject.org/fedora\-toolbox:39 
+registry.fedoraproject.org/fedora\-toolbox:40 
+quay.io/fedora/fedora\-toolbox:41  quay.io/fedora/fedora\-toolbox:42 
+quay.io/fedora/fedora\-toolbox:rawhide
 T}
 T{
 openSUSE (Toolbox)
@@ -158,45 +161,48 @@ T}
 T{
 RedHat (Toolbox)
 T}@T{
-8 9
+8  9
 T}@T{
-registry.access.redhat.com/ubi8/toolbox
+registry.access.redhat.com/ubi8/toolbox 
 registry.access.redhat.com/ubi9/toolbox
 T}
 T{
 Rocky Linux (Toolbox)
 T}@T{
-8 9
+8  9
 T}@T{
-quay.io/toolbx-images/rockylinux-toolbox:8
-quay.io/toolbx-images/rockylinux-toolbox:9
-quay.io/toolbx-images/rockylinux-toolbox:latest
+quay.io/toolbx\-images/rockylinux\-toolbox:8 
+quay.io/toolbx\-images/rockylinux\-toolbox:9 
+quay.io/toolbx\-images/rockylinux\-toolbox:latest
 T}
 T{
 Ubuntu (Toolbox)
 T}@T{
-16.04 18.04 20.04 22.04 24.04
+16.04  18.04  20.04  22.04  24.04
 T}@T{
-quay.io/toolbx/ubuntu-toolbox:16.04 quay.io/toolbx/ubuntu-toolbox:18.04
-quay.io/toolbx/ubuntu-toolbox:20.04 quay.io/toolbx/ubuntu-toolbox:22.04
-quay.io/toolbx/ubuntu-toolbox:24.04 quay.io/toolbx/ubuntu-toolbox:latest
+quay.io/toolbx/ubuntu\-toolbox:16.04 
+quay.io/toolbx/ubuntu\-toolbox:18.04 
+quay.io/toolbx/ubuntu\-toolbox:20.04 
+quay.io/toolbx/ubuntu\-toolbox:22.04 
+quay.io/toolbx/ubuntu\-toolbox:24.04 
+quay.io/toolbx/ubuntu\-toolbox:latest
 T}
 T{
 Chainguard Wolfi (Toolbox)
 T}@T{
 T}@T{
-quay.io/toolbx-images/wolfi-toolbox:latest
+quay.io/toolbx\-images/wolfi\-toolbox:latest
 T}
 T{
 Ublue
 T}@T{
-bluefin-cli ubuntu-toolbox fedora-toolbox wolfi-toolbox
-archlinux-distrobox powershell-toolbox
+bluefin\-cli  ubuntu\-toolbox  fedora\-toolbox  wolfi\-toolbox 
+archlinux\-distrobox  powershell\-toolbox
 T}@T{
-ghcr.io/ublue-os/bluefin-cli ghcr.io/ublue-os/bluefin-cli
-ghcr.io/ublue-os/ubuntu-toolbox ghcr.io/ublue-os/fedora-toolbox
-ghcr.io/ublue-os/wolfi-toolbox ghcr.io/ublue-os/arch-distrobox
-ghcr.io/ublue-os/powershell-toolbox
+ghcr.io/ublue\-os/bluefin\-cli  ghcr.io/ublue\-os/bluefin\-cli 
+ghcr.io/ublue\-os/ubuntu\-toolbox  ghcr.io/ublue\-os/fedora\-toolbox 
+ghcr.io/ublue\-os/wolfi\-toolbox  ghcr.io/ublue\-os/arch\-toolbox 
+ghcr.io/ublue\-os/powershell\-toolbox
 T}
 T{
 T}@T{
@@ -205,27 +211,27 @@ T}
 T{
 AlmaLinux
 T}@T{
-8 8-minimal 9 9-minimal
+8  8\-minimal  9  9\-minimal
 T}@T{
-docker.io/library/almalinux:8 docker.io/library/almalinux:9
+docker.io/library/almalinux:8  docker.io/library/almalinux:9
 T}
 T{
 Alpine Linux
 T}@T{
-3.15 3.16 3.17 3.18 3.19 3.20 edge
+3.15  3.16  3.17  3.18  3.19  3.20  edge
 T}@T{
-docker.io/library/alpine:3.15 docker.io/library/alpine:3.16
-docker.io/library/alpine:3.17 docker.io/library/alpine:3.18
-docker.io/library/alpine:3.19 docker.io/library/alpine:3.20
-docker.io/library/alpine:edge docker.io/library/alpine:latest
+docker.io/library/alpine:3.15  docker.io/library/alpine:3.16 
+docker.io/library/alpine:3.17  docker.io/library/alpine:3.18 
+docker.io/library/alpine:3.19  docker.io/library/alpine:3.20 
+docker.io/library/alpine:edge  docker.io/library/alpine:latest
 T}
 T{
 AmazonLinux
 T}@T{
-1 2 2023
+1  2  2023
 T}@T{
-public.ecr.aws/amazonlinux/amazonlinux:1
-public.ecr.aws/amazonlinux/amazonlinux:2
+public.ecr.aws/amazonlinux/amazonlinux:1 
+public.ecr.aws/amazonlinux/amazonlinux:2 
 public.ecr.aws/amazonlinux/amazonlinux:2023
 T}
 T{
@@ -243,45 +249,46 @@ T}
 T{
 CentOS Stream
 T}@T{
-8 9
+8  9  10
 T}@T{
-quay.io/centos/centos:stream8 quay.io/centos/centos:stream9
+quay.io/centos/centos:stream8  quay.io/centos/centos:stream9 
+quay.io/centos/centos:stream10
 T}
 T{
 Chainguard Wolfi
 T}@T{
 T}@T{
-cgr.dev/chainguard/wolfi-base:latest
+cgr.dev/chainguard/wolfi\-base:latest
 T}
 T{
 ClearLinux
 T}@T{
 T}@T{
-docker.io/library/clearlinux:latest docker.io/library/clearlinux:base
+docker.io/library/clearlinux:latest  docker.io/library/clearlinux:base
 T}
 T{
 Crystal Linux
 T}@T{
 T}@T{
-registry.gitlab.com/crystal-linux/misc/docker:latest
+registry.gitlab.com/crystal\-linux/misc/docker:latest
 T}
 T{
 Debian
 T}@T{
-7 8 9 10 11 12
+7  8  9  10  11  12  13
 T}@T{
-docker.io/debian/eol:wheezy docker.io/library/debian:buster
-docker.io/library/debian:bullseye-backports
-docker.io/library/debian:bookworm-backports
-docker.io/library/debian:stable-backports
+docker.io/debian/eol:wheezy  docker.io/debian/eol:buster 
+docker.io/debian/eol:bullseye 
+docker.io/library/debian:bookworm\-backports 
+docker.io/library/debian:stable\-backports
 T}
 T{
 Debian
 T}@T{
 Testing
 T}@T{
-docker.io/library/debian:testing
-docker.io/library/debian:testing-backports
+docker.io/library/debian:testing 
+docker.io/library/debian:testing\-backports
 T}
 T{
 Debian
@@ -293,18 +300,19 @@ T}
 T{
 deepin
 T}@T{
-20 (apricot) 23 (beige)
+20 (apricot)  23 (beige)
 T}@T{
-docker.io/linuxdeepin/apricot
+docker.io/linuxdeepin/apricot  docker.io/linuxdeepin/deepin:beige
 T}
 T{
 Fedora
 T}@T{
-36 37 38 39 40 Rawhide
+36  37  38  39  40  41  42  Rawhide
 T}@T{
-quay.io/fedora/fedora:36 quay.io/fedora/fedora:37
-quay.io/fedora/fedora:38 quay.io/fedora/fedora:39
-quay.io/fedora/fedora:40 quay.io/fedora/fedora:rawhide
+quay.io/fedora/fedora:36  quay.io/fedora/fedora:37 
+quay.io/fedora/fedora:38  quay.io/fedora/fedora:39 
+quay.io/fedora/fedora:40  quay.io/fedora/fedora:41 
+quay.io/fedora/fedora:42  quay.io/fedora/fedora:rawhide
 T}
 T{
 Gentoo Linux
@@ -318,28 +326,28 @@ KDE neon
 T}@T{
 Latest
 T}@T{
-invent-registry.kde.org/neon/docker-images/plasma:latest
+invent\-registry.kde.org/neon/docker\-images/plasma:latest
 T}
 T{
 Kali Linux
 T}@T{
 rolling
 T}@T{
-docker.io/kalilinux/kali-rolling:latest
+docker.io/kalilinux/kali\-rolling:latest
 T}
 T{
 Mint
 T}@T{
 21.1
 T}@T{
-docker.io/linuxmintd/mint21.1-amd64
+docker.io/linuxmintd/mint21.1\-amd64
 T}
 T{
 Neurodebian
 T}@T{
-nd100
+nd120
 T}@T{
-docker.io/library/neurodebian:nd100
+docker.io/library/neurodebian:nd120
 T}
 T{
 openSUSE
@@ -353,41 +361,43 @@ openSUSE
 T}@T{
 Tumbleweed
 T}@T{
-registry.opensuse.org/opensuse/distrobox:latest
-registry.opensuse.org/opensuse/tumbleweed:latest
-registry.opensuse.org/opensuse/toolbox:latest
+registry.opensuse.org/opensuse/distrobox:latest 
+registry.opensuse.org/opensuse/tumbleweed:latest 
+registry.opensuse.org/opensuse/toolbox:latest 
+registry.opensuse.org/opensuse/distrobox\-bpftrace:latest
 T}
 T{
 Oracle Linux
 T}@T{
-7 7-slim 8 8-slim 9 9-slim
+7  7\-slim  8  8\-slim  9  9\-slim
 T}@T{
-container-registry.oracle.com/os/oraclelinux:7
-container-registry.oracle.com/os/oraclelinux:7-slim
-container-registry.oracle.com/os/oraclelinux:8
-container-registry.oracle.com/os/oraclelinux:8-slim
-container-registry.oracle.com/os/oraclelinux:9
-container-registry.oracle.com/os/oraclelinux:9-slim
+container\-registry.oracle.com/os/oraclelinux:7 
+container\-registry.oracle.com/os/oraclelinux:7\-slim 
+container\-registry.oracle.com/os/oraclelinux:8 
+container\-registry.oracle.com/os/oraclelinux:8\-slim 
+container\-registry.oracle.com/os/oraclelinux:9 
+container\-registry.oracle.com/os/oraclelinux:9\-slim
 T}
 T{
 RedHat (UBI)
 T}@T{
-7 8 9
+7  8  9
 T}@T{
-registry.access.redhat.com/ubi7/ubi registry.access.redhat.com/ubi8/ubi
-registry.access.redhat.com/ubi8/ubi-init
-registry.access.redhat.com/ubi8/ubi-minimal
-registry.access.redhat.com/ubi9/ubi
-registry.access.redhat.com/ubi9/ubi-init
-registry.access.redhat.com/ubi9/ubi-minimal
+registry.access.redhat.com/ubi7/ubi  registry.access.redhat.com/ubi8/ubi
+\ registry.access.redhat.com/ubi8/ubi\-init 
+registry.access.redhat.com/ubi8/ubi\-minimal 
+registry.access.redhat.com/ubi9/ubi 
+registry.access.redhat.com/ubi9/ubi\-init 
+registry.access.redhat.com/ubi9/ubi\-minimal
 T}
 T{
 Rocky Linux
 T}@T{
-8 8-minimal 9
+8  8\-minimal  9
 T}@T{
-quay.io/rockylinux/rockylinux:8 quay.io/rockylinux/rockylinux:8-minimal
-quay.io/rockylinux/rockylinux:9 quay.io/rockylinux/rockylinux:latest
+quay.io/rockylinux/rockylinux:8 
+quay.io/rockylinux/rockylinux:8\-minimal 
+quay.io/rockylinux/rockylinux:9  quay.io/rockylinux/rockylinux:latest
 T}
 T{
 Slackware
@@ -404,36 +414,39 @@ T}
 T{
 Ubuntu
 T}@T{
-14.04 16.04 18.04 20.04 22.04 23.04
+14.04  16.04  18.04  20.04  22.04  24.04
 T}@T{
-docker.io/library/ubuntu:14.04 docker.io/library/ubuntu:16.04
-docker.io/library/ubuntu:18.04 docker.io/library/ubuntu:20.04
-docker.io/library/ubuntu:22.04 docker.io/library/ubuntu:23.04
+docker.io/library/ubuntu:14.04  docker.io/library/ubuntu:16.04 
+docker.io/library/ubuntu:18.04  docker.io/library/ubuntu:20.04 
+docker.io/library/ubuntu:22.04  docker.io/library/ubuntu:24.04
 T}
 T{
 Vanilla OS
 T}@T{
 VSO
 T}@T{
-ghcr.io/vanilla-os/vso:main
+ghcr.io/vanilla\-os/vso:main
 T}
 T{
 Void Linux
 T}@T{
-glibc musl
+glibc  musl
 T}@T{
-ghcr.io/void-linux/void-glibc-full:latest
-ghcr.io/void-linux/void-musl-full:latest
+ghcr.io/void\-linux/void\-glibc\-full:latest 
+ghcr.io/void\-linux/void\-musl\-full:latest
 T}
 .TE
 .PP
 Images marked with \f[B]Toolbox\f[R] are tailored images made by the
-community efforts in
-toolbx-images/images (https://github.com/toolbx-images/images), so they
-are more indicated for desktop use, and first setup will take less time.
-Note however that if you use a non-toolbox preconfigured image, the
-\f[B]first\f[R] \f[V]distrobox-enter\f[R] you\[cq]ll perform can take a
-while as it will download and install the missing dependencies.
+community efforts in \c
+.UR https://github.com/toolbx-images/images
+toolbx\-images/images
+.UE \c
+, so they are more indicated for desktop use, and first setup will take
+less time.
+Note however that if you use a non\-toolbox preconfigured image, the
+\f[B]first\f[R] \f[CR]distrobox\-enter\f[R] you\[cq]ll perform can take
+a while as it will download and install the missing dependencies.
 .PP
 A small time tax to pay for the ability to use any type of image.
 This will \f[B]not\f[R] occur after the first time, \f[B]subsequent
@@ -442,11 +455,15 @@ enters will be much faster.\f[R]
 NixOS is not a supported container distro, and there are currently no
 plans to bring support to it.
 If you are looking for unprivileged NixOS environments, we suggest you
-look into
-nix-shell (https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html)
-or nix portable (https://github.com/DavHau/nix-portable)
+look into \c
+.UR https://nixos.org/manual/nix/unstable/command-ref/nix-shell.html
+nix\-shell
+.UE \c
+\ or \c
+.UR https://github.com/DavHau/nix-portable
+nix portable
+.UE \c
 .SS NEW DISTRO SUPPORT
-.PP
 If your distro of choice is not on the list, open an issue requesting
 support for it, we can work together to check if it is possible to add
 support for it.
@@ -454,25 +471,23 @@ support for it.
 Or just try using it anyway, if it works, open an issue and it will be
 added to the list!
 .SS OLDER DISTRIBUTIONS
-.PP
 For older distributions like CentOS 5, CentOS 6, Debian 6, Ubuntu 12.04,
 compatibility is not assured.
 .PP
-Their \f[V]libc\f[R] version is incompatible with kernel releases after
-\f[V]>=4.11\f[R].
-A work around this is to use the \f[V]vsyscall=emulate\f[R] flag in the
+Their \f[CR]libc\f[R] version is incompatible with kernel releases after
+\f[CR]>=4.11\f[R].
+A work around this is to use the \f[CR]vsyscall=emulate\f[R] flag in the
 bootloader of the host.
 .PP
 Keep also in mind that mirrors could be down for such old releases, so
 you will need to build a custom distrobox image to ensure basic
 dependencies are met.
 .SS GPU ACCELERATION SUPPORT
-.PP
 For Intel and AMD Gpus, the support is baked in, as the containers will
 install their latest available mesa/dri drivers.
 .PP
-For NVidia, you can use the \f[V]--nvidia\f[R] flag during create, see
-distrobox-create documentation to discover how to use it.
+For NVidia, you can use the \f[CR]\-\-nvidia\f[R] flag during create,
+see distrobox\-create documentation to discover how to use it.
 .PP
-Alternatively, you can use the nvidia-container-toolkit utility to set
+Alternatively, you can use the nvidia\-container\-toolkit utility to set
 up the integration independently from the distrobox\[cq]s own flag.

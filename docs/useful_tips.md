@@ -1,5 +1,5 @@
 - [Distrobox](README.md)
-  - [Launch a distrobox from you applications list](#launch-a-distrobox-from-you-applications-list)
+  - [Launch a distrobox from your applications list](#launch-a-distrobox-from-your-applications-list)
   - [Create a distrobox with a custom HOME directory](#create-a-distrobox-with-a-custom-home-directory)
   - [Mount additional volumes in a distrobox](#mount-additional-volumes-in-a-distrobox)
   - [Use a different shell than the host](#use-a-different-shell-than-the-host)
@@ -9,6 +9,7 @@
   - [Duplicate an existing distrobox](#duplicate-an-existing-distrobox)
   - [Export to the host](#export-to-the-host)
   - [Execute commands on the host](#execute-commands-on-the-host)
+  <!-- markdownlint-disable-next-line MD051 -->
   - [Resolve "Error cannot open display: :0"](#resolve-error-cannot-open-display-0)
   - [Using init system inside a distrobox](#using-init-system-inside-a-distrobox)
   - [Using Docker inside a Distrobox](#using-docker-inside-a-distrobox)
@@ -39,16 +40,16 @@ Being this tightly integrated, it may be useful to know when you're in a contain
 
 To detect you can just check the environment variable `"${CONTAINER_ID}"`, if set, you're in a distrobox.
 
-## Launch a distrobox from you applications list
+## Launch a distrobox from your applications list
 
 Starting from distrobox 1.4.0, containers created will automatically generate a desktop entry.
 For containers generated with older versions, you can use:
 
-`distrobox generate-entry you-container-name`
+`distrobox generate-entry your-container-name`
 
 To delete it:
 
-`distrobox generate-entry you-container-name --delete`
+`distrobox generate-entry your-container-name --delete`
 
 ## Create a distrobox with a custom HOME directory
 
@@ -279,7 +280,7 @@ user@test:~$ sudo systemctl status sshd
 
 You may want to run a separate instance of docker inside your container.
 In order to do this, create a [container with an init system](#using-init-system-inside-a-distrobox)
-**using a podman rootful container or using docker** using the **unshare-all flag**
+using rootful Podman or Docker and using the **unshare-all** flag.
 
 Example:
 
@@ -323,15 +324,15 @@ luca-linux@tumbleweed:~$ sudo docker run --rm -ti alpine
 ## Using Podman inside a Distrobox
 
 You may want to run a separate instance of podman inside your container.
-In order to do this, create a container using the **unshare-all flag**, the
-container manager can be anyone of choice.
+In order to do this, create a container using using rootful Podman or Docker
+and using the **unshare-all** flag.
 
 Example:
 
 ```sh
-distrobox create \
+distrobox create --root \
   --image registry.opensuse.org/opensuse/distrobox:latest \
-  --additional-packages "podman crun" \
+  --additional-packages "podman" \
   --unshare-all
 ```
 
@@ -367,7 +368,7 @@ luca-linux@tumbleweed:~> sudo podman run --rm -ti alpine
 
 You may want to run an LXC instance inside your container.
 In order to do this, create a [container with an init system](#using-init-system-inside-a-distrobox)
-using the **unshare-all flag**, this works with either docker, rootful podman, or rootless podman.
+using the **unshare-all** flag, this works with either docker, rootful podman, or rootless podman.
 
 Example:
 
@@ -594,8 +595,16 @@ Alternatively from the `--nvidia` flag, you can use NVidia's own [nvidia-contain
 After following the [official guide to set nvidia-ctk up](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html)
 you can use it from distrobox doing:
 
+In case of podman container manager, run:
+
 ```console
-distrobox create --name example-nvidia-toolkit --additional-flags "--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=all" --image nvidia/cuda
+distrobox create --name example-nvidia-toolkit --additional-flags "--gpus all" --image  docker.io/nvidia/cuda
+```
+
+In case of docker container manager, run:
+
+```console
+distrobox create --name example-nvidia-toolkit --additional-flags "--gpus all --device=nvidia.com/gpu=all" --image  docker.io/nvidia/cuda
 ```
 
 ## Slow creation on podman and image size getting bigger with distrobox create

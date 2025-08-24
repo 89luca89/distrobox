@@ -74,7 +74,7 @@ pre_init_hook=""
 rootful=0
 upgrade=0
 verbose=0
-version="1.8.0"
+version="1.8.1.2"
 
 # show_help will print usage to stdout.
 # Arguments:
@@ -241,7 +241,7 @@ fi
 
 # Get host $LANG
 if [ -f "/run/host/etc/locale.conf" ]; then
-	HOST_LOCALE=$(grep -e '^LANG=' /run/host/etc/locale.conf | sed 's/LANG=//' | sed 's/"//g')
+	HOST_LOCALE=$(grep -e '^LANG=' /run/host/etc/locale.conf | sed 's/LANG=//' | sed 's/"//g' | sed "s/'//g")
 	HOST_LOCALE_ENCODING=$(echo "${HOST_LOCALE}" | sed -n 's/^[^.]*\.\(.*\)$/\1/p')
 	HOST_LOCALE_LANG=$(echo "${HOST_LOCALE}" | sed -n 's/^\([^.]*\)\..*$/\1/p')
 elif [ -f "/run/host/etc/default/locale" ]; then
@@ -513,6 +513,8 @@ setup_deb_exceptions()
 #   None
 setup_pacman_exceptions()
 {
+	setup_pkg_manager_hooks
+
 	# Workarounds for pacman. We need to exclude the paths by using a pre-hook to umount them and a
 	# post-hook to remount them. Additionally we neutralize the systemd-post-hooks as they do not
 	# work on a rootless container system.
@@ -808,6 +810,7 @@ setup_apt()
 		xz-utils
 		zip
 		libgl1
+		libegl-mesa0
 		libegl1-mesa
 		libgl1-mesa-glx
 		libegl1
@@ -818,13 +821,10 @@ setup_apt()
 	# shellcheck disable=SC2086,2046
 	apt-get install -y $(apt-cache show ${deps} 2> /dev/null | grep "Package:" | sort -u | cut -d' ' -f2-)
 
-	# Setup hooks
-	setup_deb_exceptions
-
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
 	if [ -e /etc/locale.gen ] && {
-		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
+		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo "${HOST_LOCALE}" | tr -d '-')"
 	}; then
 		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
 		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
@@ -847,6 +847,128 @@ setup_apt()
 	fi
 }
 
+# setup_aptrpm will upgrade or setup all packages for apt-get and rpm based systems.
+# Arguments:
+#   None
+# Expected global variables:
+#   upgrade: if we need to upgrade or not
+#   container_additional_packages: additional packages to install during this phase
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_aptrpm()
+{
+	# If we need to upgrade, do it and exit, no further action required.
+	if [ "${upgrade}" -ne 0 ]; then
+		apt-get update
+		apt-get dist-upgrade -y
+		exit
+	fi
+
+	apt-get update
+	# Check if shell_pkg is available in distro's repo. If not we
+	# fall back to bash, and we set the SHELL variable to bash so
+	# that it is set up correctly for the user.
+	if ! apt-get install -y "${shell_pkg}"; then
+		shell_pkg="bash"
+	fi
+	deps="
+		${shell_pkg}
+		apt-repo-tools
+		apt-rsync
+		bash-completion
+		bc
+		bzip2
+		curl
+		cracklib
+		dialog
+		diffutils
+		findutils
+		fontconfig
+		gettext
+		glibc
+		glibc-i18ndata
+		gnupg
+		gnupg2
+		iconv
+		iproute2
+		iputils
+		keyutils
+		less
+		libcap
+		libEGL
+		libGL
+		libkrb5
+		libnss-mdns
+		libnss-myhostname
+		vte3
+		libvulkan1
+		lsof
+		man-db
+		mount
+		mtr
+		ncurses
+		openssh-clients
+		pam
+		passwd
+		pigz
+		pinentry-common
+		procps
+		su
+		sudo
+		tcpdump
+		time
+		traceroute
+		tree
+		tzdata
+		unzip
+		util-linux
+		wget
+		xauth
+		xorg-dri-intel
+		xorg-dri-radeon
+		xorg-utils
+		xz
+		zip
+	"
+	# shellcheck disable=SC2086,2046
+	apt-get install -y ${deps}
+
+	# Altlinux hooks. Without them the commands su, sudo, sudoreplay and passwd do not work
+	if command -v control; then
+		control passwd traditional
+		control sudo public
+		control sudoreplay public
+		control su wheel
+		mkdir /etc/tcb/"${container_user_name}"
+		echo "${container_user_name}::::::::" > /etc/tcb/"${container_user_name}"/shadow
+		sed -i 's/*//g' /etc/passwd
+	fi
+
+	# In case the locale is not available, install it
+	# will ensure we don't fallback to C.UTF-8
+	if [ ! -e /usr/share/i18n/charmaps ]; then
+		apt-get --reinstall install -y glibc-i18ndata iconv
+	fi
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
+	fi
+
+	# Ensure we have tzdata installed and populated, sometimes container
+	# images blank the zoneinfo directory, so we reinstall the package to
+	# ensure population
+	if [ ! -e /usr/share/zoneinfo/UTC ]; then
+		apt-get --reinstall install -y tzdata
+	fi
+
+	# Install additional packages passed at distrbox-create time
+	if [ -n "${container_additional_packages}" ]; then
+		# shellcheck disable=SC2086
+		apt-get install -y ${container_additional_packages}
+	fi
+}
+
 # setup_dnf will upgrade or setup all packages for dnf/yum based systems.
 # Arguments:
 #   manager: yum or dnf
@@ -859,8 +981,6 @@ setup_apt()
 #   None
 setup_dnf()
 {
-	setup_rpm_exceptions
-
 	manager=$1
 
 	# If we need to upgrade, do it and exit, no further action required.
@@ -950,7 +1070,7 @@ setup_dnf()
 	if [ ! -e /usr/share/i18n/charmaps ]; then
 		${manager} reinstall -y glibc-common
 	fi
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo "${HOST_LOCALE}" | tr -d '-')"; then
 		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 	fi
 
@@ -1027,7 +1147,7 @@ setup_emerge()
 
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo "${HOST_LOCALE}" | tr -d '-')"; then
 		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
 		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
 		locale-gen
@@ -1057,8 +1177,6 @@ EOF
 #   None
 setup_microdnf()
 {
-	setup_rpm_exceptions
-
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		microdnf upgrade -y
@@ -1138,7 +1256,7 @@ setup_microdnf()
 	if [ ! -e /usr/share/zoneinfo/UTC ]; then
 		microdnf reinstall -y tzdata || microdnf install -y glibc-common
 	fi
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo "${HOST_LOCALE}" | tr -d '-')"; then
 		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}"
 	fi
 
@@ -1237,11 +1355,8 @@ setup_pacman()
 	pacman -S --needed --noconfirm $(pacman -Ssq | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
 
 	if [ ! -e "/usr/share/i18n/locales${HOST_LOCALE}" ]; then
-		pacman -S --noconfirm glibc
+		pacman -S --noconfirm glibc glibc-locales
 	fi
-
-	# Setup hooks
-	setup_pacman_exceptions
 
 	# Ensure we have tzdata installed and populated, sometimes container
 	# images blank the zoneinfo directory, so we reinstall the package to
@@ -1252,7 +1367,7 @@ setup_pacman()
 
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo "${HOST_LOCALE}" | tr -d '-')"; then
 		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
 		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
 		locale-gen -a
@@ -1422,8 +1537,6 @@ setup_swupd()
 #   None
 setup_xbps()
 {
-	setup_xbps_exceptions
-
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		xbps-install -Syu
@@ -1486,7 +1599,7 @@ setup_xbps()
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
 	if command -v locale && {
-		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"
+		! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo "${HOST_LOCALE}" | tr -d '-')"
 	}; then
 		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/default/libc-locales
 		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/default/libc-locales
@@ -1519,8 +1632,6 @@ setup_xbps()
 #   None
 setup_zypper()
 {
-	setup_rpm_exceptions
-
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		zypper dup -y
@@ -1598,7 +1709,7 @@ setup_zypper()
 
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
-	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "${HOST_LOCALE}"; then
+	if ! locale -a | grep -qi en_us.utf8 || ! locale -a | grep -qi "$(echo "${HOST_LOCALE}" | tr -d '-')"; then
 		LANG="${HOST_LOCALE}" localedef -i "${HOST_LOCALE_LANG}" -f "${HOST_LOCALE_ENCODING}" "${HOST_LOCALE}" || true
 	fi
 
@@ -1659,6 +1770,27 @@ done
 # Ensure we have the least minimal path of standard Linux File System set
 PATH="${PATH}:/bin:/sbin:/usr/bin:/usr/sbin"
 
+# Setup pkg manager exceptions and excludes
+if command -v apt-get; then
+	if command -v rpm; then
+		setup_rpm_exceptions
+	else
+		setup_deb_exceptions
+	fi
+elif command -v pacman; then
+	setup_pacman_exceptions
+elif command -v xbps-install; then
+	setup_xbps_exceptions
+elif command -v zypper; then
+	setup_rpm_exceptions
+elif command -v dnf; then
+	setup_rpm_exceptions
+elif command -v microdnf; then
+	setup_rpm_exceptions
+elif command -v yum; then
+	setup_rpm_exceptions
+fi
+
 # Check if dependencies are met for the script to run.
 if [ "${upgrade}" -ne 0 ] ||
 	[ "${missing_packages}" -ne 0 ] ||
@@ -1672,7 +1804,11 @@ if [ "${upgrade}" -ne 0 ] ||
 	if command -v apk; then
 		setup_apk
 	elif command -v apt-get; then
-		setup_apt
+		if command -v rpm; then
+			setup_aptrpm
+		else
+			setup_apt
+		fi
 	elif command -v emerge; then
 		setup_emerge
 	elif command -v pacman; then
@@ -1708,9 +1844,10 @@ SHELL="$(command -v "${shell_pkg}")"
 # continue in that case
 /usr/bin/distrobox-host-exec -Y test 2> /dev/null > /dev/null || :
 
-# If xdg-open is not present, do a link of it. This is handy to handle opening of
-# links, files and apps from inside the container into the host.
-if ! command -v xdg-open; then
+# If xdg-open is not present and we don't have an init system, do a link of it.
+# This is handy to handle opening of links, files and apps from inside the container
+# into the host.
+if [ "${init}" -eq 0 ] && ! command -v xdg-open; then
 	mkdir -p /usr/local/bin/
 	ln -sf /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open
 fi
@@ -1776,8 +1913,9 @@ for host_mount_ro in ${HOST_MOUNTS_RO}; do
 		printf "Warning: %s integration with the host failed, runtime sync for %s disabled.\n" "${host_mount_ro}" "${host_mount_ro}"
 		# Fallback options for files, we do a hard copy of it
 		if [ -f /run/host"${host_mount_ro}" ]; then
-			rm -f "${host_mount_ro}"
-			cp -f /run/host"${host_mount_ro}" "${host_mount_ro}"
+			if ! (rm -f "${host_mount_ro}" && cp -f /run/host"${host_mount_ro}" "${host_mount_ro}"); then
+				printf "Warning: Hard copy failed. Error: %s\n" "$(cp -f /run/host"${host_mount_ro}" "${host_mount_ro}" 2>&1)"
+			fi
 		fi
 	fi
 done
@@ -1843,113 +1981,133 @@ if [ "${nvidia}" -eq 1 ]; then
 	# Refresh ldconfig cache, also detect if there are empty files remaining
 	# and clean them.
 	# This could happen when upgrading drivers and changing versions.
-	empty_libs="$(ldconfig 2>&1 | grep -Eo "File.*is empty" | cut -d' ' -f2)"
-	if [ -n "${empty_libs}" ]; then
-		# shellcheck disable=SC2086
-		find ${empty_libs} -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
-		find /usr/ /etc/ -empty -iname "*nvidia*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
-	fi
+	find /usr/lib* -empty -iname "*.so.*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
+	find /usr/ /etc/ -empty -iname "*nvidia*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
+
+	# First we find all generic config files we might need
+	NVIDIA_FILES="$(find /run/host/etc/ -not -type d \
+		-wholename "*nvidia*" || :)"
+	for nvidia_file in ${NVIDIA_FILES}; do
+		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
+
+		if [ ! -e "$(dirname "${dest_file}")" ]; then
+			if ! mkdir -p "$(dirname "${dest_file}")"; then
+				printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+				continue
+			fi
+		fi
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+			continue
+		fi
+
+		type="file"
+		if [ -L "${nvidia_file}" ]; then
+			type="link"
+		fi
+
+		if [ "${type}" = "link" ]; then
+			nvidia_file="$(readlink -fm "${nvidia_file}")"
+		fi
+		# Mounting read-only in a user namespace will trigger a check to see if certain
+		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
+		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
+		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
+	done
+
+	# Then we find all non-lib files we need, this includes
+	#       - egl files
+	#       - icd files
+	#       - doc files
+	#       - src files
+	NVIDIA_CONFS="$(find /run/host/usr/ -not -type d \
+		-wholename "*glvnd/egl_vendor.d/10_nvidia.json" \
+		-o -wholename "*X11/xorg.conf.d/10-nvidia.conf" \
+		-o -wholename "*X11/xorg.conf.d/nvidia-drm-outputclass.conf" \
+		-o -wholename "*egl/egl_external_platform.d/10_nvidia_wayland.json" \
+		-o -wholename "*egl/egl_external_platform.d/15_nvidia_gbm.json" \
+		-o -wholename "*nvidia/nvoptix.bin" \
+		-o -wholename "*vulkan/icd.d/nvidia_icd*.json" \
+		-o -wholename "*vulkan/icd.d/nvidia_layers.json" \
+		-o -wholename "*vulkan/implicit_layer.d/nvidia_layers.json" \
+		-o -wholename "*nvidia.icd" \
+		-o -wholename "*nvidia.yaml" \
+		-o -wholename "*nvidia.json" || :)"
+	for nvidia_file in ${NVIDIA_CONFS}; do
+		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
+
+		if [ ! -e "$(dirname "${dest_file}")" ]; then
+			if ! mkdir -p "$(dirname "${dest_file}")"; then
+				printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+				continue
+			fi
+		fi
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+			continue
+		fi
+		# Mounting read-only in a user namespace will trigger a check to see if certain
+		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
+		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
+		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
+	done
+
+	# Then we find all the CLI utilities
+	NVIDIA_BINARIES="$(find /run/host/bin/ /run/host/sbin/ /run/host/usr/bin/ /run/host/usr/sbin/ -not -type d \
+		-iname "*nvidia*" || :)"
+	for nvidia_file in ${NVIDIA_BINARIES}; do
+		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
+
+		if [ ! -e "$(dirname "${dest_file}")" ]; then
+			if ! mkdir -p "$(dirname "${dest_file}")"; then
+				printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+				continue
+			fi
+		fi
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+			continue
+		fi
+
+		type="file"
+		if [ -L "${nvidia_file}" ]; then
+			type="link"
+		fi
+
+		if [ "${type}" = "link" ]; then
+			nvidia_file="$(readlink -fm "${nvidia_file}")"
+		fi
+		# Mounting read-only in a user namespace will trigger a check to see if certain
+		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
+		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
+		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
+	done
 
 	# Find where the system expects libraries to be put
 	lib32_dir="/usr/lib/"
 	lib64_dir="/usr/lib/"
 	if [ -e "/usr/lib/x86_64-linux-gnu" ]; then
 		lib64_dir="/usr/lib/x86_64-linux-gnu/"
+		lib32_dir="/usr/lib/i386-linux-gnu/"
 	elif [ -e "/usr/lib64" ]; then
 		lib64_dir="/usr/lib64/"
 	fi
-	if [ -e "/usr/lib/i386-linux-gnu" ]; then
-		lib32_dir="/usr/lib/i386-linux-gnu/"
-	elif [ -e "/usr/lib32" ]; then
+	if [ -e "/usr/lib32" ]; then
 		lib32_dir="/usr/lib32/"
 	fi
 
-	# First we find all non-lib files we need, this includes
-	#	- binaries
-	#	- confs
-	#	Excluding here the libs, we will threat them later specifically
-	NVIDIA_FILES="$(find /run/host/etc/ /run/host/usr/ \
-		-path "/run/host/usr/lib/i386-linux-gnu/*" -prune -o \
-		-path "/run/host/usr/lib/x86_64-linux-gnu/*" -prune -o \
-		-path "/run/host/usr/lib32/*" -prune -o \
-		-path "/run/host/usr/lib64/*" -prune -o \
-		-path "/run/host/usr/lib/*" -prune -o \
-		-path "/run/host/usr/share/*" -prune -o \
-		-path "/run/host/usr/src/*" -prune -o \
-		-path "/run/host/usr/include/*" -prune -o \
-		-path "*.png" -prune -o \
-		-path "*.svg" -prune -o \
-		-path "*.repo" -prune -o \
-		-iname "*nvidia*" -not -type d -print 2> /dev/null || :)"
-	for nvidia_file in ${NVIDIA_FILES}; do
-		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
-
-		# Mounting read-only in a user namespace will trigger a check to see if certain
-		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
-		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
-		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
-	done
-
-	# First we find all non-lib files we need, this includes
-	#	- egl files
-	#	- icd files
-	#	- doc files
-	#	- src files
-	#	Excluding here the libs, we will threat them later specifically
-	NVIDIA_FILES="$(find \
-		/run/host/usr/share/*nvidia* \
-		/run/host/usr/share/*vulkan* \
-		/run/host/usr/share/doc/*nvidia* \
-		/run/host/usr/src/*nvidia* \
-		-not -type d -print 2> /dev/null || :)"
-	for nvidia_file in ${NVIDIA_FILES}; do
-		dest_file="$(printf "%s" "${nvidia_file}" | sed 's|/run/host||g')"
-
-		# Mounting read-only in a user namespace will trigger a check to see if certain
-		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
-		locked_flags="$(get_locked_mount_flags "${nvidia_file}")"
-		mount_bind "${nvidia_file}" "${dest_file}" ro"${locked_flags:+,${locked_flags}}"
-	done
-
-	# Then we find all directories with nvidia in the name and just mount them
-	NVIDIA_DIRS="$(find /run/host/etc /run/host/usr -iname "*nvidia*" -type d 2> /dev/null || :)"
-	for nvidia_dir in ${NVIDIA_DIRS}; do
-		# /usr/lib64 is common in Arch or RPM based distros, while /usr/lib/x86_64-linux-gnu is
-		# common on Debian derivatives, so we need to adapt between the two nomenclatures.
-		if printf "%s" "${nvidia_dir}" | grep -Eq "lib32|lib64|x86_64-linux-gnu|i386-linux-gnu"; then
-
-			# Remove origin so we plug our own
-			dest_dir="$(printf "%s" "${nvidia_dir}" |
-				sed "s|/run/host/usr/lib/x86_64-linux-gnu/|${lib64_dir}|g" |
-				sed "s|/run/host/usr/lib/i386-linux-gnu/|${lib32_dir}|g" |
-				sed "s|/run/host/usr/lib64/|${lib64_dir}|g" |
-				sed "s|/run/host/usr/lib32/|${lib32_dir}|g")"
-		else
-			dest_dir="$(printf "%s" "${nvidia_dir}" | sed 's|/run/host||g')"
-		fi
-
-		# Mounting read-only in a user namespace will trigger a check to see if certain
-		# "locked" flags (line noexec,nodev,nosuid) are changed. This ensures we explicitly reuse those flags.
-		locked_flags="$(get_locked_mount_flags "${nvidia_dir}")"
-		mount_bind "${nvidia_dir}" "${dest_dir}" ro"${locked_flags:+,${locked_flags}}"
-	done
-
-	# Then we find all the ".so" libraries, there are searched separately
+	# Then we find all the ".so" libraries, these are searched separately
 	# because we need to extract the relative path to mount them in the
 	# correct path based on the guest's setup
 	#
 	# /usr/lib64 is common in Arch or RPM based distros, while /usr/lib/x86_64-linux-gnu is
 	# common on Debian derivatives, so we need to adapt between the two nomenclatures.
-	NVIDIA_LIBS="$(find \
-		/run/host/usr/lib/i386-linux-gnu/ \
-		/run/host/usr/lib/x86_64-linux-gnu/ \
-		/run/host/usr/lib/ \
-		/run/host/usr/lib32/ \
-		/run/host/usr/lib64/ \
-		-iname "*nvidia*.so*" \
-		-o -iname "libcuda*.so*" \
-		-o -iname "libnvcuvid*.so*" \
-		-o -iname "libnvoptix*.so*" 2> /dev/null || :)"
+	NVIDIA_LIBS="$(find /run/host/usr/lib*/ -not -type d \
+		-iname "*lib*nvidia*.so*" \
+		-o -iname "*nvidia*.so*" \
+		-o -iname "*cuda*.so*" \
+		-o -iname "libnvcuvid*" \
+		-o -iname "libnvoptix*" || :)"
 	for nvidia_lib in ${NVIDIA_LIBS}; do
 		dest_file="$(printf "%s" "${nvidia_lib}" |
 			sed "s|/run/host/usr/lib/x86_64-linux-gnu/|${lib64_dir}|g" |
@@ -1966,17 +2124,24 @@ if [ "${nvidia}" -eq 1 ]; then
 			continue
 		fi
 
+		if [ ! -e "$(dirname "${dest_file}")" ]; then
+			if ! mkdir -p "$(dirname "${dest_file}")"; then
+				printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+				continue
+			fi
+		fi
+		if [ ! -w "$(dirname "${dest_file}")" ]; then
+			printf "Warning: skpping file %s, %s mounted as read-only\n" "${dest_file}" "$(dirname "${dest_file}")"
+			continue
+		fi
+
 		type="file"
 		if [ -L "${nvidia_lib}" ]; then
 			type="link"
 		fi
 
 		if [ "${type}" = "link" ]; then
-			mkdir -p "$(dirname "${dest_file}")"
-			if [ "$(md5sum "${nvidia_lib}" | cut -d ' ' -f 1)" != "$(md5sum "${dest_file}" | cut -d ' ' -f 1)" ]; then
-				cp -d "${nvidia_lib}" "${dest_file}"
-			fi
-			continue
+			nvidia_lib="$(readlink -fm "${nvidia_lib}")"
 		fi
 
 		# Mounting read-only in a user namespace will trigger a check to see if certain
@@ -2062,8 +2227,8 @@ fi
 # toolbx prompt: https://github.com/containers/toolbox/blob/main/profile.d/toolbox.sh#L47
 # this will ensure greater compatibility between the two implementations
 if [ -f /run/.toolboxenv ]; then
-    [ "\${BASH_VERSION:-}" != "" ] && PS1="📦[\u@\$CONTAINER_ID \W]\$ "
-    [ "\${ZSH_VERSION:-}" != "" ] && PS1="📦[%n@\$CONTAINER_ID]%~%# "
+    [ "\${BASH_VERSION:-}" != "" ] && export PS1="📦[\u@\$CONTAINER_ID \W]\$ "
+    [ "\${ZSH_VERSION:-}" != "" ] && export PS1="📦[%n@\$CONTAINER_ID]%~%# "
 fi
 
 # This will ensure we have a first-shell password setup for an user if needed.
@@ -2117,6 +2282,13 @@ if status --is-interactive
 		passwd && rm -f /var/tmp/.\$USER.passwd.initialize
 		trap - INT
 	end
+end
+EOF
+	mkdir -p /etc/fish/functions
+	cat << EOF > /etc/fish/functions/fish_prompt.fish
+function fish_prompt
+	set current_dir (basename (pwd))
+	echo "📦[\$USER@\$CONTAINER_ID \$current_dir]> "
 end
 EOF
 fi
@@ -2403,6 +2575,21 @@ if [ -n "${init_hook}" ]; then
 fi
 ###############################################################################
 
+HOST_WATCH="
+	/etc/hostname
+	/etc/hosts
+	/etc/localtime
+	/etc/resolv.conf
+"
+id="${CONTAINER_ID:-}"
+if [ -e /run/.containerenv ]; then
+	# shellcheck disable=SC1091,SC2034
+	. /run/.containerenv
+elif [ -e /.dockerenv ]; then
+	id="$(curl -s --unix-socket /run/docker.sock http://docker/containers/"${CONTAINER_ID:-$(hostname | cut -d'.' -f1)}"/json |
+		grep -Eo '"Id":"[a-zA-Z0-9]{64}",' | cut -d '"' -f4)"
+fi
+
 ###############################################################################
 # If init support is disabled, let's do our routine to keep the container
 # up, running and in sync with host.
@@ -2411,22 +2598,6 @@ fi
 if [ "${init}" -eq 0 ]; then
 	printf "container_setup_done\n"
 	# Keepalive loop
-	HOST_WATCH="
-		/etc/hostname
-		/etc/hosts
-		/etc/localtime
-		/etc/resolv.conf
-	"
-
-	id="${CONTAINER_ID:-}"
-	if [ -e /run/.containerenv ]; then
-		# shellcheck disable=SC1091,SC2034
-		. /run/.containerenv
-	elif [ -e /.dockerenv ]; then
-		id="$(curl -s --unix-socket /run/docker.sock http://docker/containers/"${CONTAINER_ID:-$(hostname | cut -d'.' -f1)}"/json |
-			grep -Eo '"Id":"[a-zA-Z0-9]{64}",' | cut -d '"' -f4)"
-	fi
-
 	# disable verbose logging for this phase.
 	set +x
 	while true; do
@@ -2556,7 +2727,19 @@ if command -v systemctl 2> /dev/null; then
 		/usr/lib/systemd/system/suspend.target
 		/usr/lib/systemd/system/hibernate.target
 		/usr/lib/systemd/system/hybrid-sleep.target
+		/usr/lib/systemd/system/systemd-remount-fs.service
 	"
+
+	# in case /etc/resolv.conf is a mount, we need to mask resolved
+	# in this case we're using network=host and systemd-resolved won't
+	# be able to bind to localhost:53
+	mount_source="$(findmnt -no SOURCE /etc/resolv.conf)" || :
+	if [ -n "${mount_source}" ] && ! echo "${mount_source}" | grep -q "${id}"; then
+		UNIT_TARGETS="${UNIT_TARGETS}
+			/usr/lib/systemd/system/systemd-resolved.service
+		"
+	fi
+
 	# shellcheck disable=SC2086,SC2044
 	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
 		systemctl mask "$(basename "${unit}")" || :
@@ -2608,9 +2791,9 @@ printf "distrobox: Firing up init system...\n"
 
 if [ -e /usr/lib/systemd/systemd ] || [ -e /lib/systemd/systemd ]; then
 	# Start user Systemd unit, this will attempt until Systemd is ready
-	sh -c "	sleep 1 && while true; do \
+	sh -c "timeout=120 && sleep 1 && while [ \"\${timeout}\" -gt 0 ]; do \
 	    systemctl is-system-running | grep -E 'running|degraded' && break; \
-	    echo 'waiting for systemd to come up...\n' && sleep 1; \
+		echo 'waiting for systemd to come up...\n' && sleep 1 && timeout=\$(( timeout -1 )); \
 	done && \
 	systemctl start user@${container_user_name}.service && \
 	systemctl start user-integration@${container_user_name}.service && \

@@ -1,14 +1,9 @@
 #compdef distrobox-host-exec
 
+_message -r "Execute a command on the host while in a container"
 _arguments \
+  '*:command:_command' \
   '(--help -h)'{-h,--help}'[show this message]' \
   '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
   '(--version -V)'{-V,--version}'[show version]' \
-  '(--yes -Y)'{-Y,--yes}'[Automatically answer yes to prompt host-spawn will be installed on the guest system if not detected]' \
-  '*:command:->command'
-
-case $state in
-  command)
-    _command
-    ;;
-esac
+  '(--yes -Y)'{-Y,--yes}'[Automatically answer yes to prompt host-spawn will be installed on the guest system if not detected]'
