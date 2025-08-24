@@ -270,8 +270,14 @@ container_command_suffix="'${exported_bin}' ${extra_flags} \"\$@\""
 # Check if exported application/binary should be run with sudo privileges
 if [ "${is_sudo}" -ne 0 ]; then
 	sudo_prefix="sudo -S"
-	if ! ${sudo_prefix} test >/dev/null 2>&1; then
+	if ! ${sudo_prefix} test > /dev/null 2>&1; then
 		sudo_prefix="sudo"
+	fi
+
+	# Edge case for systems with doas
+	if command -v doas > /dev/null >&1; then
+		sudo_prefix="doas"
+		container_command_suffix="sh -l -c \"'${exported_bin}' ${extra_flags} \$@\""
 	fi
 
 	# Edge case for systems without sudo
@@ -327,7 +333,7 @@ if [ -z "\${CONTAINER_ID}" ]; then
 elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
 	exec distrobox-host-exec '${dest_path}/$(basename "${exported_bin}")' "\$@"
 else
-	exec '${exported_bin}' "\$@"
+	exec ${sudo_prefix} '${exported_bin}' "\$@"
 fi
 EOF
 	return $?
