@@ -2324,7 +2324,7 @@ if [ "${container_user_uid}" -ne 0 ] && [ "${rootful}" -eq 0 ]; then
 	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
 	# ditto for doas
 	if [ -e /etc/doas.conf ]; then
-		printf "permit %s\n" "${container_user_name}" >> /etc/doas.conf
+		printf "permit nopass %s\n" "${container_user_name}" >> /etc/doas.conf
 	fi
 fi
 ###############################################################################
