@@ -234,7 +234,7 @@ fi
 # if /run/.nopasswd is present, let's treat the init as rootless, this is not
 # a good thing, users behold!
 if stat /run/host/etc/shadow > /dev/null &&
-	[ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] &&
+	{ [ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] || [ "$(stat -f "%u" /run/host/etc/shadow)" = "0" ]; } &&
 	[ ! -e /run/.nopasswd ]; then
 	rootful=1
 fi
@@ -657,6 +657,30 @@ setup_apk()
 			which
 			$(apk search -q mesa-dri)
 			$(apk search -q mesa-vulkan)
+		"
+	elif apk add base-bootstrap; then
+		# Prevent "ADB schema error" while installing tzdb in rootful container on currently old image
+		apk upgrade -Ua
+		# Prevent "fchownat() of /tmp failed: Operation not permitted" from sd-tools trigger script
+		sed -i '' '/^q \/tmp/ s/^/#/' /usr/lib/tmpfiles.d/tmp.conf
+		# Setup rest of packages while also allowing install of extras from user repo
+		apk add chimera-repo-user
+		apk update
+		deps="
+			base-core-man
+			bash-completion
+			bc-gh
+			gtar
+			libarchive-progs
+			libcap-progs
+			lsof
+			mesa-dri
+			ncurses-term
+			opendoas
+			openssh
+			util-linux-mount
+			vte
+			wget2
 		"
 	fi
 	deps="${deps:-}
@@ -2311,6 +2335,15 @@ Defaults !fqdn
 %sudo ALL=(ALL:ALL) ALL
 %root ALL=(ALL:ALL) ALL
 EOF
+# ditto for doas
+if [ -e /etc/doas.conf ]; then
+	cat << EOF > /etc/doas.conf
+permit persist :root
+permit persist :wheel
+permit nopass root
+permit nopass keepenv setenv { PATH } root as root
+EOF
+fi
 
 # PAM config for "su" command
 if [ ! -e /etc/pam.d/su ]; then
@@ -2336,6 +2369,10 @@ fi
 if [ "${container_user_uid}" -ne 0 ] && [ "${rootful}" -eq 0 ]; then
 	# Ensure passwordless sudo is set up for user
 	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
+	# ditto for doas
+	if [ -e /etc/doas.conf ]; then
+		printf "permit %s\n" "${container_user_name}" >> /etc/doas.conf
+	fi
 fi
 ###############################################################################
 

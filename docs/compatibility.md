@@ -53,6 +53,7 @@ Distrobox has been successfully tested on:
 | Arch Linux | | `distrobox` is available in the `extra` repository and `distrobox-git` is available in the AUR (thanks [M0Rf30](https://github.com/M0Rf30)!). <br> To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | Bazzite | 38 | `distrobox-git` is preinstalled. |
 | CentOS | 8 <br> 8 Stream <br> 9 Stream | `distrobox` is available in epel repos. (thanks [alcir](https://github.com/alcir)!) |
+| Chimera Linux | | `distrobox` is available in `chimera-repo-user`. |
 | ChromeOS | Debian 11 (docker with make-shared workaround #non-shared-mounts) <br> Debian 12 (podman) | using built-in Linux on ChromeOS mode which is debian-based, which can be [upgraded](https://wiki.debian.org/DebianUpgrade) from 11 bullseye to 12 bookworm (in fact 12 is recommended) |
 | Debian | 11 <br> 12 <br> Testing <br> Unstable | `distrobox` is available in default repos starting from version 12 (thanks [michel-slm!](https://github.com/michel-slm!)!) |
 | deepin | 23 <br> Testing <br> Unstable | `distrobox` is available in default repos in `testing` and `unstable` |
@@ -137,6 +138,7 @@ Distrobox guests tested successfully with the following container images:
 | Blackarch     | | docker.io/blackarchlinux/blackarch:latest    |
 | CentOS Stream | 8 <br> 9 <br> 10 | quay.io/centos/centos:stream8 <br> quay.io/centos/centos:stream9 <br> quay.io/centos/centos:stream10  |
 | Chainguard Wolfi | | cgr.dev/chainguard/wolfi-base:latest |
+| Chimera Linux | | docker.io/chimeralinux/chimera:latest |
 | ClearLinux |      | docker.io/library/clearlinux:latest <br> docker.io/library/clearlinux:base    |
 | Crystal Linux | | registry.gitlab.com/crystal-linux/misc/docker:latest  |
 | Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 <br> 12 <br> 13 | docker.io/debian/eol:wheezy <br> docker.io/debian/eol:buster <br> docker.io/debian/eol:bullseye <br> docker.io/library/debian:bookworm-backports <br> docker.io/library/debian:stable-backports |
