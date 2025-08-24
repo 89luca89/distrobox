@@ -23,7 +23,7 @@ If using it inside a script, an application, or a service, you can specify the
 	--no-workdir/-nw:	always start the container from container's home directory
 	--empty-env:		don't copy host environment variables (default is to copy whenever reasonable)
 	--additional-envvars:	comma-separated list of additional host environment variables to copy
-							(overrides --no-envvars)
+							(overrides --empty-env)
 	--additional-flags/-a:	additional flags to pass to the container manager command
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
