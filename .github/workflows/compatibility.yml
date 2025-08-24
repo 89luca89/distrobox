@@ -171,15 +171,13 @@ jobs:
         run: |
           image=${{ matrix.distribution }}
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
-          if ./distrobox enter "${container_name}" -- sh -c "sudo -S test"; then
-            ./distrobox enter "${container_name}" -- distrobox-export --sudo --bin /bin/uname --export-path ${HOME}/
-            # Assert that distrobox exported binary indeed works
-            set -x
-            command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
-            expected_output="${container_name}"
-            if [ "$command_output" != "$expected_output" ]; then
-              exit 1
-            fi
+          ./distrobox enter "${container_name}" -- distrobox-export --sudo --bin /bin/uname --export-path ${HOME}/
+          # Assert that distrobox exported binary indeed works
+          set -x
+          command_output="$(${HOME}/uname -n | tr -d '\r' | tr -d '^@')"
+          expected_output="${container_name}"
+          if [ "$command_output" != "$expected_output" ]; then
+            exit 1
           fi
 
       # Ensure distrobox upgrade works:
