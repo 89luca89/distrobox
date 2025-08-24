@@ -2346,6 +2346,11 @@ permit nopass root
 permit nopass keepenv setenv { PATH } root as root
 EOF
 fi
+# if no sudo but doas is present, we want to have it as an alias
+# of sudo, so other part of the program will find it as expected
+if command -v doas && ! command -v sudo; then
+	ln -sf "$(command -v doas)" /usr/bin/sudo
+fi
 
 # PAM config for "su" command
 if [ ! -e /etc/pam.d/su ]; then

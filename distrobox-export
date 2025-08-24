@@ -270,6 +270,9 @@ container_command_suffix="'${exported_bin}' ${extra_flags} \"\$@\""
 # Check if exported application/binary should be run with sudo privileges
 if [ "${is_sudo}" -ne 0 ]; then
 	sudo_prefix="sudo -S"
+	if ! ${sudo_prefix} test >/dev/null 2>&1; then
+		sudo_prefix="sudo"
+	fi
 
 	# Edge case for systems without sudo
 	if command -v su-exec > /dev/null >&1; then
