@@ -135,7 +135,7 @@ Distrobox guests tested successfully with the following container images:
 | AmazonLinux | 1 <br> 2 <br> 2023 | public.ecr.aws/amazonlinux/amazonlinux:1 <br> public.ecr.aws/amazonlinux/amazonlinux:2 <br>  public.ecr.aws/amazonlinux/amazonlinux:2023 |
 | Archlinux     | | docker.io/library/archlinux:latest    |
 | Blackarch     | | docker.io/blackarchlinux/blackarch:latest    |
-| CentOS Stream | 8 <br> 9 | quay.io/centos/centos:stream8 <br> quay.io/centos/centos:stream9  |
+| CentOS Stream | 8 <br> 9 <br> 10 | quay.io/centos/centos:stream8 <br> quay.io/centos/centos:stream9 <br> quay.io/centos/centos:stream10  |
 | Chainguard Wolfi | | cgr.dev/chainguard/wolfi-base:latest |
 | ClearLinux |      | docker.io/library/clearlinux:latest <br> docker.io/library/clearlinux:base    |
 | Crystal Linux | | registry.gitlab.com/crystal-linux/misc/docker:latest  |
