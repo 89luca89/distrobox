@@ -669,7 +669,7 @@ setup_apk()
 		apk add chimera-repo-user
 		apk update
 		deps="
-			base-core-man
+			base-full-man
 			bash-completion
 			bc-gh
 			gtar
