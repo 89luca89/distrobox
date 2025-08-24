@@ -435,7 +435,7 @@ generate_enter_command()
 	# multiline.
 	# We also NEED to ignore the HOME variable, as this is set at create time
 	# and needs to stay that way to use custom home dirs. or it will be too talkative.
-	result_command="${result_command} \
+	result_command="${result_command}
 		$(printenv | grep '=' | grep -Ev '"|`|\$' |
 		grep -Ev '^(CONTAINER_ID|FPATH|HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)' |
 		sed 's/ /\ /g' | sed 's/^\(.*\)$/--env=\1/g')"
