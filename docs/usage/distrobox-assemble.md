@@ -207,3 +207,9 @@ each option corresponds to one of the `create` flags.
 	replace=true
 	start_now=true
 	pre_init_hooks=curl -fsSL https://bun.sh/install | bash;
+
+**Custom login shell example**
+
+	[ubuntu]
+	image=ubuntu:latest
+	pre_init_hooks="export SHELL=/bin/bash;"
