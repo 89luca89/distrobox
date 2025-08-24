@@ -86,6 +86,13 @@ SHELL=/bin/zsh distrobox create -n test
 SHELL=/bin/zsh distrobox enter test
 ```
 
+If you want to declaratively set a custom shell for each container when using `distrobox assemble`,
+you can achieve this by using the `pre_init_hooks` option. For example:
+
+```ini
+pre_init_hooks="export SHELL=/bin/bash;"
+```
+
 ## Run the container with real root
 
 When using podman, distrobox will prefer to use rootless containers. In this mode the `root`
