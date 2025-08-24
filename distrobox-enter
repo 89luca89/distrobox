@@ -107,8 +107,8 @@ headless=0
 # There's no need for them to pass the --root flag option in such cases.
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
 skip_workdir=0
-no_envvars=0
-additional_envvars=""
+empty_env=0
+add_env=""
 verbose=0
 clean_path=0
 version="1.8.1.2.1"
