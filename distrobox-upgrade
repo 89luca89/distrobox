@@ -268,5 +268,5 @@ for container in ${container_name}; do
 	# shellcheck disable=SC2086,SC2248
 	"${distrobox_path}"/distrobox-enter \
 		${distrobox_flags} ${container} -- sh -c \
-		"command -v su-exec 2>/dev/null && su-exec root /usr/bin/entrypoint --upgrade || sudo -S /usr/bin/entrypoint --upgrade"
+		"command -v su-exec 2>/dev/null && su-exec root /usr/bin/entrypoint --upgrade || command -v doas 2>/dev/null && doas /usr/bin/entrypoint --upgrade || sudo -S /usr/bin/entrypoint --upgrade"
 done
