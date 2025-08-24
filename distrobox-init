@@ -234,7 +234,9 @@ fi
 # if /run/.nopasswd is present, let's treat the init as rootless, this is not
 # a good thing, users behold!
 if stat /run/host/etc/shadow > /dev/null &&
-	{ [ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] || [ "$(stat -f "%u" /run/host/etc/shadow)" = "0" ]; } &&
+	{
+		[ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] || [ "$(stat -f "%u" /run/host/etc/shadow)" = "0" ]
+	} &&
 	[ ! -e /run/.nopasswd ]; then
 	rootful=1
 fi
