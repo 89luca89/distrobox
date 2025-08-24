@@ -236,13 +236,13 @@ while :; do
 			shift
 			skip_workdir=1
 			;;
-		--no-envvars)
+		--empty-env)
 			shift
-			no_envvars=1
+			empty_env=1
 			;;
-		--additional-envvars)
+		--add-env)
 			if [ -n "$2" ]; then
-				additional_envvars="$2"
+				add_env="$2"
 				shift
 				shift
 			fi
