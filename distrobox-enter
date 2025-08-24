@@ -431,15 +431,14 @@ generate_enter_command()
 	# and export them to the container.
 	set +o xtrace
 	# disable logging for this snippet, or it will be too talkative.
-	for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
-		grep -Ev '^(CONTAINER_ID|FPATH|HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)'); do
-		# We filter the environment so that we do not have strange variables,
-		# multiline or containing spaces.
-		# We also NEED to ignore the HOME variable, as this is set at create time
-		# and needs to stay that way to use custom home dirs.
-		result_command="${result_command}
-			--env=${i}"
-	done
+	# We filter the environment so that we do not have strange variables or
+	# multiline.
+	# We also NEED to ignore the HOME variable, as this is set at create time
+	# and needs to stay that way to use custom home dirs. or it will be too talkative.
+	result_command="${result_command}
+		$(printenv | grep '=' | grep -Ev '"|`|\$' |
+		grep -Ev '^(CONTAINER_ID|FPATH|HOST|HOSTNAME|HOME|PATH|PROFILEREAD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)' |
+		sed 's/ /\ /g' | sed 's/^\(.*\)$/--env=\1/g')"
 
 	# Start with the $PATH set in the container's config
 	container_paths="${container_path:-""}"
