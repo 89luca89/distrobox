@@ -21,7 +21,7 @@ If using it inside a script, an application, or a service, you can specify the
 	--clean-path:		reset PATH inside container to FHS standard
 	--no-tty/-T:		do not instantiate a tty
 	--no-workdir/-nw:	always start the container from container's home directory
-	--no-envvars:		don't copy host environment variables (default is to copy whenever reasonable)
+	--empty-env:		don't copy host environment variables (default is to copy whenever reasonable)
 	--additional-envvars:	comma-separated list of additional host environment variables to copy
 							(overrides --no-envvars)
 	--additional-flags/-a:	additional flags to pass to the container manager command
