@@ -445,7 +445,7 @@ generate_enter_command()
 
 	# Loop through all the environment vars
 	# and export them to the container.
-	if [ "${no_envvars}" -eq 0 ]; then
+	if [ "${empty_env}" -eq 0 ]; then
 		set +o xtrace
 		# disable logging for this snippet, or it will be too talkative.
 		for i in $(printenv | grep '=' | grep -Ev ' |"|`|\$' |
