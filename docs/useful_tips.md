@@ -568,10 +568,10 @@ Then you can easily run the image you like:
 ```console
 ~$ uname -m
 x86_64
-~$ distrobox create -i aarch64/fedora -n fedora-arm64
-~$ distrobox enter fedora-arm64
+~$ distrobox create --image debian --additional-flags  --platform=linux/aarch64 -n debian-arm64
+~$ distrobox enter debian-arm64
 ...
-user@fedora-arm64:~$ uname -m
+user@debian-arm64:~$ uname -m
 aarch64
 ```
 
