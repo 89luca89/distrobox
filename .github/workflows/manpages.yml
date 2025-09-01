@@ -21,7 +21,7 @@ jobs:
       distrobox_changed: ${{ steps.check_file_changed.outputs.distrobox_changed }}
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # Checkout as many commits as needed for the diff
           repository: 89luca89/distrobox
@@ -45,7 +45,7 @@ jobs:
     if: needs.check_changes.outputs.distrobox_changed == 'True'
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           token: ${{ secrets.PAT }}
 
