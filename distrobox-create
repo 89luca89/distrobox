@@ -34,6 +34,7 @@
 #	DBX_NON_INTERACTIVE
 #	DBX_VERBOSE
 #	DBX_SUDO_PROGRAM
+#	DBX_USERNS_NOLIMIT
 
 # Despite of running this script via SUDO/DOAS being not supported (the
 # script itself will call the appropriate tool when necessary), we still want
@@ -104,6 +105,7 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 # If the user runs this script as root in a login shell, set rootful=1.
 # There's no need for them to pass the --root flag option in such cases.
 [ "${container_user_uid}" -eq 0 ] && rootful=1 || rootful=0
+userns_nolimit=0
 verbose=0
 version="1.8.1.2"
 
@@ -154,12 +156,15 @@ fi
 [ -n "${DBX_CONTAINER_GENERATE_ENTRY}" ] && container_generate_entry="${DBX_CONTAINER_GENERATE_ENTRY}"
 [ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
 [ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
+[ -n "${DBX_USERNS_NOLIMIT}" ] && userns_nolimit="${DBX_USERNS_NOLIMIT}"
 
 # Fixup variable=[true|false], in case we find it in the config file(s)
 [ "${non_interactive}" = "true" ] && non_interactive=1
 [ "${non_interactive}" = "false" ] && non_interactive=0
 [ "${verbose}" = "true" ] && verbose=1
 [ "${verbose}" = "false" ] && verbose=0
+[ "${userns_nolimit}" = "true" ] && userns_nolimit=1
+[ "${userns_nolimit}" = "false" ] && userns_nolimit=0
 
 # show_help will print usage to stdout.
 # Arguments:
@@ -939,6 +944,18 @@ generate_create_command()
 		if [ "${rootful}" -eq 0 ]; then
 			result_command="${result_command}
 				--userns keep-id"
+
+			# Test if podman supports keep-id:size=
+			if podman run --rm --userns=keep-id:size=65536 ${container_image} /bin/true 2>/dev/null || [ "$?" -eq 127 ] ; then
+				has_keepid_size=1
+			else
+				has_keepid_size=0
+			fi
+
+			# Add :size=65536 if wanted
+			if [ "${has_keepid_size}" -eq 1 ] && [ "${userns_nolimit}" -eq 0 ]; then
+				result_command="${result_command}:size=65536"
+			fi
 		fi
 	fi
 
