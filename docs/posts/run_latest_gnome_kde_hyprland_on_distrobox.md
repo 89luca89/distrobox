@@ -1,5 +1,5 @@
 - [Distrobox](../README.md)
-  - [Run latest GNOME and KDE Plasma using distrobox](run_latest_gnome_kde_on_distrobox.md)
+  - [Run latest GNOME, KDE Plasma, and Hyprland using distrobox](run_latest_gnome_kde_on_distrobox.md)
     - [Using a stable-release distribution](#using-a-stable-release-distribution)
       - [Initializing the distrobox](#initializing-the-distrobox)
       - [Running Latest GNOME](#running-latest-gnome)
@@ -160,7 +160,7 @@ Centos.
 
 ## Running Latest Hyprland
 
-Hyprland is a bit tricky because of how it is implemented. We will need to 
+Hyprland is a bit tricky because of how it is implemented. We will need to
 create a container with access to `dri` and `input` devices, along with the dbus
 socket that Wayland will use. Simply use this as a template:
 
