@@ -161,7 +161,7 @@ Centos.
 ## Running Latest Hyprland
 
 Hyprland is a bit tricky because of how it is implemented. We will need to 
-create a container with access to `dri` and `input` devices, along with the dbus 
+create a container with access to `dri` and `input` devices, along with the dbus
 socket that Wayland will use. Simply use this as a template:
 
 ```shell
@@ -179,9 +179,10 @@ distrobox-enter hyprbox -- bash -c '
   exec Hyprland
 '
 ```
-This will require you to not have any other Wayland sessions running. 
 
-If you want to run Hyprland on a second tty, set the `XDG_RUNTIME_DIR` and the 
+This will require you to not have any other Wayland sessions running.
+
+If you want to run Hyprland on a second tty, set the `XDG_RUNTIME_DIR` and the
 `WAYLAND_DISPLAY` variables to something unique. Otherwise, applications
 launched from the container will display on the first Wayland Display they see.
 
