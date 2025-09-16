@@ -1,5 +1,5 @@
 - [Distrobox](../README.md)
-  - [Run latest GNOME and KDE Plasma using distrobox](run_latest_gnome_kde_on_distrobox.md)
+  - [Run latest GNOME, KDE Plasma, and Hyprland using distrobox](run_latest_gnome_kde_on_distrobox.md)
     - [Using a stable-release distribution](#using-a-stable-release-distribution)
       - [Initializing the distrobox](#initializing-the-distrobox)
       - [Running Latest GNOME](#running-latest-gnome)
@@ -7,6 +7,7 @@
       - [Running Latest Plasma](#running-latest-plasma)
         - [Generate session file - Plasma](#generate-session-file---plasma)
         - [Add a couple of fixes](#add-a-couple-of-fixes)
+      - [Running Latest Hyprland](#running-latest-hyprland)
     - [Using other GUIs](#using-other-guis)
     - [Using apps from host](#using-apps-from-host)
 
@@ -156,6 +157,34 @@ Let's log out and voilá!
 
 We now are in latest KDE Plasma session inside Fedora Rawhide while our main OS remains
 Centos.
+
+## Running Latest Hyprland
+
+Hyprland is a bit tricky because of how it is implemented. We will need to
+create a container with access to `dri` and `input` devices, along with the dbus
+socket that Wayland will use. Simply use this as a template:
+
+```shell
+distrobox-create -n hyprbox -i archlinux:latest \
+   --additional-flags "--device /dev/dri --device /dev/input -v /run/dbus/system_bus_socket:/run/dbus/system_bus_socket"
+```
+
+Install Hyprland inside the container and then use the following line to start Hyprland:
+
+```shell
+distrobox-enter hyprbox -- bash -c '
+  #export XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
+  #export WAYLAND_DISPLAY=$WAYLAND_DISPLAY
+
+  exec Hyprland
+'
+```
+
+This will require you to not have any other Wayland sessions running.
+
+If you want to run Hyprland on a second tty, set the `XDG_RUNTIME_DIR` and the
+`WAYLAND_DISPLAY` variables to something unique. Otherwise, applications
+launched from the container will display on the first Wayland Display they see.
 
 # Using other GUIs
 
