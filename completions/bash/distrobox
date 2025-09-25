@@ -41,7 +41,8 @@ _generate_from_help() {
 		COMPREPLY+=($(compgen -W "${opts}" -- ${cur}))
 		return 0
 	elif [[ ${command} != *"create"* ]] && [[ ${command} != *"ephemeral"* ]] &&
-		[[ ${command} != *"list"* ]] && [[ ${command} != *"assemble"* ]]; then
+		[[ ${command} != *"list"* ]] && [[ ${command} != *"assemble"* ]] &&
+		[[ ${command} != *"version"* ]] && [[ ${command} != *"help"* ]]; then
 		while IFS= read -r line; do
 			list+="$line "
 		done < <(distrobox-list --no-color | tail -n+2 | cut -d'|' -f2)
