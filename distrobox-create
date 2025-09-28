@@ -199,9 +199,9 @@ Options:
 	--hostname:		hostname for the distrobox      default: $(uname -n)
 	--pull/-p:		pull the image even if it exists locally (implies --yes)
 	--yes/-Y:		non-interactive, pull images without asking
-	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
-				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
+	--root/-r:		launch podman/docker/lilipod with root privileges. This is the only supported way to run with root
+                privileges. Do not use "sudo distrobox". If you need to specify a different program (e.g. 'doas') for root privileges,
+				use the DBX_SUDO_PROGRAM environment variable or the 'distrobox_sudo_program' config variable.
 	--clone/-c:		name of the distrobox container to use as base for a new container
 				this will be useful to either rename an existing distrobox or have multiple copies
 				of the same environment.
