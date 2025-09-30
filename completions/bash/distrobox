@@ -13,13 +13,17 @@ _generate_from_help() {
 
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD - 1]}"
-	opts="$($command --help | sed 's|^\t||g' | grep '^--' | cut -d':' -f1 | tr '/' ' ' | tr '\n' ' ')"
+	opts="$($command --help 2>/dev/null | sed 's|^\t||g' | grep '^--' | cut -d':' -f1 | tr '/' ' ' | tr '\n' ' ')"
 	totalopts="$(echo $opts | tr ' ' '|')"
 	diropts="-H|--home|--volume"
 	fileopts="--file"
 
 	if [[ ${prev} =~ ${diropts} ]]; then
-		COMPREPLY=($(compgen -d -- ${cur}))
+		mapfile -t COMPREPLY < <(
+			IFS=$'\n'
+			realpath $(compgen -d -- ${cur}) 2>/dev/null
+		)
+		compopt -o filenames
 		return 0
 	fi
 
@@ -41,7 +45,8 @@ _generate_from_help() {
 		COMPREPLY+=($(compgen -W "${opts}" -- ${cur}))
 		return 0
 	elif [[ ${command} != *"create"* ]] && [[ ${command} != *"ephemeral"* ]] &&
-		[[ ${command} != *"list"* ]] && [[ ${command} != *"assemble"* ]]; then
+		[[ ${command} != *"list"* ]] && [[ ${command} != *"assemble"* ]] &&
+		[[ ${command} != *"version"* ]] && [[ ${command} != *"help"* ]]; then
 		while IFS= read -r line; do
 			list+="$line "
 		done < <(distrobox-list --no-color | tail -n+2 | cut -d'|' -f2)
