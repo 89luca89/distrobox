@@ -124,6 +124,7 @@ declared multiple times to be compounded:
 | additional_flags | string_list | Additional flags to pass to the container manager |
 | additional_packages | string_list | Additional packages to install inside the container |
 | home | string | Which home directory should the container use |
+| hostname | string | Set hostname of the container |
 | image | string | Which image should the container use, look [here](../compatibility.md) for a list |
 | clone | string | Name of the Distrobox container to use as the base for a new container (the container must be stopped). |
 | init_hooks | string_list | Commands to run inside the container, after the packages setup |
