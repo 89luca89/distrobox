@@ -75,9 +75,9 @@ trap 'rm -f ${tmpfile} ${tmp_download_file}' EXIT
 #
 # SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
 if [ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]; then
-	printf >&2 "Running %s via SUDO/DOAS is not supported." "$(basename "${0}")"
-	printf >&2 "Instead, please try using root=true property in the distrobox.ini file.\n"
-	exit 1
+  printf >&2 "Running %s via SUDO/DOAS is not supported." "$(basename "${0}")"
+  printf >&2 "Instead, please try using root=true property in the distrobox.ini file.\n"
+  exit 1
 fi
 
 # Source configuration files, this is done in an hierarchy so local files have
@@ -100,10 +100,10 @@ config_files="
 	${HOME}/.distroboxrc
 "
 for config_file in ${config_files}; do
-	# Shellcheck will give error for sourcing a variable file as it cannot follow
-	# it. We don't care so let's disable this linting for now.
-	# shellcheck disable=SC1090
-	[ -e "${config_file}" ] && . "$(realpath "${config_file}")"
+  # Shellcheck will give error for sourcing a variable file as it cannot follow
+  # it. We don't care so let's disable this linting for now.
+  # shellcheck disable=SC1090
+  [ -e "${config_file}" ] && . "$(realpath "${config_file}")"
 done
 
 [ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
@@ -121,9 +121,8 @@ done
 #   None
 # Outputs:
 #   print usage with examples.
-show_help()
-{
-	cat << EOF
+show_help() {
+  cat <<EOF
 distrobox version: ${version}
 
 Usage:
@@ -147,108 +146,108 @@ EOF
 
 # Parse arguments
 while :; do
-	case $1 in
-		create)
-			delete=0
-			shift
-			;;
-		rm)
-			delete=1
-			shift
-			;;
-		--file)
-			# Call a "show_help" function to display a synopsis, then exit.
-			if [ -n "$2" ]; then
-				input_file="${2}"
-				shift
-				shift
-			fi
-			;;
-		-n | --name)
-			# Call a "show_help" function to display a synopsis, then exit.
-			if [ -n "$2" ]; then
-				boxname="${2}"
-				shift
-				shift
-			fi
-			;;
-		-h | --help)
-			# Call a "show_help" function to display a synopsis, then exit.
-			show_help
-			exit 0
-			;;
-		-d | --dry-run)
-			shift
-			dryrun=1
-			;;
-		-v | --verbose)
-			verbose=1
-			shift
-			;;
-		-R | --replace)
-			replace=1
-			shift
-			;;
-		-V | --version)
-			printf "distrobox: %s\n" "${version}"
-			exit 0
-			;;
-		--) # End of all options.
-			shift
-			break
-			;;
-		-*) # Invalid options.
-			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
-			show_help
-			exit 1
-			;;
-		*) # Default case: If no more options then break out of the loop.
-			# If we have a flagless option and container_name is not specified
-			# then let's accept argument as container_name
-			if [ -n "$1" ]; then
-				input_file="$1"
-				shift
-			else
-				break
-			fi
-			;;
-	esac
+  case $1 in
+  create)
+    delete=0
+    shift
+    ;;
+  rm)
+    delete=1
+    shift
+    ;;
+  --file)
+    # Call a "show_help" function to display a synopsis, then exit.
+    if [ -n "$2" ]; then
+      input_file="${2}"
+      shift
+      shift
+    fi
+    ;;
+  -n | --name)
+    # Call a "show_help" function to display a synopsis, then exit.
+    if [ -n "$2" ]; then
+      boxname="${2}"
+      shift
+      shift
+    fi
+    ;;
+  -h | --help)
+    # Call a "show_help" function to display a synopsis, then exit.
+    show_help
+    exit 0
+    ;;
+  -d | --dry-run)
+    shift
+    dryrun=1
+    ;;
+  -v | --verbose)
+    verbose=1
+    shift
+    ;;
+  -R | --replace)
+    replace=1
+    shift
+    ;;
+  -V | --version)
+    printf "distrobox: %s\n" "${version}"
+    exit 0
+    ;;
+  --) # End of all options.
+    shift
+    break
+    ;;
+  -*) # Invalid options.
+    printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+    show_help
+    exit 1
+    ;;
+  *) # Default case: If no more options then break out of the loop.
+    # If we have a flagless option and container_name is not specified
+    # then let's accept argument as container_name
+    if [ -n "$1" ]; then
+      input_file="$1"
+      shift
+    else
+      break
+    fi
+    ;;
+  esac
 done
 
 set -o errexit
 set -o nounset
 # set verbosity
 if [ "${verbose}" -ne 0 ]; then
-	set -o xtrace
+  set -o xtrace
 fi
 
 # check if we're getting the right inputs
 if [ "${delete}" -eq -1 ]; then
-	printf >&2 "Please specify create or rm.\n"
-	show_help
-	exit 1
+  printf >&2 "Please specify create or rm.\n"
+  show_help
+  exit 1
 fi
 
 # Fallback to distrobox.ini if no file is passed
 if [ -z "${input_file}" ]; then
-	input_file="${default_input_file}"
+  input_file="${default_input_file}"
 fi
 
 # Check if file effectively exists
 if [ ! -e "${input_file}" ]; then
 
-	if command -v curl > /dev/null 2>&1; then
-		download="curl --connect-timeout 3 --retry 1 -sLo"
-	elif command -v wget > /dev/null 2>&1; then
-		download="wget --timeout=3 --tries=1 -qO"
-	fi
+  if command -v curl >/dev/null 2>&1; then
+    download="curl --connect-timeout 3 --retry 1 -sLo"
+  elif command -v wget >/dev/null 2>&1; then
+    download="wget --timeout=3 --tries=1 -qO"
+  fi
 
-	if ! ${download} - "${input_file}" > "${tmp_download_file}"; then
-		printf >&2 "File %s does not exist.\n" "${input_file}"
-		exit 1
-	else
-		input_file="${tmp_download_file}"
-	fi
+  if ! ${download} - "${input_file}" >"${tmp_download_file}"; then
+    printf >&2 "File %s does not exist.\n" "${input_file}"
+    exit 1
+  else
+    input_file="${tmp_download_file}"
+  fi
 fi
 
 # run_distrobox will create distrobox with parameters parsed from ini file.
@@ -265,250 +264,249 @@ fi
 #   None
 # Outputs:
 #   execution of the proper distrobox-create command.
-run_distrobox()
-{
-	name="${1}"
-	additional_flags=""
-	additional_packages=""
-	entry=""
-	home=""
-	hostname=""
-	image=""
-	clone=""
-	init=""
-	init_hooks=""
-	nvidia=""
-	pre_init_hooks=""
-	pull=""
-	root=""
-	start_now=""
-	unshare_groups=""
-	unshare_ipc=""
-	unshare_netns=""
-	unshare_process=""
-	unshare_devsys=""
-	unshare_all=""
-	volume=""
-	exported_apps=""
-	exported_bins=""
-	exported_bins_path="${HOME}/.local/bin"
+run_distrobox() {
+  name="${1}"
+  additional_flags=""
+  additional_packages=""
+  entry=""
+  home=""
+  hostname=""
+  image=""
+  clone=""
+  init=""
+  init_hooks=""
+  nvidia=""
+  pre_init_hooks=""
+  pull=""
+  root=""
+  start_now=""
+  unshare_groups=""
+  unshare_ipc=""
+  unshare_netns=""
+  unshare_process=""
+  unshare_devsys=""
+  unshare_all=""
+  volume=""
+  exported_apps=""
+  exported_bins=""
+  exported_bins_path="${HOME}/.local/bin"
 
-	# Skip item if --name used and no match is found
-	if [ "${boxname}" != "" ] && [ "${boxname}" != "${name}" ]; then
-		rm -f "${tmpfile}"
-		return
-	fi
+  # Skip item if --name used and no match is found
+  if [ "${boxname}" != "" ] && [ "${boxname}" != "${name}" ]; then
+    rm -f "${tmpfile}"
+    return
+  fi
 
-	# Source the current block variables
-	if [ -e "${tmpfile}" ]; then
-		# shellcheck disable=SC1090
-		. "${tmpfile}" && rm -f "${tmpfile}"
-	fi
+  # Source the current block variables
+  if [ -e "${tmpfile}" ]; then
+    # shellcheck disable=SC1090
+    . "${tmpfile}" && rm -f "${tmpfile}"
+  fi
+  printf ">>> %s" "${root}"
+  if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
+    root_flag="--root"
+  fi
 
-	if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
-		root_flag="--root"
-	fi
+  # We're going to delete, not create!
+  if [ "${delete}" -ne 0 ] || [ "${replace}" -ne 0 ]; then
+    printf " - Deleting %s...\n" "${name}"
 
-	# We're going to delete, not create!
-	if [ "${delete}" -ne 0 ] || [ "${replace}" -ne 0 ]; then
-		printf " - Deleting %s...\n" "${name}"
+    if [ "${dryrun}" -eq 0 ]; then
+      # shellcheck disable=SC2086,2248
+      "${distrobox_path}"/distrobox rm ${root_flag} -f "${name}" >/dev/null || :
+    fi
 
-		if [ "${dryrun}" -eq 0 ]; then
-			# shellcheck disable=SC2086,2248
-			"${distrobox_path}"/distrobox rm ${root_flag} -f "${name}" > /dev/null || :
-		fi
+    if [ "${delete}" -ne 0 ]; then
+      return
+    fi
+  fi
 
-		if [ "${delete}" -ne 0 ]; then
-			return
-		fi
-	fi
+  # We're going to create!
+  printf " - Creating %s...\n" "${name}"
 
-	# We're going to create!
-	printf " - Creating %s...\n" "${name}"
+  # If distrobox already exist, and we have replace enabled, destroy the container
+  # we have to recreate it.
+  # shellcheck disable=SC2086,2248
+  if "${distrobox_path}"/distrobox-list ${root_flag} | grep -qw " ${name} " && [ "${dryrun}" -eq 0 ]; then
+    printf >&2 "%s already exists\n" "${name}"
+    return 0
+  fi
 
-	# If distrobox already exist, and we have replace enabled, destroy the container
-	# we have to recreate it.
-	# shellcheck disable=SC2086,2248
-	if "${distrobox_path}"/distrobox-list ${root_flag} | grep -qw " ${name} " && [ "${dryrun}" -eq 0 ]; then
-		printf >&2 "%s already exists\n" "${name}"
-		return 0
-	fi
+  # Now we dynamically generate the distrobox-create command based on the
+  # declared flags.
+  result_command="${distrobox_path}/distrobox-create --yes"
+  if [ "${verbose}" -ne 0 ]; then
+    result_command="${result_command} -v"
+  fi
+  if [ -n "${name}" ]; then
+    result_command="${result_command} --name $(sanitize_variable "${name}")"
+  fi
+  if [ -n "${image}" ]; then
+    result_command="${result_command} --image $(sanitize_variable "${image}")"
+  fi
+  if [ -n "${clone}" ]; then
+    result_command="${result_command} --clone $(sanitize_variable "${clone}")"
+  fi
+  if [ -n "${init}" ] && [ "${init}" -eq 1 ]; then
+    result_command="${result_command} --init"
+  fi
+  if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
+    result_command="${result_command} --root"
+  fi
+  if [ -n "${pull}" ] && [ "${pull}" -eq 1 ]; then
+    result_command="${result_command} --pull"
+  fi
+  if [ -n "${entry}" ] && [ "${entry}" -eq 0 ]; then
+    result_command="${result_command} --no-entry"
+  fi
+  if [ -n "${nvidia}" ] && [ "${nvidia}" -eq 1 ]; then
+    result_command="${result_command} --nvidia"
+  fi
+  if [ -n "${unshare_netns}" ] && [ "${unshare_netns}" -eq 1 ]; then
+    result_command="${result_command} --unshare-netns"
+  fi
+  if [ -n "${unshare_groups}" ] && [ "${unshare_groups}" -eq 1 ]; then
+    result_command="${result_command} --unshare-groups"
+  fi
+  if [ -n "${unshare_ipc}" ] && [ "${unshare_ipc}" -eq 1 ]; then
+    result_command="${result_command} --unshare-ipc"
+  fi
+  if [ -n "${unshare_process}" ] && [ "${unshare_process}" -eq 1 ]; then
+    result_command="${result_command} --unshare-process"
+  fi
+  if [ -n "${unshare_devsys}" ] && [ "${unshare_devsys}" -eq 1 ]; then
+    result_command="${result_command} --unshare-devsys"
+  fi
+  if [ -n "${unshare_all}" ] && [ "${unshare_all}" -eq 1 ]; then
+    result_command="${result_command} --unshare-all"
+  fi
+  if [ -n "${home}" ]; then
+    result_command="${result_command} --home $(sanitize_variable "${home}")"
+  fi
+  if [ -n "${hostname}" ]; then
+    result_command="${result_command} --hostname $(sanitize_variable "${hostname}")"
+  fi
+  if [ -n "${init_hooks}" ]; then
+    IFS="¤"
+    args=": ;"
+    separator=""
+    for arg in ${init_hooks}; do
+      if [ -z "${arg}" ]; then
+        continue
+      fi
 
-	# Now we dynamically generate the distrobox-create command based on the
-	# declared flags.
-	result_command="${distrobox_path}/distrobox-create --yes"
-	if [ "${verbose}" -ne 0 ]; then
-		result_command="${result_command} -v"
-	fi
-	if [ -n "${name}" ]; then
-		result_command="${result_command} --name $(sanitize_variable "${name}")"
-	fi
-	if [ -n "${image}" ]; then
-		result_command="${result_command} --image $(sanitize_variable "${image}")"
-	fi
-	if [ -n "${clone}" ]; then
-		result_command="${result_command} --clone $(sanitize_variable "${clone}")"
-	fi
-	if [ -n "${init}" ] && [ "${init}" -eq 1 ]; then
-		result_command="${result_command} --init"
-	fi
-	if [ -n "${root}" ] && [ "${root}" -eq 1 ]; then
-		result_command="${result_command} --root"
-	fi
-	if [ -n "${pull}" ] && [ "${pull}" -eq 1 ]; then
-		result_command="${result_command} --pull"
-	fi
-	if [ -n "${entry}" ] && [ "${entry}" -eq 0 ]; then
-		result_command="${result_command} --no-entry"
-	fi
-	if [ -n "${nvidia}" ] && [ "${nvidia}" -eq 1 ]; then
-		result_command="${result_command} --nvidia"
-	fi
-	if [ -n "${unshare_netns}" ] && [ "${unshare_netns}" -eq 1 ]; then
-		result_command="${result_command} --unshare-netns"
-	fi
-	if [ -n "${unshare_groups}" ] && [ "${unshare_groups}" -eq 1 ]; then
-		result_command="${result_command} --unshare-groups"
-	fi
-	if [ -n "${unshare_ipc}" ] && [ "${unshare_ipc}" -eq 1 ]; then
-		result_command="${result_command} --unshare-ipc"
-	fi
-	if [ -n "${unshare_process}" ] && [ "${unshare_process}" -eq 1 ]; then
-		result_command="${result_command} --unshare-process"
-	fi
-	if [ -n "${unshare_devsys}" ] && [ "${unshare_devsys}" -eq 1 ]; then
-		result_command="${result_command} --unshare-devsys"
-	fi
-	if [ -n "${unshare_all}" ] && [ "${unshare_all}" -eq 1 ]; then
-		result_command="${result_command} --unshare-all"
-	fi
-	if [ -n "${home}" ]; then
-		result_command="${result_command} --home $(sanitize_variable "${home}")"
-	fi
-	if [ -n "${hostname}" ]; then
-		result_command="${result_command} --hostname $(sanitize_variable "${hostname}")"
-	fi
-	if [ -n "${init_hooks}" ]; then
-		IFS="¤"
-		args=": ;"
-		separator=""
-		for arg in ${init_hooks}; do
-			if [ -z "${arg}" ]; then
-				continue
-			fi
+      # Convert back from base64
+      arg="$(echo "${arg}" | base64 -d)"
+      args="${args} ${separator} ${arg}"
 
-			# Convert back from base64
-			arg="$(echo "${arg}" | base64 -d)"
-			args="${args} ${separator} ${arg}"
+      # Prepare for the next line, if we already have a ';' or '&&', do nothing
+      # else prefer adding '&&'
+      if ! echo "${arg}" | grep -qE ';[[:space:]]{0,1}$' &&
+        ! echo "${arg}" | grep -qE '&&[[:space:]]{0,1}$'; then
+        separator="&&"
+      else
+        separator=""
+      fi
+    done
+    result_command="${result_command} --init-hooks $(sanitize_variable "${args}")"
+  fi
+  # Replicable flags
+  if [ -n "${pre_init_hooks}" ]; then
+    IFS="¤"
+    args=": ;"
+    separator=""
+    for arg in ${pre_init_hooks}; do
+      if [ -z "${arg}" ]; then
+        continue
+      fi
 
-			# Prepare for the next line, if we already have a ';' or '&&', do nothing
-			# else prefer adding '&&'
-			if ! echo "${arg}" | grep -qE ';[[:space:]]{0,1}$' &&
-				! echo "${arg}" | grep -qE '&&[[:space:]]{0,1}$'; then
-				separator="&&"
-			else
-				separator=""
-			fi
-		done
-		result_command="${result_command} --init-hooks $(sanitize_variable "${args}")"
-	fi
-	# Replicable flags
-	if [ -n "${pre_init_hooks}" ]; then
-		IFS="¤"
-		args=": ;"
-		separator=""
-		for arg in ${pre_init_hooks}; do
-			if [ -z "${arg}" ]; then
-				continue
-			fi
+      # Convert back from base64
+      arg="$(echo "${arg}" | base64 -d)"
+      args="${args} ${separator} ${arg}"
 
-			# Convert back from base64
-			arg="$(echo "${arg}" | base64 -d)"
-			args="${args} ${separator} ${arg}"
+      # Prepare for the next line, if we already have a ';' or '&&', do nothing
+      # else prefer adding '&&'
+      if ! echo "${arg}" | grep -qE ';[[:space:]]{0,1}$' &&
+        ! echo "${arg}" | grep -qE '&&[[:space:]]{0,1}$'; then
+        separator="&&"
+      else
+        separator=""
+      fi
+    done
+    result_command="${result_command} --pre-init-hooks $(sanitize_variable "${args}")"
+  fi
+  if [ -n "${additional_packages}" ]; then
+    IFS="¤"
+    args=""
+    for packages in ${additional_packages}; do
+      if [ -z "${packages}" ]; then
+        continue
+      fi
+      args="${args} ${packages}"
+    done
+    result_command="${result_command} --additional-packages $(sanitize_variable "${args}")"
+  fi
+  if [ -n "${volume}" ]; then
+    IFS="¤"
+    for vol in ${volume}; do
+      if [ -z "${vol}" ]; then
+        continue
+      fi
+      result_command="${result_command} --volume $(sanitize_variable "${vol}")"
+    done
+  fi
+  if [ -n "${additional_flags}" ]; then
+    IFS="¤"
+    for flag in ${additional_flags}; do
+      if [ -z "${flag}" ]; then
+        continue
+      fi
+      result_command="${result_command} --additional-flags $(sanitize_variable "${flag}")"
+    done
+  fi
 
-			# Prepare for the next line, if we already have a ';' or '&&', do nothing
-			# else prefer adding '&&'
-			if ! echo "${arg}" | grep -qE ';[[:space:]]{0,1}$' &&
-				! echo "${arg}" | grep -qE '&&[[:space:]]{0,1}$'; then
-				separator="&&"
-			else
-				separator=""
-			fi
-		done
-		result_command="${result_command} --pre-init-hooks $(sanitize_variable "${args}")"
-	fi
-	if [ -n "${additional_packages}" ]; then
-		IFS="¤"
-		args=""
-		for packages in ${additional_packages}; do
-			if [ -z "${packages}" ]; then
-				continue
-			fi
-			args="${args} ${packages}"
-		done
-		result_command="${result_command} --additional-packages $(sanitize_variable "${args}")"
-	fi
-	if [ -n "${volume}" ]; then
-		IFS="¤"
-		for vol in ${volume}; do
-			if [ -z "${vol}" ]; then
-				continue
-			fi
-			result_command="${result_command} --volume $(sanitize_variable "${vol}")"
-		done
-	fi
-	if [ -n "${additional_flags}" ]; then
-		IFS="¤"
-		for flag in ${additional_flags}; do
-			if [ -z "${flag}" ]; then
-				continue
-			fi
-			result_command="${result_command} --additional-flags $(sanitize_variable "${flag}")"
-		done
-	fi
+  # Execute the distrobox-create command
+  if [ "${dryrun}" -ne 0 ]; then
+    echo "${result_command}"
+    return
+  fi
+  eval "${result_command}"
 
-	# Execute the distrobox-create command
-	if [ "${dryrun}" -ne 0 ]; then
-		echo "${result_command}"
-		return
-	fi
-	eval "${result_command}"
+  # If we need to start immediately, do it, so that the container
+  # is ready to be entered.
+  if [ -n "${start_now}" ] && [ "${start_now}" -eq 1 ]; then
+    # shellcheck disable=SC2086,2248
+    "${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null
+  fi
 
-	# If we need to start immediately, do it, so that the container
-	# is ready to be entered.
-	if [ -n "${start_now}" ] && [ "${start_now}" -eq 1 ]; then
-		# shellcheck disable=SC2086,2248
-		"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null
-	fi
+  # if there are exported bins and apps declared, let's export them
+  if [ -n "${exported_apps}" ] || [ -n "${exported_bins}" ]; then
+    # First we start the container
+    # shellcheck disable=SC2086,2248
+    "${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null
 
-	# if there are exported bins and apps declared, let's export them
-	if [ -n "${exported_apps}" ] || [ -n "${exported_bins}" ]; then
-		# First we start the container
-		# shellcheck disable=SC2086,2248
-		"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null
+    IFS="¤"
+    for apps in ${exported_apps}; do
+      # Split the string by spaces
+      IFS=" "
+      for app in ${apps}; do
+        # Export the app
+        # shellcheck disable=SC2086,2248
+        "${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --app "${app}"
+      done
+    done
 
-		IFS="¤"
-		for apps in ${exported_apps}; do
-			# Split the string by spaces
-			IFS=" "
-			for app in ${apps}; do
-				# Export the app
-				# shellcheck disable=SC2086,2248
-				"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --app "${app}"
-			done
-		done
-
-		IFS="¤"
-		for bins in ${exported_bins}; do
-			# Split the string by spaces
-			IFS=" "
-			for bin in ${bins}; do
-				# Export the bin
-				# shellcheck disable=SC2086,2248
-				"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
-			done
-		done
-	fi
+    IFS="¤"
+    for bins in ${exported_bins}; do
+      # Split the string by spaces
+      IFS=" "
+      for bin in ${bins}; do
+        # Export the bin
+        # shellcheck disable=SC2086,2248
+        "${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
+      done
+    done
+  fi
 }
 
 # encode_variable will encode an input in base64, removing surrounding single/double quotes.
@@ -520,17 +518,16 @@ run_distrobox()
 #   None
 # Outputs:
 #   a value string encoded in base64
-encode_variable()
-{
-	variable="${1}"
-	# remove surrounding quotes possibly added by the user
-	if echo "${variable}" | grep -qE '^"'; then
-		variable="$(echo "${variable}" | sed -e 's/^"//' -e 's/"$//')"
-	elif echo "${variable}" | grep -qE "^'"; then
-		variable="$(echo "${variable}" | sed -e "s/^'//" -e "s/'$//")"
-	fi
+encode_variable() {
+  variable="${1}"
+  # remove surrounding quotes possibly added by the user
+  if echo "${variable}" | grep -qE '^"'; then
+    variable="$(echo "${variable}" | sed -e 's/^"//' -e 's/"$//')"
+  elif echo "${variable}" | grep -qE "^'"; then
+    variable="$(echo "${variable}" | sed -e "s/^'//" -e "s/'$//")"
+  fi
 
-	echo "${variable}" | base64 -w 0
+  echo "${variable}" | base64 -w 0
 }
 
 # sanitize_variable will sanitize an input, add single/double quotes and escapes
@@ -542,25 +539,24 @@ encode_variable()
 #   None
 # Outputs:
 #   a value string sanitized
-sanitize_variable()
-{
-	variable="${1}"
+sanitize_variable() {
+  variable="${1}"
 
-	# If there are spaces but no quotes, let's add them
-	if echo "${variable}" | grep -q " " &&
-		! echo "${variable}" | grep -Eq "^'|^\""; then
+  # If there are spaces but no quotes, let's add them
+  if echo "${variable}" | grep -q " " &&
+    ! echo "${variable}" | grep -Eq "^'|^\""; then
 
-		# if we have double quotes we should wrap the whole line in single quotes
-		# in order to not "undo" them
-		if echo "${variable}" | grep -q '"'; then
-			variable="'${variable}'"
-		else
-			variable="\"${variable}\""
-		fi
-	fi
+    # if we have double quotes we should wrap the whole line in single quotes
+    # in order to not "undo" them
+    if echo "${variable}" | grep -q '"'; then
+      variable="'${variable}'"
+    else
+      variable="\"${variable}\""
+    fi
+  fi
 
-	# Return
-	echo "${variable}"
+  # Return
+  echo "${variable}"
 }
 
 # parse_file will read and parse input file and call distrobox-create accordingly
@@ -572,73 +568,199 @@ sanitize_variable()
 #   None
 # Outputs:
 #   None
-parse_file()
-{
-	file="${1}"
-	name=""
+parse_file() {
+  file="${1}"
+  name=""
 
-	IFS='
+  IFS='
 	'
-	while read -r line; do
-		# Remove comments and trailing spaces
-		line="$(echo "${line}" |
-			sed 's/\t/ /g' |
-			sed 's/^#.*//g' |
-			sed 's/].*#.*//g' |
-			sed 's/ #.*//g' |
-			sed 's/\s*$//g')"
+  while read -r line; do
+    # Remove comments and trailing spaces
+    line="$(echo "${line}" |
+      sed 's/\t/ /g' |
+      sed 's/^#.*//g' |
+      sed 's/].*#.*//g' |
+      sed 's/ #.*//g' |
+      sed 's/\s*$//g')"
 
-		if [ -z "${line}" ]; then
-			# blank line, skip
-			continue
-		fi
+    if [ -z "${line}" ]; then
+      # blank line, skip
+      continue
+    fi
 
-		# Detect start of new section
-		if [ "$(echo "${line}" | cut -c 1)" = '[' ]; then
-			# We're starting a new section
-			if [ -n "${name}" ]; then
-				# We've finished the previous section, so this is the time to
-				# perform the distrobox command, before going to the new section.
-				run_distrobox "${name}"
-			fi
+    # Detect start of new section
+    if [ "$(echo "${line}" | cut -c 1)" = '[' ]; then
+      # We're starting a new section
+      if [ -n "${name}" ]; then
+        # We've finished the previous section, so this is the time to
+        # perform the distrobox command, before going to the new section.
+        run_distrobox "${name}"
+      fi
 
-			# Remove brackets and spaces
-			name="$(echo "${line}" | tr -d '][ ')"
-			continue
-		fi
+      # Remove brackets and spaces
+      name="$(echo "${line}" | tr -d '][ ')"
+      continue
+    fi
 
-		# Get key-values from the file
-		key="$(echo "${line}" | cut -d'=' -f1 | tr -d ' ')"
-		value="$(echo "${line}" | cut -d'=' -f2-)"
+    # Get key-values from the file
+    key="$(echo "${line}" | cut -d'=' -f1 | tr -d ' ')"
+    value="$(echo "${line}" | cut -d'=' -f2-)"
 
-		# Normalize true|false to 0|1
-		[ "${value}" = "true" ] && value=1
-		[ "${value}" = "false" ] && value=0
+    # Normalize true|false to 0|1
+    [ "${value}" = "true" ] && value=1
+    [ "${value}" = "false" ] && value=0
 
-		# Sanitize value, by whitespaces, quotes and escapes
-		if [ "${key}" = "init_hooks" ] || [ "${key}" = "pre_init_hooks" ]; then
-			# in case of shell commands (so the hooks) we prefer to pass the variable
-			# around encoded, so that we don't accidentally execute stuff
-			# and, we will execute sanitize_variable on the final string flag at the
-			# end, instead of key/value base.
-			value="$(encode_variable "${value}")"
-		else
-			value="$(sanitize_variable "${value}")"
-		fi
+    # Sanitize value, by whitespaces, quotes and escapes
+    if [ "${key}" = "init_hooks" ] || [ "${key}" = "pre_init_hooks" ]; then
+      # in case of shell commands (so the hooks) we prefer to pass the variable
+      # around encoded, so that we don't accidentally execute stuff
+      # and, we will execute sanitize_variable on the final string flag at the
+      # end, instead of key/value base.
+      value="$(encode_variable "${value}")"
+    else
+      value="$(sanitize_variable "${value}")"
+    fi
 
-		# Save options to tempfile, to source it later
-		touch "${tmpfile}"
-		if [ -n "${key}" ] && [ -n "${value}" ]; then
-			if grep -q "^${key}=" "${tmpfile}"; then
-				# make keys cumulative
-				value="\${${key}}¤${value}"
-			fi
-			echo "${key}=${value}" >> "${tmpfile}"
-		fi
-	done < "${file}"
-	# Execute now one last time for the last block
-	run_distrobox "${name}"
+    # Save options to tempfile, to source it later
+    touch "${tmpfile}"
+    if [ -n "${key}" ] && [ -n "${value}" ]; then
+      if grep -q "^${key}=" "${tmpfile}"; then
+        # make keys cumulative
+        value="\${${key}}¤${value}"
+      fi
+      echo "${key}=${value}" >>"${tmpfile}"
+    fi
+  done <"${file}"
+  # Execute now one last time for the last block
+  run_distrobox "${name}"
+}
+
+#!/bin/sh
+
+# read_section Get the content of a section from a toml file
+# Arguments
+#   section the name of the section
+#   file path to the file to search into
+# Outputs
+#   the body of the found section (section header is excluded)
+read_section() {
+  local section="$1"
+  local file="$2"
+  awk -v sec="[$section]" '
+    $0 == sec {show=1; next}
+    show && /^\[/ {exit}
+    show && NF {print}
+  ' "$file"
+}
+
+# resolve_includes Creates a copy of the manifest file that expands every 'include' 
+# with the relative definition.
+# If the definition in the include is not present on the manifest file, an error is returned.
+# Arguments
+#   input_file path to the manifest file to be expanded
+#   output_file path to the copy of the manifest file with resolved includes.
+#               If not provided, a temporary file will be created.
+#               If the file does not exist, it will be created.
+# Outputs
+#   path to the output file
+resolve_includes() {
+  local input_file="$1"
+  local output_file="$2"
+  local include_stack=""
+
+  # At the starting point, the output file is equal to input_file
+  # Later on, the output file will be edited as includes will be resolved
+  cat "$input_file" > "$output_file"
+
+  n=0
+  while true; do
+    total_lines=$(wc -l < "$output_file")
+    [ "$n" -gt "$total_lines" ] && break
+
+    line=$(sed -n "$((n + 1))p" "$output_file")
+
+		# Detected begin of a section: clear the include stack and go on
+    if [ "$(echo "${line}" | cut -c 1)" = '[' ]; then
+      include_stack=""
+      n=$(expr $n + 1)
+      continue
+    fi
+
+    # Match key=value from the current line
+    key="$(echo "${line}" | cut -d'=' -f1 | tr -d ' ')"
+    value="$(echo "${line}" | cut -d'=' -f2-)"
+
+    if [ "$key" = "include" ]; then 
+      # Detect circular references while including other distrobox definitions
+      # The reference stack is handled as a string of shape [name].[name].[name]
+      if expr "$include_stack" : ".*\[$value\]" > /dev/null; then
+	      printf >&2 "ERROR circular reference detected: including [%s] again after %s\n" "$value" "$include_stack"
+        exit 1
+      else
+        include_stack="[$value]¤$include_stack"
+      fi
+
+      # Read the definition for the distrobox to include from the original file
+      # and replace the current line with the found lines.
+      # The line counter is not incremented to allow recursive include resolution
+      inc=$(read_section "${value//\"/}" "$input_file")
+      if [[ -z "$inc" ]]; then
+	      printf >&2 "ERROR cannot include '%s': definition not found\n" "$value"
+        exit 1
+      fi
+      l=$(expr $n + 1)
+      replace_line $l "$inc" "$output_file" "$output_file" > /dev/null
+
+      continue
+    fi
+    
+    # Nothing to do, increment counter and go on
+    n=$(expr $n + 1)
+    
+  done
+  
+  echo "$output_file"
+
+}
+
+# replace_line Given a file, a line number and a string, it replacwe the entire line with the value.
+# # Arguments
+#   line_number 1-based index to the number to be replaced
+#   new_value the string to insert, can be multiline
+#   input_file path to the original file
+#   output_file path to the file with the replaced line
+# Outputs
+#   path to the output file
+replace_line() {
+  local line_number="$1"
+  local new_value="$2"
+  local input_file="$3"
+  local output_file="$4"
+
+  # if no output file, use a temp file
+  if [[ -z "$output_file" ]]; then
+    output_file=$(mktemp -u)
+  fi
+
+  tmpfile=$(mktemp) || exit 1
+
+  # Split the file into two parts around the line to replace and combine with new_value
+  # Print lines before line_number
+  sed "$((line_number-1))q" "$input_file" > "$tmpfile"
+
+  # Append the new_value
+  printf "%s\n" "$new_value" >> "$tmpfile"
+
+  # Append lines after line_number
+  sed -n "$((line_number+1)),\$p" "$input_file" >> "$tmpfile"
+
+  # Replace original file with tmpfile
+  mv "$tmpfile" "$output_file"
+
+  echo "$output_file"
 }
 
 # Exec
-parse_file "${input_file}"
+expanded_file=$(mktemp -u)
+resolve_includes "${input_file}" "${expanded_file}"
+parse_file "${expanded_file}"
