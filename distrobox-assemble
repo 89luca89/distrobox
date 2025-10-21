@@ -505,7 +505,8 @@ run_distrobox()
 			for bin in ${bins}; do
 				# Export the bin
 				# shellcheck disable=SC2086,2248
-				"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --bin "${bin}" --export-path "${exported_bins_path}"
+				"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --bin "${bin}" \
+					--export-path "${exported_bins_path}"
 			done
 		done
 	fi
@@ -640,5 +641,148 @@ parse_file()
 	run_distrobox "${name}"
 }
 
+# read_section reads the content of a section from a TOML file.
+# Arguments:
+#   section: Name of the section to find (string).
+#   file: Path to the file to search into (string).
+# Expected global variables:
+#   None.
+# Expected env variables:
+#   None.
+# Outputs:
+#   Writes the found section body to stdout.
+# Exit behavior / errors:
+#   Does not exit non‑zero on missing section; caller should treat empty output as needed.
+read_section()
+{
+	section="$1"
+	file="$2"
+	awk -v sec="[${section}]" '
+    $0 == sec {show=1; next}
+    show && /^\[/ {exit}
+    show && NF {print}
+  ' "${file}"
+}
+
+# resolve_includes Resolve 'include' keys in a manifest by inlining referenced sections.
+# Arguments:
+#   input_file: Path to the original manifest file that may contain 'include' keys.
+#   output_file: Path to the file where the resolved manifest will be written (if empty, a temp file is used).
+# Expected global variables:
+#   read_section (function)  - used to extract referenced section bodies from input_file.
+#   replace_line (function)  - used to replace include lines with extracted content.
+# Expected env variables:
+#   TMPDIR (optional) - may influence mktemp location.
+# Outputs:
+#   Prints the path to the output file to stdout when completed.
+# Exit behavior / errors:
+#   Exits with status 1 and writes to stderr on missing definitions, circular includes, or helper failures.
+resolve_includes()
+{
+	input_file="$1"
+	output_file="$2"
+	include_stack=""
+
+	# At the starting point, the output file is equal to input_file
+	# Later on, the output file will be edited as includes will be resolved
+	cat "${input_file}" > "${output_file}"
+
+	n=0
+	while true; do
+		total_lines=$(wc -l < "${output_file}")
+		[ "${n}" -gt "${total_lines}" ] && break
+
+		line=$(sed -n "$((n + 1))p" "${output_file}")
+
+		# Detected begin of a section: clear the include stack and go on
+		if [ "$(echo "${line}" | cut -c 1)" = '[' ]; then
+			include_stack=""
+			n=$((n + 1))
+			continue
+		fi
+
+		# Match key=value from the current line
+		key="$(echo "${line}" | cut -d'=' -f1 | tr -d ' ')"
+		value="$(echo "${line}" | cut -d'=' -f2-)"
+
+		if [ "${key}" = "include" ]; then
+			# Detect circular references while including other distrobox definitions
+			# The reference stack is handled as a string of shape [name].[name].[name]
+			if expr "${include_stack}" : ".*\[${value}\]" > /dev/null; then
+				printf >&2 "ERROR circular reference detected: including [%s] again after %s\n" "${value}" "${include_stack}"
+				exit 1
+			else
+				include_stack="[${value}]¤${include_stack}"
+			fi
+
+			# Read the definition for the distrobox to include from the original file
+			# and replace the current line with the found lines.
+			# The line counter is not incremented to allow recursive include resolution
+			inc=$(read_section "$(echo "${value}" | tr -d '"')" "${input_file}")
+			if [ -z "${inc}" ]; then
+				printf >&2 "ERROR cannot include '%s': definition not found\n" "${value}"
+				exit 1
+			fi
+			l=$((n + 1))
+			replace_line "${l}" "${inc}" "${output_file}" "${output_file}" > /dev/null
+
+			continue
+		fi
+
+		# Nothing to do, increment counter and go on
+		n=$((n + 1))
+
+	done
+
+	echo "${output_file}"
+
+}
+
+# replace_line Replace a 1-based numbered line in a file with provided (possibly multiline) text.
+# Arguments:
+#   line_number: 1-based index of the line to replace.
+#   new_value: String to insert (may contain newlines).
+#   input_file: Path to the original file to read from.
+#   output_file: Path to write the resulting file (if empty, a temp file will be created).
+# Expected global variables:
+#   None.
+# Expected env variables:
+#   TMPDIR (optional) - may influence mktemp location.
+# Outputs:
+#   Prints the path to the output file to stdout when complete.
+# Exit behavior / errors:
+#   Exits with status 1 on fatal errors (e.g., mktemp failure).
+replace_line()
+{
+	line_number="$1"
+	new_value="$2"
+	input_file="$3"
+	output_file="$4"
+
+	# if no output file, use a temp file
+	if [ -z "${output_file}" ]; then
+		output_file=$(mktemp -u)
+	fi
+
+	tmpfile=$(mktemp) || exit 1
+
+	# Split the file into two parts around the line to replace and combine with new_value
+	# Print lines before line_number
+	sed "$((line_number - 1))q" "${input_file}" > "${tmpfile}"
+
+	# Append the new_value
+	printf "%s\n" "${new_value}" >> "${tmpfile}"
+
+	# Append lines after line_number
+	sed -n "$((line_number + 1)),\$p" "${input_file}" >> "${tmpfile}"
+
+	# Replace original file with tmpfile
+	mv "${tmpfile}" "${output_file}"
+
+	echo "${output_file}"
+}
+
 # Exec
-parse_file "${input_file}"
+expanded_file=$(mktemp -u)
+resolve_includes "${input_file}" "${expanded_file}"
+parse_file "${expanded_file}"
