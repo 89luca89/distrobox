@@ -221,7 +221,7 @@ each option corresponds to one of the `create` flags.
 	image=ubuntu:latest
 	pre_init_hooks="export SHELL=/bin/bash;"
 
-**Include example**
+**Include example (inherit fields from another distrobox)**
 
 	[ubuntu]
 	image=ubuntu:latest
