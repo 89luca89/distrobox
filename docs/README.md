@@ -26,7 +26,7 @@ graphical apps (X11/Wayland), and audio.
 
 [Documentation](https://distrobox.it/#distrobox) -
 [Matrix Room](https://matrix.to/#/%23distrobox:matrix.org) -
-[Telegram Group](https://t.me/distrobox)
+[Telegram Group](https://t.me/distrobox_chat_new)
 
 ---
 
