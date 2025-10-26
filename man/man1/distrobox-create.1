@@ -174,7 +174,6 @@ DBX_CONTAINER_NAME
 DBX_CONTAINER_HOSTNAME
 DBX_NON_INTERACTIVE
 DBX_SUDO_PROGRAM
-DBX_USERNS_NOLIMIT
 .EE
 .PP
 DBX_CONTAINER_HOME_PREFIX defines where containers\[cq] home directories
@@ -290,9 +289,6 @@ The
 will skip user password setup, leaving it blank.
 \f[B]This is genuinely dangerous and you really, positively should NOT
 enable this\f[R].
-.PP
-Containers are limited to 65536 UID and GIDs by default.
-To disable this limit set DBX_USERNS_NOLIMIT to 1.
 .PP
 From version 1.4.0 of distrobox, when you create a new container, it
 will also generate an entry in the applications list.
