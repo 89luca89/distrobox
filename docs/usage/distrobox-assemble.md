@@ -127,6 +127,7 @@ declared multiple times to be compounded:
 | hostname | string | Set hostname of the container |
 | image | string | Which image should the container use, look [here](../compatibility.md) for a list |
 | clone | string | Name of the Distrobox container to use as the base for a new container (the container must be stopped). |
+| include | string | Name of the entry in the manifest to include in the current definition. |
 | init_hooks | string_list | Commands to run inside the container, after the packages setup |
 | pre_init_hooks | string_list | Commands to run inside the container, before the packages setup |
 | volume | string_list | Additional volumes to mount inside the containers |
@@ -146,7 +147,12 @@ declared multiple times to be compounded:
 | unshare_devsys | bool | Specify if the container should unshare /dev (default: false) |
 | unshare_all | bool | Specify if the container should unshare all the previous options (default: false) |
 
-For further explanation of each of the option in the list, take a look at the [distrobox create usage](distrobox-create.md#synopsis),
+The `include` option copies the attributes of a definition into another one. Recursive inclusions are allowed.
+It operates on the manifest file and the consequent `distrobox` containers have no relation of any kind.
+Please be aware that attributes in the including definition will not override nor shadow the ones in the included definition,
+they will simply duplicate.
+
+For further explanation of each of the other options in the list, take a look at the [distrobox create usage](distrobox-create.md#synopsis),
 each option corresponds to one of the `create` flags.
 
 **Advanced example**
@@ -214,3 +220,15 @@ each option corresponds to one of the `create` flags.
 	[ubuntu]
 	image=ubuntu:latest
 	pre_init_hooks="export SHELL=/bin/bash;"
+
+**Include example (inherit fields from another distrobox)**
+
+	[ubuntu]
+	image=ubuntu:latest
+	additional_packages="git vim tmux nodejs"
+	additional_packages="htop iftop iotop"
+	additional_packages="zsh fish"
+
+	[ubuntu-nvidia]
+	include=ubuntu
+	nvidia=true
