@@ -87,6 +87,7 @@ unshare_groups=0
 unshare_netns=0
 unshare_process=0
 unshare_devsys=0
+unshare_user_home=0
 
 # Use cd + dirname + pwd so that we do not have relative paths in mount points
 # We're not using "realpath" here so that symlinks are not resolved this way
@@ -339,6 +340,10 @@ while :; do
 			shift
 			unshare_devsys=1
 			;;
+		--unshare-user-home)
+			shift
+			unshare_user_home=1
+			;;
 		--unshare-all)
 			shift
 			unshare_devsys=1
@@ -346,6 +351,7 @@ while :; do
 			unshare_ipc=1
 			unshare_netns=1
 			unshare_process=1
+			unshare_user_home=1
 			;;
 		-C | --compatibility)
 			show_compatibility
@@ -693,6 +699,16 @@ generate_create_command()
 		result_command="${result_command}
 			--pid host"
 	fi
+
+	if [ "${unshare_user_home}" -eq 0 ]; then
+		if [[ -z "${container_user_custom_home}" ]]; then
+    	printf >&2 "ERROR: --unshare-user-home should be used with the custom --home\n"
+			exit 1
+		fi
+		result_command="${result_command}
+		  --volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+	fi
+
 	# Mount useful stuff inside the container.
 	# We also mount host's root filesystem to /run/host, to be able to syphon
 	# dynamic configurations from the host.
@@ -714,8 +730,7 @@ generate_create_command()
 		--volume /tmp:/tmp:rslave
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
-		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
-		--volume \"${container_user_home}\":\"${container_user_home}\":rslave"
+		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro"
 
 	# Due to breaking change in https://github.com/opencontainers/runc/commit/d4b670fca6d0ac606777376440ffe49686ce15f4
 	# now we cannot mount /:/run/host as before, as it will try to mount RO partitions as RW thus breaking things.
@@ -877,13 +892,15 @@ generate_create_command()
 			--volume \"${container_user_custom_home}:${container_user_custom_home}:rslave\""
 	fi
 
-	# Mount also the /var/home dir on ostree based systems
-	# do this only if $HOME was not already set to /var/home/username
-	if [ "${container_user_home}" != "/var/home/${container_user_name}" ] &&
-		[ -d "/var/home/${container_user_name}" ]; then
+	if [ "${unshare_user_home}" -eq 0 ]; then
+		# Mount also the /var/home dir on ostree based systems
+		# do this only if $HOME was not already set to /var/home/username
+		if [ "${container_user_home}" != "/var/home/${container_user_name}" ] &&
+			[ -d "/var/home/${container_user_name}" ]; then
 
-		result_command="${result_command}
-			--volume \"/var/home/${container_user_name}\":\"/var/home/${container_user_name}\":rslave"
+			result_command="${result_command}
+				--volume \"/var/home/${container_user_name}\":\"/var/home/${container_user_name}\":rslave"
+		fi
 	fi
 
 	# Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
