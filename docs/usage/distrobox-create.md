@@ -42,6 +42,7 @@ graphical apps (X11/Wayland), and audio.
 	--unshare-ipc:          do not share ipc namespace with host
 	--unshare-netns:        do not share the net namespace with host
 	--unshare-process:          do not share process namespace with host
+	--unshare-user-home:        do not share user's host home 
 	--unshare-all:          activate all the unshare flags below
 	--compatibility/-C:	show list of compatible images
 	--help/-h:		show this message
