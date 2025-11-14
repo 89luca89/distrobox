@@ -25,17 +25,39 @@ Just pass to "distrobox-host-exec" any command and all its arguments, if any.
 
 If no command is provided, it will execute "$SHELL".
 
-Alternatively, use symlinks to make `distrobox-host-exec` execute as that command:
+Alternatively, you can symlink a command name to `distrobox-host-exec`
+and then call that command by its name on the host, while inside of a container.
+
+# EXAMPLES
+
+## Run individual commands
+
+	distrobox-host-exec ls
+	distrobox-host-exec bash -l
+	distrobox-host-exec flatpak run org.mozilla.firefox
+	distrobox-host-exec podman ps -a
+
+## Drop into host shell
+
+	~$: distrobox-host-exec # No command, executes "$SHELL" on the host
+	~$: distrobox-host-exec # This command now runs on the host
+	You must run  distrobox-host-exec inside a container!
+
+## Symlinking host commands
+
+Use the host command name to create a symlink to `distrobox-host-exec`.
+You can then call the host command from within the container.
+
+	~$: git # We do not have git in the container
+	bash: git: command not found
+	~$: sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/git
+	~$: git version
+	git version 2.51.1
+
+You can control podman on the host from within the container as follows:
 
 	~$: ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
 	~$: ls -l /usr/local/bin/podman
 	lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman -> /usr/bin/distrobox-host-exec
 	~$: podman version
 	...this is executed on host...
-
-# EXAMPLES
-
-	distrobox-host-exec ls
-	distrobox-host-exec bash -l
-	distrobox-host-exec flatpak run org.mozilla.firefox
-	distrobox-host-exec podman ps -a
