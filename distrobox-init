@@ -709,7 +709,8 @@ setup_apk()
 		pigz
 		rsync
 		shadow
-		sudo
+		doas
+		doas-sudo-shim
 		tcpdump
 		tree
 		tzdata
