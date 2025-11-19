@@ -86,9 +86,8 @@ version="1.8.2.1"
 #   HOME
 # Outputs:
 #   print usage with examples.
-show_help()
-{
-	cat << EOF
+show_help() {
+	cat <<EOF
 distrobox version: ${version}
 
 Usage:
@@ -116,91 +115,91 @@ EOF
 # Parse arguments
 while :; do
 	case $1 in
-		-h | --help)
-			# Call a "show_help" function to display a synopsis, then exit.
-			show_help
-			exit 0
-			;;
-		-v | --verbose)
-			shift
-			verbose=1
-			;;
-		-V | --version)
-			printf "distrobox: %s\n" "${version}"
-			exit 0
-			;;
-		-U | --upgrade)
-			shift
-			upgrade=1
-			;;
-		-n | --name)
-			if [ -n "$2" ]; then
-				container_user_name="$2"
-				shift
-				shift
-			fi
-			;;
-		-i | --init)
-			if [ -n "$2" ]; then
-				init="$2"
-				shift
-				shift
-			fi
-			;;
-		-d | --home)
-			if [ -n "$2" ]; then
-				container_user_home="$2"
-				shift
-				shift
-			fi
-			;;
-		-u | --user)
-			if [ -n "$2" ]; then
-				container_user_uid="$2"
-				shift
-				shift
-			fi
-			;;
-		-g | --group)
-			if [ -n "$2" ]; then
-				container_user_gid="$2"
-				shift
-				shift
-			fi
-			;;
-		--pre-init-hooks)
-			if [ -n "$2" ]; then
-				pre_init_hook="$2"
-			fi
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit 0
+		;;
+	-v | --verbose)
+		shift
+		verbose=1
+		;;
+	-V | --version)
+		printf "distrobox: %s\n" "${version}"
+		exit 0
+		;;
+	-U | --upgrade)
+		shift
+		upgrade=1
+		;;
+	-n | --name)
+		if [ -n "$2" ]; then
+			container_user_name="$2"
 			shift
 			shift
-			;;
-		--additional-packages)
-			if [ -n "$2" ]; then
-				container_additional_packages="$2"
-			fi
+		fi
+		;;
+	-i | --init)
+		if [ -n "$2" ]; then
+			init="$2"
 			shift
 			shift
-			;;
-		--nvidia)
-			if [ -n "$2" ]; then
-				nvidia="$2"
-				shift
-				shift
-			fi
-			;;
-		--)
+		fi
+		;;
+	-d | --home)
+		if [ -n "$2" ]; then
+			container_user_home="$2"
 			shift
-			init_hook=$*
-			break
-			;;
-		-*) # Invalid options.
-			printf >&2 "Error: Invalid flag '%s'\n\n" "$1"
-			show_help
-			exit 1
-			;;
-		*) # Default case: If no more options then break out of the loop.
-			break ;;
+			shift
+		fi
+		;;
+	-u | --user)
+		if [ -n "$2" ]; then
+			container_user_uid="$2"
+			shift
+			shift
+		fi
+		;;
+	-g | --group)
+		if [ -n "$2" ]; then
+			container_user_gid="$2"
+			shift
+			shift
+		fi
+		;;
+	--pre-init-hooks)
+		if [ -n "$2" ]; then
+			pre_init_hook="$2"
+		fi
+		shift
+		shift
+		;;
+	--additional-packages)
+		if [ -n "$2" ]; then
+			container_additional_packages="$2"
+		fi
+		shift
+		shift
+		;;
+	--nvidia)
+		if [ -n "$2" ]; then
+			nvidia="$2"
+			shift
+			shift
+		fi
+		;;
+	--)
+		shift
+		init_hook=$*
+		break
+		;;
+	-*) # Invalid options.
+		printf >&2 "Error: Invalid flag '%s'\n\n" "$1"
+		show_help
+		exit 1
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		break ;;
 	esac
 done
 
@@ -233,9 +232,9 @@ fi
 #
 # if /run/.nopasswd is present, let's treat the init as rootless, this is not
 # a good thing, users behold!
-if stat /run/host/etc/shadow > /dev/null &&
+if stat /run/host/etc/shadow >/dev/null &&
 	{
-	[ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] || [ "$(stat -f "%u" /run/host/etc/shadow 2>/dev/null)" = "0" ]
+		[ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] || [ "$(stat -f "%u" /run/host/etc/shadow 2>/dev/null)" = "0" ]
 	} &&
 	[ ! -e /run/.nopasswd ]; then
 	rootful=1
@@ -267,19 +266,18 @@ fi
 #	None
 # Outputs:
 # 	Comma-separated list of locked mount flags
-get_locked_mount_flags()
-{
+get_locked_mount_flags() {
 	src="$1"
 	prev=""
 	locked_flags=""
 
 	# If findmnt does not exist, exit
-	if ! command -v findmnt 2> /dev/null > /dev/null; then
+	if ! command -v findmnt 2>/dev/null >/dev/null; then
 		return 0
 	fi
 
 	# If we can't read the file/directory, exit
-	if ! ls "${src}" 2> /dev/null > /dev/null; then
+	if ! ls "${src}" 2>/dev/null >/dev/null; then
 		return 0
 	fi
 
@@ -319,8 +317,7 @@ get_locked_mount_flags()
 #	None
 # Outputs:
 #	original path the link is pointing
-init_readlink()
-{
+init_readlink() {
 	# shellcheck disable=SC2010
 	ls -l "${1}" | grep -Eo '\->.*' | cut -d' ' -f2- | sed 's|\.\./|/|g'
 }
@@ -337,8 +334,7 @@ init_readlink()
 # Outputs:
 #   No output if all ok
 #	Error if not
-mount_bind()
-{
+mount_bind() {
 	source_dir="$1"
 	target_dir="$2"
 	mount_flags=""
@@ -360,7 +356,7 @@ mount_bind()
 	fi
 
 	# if target_dir exists, check if it is a mountpoint and umount it.
-	if [ -e "${target_dir}" ] && findmnt "${target_dir}" > /dev/null; then
+	if [ -e "${target_dir}" ] && findmnt "${target_dir}" >/dev/null; then
 		umount "${target_dir}"
 	fi
 
@@ -437,12 +433,11 @@ fi
 #   None
 # Outputs:
 #   None
-setup_pkg_manager_hooks()
-{
+setup_pkg_manager_hooks() {
 	if {
 		[ -d "/etc/dpkg/dpkg.cfg.d/" ] || [ -d "/usr/share/libalpm/scripts" ]
 	} && [ "${init}" -eq 0 ]; then
-		cat << EOF > /etc/distrobox-pre-hook.sh
+		cat <<EOF >/etc/distrobox-pre-hook.sh
 #!/bin/sh
 mounts="${HOST_MOUNTS_RO_INIT}"
 for mount in \$mounts; do
@@ -451,7 +446,7 @@ for mount in \$mounts; do
 	fi
 done
 EOF
-		cat << EOF > /etc/distrobox-post-hook.sh
+		cat <<EOF >/etc/distrobox-post-hook.sh
 #!/bin/sh
 mounts="${HOST_MOUNTS_RO_INIT}"
 for mount in \$mounts; do
@@ -480,8 +475,7 @@ EOF
 #   None
 # Outputs:
 #   None
-setup_deb_exceptions()
-{
+setup_deb_exceptions() {
 	setup_pkg_manager_hooks
 
 	# In case of an DEB distro, we can specify that our bind_mount directories
@@ -490,16 +484,16 @@ setup_deb_exceptions()
 		# Loop through all the environment vars
 		# and export them to the container.
 		mkdir -p /etc/dpkg/dpkg.cfg.d/
-		printf "" > /etc/dpkg/dpkg.cfg.d/00_distrobox
+		printf "" >/etc/dpkg/dpkg.cfg.d/00_distrobox
 		for net_mount in ${HOST_MOUNTS_RO} ${HOST_MOUNTS}; do
-			printf "path-exclude %s/*\n" "${net_mount}" >> /etc/dpkg/dpkg.cfg.d/00_distrobox
+			printf "path-exclude %s/*\n" "${net_mount}" >>/etc/dpkg/dpkg.cfg.d/00_distrobox
 		done
 
 		# Also we put a hook to clear some critical paths that do not play well
 		# with read only filesystems, like Systemd.
 		if [ -d "/etc/apt/apt.conf.d/" ]; then
-			printf 'DPkg::Pre-Invoke {/etc/distrobox-pre-hook.sh};\n' > /etc/apt/apt.conf.d/00_distrobox
-			printf 'DPkg::Post-Invoke {/etc/distrobox-post-hook.sh};\n' >> /etc/apt/apt.conf.d/00_distrobox
+			printf 'DPkg::Pre-Invoke {/etc/distrobox-pre-hook.sh};\n' >/etc/apt/apt.conf.d/00_distrobox
+			printf 'DPkg::Post-Invoke {/etc/distrobox-post-hook.sh};\n' >>/etc/apt/apt.conf.d/00_distrobox
 		fi
 	fi
 }
@@ -513,8 +507,7 @@ setup_deb_exceptions()
 #   None
 # Outputs:
 #   None
-setup_pacman_exceptions()
-{
+setup_pacman_exceptions() {
 	setup_pkg_manager_hooks
 
 	# Workarounds for pacman. We need to exclude the paths by using a pre-hook to umount them and a
@@ -524,7 +517,7 @@ setup_pacman_exceptions()
 		# in case we're not using an init image, neutralize systemd post installation hooks
 		# so that we do not encounter problems along the way.
 		# This will be removed if we're using --init.
-		cat << EOF > /usr/share/libalpm/scripts/distrobox_post_hook.sh
+		cat <<EOF >/usr/share/libalpm/scripts/distrobox_post_hook.sh
 #!/bin/sh
 echo -e '#!/bin/sh\nexit 0' > /usr/share/libalpm/scripts/systemd-hook;
 EOF
@@ -535,7 +528,7 @@ EOF
 		for hook in /etc/distrobox-pre-hook.sh /etc/distrobox-post-hook.sh /usr/share/libalpm/scripts/distrobox_post_hook.sh; do
 			when="PostTransaction"
 			[ -z "${hook##*pre*}" ] && when="PreTransaction"
-			cat << EOF > "/usr/share/libalpm/hooks/$(basename "${hook}").hook"
+			cat <<EOF >"/usr/share/libalpm/hooks/$(basename "${hook}").hook"
 [Trigger]
 Operation = Install
 Operation = Upgrade
@@ -562,8 +555,7 @@ EOF
 #   None
 # Outputs:
 #   None
-setup_rpm_exceptions()
-{
+setup_rpm_exceptions() {
 	# In case of an RPM distro, we can specify that our bind_mount directories
 	# are in fact net shares. This prevents conflicts during package installations.
 	if [ "${init}" -eq 0 ]; then
@@ -579,7 +571,7 @@ setup_rpm_exceptions()
 			net_mounts="${net_mount}:${net_mounts}"
 		done
 		net_mounts=${net_mounts%?}
-		cat << EOF > /usr/lib/rpm/macros.d/macros.distrobox
+		cat <<EOF >/usr/lib/rpm/macros.d/macros.distrobox
 %_netsharedpath ${net_mounts}
 EOF
 	fi
@@ -594,11 +586,10 @@ EOF
 #   None
 # Outputs:
 #   None
-setup_xbps_exceptions()
-{
+setup_xbps_exceptions() {
 	# We have to lock this paths from xbps extraction, as it's incompatible with distrobox's
 	# mount process.
-	cat << EOF > /etc/xbps.d/distrobox-ignore.conf
+	cat <<EOF >/etc/xbps.d/distrobox-ignore.conf
 noextract=/etc/passwd
 noextract=/etc/hosts
 noextract=/etc/host.conf
@@ -619,8 +610,7 @@ EOF
 #   None
 # Outputs:
 #   None
-setup_apk()
-{
+setup_apk() {
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		apk update
@@ -731,9 +721,9 @@ setup_apk()
 	for dep in ${deps}; do
 		# shellcheck disable=SC2249
 		case " ${found_deps} " in
-			*" ${dep} "*)
-				install_pkg="${install_pkg} ${dep}"
-				;;
+		*" ${dep} "*)
+			install_pkg="${install_pkg} ${dep}"
+			;;
 		esac
 	done
 	# shellcheck disable=SC2086
@@ -764,8 +754,7 @@ setup_apk()
 #   None
 # Outputs:
 #   None
-setup_apt()
-{
+setup_apt() {
 	export DEBIAN_FRONTEND=noninteractive
 
 	# If we need to upgrade, do it and exit, no further action required.
@@ -845,7 +834,7 @@ setup_apt()
 		mesa-vulkan-drivers
 	"
 	# shellcheck disable=SC2086,2046
-	apt-get install -y $(apt-cache show ${deps} 2> /dev/null | grep "Package:" | sort -u | cut -d' ' -f2-)
+	apt-get install -y $(apt-cache show ${deps} 2>/dev/null | grep "Package:" | sort -u | cut -d' ' -f2-)
 
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
@@ -883,8 +872,7 @@ setup_apt()
 #   None
 # Outputs:
 #   None
-setup_aptrpm()
-{
+setup_aptrpm() {
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		apt-get update
@@ -968,7 +956,7 @@ setup_aptrpm()
 		control sudoreplay public
 		control su wheel
 		mkdir /etc/tcb/"${container_user_name}"
-		echo "${container_user_name}::::::::" > /etc/tcb/"${container_user_name}"/shadow
+		echo "${container_user_name}::::::::" >/etc/tcb/"${container_user_name}"/shadow
 		sed -i 's/*//g' /etc/passwd
 	fi
 
@@ -1005,8 +993,7 @@ setup_aptrpm()
 #   None
 # Outputs:
 #   None
-setup_dnf()
-{
+setup_dnf() {
 	manager=$1
 
 	# If we need to upgrade, do it and exit, no further action required.
@@ -1023,7 +1010,7 @@ setup_dnf()
 	# Check if shell_pkg is available in distro's repo. If not we
 	# fall back to bash, and we set the SHELL variable to bash so
 	# that it is set up correctly for the user.
-	if ! ${manager} install -y "${shell_pkg}" 2> /dev/null; then
+	if ! ${manager} install -y "${shell_pkg}" 2>/dev/null; then
 		shell_pkg="bash"
 	fi
 	flags=""
@@ -1124,8 +1111,7 @@ setup_dnf()
 #   None
 # Outputs:
 #   None
-setup_emerge()
-{
+setup_emerge() {
 	# Check if the container we are using has a ::gentoo repo defined,
 	# if it is defined and it is empty, then synchroznize it.
 	gentoo_repo="$(portageq get_repo_path / gentoo)"
@@ -1177,7 +1163,7 @@ setup_emerge()
 		sed -i "s|#.*en_US.UTF-8|en_US.UTF-8|g" /etc/locale.gen
 		sed -i "s|#.*${HOST_LOCALE}|${HOST_LOCALE}|g" /etc/locale.gen
 		locale-gen
-		cat << EOF > /etc/env.d/02locale
+		cat <<EOF >/etc/env.d/02locale
 LANG=${HOST_LOCALE}
 LC_CTYPE=${HOST_LOCALE}
 EOF
@@ -1201,8 +1187,7 @@ EOF
 #   None
 # Outputs:
 #   None
-setup_microdnf()
-{
+setup_microdnf() {
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		microdnf upgrade -y
@@ -1310,8 +1295,7 @@ setup_microdnf()
 #   None
 # Outputs:
 #   None
-setup_pacman()
-{
+setup_pacman() {
 	# Update the package repository cache exactly once before installing packages.
 	pacman -S -y -y
 
@@ -1416,8 +1400,7 @@ setup_pacman()
 #   None
 # Outputs:
 #   None
-setup_slackpkg()
-{
+setup_slackpkg() {
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		yes | slackpkg upgrade-all -default_answer=yes -batch=yes
@@ -1509,8 +1492,7 @@ setup_slackpkg()
 #   None
 # Outputs:
 #   None
-setup_xbps()
-{
+setup_xbps() {
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		xbps-install -Syu
@@ -1604,8 +1586,7 @@ setup_xbps()
 #   None
 # Outputs:
 #   None
-setup_zypper()
-{
+setup_zypper() {
 	# If we need to upgrade, do it and exit, no further action required.
 	if [ "${upgrade}" -ne 0 ]; then
 		zypper dup -y
@@ -1738,7 +1719,7 @@ dependencies="
 	${shell_pkg}
 "
 for dep in ${dependencies}; do
-	! command -v "${dep}" > /dev/null && missing_packages=1 && break
+	! command -v "${dep}" >/dev/null && missing_packages=1 && break
 done
 
 # Ensure we have the least minimal path of standard Linux File System set
@@ -1814,7 +1795,7 @@ SHELL="$(command -v "${shell_pkg}")"
 
 # Attempt to download host-spawn during init, we don't care if it fails, so let's
 # continue in that case
-/usr/bin/distrobox-host-exec -Y test 2> /dev/null > /dev/null || :
+/usr/bin/distrobox-host-exec -Y test 2>/dev/null >/dev/null || :
 
 # If xdg-open is not present and we don't have an init system, do a link of it.
 # This is handy to handle opening of links, files and apps from inside the container
@@ -1840,7 +1821,7 @@ fi
 # This won't work well on very old distros with no flag support, but will give
 # an usable shell nonetheless
 if ! su --help | grep -q pty; then
-	cat << EOF > /usr/local/bin/su
+	cat <<EOF >/usr/local/bin/su
 #!/bin/sh
 
 for i do
@@ -1858,7 +1839,7 @@ printf "distrobox: Setting up devpts mounts...\n"
 
 # First we need to ensure we have a tty group to assign /dev/pts to
 if ! grep -q tty /etc/group; then
-	printf "%s" 'tty:x:5:' >> /etc/group
+	printf "%s" 'tty:x:5:' >>/etc/group
 fi
 
 # Instantiate a new /dev/pts mount, this will ensure pseudoterminals are container-scoped
@@ -1931,7 +1912,7 @@ host_sockets="$(find /run/host/run \
 	-name 'io.systemd.DropIn' -prune -o \
 	-name 'io.systemd.NameServiceSwitch' -prune -o \
 	-type s -print \
-	2> /dev/null || :)"
+	2>/dev/null || :)"
 
 # we're excluding system dbus socket, nscd socket and systemd-userdbd sockets here. Including them will
 # create many problems with package managers thinking they have access to
@@ -2165,12 +2146,12 @@ if [ ! -d /etc/profile.d ]; then
 	"
 	for rcfile in ${rcfiles}; do
 		if [ -e "${rcfile}" ] && ! grep -q 'distrobox_profile.sh' "${rcfile}"; then
-			echo "[ -e /etc/profile.d/distrobox_profile.sh ] && . /etc/profile.d/distrobox_profile.sh" >> "${rcfile}"
+			echo "[ -e /etc/profile.d/distrobox_profile.sh ] && . /etc/profile.d/distrobox_profile.sh" >>"${rcfile}"
 		fi
 	done
 	mkdir -p /etc/profile.d
 fi
-cat << EOF > /etc/profile.d/distrobox_profile.sh
+cat <<EOF >/etc/profile.d/distrobox_profile.sh
 test -z "\$USER" && export USER="\$(id -un 2> /dev/null)"
 test -z "\$UID"  && readonly UID="\$(id -ur 2> /dev/null)"
 test -z "\$EUID" && readonly EUID="\$(id -u  2> /dev/null)"
@@ -2220,7 +2201,7 @@ EOF
 # It's also importanto to keep this working on fish shells
 if [ -e "/etc/fish/config.fish" ]; then
 	mkdir -p /etc/fish/conf.d
-	cat << EOF > /etc/fish/conf.d/distrobox_config.fish
+	cat <<EOF >/etc/fish/conf.d/distrobox_config.fish
 if status --is-interactive
 	test -z "\$USER" && set -gx USER (id -un 2> /dev/null)
 	test -z "\$UID"  && set -gx UID (id -ur 2> /dev/null)
@@ -2261,7 +2242,7 @@ if status --is-interactive
 end
 EOF
 	mkdir -p /etc/fish/functions
-	cat << EOF > /etc/fish/functions/fish_prompt.fish
+	cat <<EOF >/etc/fish/functions/fish_prompt.fish
 function fish_prompt
 	set current_dir (basename (pwd))
 	echo "📦[\$USER@\$CONTAINER_ID \$current_dir]> "
@@ -2280,7 +2261,7 @@ fi
 
 # Do not check fqdn when doing sudo, it will not work anyways
 # Also allow canonical groups to use sudo
-cat << EOF > /etc/sudoers.d/sudoers
+cat <<EOF >/etc/sudoers.d/sudoers
 Defaults !targetpw
 Defaults !fqdn
 %wheel ALL=(ALL:ALL) ALL
@@ -2289,7 +2270,7 @@ Defaults !fqdn
 EOF
 # ditto for doas
 if [ -e /etc/doas.conf ]; then
-	cat << EOF > /etc/doas.conf
+	cat <<EOF >/etc/doas.conf
 permit persist :root
 permit persist :wheel
 permit nopass root
@@ -2305,7 +2286,7 @@ fi
 # PAM config for "su" command
 if [ ! -e /etc/pam.d/su ]; then
 	mkdir -p /etc/pam.d
-	cat << EOF > /etc/pam.d/su
+	cat <<EOF >/etc/pam.d/su
 auth            sufficient      pam_rootok.so
 auth            required        pam_unix.so
 account	        required        pam_unix.so
@@ -2315,7 +2296,7 @@ EOF
 fi
 
 if ! grep -q "pam_systemd.so" /etc/pam.d/su; then
-	printf "%s" '-session   optional   pam_systemd.so' >> /etc/pam.d/su
+	printf "%s" '-session   optional   pam_systemd.so' >>/etc/pam.d/su
 fi
 
 # If we're running this script as root in a login shell (sudoless), we don't
@@ -2325,10 +2306,10 @@ fi
 # so let's skip passwordless sudo too
 if [ "${container_user_uid}" -ne 0 ] && [ "${rootful}" -eq 0 ]; then
 	# Ensure passwordless sudo is set up for user
-	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >> /etc/sudoers.d/sudoers
+	printf "\"%s\" ALL = (root) NOPASSWD:ALL\n" "${container_user_name}" >>/etc/sudoers.d/sudoers
 	# ditto for doas
 	if [ -e /etc/doas.conf ]; then
-		printf "permit nopass %s\n" "${container_user_name}" >> /etc/doas.conf
+		printf "permit nopass %s\n" "${container_user_name}" >>/etc/doas.conf
 	fi
 fi
 ###############################################################################
@@ -2341,7 +2322,7 @@ if ! grep -q "^${container_user_name}:" /etc/group; then
 	if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
 		# It may occur that we have users with unsupported user name (eg. on LDAP or AD)
 		# So let's try and force the group creation this way.
-		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >> /etc/group
+		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >>/etc/group
 	fi
 fi
 ###############################################################################
@@ -2355,7 +2336,7 @@ if [ -d "/run/host/var/kerberos" ] &&
 
 	printf "distrobox: Setting up kerberos integration...\n"
 
-	cat << EOF > /etc/krb5.conf.d/kcm_default_ccache
+	cat <<EOF >/etc/krb5.conf.d/kcm_default_ccache
 # # To disable the KCM credential cache, comment out the following lines.
 [libdefaults]
     default_ccache_name = KCM:
@@ -2406,8 +2387,8 @@ if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/pass
 		printf "%s:x:%s:%s:%s:%s:%s" \
 			"${container_user_name}" "${container_user_uid}" \
 			"${container_user_gid}" "${container_user_name}" \
-			"${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
-		printf "%s::1::::::" "${container_user_name}" >> /etc/shadow
+			"${container_user_home}" "${SHELL:-"/bin/bash"}" >>/etc/passwd
+		printf "%s::1::::::" "${container_user_name}" >>/etc/shadow
 	fi
 # Ensure we're not using the specified SHELL. Run it only once, so that future
 # user's preferences are not overwritten at each start.
@@ -2440,7 +2421,7 @@ elif [ ! -e /etc/passwd.done ]; then
 		printf "%s:x:%s:%s:%s:%s:%s" \
 			"${container_user_name}" "${container_user_uid}" \
 			"${container_user_gid}" "${container_user_name}" \
-			"${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
+			"${container_user_home}" "${SHELL:-"/bin/bash"}" >>/etc/passwd
 
 		# Add or modify the default group
 		# and add or modify the additional groups
@@ -2473,7 +2454,7 @@ fi
 if [ ! -e /etc/passwd.done ]; then
 	printf "distrobox: Ensuring user's access...\n"
 
-	temporary_password="$(md5sum < /proc/sys/kernel/random/uuid | cut -d' ' -f1)"
+	temporary_password="$(md5sum </proc/sys/kernel/random/uuid | cut -d' ' -f1)"
 	# We generate a random password to initialize the entry for the user.
 	chpasswd_failed=0
 	printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e || chpasswd_failed=1
@@ -2484,7 +2465,7 @@ if [ ! -e /etc/passwd.done ]; then
 		if grep -q "${container_user_name}" /etc/shadow; then
 			sed -i "s|^${container_user_name}.*|${container_user_name}::::::::|g" /etc/shadow
 		else
-			echo "${container_user_name}::::::::" >> /etc/shadow
+			echo "${container_user_name}::::::::" >>/etc/shadow
 		fi
 	fi
 
@@ -2609,7 +2590,7 @@ if [ "${init}" -eq 0 ]; then
 			if [ -n "${mount_source}" ] && ! echo "${mount_source}" | grep -q "${id}"; then
 				file_watch_src="/run/host${file_watch}"
 				# check if the target file exists
-				if ls -l "${file_watch_src}" 2> /dev/null > /dev/null; then
+				if ls -l "${file_watch_src}" 2>/dev/null >/dev/null; then
 					# if it's a symlink and take the source
 					if [ -L "${file_watch_src}" ]; then
 						file_watch_src="$(init_readlink "/run/host${file_watch}")"
@@ -2618,7 +2599,7 @@ if [ "${init}" -eq 0 ]; then
 							file_watch_src="/run/host${file_watch_src}"
 						fi
 					fi
-					if ! diff "${file_watch}" "${file_watch_src}" > /dev/null; then
+					if ! diff "${file_watch}" "${file_watch_src}" >/dev/null; then
 						# We only do this, if the file is actually different
 						umount "${file_watch}" &&
 							mount_bind "${file_watch_src}" "${file_watch}"
@@ -2644,7 +2625,7 @@ printf "distrobox: Setting up init system...\n"
 # the init system. If they're mounts, there might
 # be problems. Let's unmount them.
 for host_mount in ${HOST_MOUNTS_RO_INIT}; do
-	if findmnt "${host_mount}" > /dev/null; then umount "${host_mount}"; fi
+	if findmnt "${host_mount}" >/dev/null; then umount "${host_mount}"; fi
 done
 
 # Remove symlinks
@@ -2704,7 +2685,7 @@ if [ -e /etc/init.d ]; then
 		/etc/init.d/modloop
 fi
 
-if command -v systemctl 2> /dev/null; then
+if command -v systemctl 2>/dev/null; then
 	# Cleanup Systemd to not interfere with the host
 	UNIT_TARGETS="
 		/usr/lib/systemd/system/*.mount
@@ -2735,7 +2716,7 @@ if command -v systemctl 2> /dev/null; then
 	fi
 
 	# shellcheck disable=SC2086,SC2044
-	for unit in $(find ${UNIT_TARGETS} 2> /dev/null); do
+	for unit in $(find ${UNIT_TARGETS} 2>/dev/null); do
 		systemctl mask "$(basename "${unit}")" || :
 	done
 fi
@@ -2746,7 +2727,7 @@ fi
 #
 # This will ensure the basic integration for x11/wayland/pipewire/keyring
 if [ -e /usr/lib/systemd/system/user@.service ]; then
-	cat << EOF > /usr/local/bin/user-integration
+	cat <<EOF >/usr/local/bin/user-integration
 #!/bin/sh
 sleep 1
 ln -sf /run/host/run/user/\$(id -ru)/wayland-* /run/user/\$(id -ru)/
@@ -2765,7 +2746,7 @@ EOF
 
 	chmod +x /usr/local/bin/user-integration
 
-	cat << EOF > /usr/lib/systemd/system/user-integration@.service
+	cat <<EOF >/usr/lib/systemd/system/user-integration@.service
 [Unit]
 Description=User runtime integration for UID %i
 After=user@%i.service
