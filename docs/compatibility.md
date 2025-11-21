@@ -99,7 +99,7 @@ To make it permanent, you can place it in `/etc/rc.local`.
 
 `/etc/rc.local` may be missing in your system.
 
-If your system is uses `systemd`, here is how you can create and activate a systemd Service unit with the same functionality.
+If your system uses `systemd`, here is how you can create and activate a systemd Service unit with the same functionality.
 
 ##### Create the Service unit file
 
