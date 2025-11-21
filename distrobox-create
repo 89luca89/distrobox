@@ -946,7 +946,7 @@ generate_create_command()
 				--userns keep-id"
 
 			# Test if podman supports keep-id:size=
-			if podman run --rm --userns=keep-id:size=65536 "${container_image}" /bin/true 2> /dev/null || [ "$?" -eq 127 ]; then
+			if podman run --rm --userns=keep-id:size=65536 "${container_image}" /bin/true > /dev/null 2>&1 || [ "$?" -eq 127 ]; then
 				has_keepid_size=1
 			else
 				has_keepid_size=0
