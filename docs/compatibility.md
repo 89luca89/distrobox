@@ -95,6 +95,41 @@ mount --make-rshared /
 
 To make it permanent, you can place it in `/etc/rc.local`.
 
+#### systemd Service unit
+
+`/etc/rc.local` may be missing in your system.
+
+If your system is uses `systemd`, here is how you can create and activate a systemd Service unit with the same functionality.
+
+##### Create the Service unit file
+
+Create `/etc/systemd/system/mount-root-shared.service` file using your favorite text editor (e.g. `sudo nano /etc/systemd/system/mount-root-shared.service`), with the following contents:
+
+```systemd
+[Unit]
+Description=Mount root filesystem as a shared mount
+# Ensure the service runs after the root fs is mounted
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mount --make-rshared /
+# Ensure the service is considered "active" after running
+RemainAfterExit=yes
+
+[Install]
+# Ensure the service runs before user login
+WantedBy=multi-user.target
+```
+
+##### Enable and start the Service
+
+The following command registers the service so it runs on every boot, and starts it immediately so you don't have to reboot for it to take effect:
+
+```sh
+sudo systemctl enable --now mount-root-shared.service
+```
+
 ## List of distributions including distrobox in their repositories
 
 [![Packaging status](https://repology.org/badge/vertical-allrepos/distrobox.svg)](https://repology.org/project/distrobox/versions)
