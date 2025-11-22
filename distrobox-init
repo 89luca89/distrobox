@@ -74,7 +74,7 @@ pre_init_hook=""
 rootful=0
 upgrade=0
 verbose=0
-version="1.8.1.2"
+version="1.8.2.1"
 
 # show_help will print usage to stdout.
 # Arguments:
@@ -235,7 +235,7 @@ fi
 # a good thing, users behold!
 if stat /run/host/etc/shadow > /dev/null &&
 	{
-		[ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] || [ "$(stat -f "%u" /run/host/etc/shadow)" = "0" ]
+		[ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] || [ "$(stat -f "%u" /run/host/etc/shadow 2> /dev/null)" = "0" ]
 	} &&
 	[ ! -e /run/.nopasswd ]; then
 	rootful=1
@@ -1927,12 +1927,15 @@ host_sockets="$(find /run/host/run \
 	-name 'nscd' -prune -o \
 	-name 'schroot' -prune -o \
 	-name 'system_bus_socket' -prune -o \
+	-name 'io.systemd.Multiplexer' -prune -o \
+	-name 'io.systemd.DropIn' -prune -o \
+	-name 'io.systemd.NameServiceSwitch' -prune -o \
 	-type s -print \
 	2> /dev/null || :)"
 
-# we're excluding system dbus socket and nscd socket here. Including them will
+# we're excluding system dbus socket, nscd socket and systemd-userdbd sockets here. Including them will
 # create many problems with package managers thinking they have access to
-# system dbus or user auth cache misused.
+# system dbus, user auth cache misused or query wrong user information.
 for host_socket in ${host_sockets}; do
 	container_socket="$(printf "%s" "${host_socket}" | sed 's|/run/host||g')"
 	# Check if the socket already exists or the symlink already exists

@@ -109,7 +109,7 @@ headless=0
 skip_workdir=0
 verbose=0
 clean_path=0
-version="1.8.1.2.1"
+version="1.8.2.1"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults

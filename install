@@ -22,7 +22,7 @@
 next=0
 no_color=0
 verbose=0
-version=1.8.1.2
+version=1.8.2.1
 
 # show_help will print usage to stdout.
 # Arguments:

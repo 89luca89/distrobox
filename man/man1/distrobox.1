@@ -1,7 +1,7 @@
 '\" t
 .\
 .\"
-.TH "DISTROBOX\-ASSEMBLE" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ASSEMBLE" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -201,6 +201,13 @@ Name of the Distrobox container to use as the base for a new container
 (the container must be stopped).
 T}
 T{
+include
+T}@T{
+string
+T}@T{
+Name of the entry in the manifest to include in the current definition.
+T}
+T{
 init_hooks
 T}@T{
 string_list
@@ -334,9 +341,18 @@ Specify if the container should unshare all the previous options
 T}
 .TE
 .PP
-For further explanation of each of the option in the list, take a look
-at the distrobox create usage, each option corresponds to one of the
-\f[CR]create\f[R] flags.
+The \f[CR]include\f[R] option copies the attributes of a definition into
+another one.
+Recursive inclusions are allowed.
+It operates on the manifest file and the consequent \f[CR]distrobox\f[R]
+containers have no relation of any kind.
+Please be aware that attributes in the including definition will not
+override nor shadow the ones in the included definition, they will
+simply duplicate.
+.PP
+For further explanation of each of the other options in the list, take a
+look at the distrobox create usage, each option corresponds to one of
+the \f[CR]create\f[R] flags.
 .PP
 \f[B]Advanced example\f[R]
 .IP
@@ -409,10 +425,24 @@ pre_init_hooks=curl \-fsSL https://bun.sh/install | bash;
 image=ubuntu:latest
 pre_init_hooks=\[dq]export SHELL=/bin/bash;\[dq]
 .EE
+.PP
+\f[B]Include example (inherit fields from another distrobox)\f[R]
+.IP
+.EX
+[ubuntu]
+image=ubuntu:latest
+additional_packages=\[dq]git vim tmux nodejs\[dq]
+additional_packages=\[dq]htop iftop iotop\[dq]
+additional_packages=\[dq]zsh fish\[dq]
+
+[ubuntu\-nvidia]
+include=ubuntu
+nvidia=true
+.EE
 '\" t
 .\
 .\"
-.TH "DISTROBOX" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH COMPATIBILITY
 This project \f[B]does not need a dedicated image\f[R].
 It can use any OCI images from docker\-hub, quay.io, or any registry of
@@ -516,7 +546,7 @@ T}@T{
 quay.io/toolbx/arch\-toolbox:latest
 T}
 T{
-Alt Linux
+ALT Linux
 T}@T{
 p10  p11  sisyphus
 T}@T{
@@ -904,7 +934,7 @@ Alternatively, you can use the nvidia\-container\-toolkit utility to set
 up the integration independently from the distrobox\[cq]s own flag.
 .\
 .\"
-.TH "DISTROBOX\-CREATE" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-CREATE" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1229,7 +1259,7 @@ Ubuntu 18.04 and newer
 Void Linux (glibc)
 .\
 .\"
-.TH "DISTROBOX\-ENTER" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ENTER" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1338,7 +1368,7 @@ such as \f[CR]\[ti]/.distroboxrc\f[R], you can also append the line
 run distrobox commands involving rootful containers using `doas'.
 .\
 .\"
-.TH "DISTROBOX\-EPHEMERAL" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EPHEMERAL" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1383,7 +1413,7 @@ a list of supported environment variables to use.
 .EE
 .\
 .\"
-.TH "DISTROBOX\-EXPORT" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EXPORT" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1511,7 +1541,7 @@ option to provide a series of flags, for example:
 \f[CR]distrobox\-export \-\-app atom \-\-extra\-flags \[dq]\-\-foreground\[dq]\f[R]
 .\
 .\"
-.TH "DISTROBOX\-GENERATE\-ENTRY" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-GENERATE\-ENTRY" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1559,7 +1589,7 @@ distrobox generate\-entry container\-name \-\-delete
 .EE
 .\
 .\"
-.TH "DISTROBOX\-HOST\-EXEC" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-HOST\-EXEC" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1588,8 +1618,39 @@ arguments, if any.
 .PP
 If no command is provided, it will execute \[lq]$SHELL\[rq].
 .PP
-Alternatively, use symlinks to make \f[CR]distrobox\-host\-exec\f[R]
-execute as that command:
+Alternatively, you can symlink a command name to
+\f[CR]distrobox\-host\-exec\f[R] and then call that command by its name
+on the host, while inside of a container.
+.SH EXAMPLES
+.SS Run individual commands
+.IP
+.EX
+distrobox\-host\-exec ls
+distrobox\-host\-exec bash \-l
+distrobox\-host\-exec flatpak run org.mozilla.firefox
+distrobox\-host\-exec podman ps \-a
+.EE
+.SS Drop into host shell
+.IP
+.EX
+\[ti]$: distrobox\-host\-exec # No command, executes \[dq]$SHELL\[dq] on the host
+\[ti]$: distrobox\-host\-exec # This command now runs on the host
+You must run  distrobox\-host\-exec inside a container!
+.EE
+.SS Symlinking host commands
+Use the host command name to create a symlink to
+\f[CR]distrobox\-host\-exec\f[R].
+You can then call the host command from within the container.
+.IP
+.EX
+\[ti]$: git # We do not have git in the container
+bash: git: command not found
+\[ti]$: sudo ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/git
+\[ti]$: git version
+git version 2.51.1
+.EE
+.PP
+You can control podman on the host from within the container as follows:
 .IP
 .EX
 \[ti]$: ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/podman
@@ -1598,17 +1659,9 @@ lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman \-> /usr/bin/distr
 \[ti]$: podman version
 \&...this is executed on host...
 .EE
-.SH EXAMPLES
-.IP
-.EX
-distrobox\-host\-exec ls
-distrobox\-host\-exec bash \-l
-distrobox\-host\-exec flatpak run org.mozilla.firefox
-distrobox\-host\-exec podman ps \-a
-.EE
 .\
 .\"
-.TH "DISTROBOX\-INIT" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-INIT" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1653,7 +1706,7 @@ distrobox\-init \-\-upgrade
 .EE
 .\
 .\"
-.TH "DISTROBOX\-LIST" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-LIST" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1701,7 +1754,7 @@ image
 image
 .\
 .\"
-.TH "DISTROBOX\-RM" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-RM" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1746,7 +1799,7 @@ DBX_SUDO_PROGRAM
 .EE
 .\
 .\"
-.TH "DISTROBOX\-STOP" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-STOP" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1796,7 +1849,7 @@ DBX_SUDO_PROGRAM
 .EE
 .\
 .\"
-.TH "DISTROBOX\-UPGRADE" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-UPGRADE" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX

@@ -1,7 +1,7 @@
 '\" t
 .\
 .\"
-.TH "DISTROBOX\-ASSEMBLE" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ASSEMBLE" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -201,6 +201,13 @@ Name of the Distrobox container to use as the base for a new container
 (the container must be stopped).
 T}
 T{
+include
+T}@T{
+string
+T}@T{
+Name of the entry in the manifest to include in the current definition.
+T}
+T{
 init_hooks
 T}@T{
 string_list
@@ -334,9 +341,18 @@ Specify if the container should unshare all the previous options
 T}
 .TE
 .PP
-For further explanation of each of the option in the list, take a look
-at the distrobox create usage, each option corresponds to one of the
-\f[CR]create\f[R] flags.
+The \f[CR]include\f[R] option copies the attributes of a definition into
+another one.
+Recursive inclusions are allowed.
+It operates on the manifest file and the consequent \f[CR]distrobox\f[R]
+containers have no relation of any kind.
+Please be aware that attributes in the including definition will not
+override nor shadow the ones in the included definition, they will
+simply duplicate.
+.PP
+For further explanation of each of the other options in the list, take a
+look at the distrobox create usage, each option corresponds to one of
+the \f[CR]create\f[R] flags.
 .PP
 \f[B]Advanced example\f[R]
 .IP
@@ -408,4 +424,18 @@ pre_init_hooks=curl \-fsSL https://bun.sh/install | bash;
 [ubuntu]
 image=ubuntu:latest
 pre_init_hooks=\[dq]export SHELL=/bin/bash;\[dq]
+.EE
+.PP
+\f[B]Include example (inherit fields from another distrobox)\f[R]
+.IP
+.EX
+[ubuntu]
+image=ubuntu:latest
+additional_packages=\[dq]git vim tmux nodejs\[dq]
+additional_packages=\[dq]htop iftop iotop\[dq]
+additional_packages=\[dq]zsh fish\[dq]
+
+[ubuntu\-nvidia]
+include=ubuntu
+nvidia=true
 .EE

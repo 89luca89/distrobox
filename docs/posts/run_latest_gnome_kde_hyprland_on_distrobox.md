@@ -46,7 +46,7 @@ distrobox enter fedora-rawhide
 First we need to install GNOME in the container:
 
 ```shell
-user@fedora-rawhide:~$ sudo dnf groupinstall GNOME
+user@fedora-rawhide:~$ sudo dnf group install gnome-desktop
 ```
 
 And let's grab a coffee while it finishes :-)

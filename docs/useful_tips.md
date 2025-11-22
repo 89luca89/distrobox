@@ -331,7 +331,7 @@ luca-linux@tumbleweed:~$ sudo docker run --rm -ti alpine
 ## Using Podman inside a Distrobox
 
 You may want to run a separate instance of podman inside your container.
-In order to do this, create a container using using rootful Podman or Docker
+In order to do this, create a container using rootful Podman or Docker
 and using the **unshare-all** flag.
 
 Example:

@@ -49,7 +49,7 @@ is_sudo=0
 rootful=""
 sudo_prefix=""
 verbose=0
-version="1.8.1.2"
+version="1.8.2.1"
 
 sudo_askpass_path="${dest_path}/distrobox_sudo_askpass"
 sudo_askpass_script="#!/bin/sh

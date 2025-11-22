@@ -1,6 +1,6 @@
 .\
 .\"
-.TH "DISTROBOX\-HOST\-EXEC" "1" "Oct 2025" "Distrobox" "User Manual"
+.TH "DISTROBOX\-HOST\-EXEC" "1" "Nov 2025" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -29,8 +29,39 @@ arguments, if any.
 .PP
 If no command is provided, it will execute \[lq]$SHELL\[rq].
 .PP
-Alternatively, use symlinks to make \f[CR]distrobox\-host\-exec\f[R]
-execute as that command:
+Alternatively, you can symlink a command name to
+\f[CR]distrobox\-host\-exec\f[R] and then call that command by its name
+on the host, while inside of a container.
+.SH EXAMPLES
+.SS Run individual commands
+.IP
+.EX
+distrobox\-host\-exec ls
+distrobox\-host\-exec bash \-l
+distrobox\-host\-exec flatpak run org.mozilla.firefox
+distrobox\-host\-exec podman ps \-a
+.EE
+.SS Drop into host shell
+.IP
+.EX
+\[ti]$: distrobox\-host\-exec # No command, executes \[dq]$SHELL\[dq] on the host
+\[ti]$: distrobox\-host\-exec # This command now runs on the host
+You must run  distrobox\-host\-exec inside a container!
+.EE
+.SS Symlinking host commands
+Use the host command name to create a symlink to
+\f[CR]distrobox\-host\-exec\f[R].
+You can then call the host command from within the container.
+.IP
+.EX
+\[ti]$: git # We do not have git in the container
+bash: git: command not found
+\[ti]$: sudo ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/git
+\[ti]$: git version
+git version 2.51.1
+.EE
+.PP
+You can control podman on the host from within the container as follows:
 .IP
 .EX
 \[ti]$: ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/podman
@@ -38,12 +69,4 @@ execute as that command:
 lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman \-> /usr/bin/distrobox\-host\-exec
 \[ti]$: podman version
 \&...this is executed on host...
-.EE
-.SH EXAMPLES
-.IP
-.EX
-distrobox\-host\-exec ls
-distrobox\-host\-exec bash \-l
-distrobox\-host\-exec flatpak run org.mozilla.firefox
-distrobox\-host\-exec podman ps \-a
 .EE

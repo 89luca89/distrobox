@@ -65,7 +65,7 @@ jobs:
 
           man/gen-man
 
-      - uses: stefanzweifel/git-auto-commit-action@v6
+      - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           branch: main
           commit_message: Automatic Man Page Update

@@ -26,7 +26,7 @@ graphical apps (X11/Wayland), and audio.
 
 [Documentation](https://distrobox.it/#distrobox) -
 [Matrix Room](https://matrix.to/#/%23distrobox:matrix.org) -
-[Telegram Group](https://t.me/distrobox)
+[Telegram Group](https://t.me/distrobox_chat_new)
 
 ---
 
@@ -245,8 +245,8 @@ but if you have security concerns for this, **use `podman` or `lilipod` that run
 Rootless `docker` is still not working as intended and will be included in the future
 when it will be complete.
 
-That said, it is in the works to implement some sort of decoupling with the host,
-as discussed here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/issues/28)
+That said, it is useful to read the discussion about decoupling with the host,
+available here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/issues/28)
 
 ---
 

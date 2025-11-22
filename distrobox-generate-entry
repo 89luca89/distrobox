@@ -54,7 +54,7 @@ icon="auto"
 icon_default="${XDG_DATA_HOME:-${HOME}/.local/share}/icons/terminal-distrobox-icon.svg"
 verbose=0
 online=0
-version="1.8.1.2"
+version="1.8.2.1"
 
 # Source configuration files, this is done in an hierarchy so local files have
 # priority over system defaults
