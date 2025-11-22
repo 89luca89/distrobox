@@ -986,9 +986,8 @@ generate_create_command()
 		--additional-packages \"${container_additional_packages}\"
 		-- '${container_init_hook}'
 	"
-
-	printf >&2 "Command to run ${result_command}"
 	# use container_user_custom_home if defined, else fallback to normal home.
+
 	# Return generated command.
 	printf "%s" "${result_command}"
 }
@@ -1068,7 +1067,6 @@ fi
 # Generate the create command and run it
 printf >&2 "Creating '%s' using image %s\t" "${container_name}" "${container_image}"
 cmd="$(generate_create_command)"
-
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
 if eval ${cmd} > /dev/null; then
@@ -1093,4 +1091,3 @@ else
 	printf >&2 "\033[31m [ ERR ]\033[0m failed to create container.\n"
 	exit "${error}"
 fi
-
