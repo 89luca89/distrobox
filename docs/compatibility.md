@@ -99,11 +99,13 @@ To make it permanent, you can place it in `/etc/rc.local`.
 
 `/etc/rc.local` may be missing in your system.
 
-If your system uses `systemd`, here is how you can create and activate a systemd Service unit with the same functionality.
+If your system uses `systemd`, here is how you can create and activate a systemd Service unit with the same
+functionality.
 
 ##### Create the Service unit file
 
-Create `/etc/systemd/system/mount-root-shared.service` file using your favorite text editor (e.g. `sudo nano /etc/systemd/system/mount-root-shared.service`), with the following contents:
+Create `/etc/systemd/system/mount-root-shared.service` file using your favorite text editor (e.g. `sudo nano
+/etc/systemd/system/mount-root-shared.service`), with the following contents:
 
 ```systemd
 [Unit]
@@ -124,7 +126,8 @@ WantedBy=multi-user.target
 
 ##### Enable and start the Service
 
-The following command registers the service so it runs on every boot, and starts it immediately so you don't have to reboot for it to take effect:
+The following command registers the service so it runs on every boot, and starts it immediately so you don't have to
+reboot for it to take effect:
 
 ```sh
 sudo systemctl enable --now mount-root-shared.service
