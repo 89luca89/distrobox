@@ -29,6 +29,7 @@ _generate_from_help() {
 
 	if [[ ${prev} =~ ${fileopts} ]]; then
 		COMPREPLY=($(compgen -f -- ${cur}))
+		compopt -o filenames
 		return 0
 	fi
 	if [[ ${prev} == "assemble" ]]; then
