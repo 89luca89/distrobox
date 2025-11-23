@@ -703,6 +703,7 @@ if [ "${unshare_groups:-0}" -eq 1 ]; then
 	if [ "${headless}" -eq 0 ]; then
 		set -- "--pty" "$@"
 	fi
+	set -- "-m" "$@"
 	set -- "${container_command_user}" "$@"
 	set -- "su" "$@"
 fi
