@@ -477,15 +477,20 @@ run_distrobox()
 	# If we need to start immediately, do it, so that the container
 	# is ready to be entered.
 	if [ -n "${start_now}" ] && [ "${start_now}" -eq 1 ]; then
+		# Here we execute the `distrobox enter` command with a `/dev/null` stdin.
+		# This is due to the fact that this command is very likely to be executed inside
+		# the read loop in the prse_file function. This way we avoid stdin to be swallowed by
+		# this command execution. This is valid for all the `distrobox enter` calls from now on.
+		#
 		# shellcheck disable=SC2086,2248
-		"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null
+		"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null < /dev/null
 	fi
 
 	# if there are exported bins and apps declared, let's export them
 	if [ -n "${exported_apps}" ] || [ -n "${exported_bins}" ]; then
 		# First we start the container
 		# shellcheck disable=SC2086,2248
-		"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null
+		"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- touch /dev/null < /dev/null
 
 		IFS="¤"
 		for apps in ${exported_apps}; do
@@ -494,7 +499,7 @@ run_distrobox()
 			for app in ${apps}; do
 				# Export the app
 				# shellcheck disable=SC2086,2248
-				"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --app "${app}"
+				"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --app "${app}" < /dev/null
 			done
 		done
 
@@ -506,7 +511,7 @@ run_distrobox()
 				# Export the bin
 				# shellcheck disable=SC2086,2248
 				"${distrobox_path}"/distrobox enter ${root_flag} "${name}" -- distrobox-export --bin "${bin}" \
-					--export-path "${exported_bins_path}"
+					--export-path "${exported_bins_path}" < /dev/null
 			done
 		done
 	fi
