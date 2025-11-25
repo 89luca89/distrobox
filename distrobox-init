@@ -1837,9 +1837,11 @@ fi
 # Ensure compatibility with older versions of su, this will allow to specify
 # the --pty flag
 #
-# This won't work well on very old distros with no flag support, but will give
-# an usable shell nonetheless
-if ! su --help | grep -q pty; then
+# This won't work well on very old distros with su version from util-linux
+# before version 2.34 or other su implementations but will give an usable
+# shell nonetheless
+if ! su --version | grep -q util-linux ||
+	su --version | awk '{printf  "%s\n%s", $4, 2.34}' | sort --check=quiet --version-sort; then
 	cat << EOF > /usr/local/bin/su
 #!/bin/sh
 
