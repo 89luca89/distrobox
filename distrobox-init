@@ -2081,7 +2081,7 @@ if [ "${nvidia}" -eq 1 ]; then
 	NVIDIA_LIBS="$(find /run/host/usr/lib*/ -not -type d \
 		-iname "*lib*nvidia*.so*" \
 		-o -iname "*nvidia*.so*" \
-		-o -iname "*cuda*.so*" \
+		-o -iname "libcuda*.so*" \
 		-o -iname "libnvcuvid*" \
 		-o -iname "libnvoptix*" || :)"
 	for nvidia_lib in ${NVIDIA_LIBS}; do
