@@ -1073,6 +1073,7 @@ setup_dnf()
 		tzdata
 		unzip
 		util-linux
+		util-linux-script
 		vte-profile
 		wget
 		which
