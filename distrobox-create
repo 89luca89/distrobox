@@ -107,7 +107,7 @@ distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
 [ "${container_user_uid}" -eq 0 ] && rootful=1 || rootful=0
 userns_nolimit=0
 verbose=0
-version="1.8.2.1"
+version="1.8.2.2"
 
 app_cache_dir=${XDG_CACHE_HOME:-"${HOME}/.cache"}/distrobox
 
