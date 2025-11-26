@@ -722,7 +722,7 @@ generate_create_command()
 	# This will ensure we will mount directories one-by-one thus avoiding this problem.
 	#
 	# This happens ONLY with podman+runc, docker and lilipod are unaffected, so let's do this only if we have podman AND runc.
-	if echo "${container_manager}" | grep -q "podman" && ${container_manager} info | grep -q runc; then
+	if echo "${container_manager}" | grep -q "podman" && ${container_manager} info 2> /dev/null | grep -q runc > /dev/null 2>&1; then
 		for rootdir in /*; do
 
 			# Skip symlinks
