@@ -74,7 +74,7 @@ pre_init_hook=""
 rootful=0
 upgrade=0
 verbose=0
-version="1.8.2.1"
+version="1.8.2.2"
 
 # show_help will print usage to stdout.
 # Arguments:
@@ -1073,6 +1073,7 @@ setup_dnf()
 		tzdata
 		unzip
 		util-linux
+		util-linux-script
 		vte-profile
 		wget
 		which
@@ -1837,9 +1838,11 @@ fi
 # Ensure compatibility with older versions of su, this will allow to specify
 # the --pty flag
 #
-# This won't work well on very old distros with no flag support, but will give
-# an usable shell nonetheless
-if ! su --help | grep -q pty; then
+# This won't work well on very old distros with su version from util-linux
+# before version 2.34 or other su implementations but will give an usable
+# shell nonetheless
+if ! su --version | grep -q util-linux ||
+	su --version | awk '{printf  "%s\n%s", $4, 2.34}' | sort --check=quiet --version-sort; then
 	cat << EOF > /usr/local/bin/su
 #!/bin/sh
 
@@ -2081,7 +2084,7 @@ if [ "${nvidia}" -eq 1 ]; then
 	NVIDIA_LIBS="$(find /run/host/usr/lib*/ -not -type d \
 		-iname "*lib*nvidia*.so*" \
 		-o -iname "*nvidia*.so*" \
-		-o -iname "*cuda*.so*" \
+		-o -iname "libcuda*.so*" \
 		-o -iname "libnvcuvid*" \
 		-o -iname "libnvoptix*" || :)"
 	for nvidia_lib in ${NVIDIA_LIBS}; do
