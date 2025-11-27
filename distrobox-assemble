@@ -789,5 +789,5 @@ replace_line()
 
 # Exec
 expanded_file=$(mktemp -u)
-resolve_includes "${input_file}" "${expanded_file}"
+resolve_includes "${input_file}" "${expanded_file}" > /dev/null
 parse_file "${expanded_file}"
