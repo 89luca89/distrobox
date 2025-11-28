@@ -2,11 +2,16 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 
-	"github.com/urfave/cli/v3"
+	"github.com/89luca89/distrobox/internal/cli"
 )
 
 func main() {
-	(&cli.Command{}).Run(context.Background(), os.Args)
+	cmd := cli.NewRootCommand()
+
+	if err := cmd.Run(context.Background(), os.Args); err != nil {
+		log.Fatal(err)
+	}
 }
