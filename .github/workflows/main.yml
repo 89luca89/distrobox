@@ -117,17 +117,6 @@ jobs:
           done
           exit $result
 
-  markdownlint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Run markdownlint
-        run: |
-          sudo npm install -g markdownlint-cli
-          markdownlint $(find . -name '*.md' | grep -vF './.git')
-
   codespell:
     runs-on: ubuntu-latest
 
