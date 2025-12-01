@@ -36,4 +36,3 @@ func (c *ListCommand) Execute(ctx context.Context) (*ListResult, error) {
 
 	return &ListResult{Containers: distroboxes}, nil
 }
-

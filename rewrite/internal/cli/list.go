@@ -71,4 +71,3 @@ func isTerminal() bool {
 	stat, _ := os.Stdout.Stat()
 	return (stat.Mode() & os.ModeCharDevice) != 0
 }
-
