@@ -1702,45 +1702,56 @@ setup_zypper()
 	fi
 }
 
-# Check dependencies in a list, and install all if one is missing
-missing_packages=0
-dependencies="
-	bc
-	bzip2
-	chpasswd
-	curl
-	diff
-	find
-	findmnt
-	gpg
-	hostname
-	less
-	lsof
-	man
-	mount
-	passwd
-	pigz
-	pinentry
-	ping
-	ps
-	rsync
-	script
-	ssh
-	sudo
-	time
-	tree
-	umount
-	unzip
-	useradd
-	wc
-	wget
-	xauth
-	zip
-	${shell_pkg}
-"
-for dep in ${dependencies}; do
-	! command -v "${dep}" > /dev/null && missing_packages=1 && break
-done
+# Check if all commands are installed.
+# Arguments:
+#   None
+# Expected global variables:
+#   shell_pkg: shell package of the container shell
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+check_missing_packages()
+{
+	dependencies="
+		bc
+		bzip2
+		chpasswd
+		curl
+		diff
+		find
+		findmnt
+		gpg
+		hostname
+		less
+		lsof
+		man
+		mount
+		passwd
+		pigz
+		pinentry
+		ping
+		ps
+		rsync
+		script
+		ssh
+		sudo
+		time
+		tree
+		umount
+		unzip
+		useradd
+		wc
+		wget
+		xauth
+		zip
+		${shell_pkg}
+	"
+	for dep in ${dependencies}; do
+		! command -v "${dep}" && return 1
+	done
+	return 0
+}
 
 # Ensure we have the least minimal path of standard Linux File System set
 PATH="${PATH}:/bin:/sbin:/usr/bin:/usr/sbin"
@@ -1767,11 +1778,7 @@ elif command -v yum; then
 fi
 
 # Check if dependencies are met for the script to run.
-if [ "${upgrade}" -ne 0 ] ||
-	[ "${missing_packages}" -ne 0 ] ||
-	{
-		[ -n "${container_additional_packages}" ] && [ ! -e /.containersetupdone ]
-	}; then
+if [ "${upgrade}" -ne 0 ] || [ ! -e /.containersetupdone ]; then
 
 	# Detect the available package manager
 	# install minimal dependencies needed to bootstrap the container:
@@ -1806,8 +1813,13 @@ if [ "${upgrade}" -ne 0 ] ||
 		# Exit as command not found
 		exit 127
 	fi
-
-	touch /.containersetupdone
+	if [ ! -e /.containersetupdone ]; then
+		if ! check_missing_packages; then
+			printf "Error: could not set up base dependencies.\n"
+			exit 128
+		fi
+		touch /.containersetupdone
+	fi
 fi
 
 # Set SHELL to the install path inside the container
