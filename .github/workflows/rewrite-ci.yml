@@ -1,0 +1,55 @@
+name: CI (golang)
+
+on:
+  workflow_call:
+  pull_request:
+    paths:
+      - "rewrite/**"
+      - ".github/workflows/rewrite-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version-file: "rewrite/go.mod"
+      - run: make
+        working-directory: rewrite
+
+  golangci:
+    name: Golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version-file: "rewrite/go.mod"
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@e7fa5ac41e1cf5b7d48e45e42232ce7ada589601 # v9.1.0
+        with:
+          version: v2.5.0
+          working-directory: rewrite
+
+  fmtcheck:
+    name: Go fmt check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version-file: "rewrite/go.mod"
+      - name: format check
+        working-directory: rewrite
+        run: |
+          make fmt
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Code is not formatted. Please run 'make fmt' and commit the changes."
+            git --no-pager diff
+            exit 1
+          fi
