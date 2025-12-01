@@ -640,7 +640,9 @@ setup_apk()
 			man-db
 			mesa
 			openssh-client
+			pinentry
 			posix-libc-utils
+			script
 		"
 	elif apk add alpine-base; then
 		deps="
