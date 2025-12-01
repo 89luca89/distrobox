@@ -1076,6 +1076,7 @@ setup_dnf()
 		util-linux-script
 		vte-profile
 		wget
+		wget2-wget
 		which
 		whois
 		words
