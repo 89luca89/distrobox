@@ -51,6 +51,7 @@ func NewRootCommand() *cli.Command {
 		Before: beforeAction,
 		Commands: []*cli.Command{
 			newListCommand(),
+			newGenerateEntryCommand(),
 		},
 	}
 }
