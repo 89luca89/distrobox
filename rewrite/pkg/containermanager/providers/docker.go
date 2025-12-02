@@ -12,14 +12,18 @@ import (
 )
 
 type Docker struct {
-	verbose bool
+	root        bool
+	sudoCommand string
+	verbose     bool
 }
 
 var _ containermanager.ContainerManager = &Docker{}
 
-func NewDocker(verbose bool) *Docker {
+func NewDocker(root bool, sudoCommand string, verbose bool) *Docker {
 	return &Docker{
-		verbose: verbose,
+		sudoCommand: sudoCommand,
+		root:        root,
+		verbose:     verbose,
 	}
 }
 
@@ -46,7 +50,13 @@ func (d *Docker) ListContainers(ctx context.Context) ([]containermanager.Contain
 }
 
 func (d *Docker) run(ctx context.Context, args []string) (string, error) {
-	cmd := exec.CommandContext(ctx, "docker", args...)
+	command := "docker"
+	if d.root {
+		command = d.sudoCommand
+		args = append([]string{"docker"}, args...)
+	}
+
+	cmd := exec.CommandContext(ctx, command, args...)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
