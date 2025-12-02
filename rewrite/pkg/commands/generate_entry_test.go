@@ -17,7 +17,7 @@ func TestGenerateEntryCommand_Execute(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	// create the list command
-	containerManager := providers.NewDocker(false)
+	containerManager := providers.NewDocker(false, "sudo", false)
 	listCmd := commands.NewListCommand(containerManager)
 
 	//
@@ -101,7 +101,7 @@ func TestGenerateEntryCommand_Execute_Root(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
 
-	containerManager := providers.NewDocker(false)
+	containerManager := providers.NewDocker(false, "sudo", false)
 	listCmd := commands.NewListCommand(containerManager)
 
 	generateEntryCmd := commands.NewGenerateEntryCommand(listCmd)
@@ -166,7 +166,7 @@ func TestGenerateAllEntriesCommand_Execute(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	// create the list command
-	containerManager := providers.NewDocker(false)
+	containerManager := providers.NewDocker(false, "sudo", false)
 	listCmd := commands.NewListCommand(containerManager)
 
 	// create the generate all entries command
