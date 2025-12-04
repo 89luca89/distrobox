@@ -44,9 +44,14 @@ type dockerContainer struct {
 	Labels string `json:"Labels"`
 }
 
+type runOptions struct {
+	DryRun      bool
+	Interactive bool
+}
+
 func (d *Docker) ListContainers(ctx context.Context) ([]containermanager.Container, error) {
 	args := []string{"ps", "-a", "--no-trunc", "--format", "json"}
-	out, err := d.run(ctx, args, false)
+	out, err := d.run(ctx, args, runOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +102,7 @@ func (d *Docker) Create(
 		filepath.Join(scriptsDir, "distrobox-host-exec"),
 	)
 
-	_, err = d.run(ctx, cmd, opts.DryRun)
+	_, err = d.run(ctx, cmd, runOptions{DryRun: opts.DryRun})
 	if err != nil {
 		return fmt.Errorf("failed to create container: %w", err)
 	}
@@ -410,7 +415,7 @@ func (d *Docker) makeCreateCommand(
 	return cmd
 }
 
-func (d *Docker) run(ctx context.Context, args []string, dryRun bool) (string, error) {
+func (d *Docker) run(ctx context.Context, args []string, opts runOptions) (string, error) {
 	command := "docker"
 
 	// Empty elements are considered as positional argument by exec.Command
@@ -420,7 +425,7 @@ func (d *Docker) run(ctx context.Context, args []string, dryRun bool) (string, e
 		cleanArgs = append([]string{"docker"}, cleanArgs...)
 	}
 
-	if dryRun {
+	if opts.DryRun {
 		fullCmd := fmt.Sprintf("%s %s", command, strings.Join(cleanArgs, " "))
 		//nolint:forbidigo // Print command in dry-run mode
 		fmt.Println(fullCmd)
