@@ -37,6 +37,15 @@ type CreateOptions struct {
 	DryRun                  bool
 }
 
+type EnterOptions struct {
+	ContainerName   string
+	AdditionalFlags string
+	NoTTY           bool
+	NoWorkDir       bool
+	CleanPath       bool
+	Verbose         bool
+}
+
 func (c Container) IsDistrobox() bool {
 	return c.Labels["manager"] == "distrobox"
 }
@@ -50,6 +59,7 @@ type ContanerManagerType string
 
 type ContainerManager interface {
 	Name() string
+	Enter(ctx context.Context, options EnterOptions) error
 	ListContainers(ctx context.Context) ([]Container, error)
 	Create(ctx context.Context, opts CreateOptions) error
 }

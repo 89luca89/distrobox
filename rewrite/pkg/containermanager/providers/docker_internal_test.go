@@ -73,7 +73,397 @@ create --hostname my-hostname --name my-container --privileged --security-opt la
 	}
 }
 
+func TestBuildContainerPath(t *testing.T) {
+	tests := []struct {
+		name      string
+		cleanPath bool
+		hostPath  string
+		cfg       *InspectResult
+		want      string
+	}{
+		{
+			name:      "cleanPath returns only standard paths",
+			cleanPath: true,
+			hostPath:  "/custom/path:/other/path",
+			cfg:       &InspectResult{ContainerPath: "/container/path"},
+			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+		},
+		{
+			name:      "cleanPath ignores hostPath and containerPath",
+			cleanPath: true,
+			hostPath:  "",
+			cfg:       &InspectResult{ContainerPath: ""},
+			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+		},
+		{
+			name:      "hostPath has all standard paths - returns hostPath only",
+			cleanPath: false,
+			hostPath:  "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			cfg:       &InspectResult{ContainerPath: "/container/path"},
+			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+		},
+		{
+			name:      "hostPath missing some standard paths - adds them",
+			cleanPath: false,
+			hostPath:  "/usr/bin:/bin",
+			cfg:       &InspectResult{ContainerPath: "/container/path"},
+			want:      "/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin",
+		},
+		{
+			name:      "hostPath with custom paths and missing standard paths",
+			cleanPath: false,
+			hostPath:  "/custom/bin:/usr/bin:/another/path",
+			cfg:       &InspectResult{ContainerPath: "/container/path"},
+			want:      "/custom/bin:/usr/bin:/another/path:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/bin",
+		},
+		{
+			name:      "empty hostPath - returns containerPath",
+			cleanPath: false,
+			hostPath:  "",
+			cfg:       &InspectResult{ContainerPath: "/container/path"},
+			want:      "/container/path",
+		},
+		{
+			name:      "empty hostPath and containerPath - returns standard paths",
+			cleanPath: false,
+			hostPath:  "",
+			cfg:       &InspectResult{ContainerPath: ""},
+			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+		},
+		{
+			name:      "hostPath with standard paths at beginning",
+			cleanPath: false,
+			hostPath:  "/bin:/usr/bin:/custom/path",
+			cfg:       &InspectResult{ContainerPath: ""},
+			want:      "/bin:/usr/bin:/custom/path:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin",
+		},
+		{
+			name:      "hostPath with standard paths at end",
+			cleanPath: false,
+			hostPath:  "/custom/path:/bin:/usr/bin",
+			cfg:       &InspectResult{ContainerPath: ""},
+			want:      "/custom/path:/bin:/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin",
+		},
+		{
+			name:      "hostPath with similar but not exact standard paths",
+			cleanPath: false,
+			hostPath:  "/usr/binary:/binfo",
+			cfg:       &InspectResult{ContainerPath: ""},
+			want:      "/usr/binary:/binfo:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+		},
+		{
+			name:      "single custom path in hostPath",
+			cleanPath: false,
+			hostPath:  "/opt/custom/bin",
+			cfg:       &InspectResult{ContainerPath: "/container/path"},
+			want:      "/opt/custom/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+		},
+		{
+			name:      "nil cfg with non-empty hostPath",
+			cleanPath: false,
+			hostPath:  "/custom/path",
+			cfg:       nil,
+			want:      "/custom/path:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+		},
+		{
+			name:      "nil cfg with empty hostPath",
+			cleanPath: false,
+			hostPath:  "",
+			cfg:       nil,
+			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := buildContainerPath(tt.cleanPath, tt.hostPath, tt.cfg)
+			if got != tt.want {
+				t.Errorf("buildContainerPath() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestBuildContainerPathEdgeCases tests edge cases and boundary conditions
+func TestBuildContainerPathEdgeCases(t *testing.T) {
+	t.Run("hostPath with colon at start", func(t *testing.T) {
+		cfg := &InspectResult{ContainerPath: ""}
+		got := buildContainerPath(false, ":/usr/bin", cfg)
+		// Should treat this as hostPath not containing standard paths initially
+		if !contains(got, "/usr/local/sbin") {
+			t.Errorf("Expected standard paths to be added")
+		}
+	})
+
+	t.Run("hostPath with colon at end", func(t *testing.T) {
+		cfg := &InspectResult{ContainerPath: ""}
+		got := buildContainerPath(false, "/usr/bin:", cfg)
+		if !contains(got, "/usr/local/sbin") {
+			t.Errorf("Expected standard paths to be added")
+		}
+	})
+
+	t.Run("hostPath with multiple colons", func(t *testing.T) {
+		cfg := &InspectResult{ContainerPath: ""}
+		got := buildContainerPath(false, "/usr/bin::/sbin", cfg)
+		// Should still add missing standard paths
+		if !contains(got, "/usr/local/sbin") {
+			t.Errorf("Expected standard paths to be added")
+		}
+	})
+}
+
+func TestBuildCommandArgs(t *testing.T) {
+	tests := []struct {
+		name          string
+		customCommand string
+		user          string
+		noTTY         bool
+		unshareGroups bool
+		want          string
+	}{
+		{
+			name:          "custom command without unshare",
+			customCommand: "/bin/bash",
+			user:          "testuser",
+			noTTY:         false,
+			unshareGroups: false,
+			want:          "/bin/bash",
+		},
+		{
+			name:          "custom command with unshare, no TTY",
+			customCommand: "/usr/bin/python3",
+			user:          "testuser",
+			noTTY:         false,
+			unshareGroups: true,
+			want:          `su|testuser|-s|/bin/sh|-c|"$0" "$@"|--|/usr/bin/python3`,
+		},
+		{
+			name:          "custom command with unshare and TTY",
+			customCommand: "/bin/zsh",
+			user:          "testuser",
+			noTTY:         true,
+			unshareGroups: true,
+			want:          `su|--pty|testuser|-s|/bin/sh|-c|"$0" "$@"|--|/bin/zsh`,
+		},
+		{
+			name:          "default shell without unshare",
+			customCommand: "",
+			user:          "alice",
+			noTTY:         false,
+			unshareGroups: false,
+			want:          "/bin/sh|-c|$(getent passwd 'alice' | cut -f 7 -d :) -l",
+		},
+		{
+			name:          "default shell with unshare, no TTY",
+			customCommand: "",
+			user:          "bob",
+			noTTY:         false,
+			unshareGroups: true,
+			want:          `su|bob|-s|/bin/sh|-c|"$0" "$@"|--|/bin/sh|-c|$(getent passwd 'bob' | cut -f 7 -d :) -l`,
+		},
+		{
+			name:          "default shell with unshare and TTY",
+			customCommand: "",
+			user:          "charlie",
+			noTTY:         true,
+			unshareGroups: true,
+			want:          `su|--pty|charlie|-s|/bin/sh|-c|"$0" "$@"|--|/bin/sh|-c|$(getent passwd 'charlie' | cut -f 7 -d :) -l`,
+		},
+		{
+			name:          "empty custom command treated as default",
+			customCommand: "",
+			user:          "testuser",
+			noTTY:         false,
+			unshareGroups: false,
+			want:          "/bin/sh|-c|$(getent passwd 'testuser' | cut -f 7 -d :) -l",
+		},
+		{
+			name:          "custom command with spaces without unshare",
+			customCommand: "/bin/bash -c 'echo hello'",
+			user:          "testuser",
+			noTTY:         false,
+			unshareGroups: false,
+			want:          "/bin/bash -c 'echo hello'",
+		},
+		{
+			name:          "custom command with spaces with unshare",
+			customCommand: "/bin/bash -c 'echo hello'",
+			user:          "testuser",
+			noTTY:         false,
+			unshareGroups: true,
+			want:          `su|testuser|-s|/bin/sh|-c|"$0" "$@"|--|/bin/bash -c 'echo hello'`,
+		},
+		{
+			name:          "user with special characters in default shell",
+			customCommand: "",
+			user:          "user-name.test",
+			noTTY:         false,
+			unshareGroups: false,
+			want:          "/bin/sh|-c|$(getent passwd 'user-name.test' | cut -f 7 -d :) -l",
+		},
+		{
+			name:          "root user without unshare",
+			customCommand: "",
+			user:          "root",
+			noTTY:         false,
+			unshareGroups: false,
+			want:          "/bin/sh|-c|$(getent passwd 'root' | cut -f 7 -d :) -l",
+		},
+		{
+			name:          "root user with unshare",
+			customCommand: "",
+			user:          "root",
+			noTTY:         false,
+			unshareGroups: true,
+			want:          `su|root|-s|/bin/sh|-c|"$0" "$@"|--|/bin/sh|-c|$(getent passwd 'root' | cut -f 7 -d :) -l`,
+		},
+		{
+			name:          "empty user with default shell",
+			customCommand: "",
+			user:          "",
+			noTTY:         false,
+			unshareGroups: false,
+			want:          "/bin/sh|-c|$(getent passwd '' | cut -f 7 -d :) -l",
+		},
+		{
+			name:          "single space as custom command",
+			customCommand: " ",
+			user:          "user",
+			noTTY:         false,
+			unshareGroups: false,
+			want:          " ",
+		},
+		{
+			name:          "very long custom command with unshare",
+			customCommand: "/bin/bash -c 'for i in {1..100}; do echo $i; done'",
+			user:          "user",
+			noTTY:         false,
+			unshareGroups: true,
+			want:          `su|user|-s|/bin/sh|-c|"$0" "$@"|--|/bin/bash -c 'for i in {1..100}; do echo $i; done'`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := buildCommandArgs(tt.customCommand, tt.user, tt.noTTY, tt.unshareGroups)
+			gotStr := strings.Join(got, "|")
+
+			if gotStr != tt.want {
+				t.Errorf("buildCommandArgs() = %q, want %q", gotStr, tt.want)
+			}
+		})
+	}
+}
+
+// TestBuildCommandArgsMatrix tests all combinations of boolean flags
+func TestBuildCommandArgsMatrix(t *testing.T) {
+	tests := []struct {
+		name            string
+		customCommand   string
+		noTTY           bool
+		unshareGroups   bool
+		wantContains    []string
+		wantNotContains []string
+	}{
+		{
+			name:            "no flags with custom command",
+			customCommand:   "/custom/cmd",
+			noTTY:           false,
+			unshareGroups:   false,
+			wantContains:    []string{"/custom/cmd"},
+			wantNotContains: []string{"su", "--pty"},
+		},
+		{
+			name:            "unshare only with custom command",
+			customCommand:   "/custom/cmd",
+			noTTY:           false,
+			unshareGroups:   true,
+			wantContains:    []string{"su", "/custom/cmd"},
+			wantNotContains: []string{"--pty"},
+		},
+		{
+			name:            "noTTY and unshare with custom command",
+			customCommand:   "/custom/cmd",
+			noTTY:           true,
+			unshareGroups:   true,
+			wantContains:    []string{"su", "--pty", "/custom/cmd"},
+			wantNotContains: []string{},
+		},
+		{
+			name:            "noTTY without unshare",
+			customCommand:   "/custom/cmd",
+			noTTY:           true,
+			unshareGroups:   false,
+			wantContains:    []string{"/custom/cmd"},
+			wantNotContains: []string{"su", "--pty"},
+		},
+		{
+			name:            "default shell without flags",
+			customCommand:   "",
+			noTTY:           false,
+			unshareGroups:   false,
+			wantContains:    []string{"/bin/sh", "-c", "getent passwd"},
+			wantNotContains: []string{"su", "--pty"},
+		},
+		{
+			name:            "default shell with unshare",
+			customCommand:   "",
+			noTTY:           false,
+			unshareGroups:   true,
+			wantContains:    []string{"su", "/bin/sh", "-c", "getent passwd"},
+			wantNotContains: []string{"--pty"},
+		},
+		{
+			name:            "default shell with both flags",
+			customCommand:   "",
+			noTTY:           true,
+			unshareGroups:   true,
+			wantContains:    []string{"su", "--pty", "/bin/sh", "-c", "getent passwd"},
+			wantNotContains: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := buildCommandArgs(tt.customCommand, "user", tt.noTTY, tt.unshareGroups)
+			resultStr := strings.Join(result, "|")
+
+			for _, want := range tt.wantContains {
+				if !strings.Contains(resultStr, want) {
+					t.Errorf("Expected result to contain %q, got: %q", want, resultStr)
+				}
+			}
+
+			for _, notWant := range tt.wantNotContains {
+				if strings.Contains(resultStr, notWant) {
+					t.Errorf("Expected result NOT to contain %q, got: %q", notWant, resultStr)
+				}
+			}
+		})
+	}
+}
+
 // oneline is a helper function that removes newlines and trims spaces from a string.
 func oneline(s string) string {
 	return strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(s, "\n", ""), "  ", " "))
+}
+
+// Helper function for edge case tests
+func contains(path, substring string) bool {
+	return len(path) >= len(substring) &&
+		(path[:len(substring)] == substring ||
+			len(path) > len(substring) && path[len(path)-len(substring):] == substring ||
+			len(path) > len(substring)+1 && hasSubstring(path, ":"+substring+":") ||
+			hasSubstring(path, ":"+substring) ||
+			hasSubstring(path, substring+":"))
+}
+
+func hasSubstring(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }

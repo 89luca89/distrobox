@@ -4,15 +4,23 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"time"
 
 	insidedistrobox "github.com/89luca89/distrobox/internal/inside-distrobox"
 	"github.com/89luca89/distrobox/internal/userenv"
 	"github.com/89luca89/distrobox/pkg/containermanager"
+)
+
+const (
+	RunningStatus = "running"
+	Two           = 2
 )
 
 type Docker struct {
@@ -47,6 +55,23 @@ type dockerContainer struct {
 type runOptions struct {
 	DryRun      bool
 	Interactive bool
+}
+
+type inspectOutput struct {
+	State struct {
+		Status string `json:"Status"`
+	} `json:"State"`
+	Config struct {
+		Labels map[string]string `json:"Labels"`
+		Env    []string          `json:"Env"`
+	} `json:"Config"`
+}
+
+type InspectResult struct {
+	ContainerStatus string
+	ContainerHome   string
+	ContainerPath   string
+	UnshareGroups   bool
 }
 
 func (d *Docker) ListContainers(ctx context.Context) ([]containermanager.Container, error) {
@@ -433,6 +458,19 @@ func (d *Docker) run(ctx context.Context, args []string, opts runOptions) (strin
 	}
 
 	cmd := exec.CommandContext(ctx, command, cleanArgs...)
+
+	if opts.Interactive {
+		cmd.Stdout = os.Stdout
+		cmd.Stdin = os.Stdin
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return "", fmt.Errorf("error running the interactive command :%w", err)
+		}
+		return "", nil
+	}
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -446,6 +484,37 @@ func (d *Docker) run(ctx context.Context, args []string, opts runOptions) (strin
 		return "", fmt.Errorf("command execution failed: %w", err)
 	}
 	return stdout.String(), nil
+}
+func (d *Docker) Enter(
+	ctx context.Context,
+	options containermanager.EnterOptions,
+) error {
+	userEnv := userenv.LoadUserEnvironment(ctx)
+	user := userEnv.User
+
+	command, config, err := d.generateEnterCommand(
+		ctx,
+		options.ContainerName,
+		options.AdditionalFlags,
+		options.NoTTY,
+		options.NoWorkDir,
+		options.CleanPath,
+		options.Verbose,
+	)
+	if err != nil {
+		return fmt.Errorf("err: %w", err)
+	}
+
+	commandArgs := buildCommandArgs("", user, options.NoTTY, config.UnshareGroups)
+
+	inspectResult, err := d.InspectContainer(ctx, options.ContainerName)
+	if err != nil || inspectResult.ContainerStatus != RunningStatus {
+		_ = d.startContainer(ctx, options.ContainerName)
+	}
+
+	_, _ = d.run(ctx, append(command, commandArgs...), runOptions{Interactive: !options.NoTTY})
+
+	return nil
 }
 
 func parseContainerList(output string) ([]containermanager.Container, error) {
@@ -523,4 +592,373 @@ func stripEmpty(a []string) []string {
 		}
 	}
 	return newArr
+}
+
+func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*InspectResult, error) {
+	config := InspectResult{}
+	args := []string{"inspect", "--type", "container", "--format", "json", containerName}
+	output, err := d.run(ctx, args, runOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	var inspects []inspectOutput
+	if err := json.Unmarshal([]byte(output), &inspects); err != nil {
+		return nil, errors.New("error marshaling json into containerInspect")
+	}
+
+	if len(inspects) == 0 {
+		return nil, errors.New("container not found")
+	}
+
+	inspect := inspects[0]
+	config.ContainerStatus = inspect.State.Status
+
+	// Check for unshare_groups label
+	if v, ok := inspect.Config.Labels["distrobox.unshare_groups"]; ok && v == "1" {
+		config.UnshareGroups = true
+	}
+
+	// Extract HOME and PATH from container env
+	for _, env := range inspect.Config.Env {
+		if strings.HasPrefix(env, "HOME=") {
+			config.ContainerHome = strings.TrimPrefix(env, "HOME=")
+		} else if strings.HasPrefix(env, "PATH=") {
+			config.ContainerPath = strings.TrimPrefix(env, "PATH=")
+		}
+	}
+
+	return &config, nil
+}
+
+func buildContainerPath(cleanPath bool, hostPath string, cfg *InspectResult) string {
+	standardPaths := []string{"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"}
+
+	if cleanPath {
+		return strings.Join(standardPaths, ":")
+	}
+
+	containerPaths := cfg.ContainerPath
+
+	// Add standard paths not in host PATH
+	var additionalPaths []string
+	for _, sp := range standardPaths {
+		pattern := regexp.MustCompile(`(:|^)` + regexp.QuoteMeta(sp) + `(:|$)`)
+		if !pattern.MatchString(hostPath) {
+			additionalPaths = append(additionalPaths, sp)
+		}
+	}
+
+	if len(additionalPaths) > 0 {
+		if containerPaths != "" || hostPath != "" {
+			return hostPath + ":" + strings.Join(additionalPaths, ":")
+		}
+		return strings.Join(additionalPaths, ":")
+	}
+
+	if hostPath != "" {
+		return hostPath
+	}
+	return containerPaths
+}
+
+func buildXDGPaths(envVar string, standardPaths []string) string {
+	containerPaths := os.Getenv(envVar)
+
+	for _, sp := range standardPaths {
+		pattern := regexp.MustCompile(`(:|^)` + regexp.QuoteMeta(sp) + `(:|$)`)
+		if containerPaths == "" {
+			containerPaths = sp
+		} else if !pattern.MatchString(containerPaths) {
+			containerPaths = containerPaths + ":" + sp
+		}
+	}
+
+	return containerPaths
+}
+
+func filterEnvVars() []string {
+	result := []string{}
+
+	// Compile regex for XDG_.*_DIRS pattern
+	xdgDirsPattern := regexp.MustCompile(`^XDG_.*_DIRS$`)
+
+	// Excluded prefixes
+	excludedPrefixes := []string{
+		"CONTAINER_ID",
+		"FPATH",
+		"HOST",
+		"HOSTNAME",
+		"HOME",
+		"PATH",
+		"PROFILEREAD",
+		"SHELL",
+		"XDG_SEAT",
+		"XDG_VTNR",
+		"_", // Variables starting with underscore
+	}
+
+	for _, env := range os.Environ() {
+		// Must contain '='
+		if !strings.Contains(env, "=") {
+			continue
+		}
+
+		// Exclude if contains ", `, or $
+		if strings.ContainsAny(env, "\"`$") {
+			continue
+		}
+
+		// Split into key and value
+		parts := strings.SplitN(env, "=", Two)
+		if len(parts) != Two {
+			continue
+		}
+
+		key := parts[0]
+
+		// Check excluded prefixes
+		excluded := false
+		for _, prefix := range excludedPrefixes {
+			if strings.HasPrefix(key, prefix) {
+				excluded = true
+				break
+			}
+		}
+
+		if excluded || xdgDirsPattern.MatchString(key) {
+			continue
+		}
+
+		result = append(result, env)
+	}
+
+	return result
+}
+
+func getWorkDir(containerHome string, noWorkDir bool) (string, error) {
+	workDir, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("error getting working dir: %w", err)
+	}
+
+	if noWorkDir {
+		return containerHome, nil
+	}
+
+	if workDir == "" && containerHome == "" {
+		return "/", nil
+	}
+
+	if workDir == "" {
+		return containerHome, nil
+	}
+
+	if !strings.Contains(workDir, containerHome) {
+		return "/run/host" + workDir, nil
+	}
+
+	return workDir, nil
+}
+
+func (d *Docker) generateEnterCommand(
+	ctx context.Context,
+	containerName string,
+	additionalFlags string,
+	noTTY bool,
+	noWorkDir bool,
+	cleanPath bool,
+	verbose bool,
+) ([]string, *InspectResult, error) {
+	cmd := []string{}
+
+	if verbose {
+		cmd = append(cmd, "--log-level", "debug")
+	}
+
+	cmd = append(cmd, "exec")
+	cmd = append(cmd, "--interactive")
+	cmd = append(cmd, "--detach-keys=")
+
+	containerConfig, err := d.InspectContainer(ctx, containerName)
+	if err != nil {
+		// TODO handle missing container
+		return nil, nil, err
+	}
+	// User selection
+	if containerConfig.UnshareGroups {
+		cmd = append(cmd, "--user=root")
+	} else {
+		userEnv := userenv.LoadUserEnvironment(ctx)
+		username := userEnv.User
+		cmd = append(cmd, fmt.Sprintf("--user=%s", username))
+	}
+
+	// TTY allocation
+	if !noTTY {
+		cmd = append(cmd, "--tty")
+	}
+
+	// Working directory
+	workdir, err := getWorkDir(containerConfig.ContainerHome, noWorkDir)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cmd = append(cmd, fmt.Sprintf("--workdir=%s", workdir))
+
+	executablePath, err := os.Executable()
+	if err != nil {
+		return nil, nil, fmt.Errorf("error getting the executable path: %w", err)
+	}
+
+	// Environment variables
+	cmd = append(cmd, fmt.Sprintf("--env=CONTAINER_ID=%s", containerName))
+	cmd = append(cmd, fmt.Sprintf("--env=DISTROBOX_ENTER_PATH=%s", executablePath))
+
+	for _, env := range filterEnvVars() {
+		cmd = append(cmd, fmt.Sprintf("--env=%s", env))
+	}
+	// PATH handling
+	containerPaths := buildContainerPath(cleanPath, os.Getenv("PATH"), containerConfig)
+	cmd = append(cmd, fmt.Sprintf("--env=PATH=%s", containerPaths))
+
+	// XDG_DATA_DIRS
+	xdgDataDirs := buildXDGPaths("XDG_DATA_DIRS", []string{"/usr/local/share", "/usr/share"})
+	cmd = append(cmd, fmt.Sprintf("--env=XDG_DATA_DIRS=%s", xdgDataDirs))
+
+	// XDG_CONFIG_DIRS
+	xdgConfigDirs := buildXDGPaths("XDG_CONFIG_DIRS", []string{"/etc/xdg"})
+	cmd = append(cmd, fmt.Sprintf("--env=XDG_CONFIG_DIRS=%s", xdgConfigDirs))
+
+	// XDG home directories
+	cmd = append(cmd, fmt.Sprintf("--env=XDG_CACHE_HOME=%s/.cache", containerConfig.ContainerHome))
+	cmd = append(cmd, fmt.Sprintf("--env=XDG_CONFIG_HOME=%s/.config", containerConfig.ContainerHome))
+	cmd = append(cmd, fmt.Sprintf("--env=XDG_DATA_HOME=%s/.local/share", containerConfig.ContainerHome))
+	cmd = append(cmd, fmt.Sprintf("--env=XDG_STATE_HOME=%s/.local/state", containerConfig.ContainerHome))
+
+	// Additional flags
+	if len(additionalFlags) > 0 {
+		cmd = append(cmd, additionalFlags)
+	}
+
+	// Container name
+	cmd = append(cmd, containerName)
+
+	return cmd, containerConfig, nil
+}
+
+func buildCommandArgs(customCommand string, user string, noTTY bool, unshareGroups bool) []string {
+	var args []string
+
+	if len(customCommand) > 0 {
+		args = []string{customCommand}
+	} else {
+		// Default: execute user's shell with login
+		args = []string{"/bin/sh", "-c", fmt.Sprintf("$(getent passwd '%s' | cut -f 7 -d :) -l", user)}
+	}
+
+	// Handle unshare_groups mode - use su to trigger proper login
+	if unshareGroups {
+		unshareArgs := []string{"su"}
+		if noTTY {
+			unshareArgs = append(unshareArgs, "--pty")
+		}
+		unshareArgs = append(unshareArgs, user, "-s", "/bin/sh", "-c", `"$0" "$@"`, "--")
+		unshareArgs = append(unshareArgs, args...)
+		return unshareArgs
+	}
+
+	return args
+}
+
+func (d *Docker) startContainer(ctx context.Context, containerName string) error {
+	logTimestamp := time.Now().UTC().Format("2006-01-02T15:04:05.000000000+00:00")
+
+	// Start the container
+	_, err := d.run(ctx, []string{"start", containerName}, runOptions{Interactive: true})
+	if err != nil {
+		return fmt.Errorf("failed to start container: %w", err)
+	}
+
+	// Check if container is running after start
+	inspectResult, err := d.InspectContainer(ctx, containerName)
+	if err != nil || inspectResult.ContainerStatus != RunningStatus {
+		logs, err := d.run(ctx, []string{"logs", containerName}, runOptions{})
+		if err != nil {
+			return fmt.Errorf("could not inspect container logs: %w", err)
+		}
+		return fmt.Errorf("could not start entrypoint.\n%s", logs)
+	}
+
+	fmt.Fprintf(os.Stderr, "%-40s\t", "Starting container...")
+
+	userEnv := userenv.LoadUserEnvironment(ctx)
+
+	cacheDir := os.Getenv("XDG_CACHE_HOME")
+	if cacheDir == "" {
+		cacheDir = filepath.Join(userEnv.Home, ".cache")
+	}
+	cacheDir = filepath.Join(cacheDir, "distrobox")
+
+	// Create cache directory
+	if err := os.MkdirAll(cacheDir, 0755); err != nil { //nolint:gosec // we need this writable by everybody
+		return fmt.Errorf("failed to create cache directory: %w", err)
+	}
+
+	// Monitor logs for setup completion
+	if err := d.waitForSetup(ctx, containerName, logTimestamp); err != nil {
+		return err
+	}
+
+	fmt.Fprintln(os.Stderr, "\nContainer Setup Complete!")
+	return nil
+}
+
+func (d *Docker) waitForSetup(ctx context.Context, containerName string, since string) error {
+	for {
+		// Check container is still running
+		inspectResult, err := d.InspectContainer(ctx, containerName)
+		if err != nil || inspectResult.ContainerStatus != RunningStatus {
+			fmt.Fprintln(os.Stderr, "\nContainer Setup Failure!")
+			return fmt.Errorf("container stopped during setup: %w", err)
+		}
+
+		// Get logs
+		output, err := d.run(ctx, []string{"logs", "--since", since, containerName}, runOptions{})
+		if err != nil {
+			time.Sleep(100 * time.Millisecond) //nolint:mnd // TODO refactor sleeps
+			continue
+		}
+
+		lines := strings.Split(output, "\n")
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+
+			switch {
+			case strings.HasPrefix(line, "+"):
+				// Ignore logging commands
+				continue
+
+			case strings.HasPrefix(line, "Error:"):
+				fmt.Fprintf(os.Stderr, "\033[31m %s\n\033[0m", line)
+				return fmt.Errorf("container setup error: %s", line)
+
+			case strings.HasPrefix(line, "Warning:"):
+				fmt.Fprintf(os.Stderr, "\n\033[33m %s\033[0m", line)
+
+			case strings.HasPrefix(line, "distrobox:"):
+				parts := strings.SplitN(line, " ", Two)
+				if len(parts) > 1 {
+					fmt.Fprintf(os.Stderr, "\033[32m [ OK ]\n\033[0m%-40s\t", parts[1])
+				}
+
+			case strings.HasPrefix(line, "container_setup_done"):
+				fmt.Fprintf(os.Stderr, "\033[32m [ OK ]\n\033[0m")
+				return nil
+			}
+		}
+
+		time.Sleep(500 * time.Millisecond) //nolint:mnd // TODO refactor sleeps
+	}
 }
