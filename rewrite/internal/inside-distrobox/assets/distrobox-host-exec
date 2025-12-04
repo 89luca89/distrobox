@@ -1,0 +1,234 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2022 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# Ensure we have our env variables correctly set
+[ -z "${USER}" ] && USER="$(id -run)"
+[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+
+# Defaults
+host_command=""
+non_interactive=0
+# If we're in a non-interactive shell, let's act accordingly
+if [ ! -t 1 ] ||
+	! tty > /dev/null 2>&1; then
+	non_interactive=1
+fi
+distrobox_host_exec_default_command="${SHELL:-/bin/sh}"
+host_spawn_version="v1.6.0"
+download_command=""
+sudo_command=""
+verbose=0
+version="1.8.1.2"
+
+# show_help will print usage to stdout.
+# Arguments:
+#   None
+# Expected global variables:
+#   version: distrobox version
+# Expected env variables:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help()
+{
+	cat << EOF
+distrobox version: ${version}
+
+Usage:
+
+	distrobox-host-exec [command [arguments]]
+	distrobox-host-exec ls
+	distrobox-host-exec bash -l
+	distrobox-host-exec flatpak run org.mozilla.firefox
+	distrobox-host-exec podman ps -a
+
+
+Options:
+
+	--help/-h:		show this message
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+	--yes/-Y:		Automatically answer yes to prompt:
+                                host-spawn will be installed on the guest system
+                                if host-spawn is not detected.
+                                This behaviour is default when running in a non-interactive shell.
+EOF
+}
+
+# If we're a symlink to a command, use that as command to exec, and skip arg parsing.
+if [ "$(basename "${0}")" != "distrobox-host-exec" ]; then
+	host_command="$(basename "${0}")"
+fi
+# Parse arguments
+if [ -z "${host_command}" ]; then
+	# Skip argument parsing if we're a symlink
+	while :; do
+		case $1 in
+			-h | --help)
+				# Call a "show_help" function to display a synopsis, then exit.
+				show_help
+				exit 0
+				;;
+			-v | --verbose)
+				verbose=1
+				shift
+				;;
+			-V | --version)
+				printf "distrobox: %s\n" "${version}"
+				printf "host-spawn: %s\n" "${host_spawn_version}"
+				exit 0
+				;;
+			-Y | --yes)
+				non_interactive=1
+				shift
+				;;
+			--) # End of all options.
+				shift
+				;;
+			-*) # Invalid options.
+				printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+				show_help
+				exit 1
+				;;
+			*)
+				if [ -n "$1" ]; then
+					host_command=$1
+					shift
+				fi
+				break
+				;;
+		esac
+	done
+fi
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+# Check we're running inside a container and not on the host
+if [ ! -f /run/.containerenv ] && [ ! -f /.dockerenv ] && [ -z "${container:-}" ]; then
+	printf >&2 "You must run %s inside a container!\n" " $(basename "$0")"
+	exit 126
+fi
+
+if [ -z "${host_command}" ]; then
+	host_command="${distrobox_host_exec_default_command}"
+fi
+
+if [ "$(id -ru)" -ne 0 ]; then
+	if command -v sudo 2> /dev/null > /dev/null; then
+		sudo_command="sudo"
+	else
+		sudo_command="su -l -c"
+	fi
+fi
+
+if  command -v curl > /dev/null 2>&1; then
+	download_command="curl -sLfo"
+elif  command -v wget > /dev/null 2>&1; then
+	download_command="wget -qO"
+fi
+
+# Normalize architecture name to comply to golang/release naming
+architecture="$(uname -m)"
+if echo "${architecture}" | grep -q armv; then
+	architecture="$(echo "${architecture}" | grep -Eo "armv[0-9]+")"
+fi
+
+# Setup host-spawn as a way to execute commands back on the host
+if ! command -v host-spawn > /dev/null ||
+	[ "$(printf "%s\n%s\n" "${host_spawn_version}" "$(host-spawn --version)" |
+		sort -V | head -n 1)" != "${host_spawn_version}" ]; then
+
+	# if non-interactive flag flag hasn't been set
+	if [ "${non_interactive}" -eq 0 ]; then
+		# Prompt to download it.
+		printf "Warning: host-spawn not found or version is too old!\n"
+		printf "Do you want to install host-spawn utility? [Y/n] "
+		read -r response
+		response=${response:-"Y"}
+	else
+		response="yes"
+	fi
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response}" in
+		y | Y | Yes | yes | YES)
+			# Download matching version with current distrobox
+			if ! ${download_command} /tmp/host-spawn \
+				"https://github.com/1player/host-spawn/releases/download/${host_spawn_version}/host-spawn-${architecture}"; then
+
+				printf "Error: Cannot download host-spawn\n"
+				exit 1
+			fi
+			if [ -e /tmp/host-spawn ]; then
+				${sudo_command} sh -c "mv /tmp/host-spawn /usr/bin/"
+				${sudo_command} sh -c "chmod +x /usr/bin/host-spawn"
+			fi
+			;;
+		n | N | No | no | NO)
+			printf "Installation aborted, please install host-spawn.\n"
+			exit 0
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			exit 1
+			;;
+	esac
+
+fi
+
+# This makes host-spawn work on initful containers, where the dbus session is
+# separate from the host, we point the dbus session straight to the host's socket
+# in order to talk with the org.freedesktop.Flatpak.Development.HostCommand on the host
+[ -z "${XDG_RUNTIME_DIR:-}" ] && XDG_RUNTIME_DIR="/run/user/$(id -ru)"
+[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -ru)/bus"
+XDG_RUNTIME_DIR="/run/host/${XDG_RUNTIME_DIR}"
+DBUS_SESSION_BUS_ADDRESS="unix:path=/run/host/$(echo "${DBUS_SESSION_BUS_ADDRESS}" | cut -d '=' -f2-)"
+
+###
+# This workaround is needed because of a bug in gio (used by xdg-open) where
+# a race condition happens when allocating a pty, leading to the command
+# being killed before having time to be executed.
+#
+# https://gitlab.gnome.org/GNOME/glib/-/issues/2695
+# https://github.com/1player/host-spawn/issues/7
+#
+# As an (ugly) workaround, we will not allocate a pty for those commands.
+###
+# Also, we don't initialize a pty, if we're not in a tty.
+if [ "$(basename "${host_command}")" = "xdg-open" ] ||
+	[ "$(basename "${host_command}")" = "gio" ] ||
+	[ "$(basename "${host_command}")" = "flatpak" ] ||
+	[ ! -t 1 ] ||
+	! tty > /dev/null 2>&1; then
+
+	host-spawn --no-pty "${host_command}" "$@"
+	# Exit here, we don't continue execution
+	exit $?
+fi
+
+host-spawn "${host_command}" "$@"
+# Exit here, we don't continue execution
+exit $?
