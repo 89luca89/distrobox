@@ -73,7 +73,7 @@ func beforeAction(ctx context.Context, cmd *cli.Command) (context.Context, error
 	case "docker":
 		containerManager = providers.NewDocker(root, sudoCommand, verbose)
 	default:
-		containerManager = providers.NewDocker(root, sudoCommand, verbose)
+		return nil, fmt.Errorf("unsupported container manager: %s", containerManagerType)
 	}
 
 	return context.WithValue(ctx, contextKey("containerManager"), containerManager), nil
