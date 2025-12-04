@@ -13,6 +13,30 @@ type Container struct {
 	Labels map[string]string
 }
 
+type CreateOptions struct {
+	ContainerName           string
+	ContainerImage          string
+	ContainerClone          string
+	ContainerUserCustomHome string
+	ContainerHostname       string
+	ContainerPlatform       string
+	ContainerUserHome       string
+	Nopasswd                bool
+	UnshareDevsys           bool
+	UnshareGroups           bool
+	UnshareIPC              bool
+	UnshareNetNS            bool
+	UnshareProcess          bool
+	AdditionalFlags         []string
+	AdditionalVolumes       []string
+	AdditionalPackages      []string
+	ContainerPreInitHook    string
+	ContainerInitHook       string
+	Init                    bool
+	Nvidia                  bool
+	DryRun                  bool
+}
+
 func (c Container) IsDistrobox() bool {
 	return c.Labels["manager"] == "distrobox"
 }
@@ -27,4 +51,5 @@ type ContanerManagerType string
 type ContainerManager interface {
 	Name() string
 	ListContainers(ctx context.Context) ([]Container, error)
+	Create(ctx context.Context, opts CreateOptions) error
 }
