@@ -23,6 +23,7 @@ var ErrHostnameTooLong = fmt.Errorf("hostname too long, must be less than %d cha
 
 type CreateCommand struct {
 	containerManager containermanager.ContainerManager
+	generateEntryCmd *GenerateEntryCommand
 }
 
 type CreateOptions struct {
@@ -61,11 +62,15 @@ type CreateOptions struct {
 
 	Nvidia bool
 	DryRun bool
+
+	GenerateEntry bool
+	Rootful       bool
 }
 
 func NewCreateCommand(cm containermanager.ContainerManager) *CreateCommand {
 	return &CreateCommand{
 		containerManager: cm,
+		generateEntryCmd: NewGenerateEntryCommand(NewListCommand(cm)),
 	}
 }
 
@@ -178,8 +183,17 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 		return fmt.Errorf("failed to create container: %w", err)
 	}
 
-	// TODO: generate-entry
-	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L1066
+	if opts.GenerateEntry && !opts.DryRun && !opts.Rootful {
+		err := c.generateEntryCmd.Execute(
+			ctx,
+			&GenerateEntryOptions{
+				ContainerName: containerName,
+			},
+		)
+		if err != nil {
+			return fmt.Errorf("failed to generate entry for container %s: %w", containerName, err)
+		}
+	}
 
 	return nil
 }

@@ -204,6 +204,8 @@ func createAction(ctx context.Context, cmd *cli.Command) error {
 		ContainerPreInitHook:    cmd.String("pre-init-hooks"),
 		ContainerPlatform:       cmd.String("platform"),
 		DryRun:                  cmd.Bool("dry-run"),
+		GenerateEntry:           !cmd.Bool("no-entry"),
+		Rootful:                 cmd.Bool("root"),
 	}
 
 	createCmd := commands.NewCreateCommand(containerManager)
