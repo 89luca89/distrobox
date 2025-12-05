@@ -8,15 +8,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/89luca89/distrobox/internal/config"
 )
 
 //go:embed assets/desktop_entry.toml.tmpl
 var desktopEntryTmpl string
 
 const (
-	defaultContainerName   = "my-distrobox"
-	defaultEntryIcon       = "https://raw.githubusercontent.com/89luca89/distrobox/main/icons/terminal-distrobox-icon.svg"
-	defaultContainerDistro = "terminal-distrobox-icon"
+	defaultContainerName = "my-distrobox"
+	defaultEntryIcon     = "https://raw.githubusercontent.com/89luca89/distrobox/main/icons/terminal-distrobox-icon.svg"
 )
 
 type GenerateEntryOptions struct {
@@ -70,19 +71,37 @@ func (c *GenerateEntryCommand) Execute(
 		icon = opts.Icon
 	}
 
+	// Determine the desktop entry base dir
+	desktopEntryBaseDir := opts.DesktopEntryBaseDir
+	if desktopEntryBaseDir == "" {
+		desktopEntryBaseDir = config.GetDesktopEntryDir()
+	}
+
 	if opts.Delete {
 		// Delete the desktop entries for all the containers
 		for _, containerName := range containerNames {
-			if err := c.deleteEntry(containerName, opts.DesktopEntryBaseDir); err != nil {
+			if err := c.deleteEntry(containerName, desktopEntryBaseDir); err != nil {
 				return fmt.Errorf("failed to delete desktop entry for container %s: %w", containerName, err)
 			}
 		}
-	} else {
-		// Create the desktop entries for all the containers
-		for _, containerName := range containerNames {
-			if err := c.createEntry(containerName, icon, opts.DesktopEntryBaseDir, opts.DistroboxPath, opts.Root); err != nil {
-				return fmt.Errorf("failed to create desktop entry for container %s: %w", containerName, err)
-			}
+
+		return nil
+	}
+
+	// Determine DistroboxPath
+	distroboxPath := opts.DistroboxPath
+	if distroboxPath == "" {
+		p, err := config.GetDistroboxPath()
+		if err != nil {
+			return fmt.Errorf("cannot read distrobox path, %w", err)
+		}
+		distroboxPath = p
+	}
+
+	// Create the desktop entries for all the containers
+	for _, containerName := range containerNames {
+		if err := c.createEntry(containerName, icon, desktopEntryBaseDir, distroboxPath, opts.Root); err != nil {
+			return fmt.Errorf("failed to create desktop entry for container %s: %w", containerName, err)
 		}
 	}
 
