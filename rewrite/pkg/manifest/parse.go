@@ -12,8 +12,6 @@ import (
 )
 
 type Item struct {
-	// ID is the unique identifier of the distrobox
-	ID                 string
 	Name               string
 	AdditionalFlags    []string
 	AdditionalPackages []string
@@ -239,7 +237,7 @@ func parseManifest(file io.Reader, size int) ([]Item, error) {
 				items = append(items, *currentItem)
 			}
 
-			currentItem = &Item{ID: sectionName}
+			currentItem = &Item{Name: sectionName}
 			continue
 		}
 
@@ -309,8 +307,6 @@ func stripComment(s string) string {
 //nolint:funlen // reason: straightforward mapping
 func putValue(item *Item, key, value string) {
 	switch key {
-	case "id":
-		item.ID = value
 	case "name":
 		item.Name = value
 	case "image":
