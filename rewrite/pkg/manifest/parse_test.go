@@ -31,7 +31,7 @@ start_now=true
 
 	assert.Len(t, parsed, 1)
 
-	assert.Equal(t, "distrodev", parsed[0].ID)
+	assert.Equal(t, "distrodev", parsed[0].Name)
 	assert.Equal(t, "ubuntu:24.04", parsed[0].Image)
 	assert.True(t, parsed[0].Pull)
 	assert.False(t, parsed[0].Init)
@@ -141,7 +141,7 @@ nvidia=true
 
 	// check ubuntu-nvidia
 	ubuntuNvidia := parsed[2]
-	assert.Equal(t, "ubuntu-nvidia", ubuntuNvidia.ID)
+	assert.Equal(t, "ubuntu-nvidia", ubuntuNvidia.Name)
 	assert.Equal(t, "ubuntu:latest", ubuntuNvidia.Image)
 	assert.True(t, ubuntuNvidia.Nvidia)
 
@@ -154,7 +154,7 @@ nvidia=true
 
 	// check distrodev
 	distrodev := parsed[0]
-	assert.Equal(t, "distrodev", distrodev.ID)
+	assert.Equal(t, "distrodev", distrodev.Name)
 	assert.Equal(t, "ubuntu:24.04", distrodev.Image)
 	assert.True(t, distrodev.Pull)
 	assert.False(t, distrodev.Init)
@@ -172,4 +172,42 @@ nvidia=true
 		"curl -L -o /usr/local/bin/shell-funcheck https://github.com/89luca89/shell-funcheck/releases/download/v0.0.1/shell-funcheck-amd64 && chmod +x /usr/local/bin/shell-funcheck",
 	}
 	assert.Equal(t, expectedDistrodevHooks, distrodev.InitHooks)
+}
+
+func TestManifest_ParsePreserveIncludeOrder(t *testing.T) {
+	rawManifest := `
+[ubuntu22]
+image=ubuntu:22.04
+pull=true
+root=true
+
+[ubuntu24]
+pull=false # this will be overridden by the include
+include=ubuntu22
+image=ubuntu:22.04 # this will override the included image
+`
+
+	manifestPath := t.TempDir() + "/manifest.ini"
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
+	require.NoError(t, err)
+
+	parsed, err := manifest.Parse(manifestPath)
+	require.NoError(t, err)
+	assert.NotNil(t, parsed)
+
+	assert.Len(t, parsed, 2)
+
+	// Check ubuntu22
+	ubuntu22 := parsed[0]
+	assert.Equal(t, "ubuntu22", ubuntu22.Name)
+	assert.Equal(t, "ubuntu:22.04", ubuntu22.Image)
+	assert.True(t, ubuntu22.Pull)
+	assert.True(t, ubuntu22.Root)
+
+	// Check ubuntu24
+	ubuntu24 := parsed[1]
+	assert.Equal(t, "ubuntu24", ubuntu24.Name)
+	assert.Equal(t, "ubuntu:22.04", ubuntu24.Image)
+	assert.True(t, ubuntu24.Pull)
+	assert.True(t, ubuntu24.Root)
 }
