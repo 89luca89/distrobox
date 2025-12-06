@@ -861,7 +861,7 @@ func buildCommandArgs(customCommand string, user string, noTTY bool, unshareGrou
 }
 
 func (d *Docker) startContainer(ctx context.Context, containerName string) error {
-	logTimestamp := time.Now().UTC().Format("2006-01-02T15:04:05.000000000+00:00")
+	logTimestamp := timestampNow()
 
 	// Start the container
 	_, err := d.run(ctx, []string{"start", containerName}, runOptions{Interactive: true})
@@ -913,11 +913,13 @@ func (d *Docker) waitForSetup(ctx context.Context, containerName string, since s
 		}
 
 		// Get logs
+		nextSince := timestampNow()
 		output, err := d.run(ctx, []string{"logs", "--since", since, containerName}, runOptions{})
 		if err != nil {
 			time.Sleep(100 * time.Millisecond) //nolint:mnd // TODO refactor sleeps
 			continue
 		}
+		since = nextSince
 
 		lines := strings.Split(output, "\n")
 		for _, line := range lines {
@@ -949,4 +951,8 @@ func (d *Docker) waitForSetup(ctx context.Context, containerName string, since s
 
 		time.Sleep(500 * time.Millisecond) //nolint:mnd // TODO refactor sleeps
 	}
+}
+
+func timestampNow() string {
+	return time.Now().UTC().Format("2006-01-02T15:04:05.000000000+00:00")
 }
