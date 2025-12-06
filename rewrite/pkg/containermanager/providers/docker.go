@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -417,15 +418,15 @@ func (d *Docker) makeCreateCommand(
 	}
 	args := []string{
 		"--verbose",
-		"--name", containerName,
+		"--name", containerUserName,
 		"--user", containerUserUID,
 		"--group", containerUserGID,
 		"--home", homeToUse,
-		"--init", fmt.Sprintf("\"%d\"", btoi(init)),
-		"--nvidia", fmt.Sprintf("\"%d\"", btoi(nvidia)),
+		"--init", strconv.Itoa(btoi(init)),
+		"--nvidia", strconv.Itoa(btoi(nvidia)),
 		"--pre-init-hooks", containerPreInitHook,
 		"--additional-packages", strings.Join(containerAdditionalPackages, " "),
-		"--", fmt.Sprintf("'%s'", containerInitHook),
+		"--", containerInitHook,
 	}
 
 	// Final assembly of the command
@@ -442,22 +443,18 @@ func (d *Docker) makeCreateCommand(
 
 func (d *Docker) run(ctx context.Context, args []string, opts runOptions) (string, error) {
 	command := "docker"
-
-	// Empty elements are considered as positional argument by exec.Command
-	cleanArgs := stripEmpty(args)
 	if d.root {
+		args = append([]string{command}, args...)
 		command = d.sudoCommand
-		cleanArgs = append([]string{"docker"}, cleanArgs...)
 	}
 
 	if opts.DryRun {
-		fullCmd := fmt.Sprintf("%s %s", command, strings.Join(cleanArgs, " "))
 		//nolint:forbidigo // Print command in dry-run mode
-		fmt.Println(fullCmd)
+		fmt.Println(command, strings.Join(args, " "))
 		return "", nil
 	}
 
-	cmd := exec.CommandContext(ctx, command, cleanArgs...)
+	cmd := exec.CommandContext(ctx, command, args...)
 
 	if opts.Interactive {
 		cmd.Stdout = os.Stdout
@@ -485,6 +482,7 @@ func (d *Docker) run(ctx context.Context, args []string, opts runOptions) (strin
 	}
 	return stdout.String(), nil
 }
+
 func (d *Docker) Enter(
 	ctx context.Context,
 	options containermanager.EnterOptions,
@@ -582,16 +580,6 @@ func btoi(b bool) int {
 		return 1
 	}
 	return 0
-}
-
-func stripEmpty(a []string) []string {
-	newArr := make([]string, 0, len(a))
-	for _, str := range a {
-		if str != "" {
-			newArr = append(newArr, str)
-		}
-	}
-	return newArr
 }
 
 func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*InspectResult, error) {
