@@ -1,6 +1,8 @@
 package manifest_test
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -25,7 +27,7 @@ start_now=true
 	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
 	require.NoError(t, err)
 
-	parsed, err := manifest.Parse(manifestPath)
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
 	require.NoError(t, err)
 	assert.NotNil(t, parsed)
 
@@ -49,7 +51,7 @@ unknown_key=true
 	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
 	require.NoError(t, err)
 
-	parsed, err := manifest.Parse(manifestPath)
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
 	require.NoError(t, err)
 	assert.NotNil(t, parsed)
 
@@ -63,7 +65,7 @@ func TestManifest_ParseEmptyManifest(t *testing.T) {
 	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
 	require.NoError(t, err)
 
-	parsed, err := manifest.Parse(manifestPath)
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
 	require.NoError(t, err)
 	assert.NotNil(t, parsed)
 
@@ -80,7 +82,7 @@ image=ubuntu:24.04
 	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
 	require.NoError(t, err)
 
-	parsed, err := manifest.Parse(manifestPath)
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
 	require.Error(t, err)
 	assert.Nil(t, parsed)
 }
@@ -96,7 +98,7 @@ image=ubuntu:24.04
 	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
 	require.NoError(t, err)
 
-	parsed, err := manifest.Parse(manifestPath)
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
 	require.Error(t, err)
 	assert.Nil(t, parsed)
 }
@@ -133,7 +135,7 @@ nvidia=true
 	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
 	require.NoError(t, err)
 
-	parsed, err := manifest.Parse(manifestPath)
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
 	require.NoError(t, err)
 	assert.NotNil(t, parsed)
 
@@ -191,7 +193,7 @@ image=ubuntu:22.04 # this will override the included image
 	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
 	require.NoError(t, err)
 
-	parsed, err := manifest.Parse(manifestPath)
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
 	require.NoError(t, err)
 	assert.NotNil(t, parsed)
 
@@ -210,4 +212,46 @@ image=ubuntu:22.04 # this will override the included image
 	assert.Equal(t, "ubuntu:22.04", ubuntu24.Image)
 	assert.True(t, ubuntu24.Pull)
 	assert.True(t, ubuntu24.Root)
+}
+
+func TestManifest_ParseFromUrl(t *testing.T) {
+	rawManifest := `
+[distrodev]
+ #comment line
+image=ubuntu:24.04
+pull=true #comment
+init=false
+
+start_now=true
+`
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(rawManifest))
+	}))
+	defer server.Close()
+	fileURL := server.URL + "/manifest.ini" // any file name will do
+
+	parsed, err := manifest.Parse(t.Context(), fileURL)
+	require.NoError(t, err)
+	assert.NotNil(t, parsed)
+
+	assert.Len(t, parsed, 1)
+
+	assert.Equal(t, "distrodev", parsed[0].Name)
+	assert.Equal(t, "ubuntu:24.04", parsed[0].Image)
+	assert.True(t, parsed[0].Pull)
+	assert.False(t, parsed[0].Init)
+	assert.True(t, parsed[0].StartNow)
+}
+
+func TestManifest_ParseFromUrlServerError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+	fileURL := server.URL + "/manifest.ini" // any file name will do
+
+	_, err := manifest.Parse(t.Context(), fileURL)
+	require.Error(t, err)
 }

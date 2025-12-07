@@ -3,9 +3,12 @@ package manifest
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
 	"slices"
 	"strings"
@@ -39,7 +42,19 @@ type Item struct {
 	ExportedBinsPath   string
 }
 
-func Parse(filepath string) ([]Item, error) {
+// Parse reads and parses a manifest file from the given filepath or URL.
+// It supports 'include=' directives to include sections within the same file.
+// Returns a slice of Item structs representing each section in the manifest.
+func Parse(ctx context.Context, filepath string) ([]Item, error) {
+	if isURL(filepath) {
+		var err error
+		filepath, err = fetchIntoTempFile(ctx, filepath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch manifest from URL: %w", err)
+		}
+		defer os.Remove(filepath)
+	}
+
 	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open manifest file: %w", err)
@@ -365,4 +380,44 @@ func putValue(item *Item, key, value string) {
 
 func atob(value string) bool {
 	return value == "true" || value == "1"
+}
+
+// fetchIntoTempFile fetches the content
+// and saves it to a temporary file, returning the file path.
+func fetchIntoTempFile(ctx context.Context, fileURL string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fileURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch URL: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to fetch URL: status %d", resp.StatusCode)
+	}
+
+	tmpFile, err := os.CreateTemp("", "distribox-manifest-fetched-*")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file: %w", err)
+	}
+	defer tmpFile.Close()
+
+	if _, err := io.Copy(tmpFile, resp.Body); err != nil {
+		_ = os.Remove(tmpFile.Name()) // Cleanup on error
+		return "", fmt.Errorf("failed to write content: %w", err)
+	}
+
+	return tmpFile.Name(), nil
+}
+
+func isURL(s string) bool {
+	u, err := url.Parse(s)
+	if err != nil {
+		return false
+	}
+
+	return u.Scheme != "" && u.Host != ""
 }
