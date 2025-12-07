@@ -89,7 +89,7 @@ func assembleAction(ctx context.Context, cmd *cli.Command, deleteFlag bool) erro
 		manifestFilePath = "./distrobox.ini"
 	}
 
-	manifest, err := manifest.Parse(manifestFilePath)
+	manifest, err := manifest.Parse(ctx, manifestFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to parse manifest file: %w", err)
 	}
