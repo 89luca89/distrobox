@@ -218,6 +218,10 @@ func createAction(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("create command failed: %w", err)
 	}
 
+	if !opts.DryRun {
+		printCreateCompleted(progress, opts.ContainerName, opts.Rootful)
+	}
+
 	return nil
 }
 
@@ -225,4 +229,15 @@ func showCompatibility() error {
 	// TODO: fetch compatibility
 	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L254
 	return nil
+}
+
+func printCreateCompleted(progress *ui.Progress, containerName string, rootful bool) {
+	rootFlag := ""
+	if rootful {
+		rootFlag = "--root "
+	}
+
+	msg := "Distrobox '%s' successfully created.\nTo enter, run:\n\ndistrobox enter %s%s\n\n"
+
+	progress.Finalize(msg, containerName, rootFlag, containerName)
 }
