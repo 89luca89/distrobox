@@ -1,12 +1,15 @@
 package cli
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/urfave/cli/v3"
 
+	"github.com/89luca89/distrobox/internal/prompt"
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/manifest"
@@ -105,7 +108,9 @@ func assembleAction(ctx context.Context, cmd *cli.Command, deleteFlag bool) erro
 		opts.Replace = cmd.Bool("replace")
 	}
 
-	assembleCmd := commands.NewAssembleCommand(containerManager)
+	prompter := prompt.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
+
+	assembleCmd := commands.NewAssembleCommand(containerManager, prompter)
 
 	err = assembleCmd.Execute(ctx, opts)
 	if err != nil {
