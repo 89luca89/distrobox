@@ -3,6 +3,8 @@ package containermanager
 import (
 	"context"
 	"strings"
+
+	"github.com/89luca89/distrobox/internal/prompt"
 )
 
 type Container struct {
@@ -46,6 +48,13 @@ type EnterOptions struct {
 	Verbose         bool
 }
 
+type RmOptions struct {
+	NoTTY      bool
+	Force      bool
+	All        bool
+	RemoveHome bool
+}
+
 func (c Container) IsDistrobox() bool {
 	return c.Labels["manager"] == "distrobox"
 }
@@ -62,4 +71,5 @@ type ContainerManager interface {
 	Enter(ctx context.Context, options EnterOptions) error
 	ListContainers(ctx context.Context) ([]Container, error)
 	Create(ctx context.Context, opts CreateOptions) error
+	Remove(ctx context.Context, containerName string, opts RmOptions, prompter prompt.Prompter) error
 }
