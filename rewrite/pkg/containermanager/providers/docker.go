@@ -15,6 +15,7 @@ import (
 	"time"
 
 	insidedistrobox "github.com/89luca89/distrobox/internal/inside-distrobox"
+	"github.com/89luca89/distrobox/internal/prompt"
 	"github.com/89luca89/distrobox/internal/userenv"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 )
@@ -511,6 +512,53 @@ func (d *Docker) Enter(
 	}
 
 	_, _ = d.run(ctx, append(command, commandArgs...), runOptions{Interactive: !options.NoTTY})
+
+	return nil
+}
+
+func (d *Docker) Remove(
+	ctx context.Context,
+	containerName string,
+	options containermanager.RmOptions,
+	prompter prompt.Prompter,
+) error {
+	userEnv := userenv.LoadUserEnvironment(ctx)
+	userHome := userEnv.Home
+
+	inspectOutput, err := d.InspectContainer(ctx, containerName)
+	if err != nil {
+		return fmt.Errorf("error inspecting the container: %w", err)
+	}
+
+	removeHome := false
+	if inspectOutput.ContainerHome != userHome && !options.NoTTY {
+		question := fmt.Sprintf(
+			"Do you really want to remove custom home of container %s (%s)?",
+			containerName,
+			inspectOutput.ContainerHome,
+		)
+		answer := prompter.Prompt(question, false)
+		removeHome = answer
+	}
+
+	args := []string{"rm"}
+	if options.Force {
+		args = append(args, "--force")
+	}
+
+	args = append(args, []string{"--volumes", containerName}...)
+
+	_, err = d.run(ctx, args, runOptions{})
+	if err != nil {
+		return fmt.Errorf("error removing the container: %w", err)
+	}
+
+	if removeHome {
+		err = os.RemoveAll(inspectOutput.ContainerHome)
+		if err != nil {
+			return fmt.Errorf("error removing home directory %s: %w", inspectOutput.ContainerHome, err)
+		}
+	}
 
 	return nil
 }
