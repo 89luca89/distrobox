@@ -47,19 +47,18 @@ func rmAction(ctx context.Context, cmd *cli.Command) error {
 		return errors.New("container manager not found in context")
 	}
 
-	options := containermanager.RmOptions{
-		NoTTY:      cmd.Bool("yes"),
-		Force:      cmd.Bool("force"),
-		All:        cmd.Bool("all"),
-		RemoveHome: cmd.Bool("rm-home"),
+	options := commands.RmOptions{
+		NoTTY:          cmd.Bool("yes"),
+		Force:          cmd.Bool("force"),
+		All:            cmd.Bool("all"),
+		RemoveHome:     cmd.Bool("rm-home"),
+		ContainerNames: cmd.Args().Slice(),
 	}
-
-	removedContainers := cmd.Args().Slice()
 
 	prompter := prompt.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	rmCmd := commands.NewRmCommand(containerManager, options, prompter)
-	_, err := rmCmd.Execute(ctx, removedContainers)
+	rmCmd := commands.NewRmCommand(containerManager, prompter)
+	_, err := rmCmd.Execute(ctx, options)
 	if err != nil {
 		return fmt.Errorf("failed to execute rm command: %w", err)
 	}
