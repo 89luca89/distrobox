@@ -2,12 +2,12 @@ package commands
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
 	"slices"
 	"strings"
 
+	"github.com/89luca89/distrobox/internal/prompt"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/manifest"
 )
@@ -29,12 +29,14 @@ type AssembleOptions struct {
 type AssembleCommand struct {
 	containermanager containermanager.ContainerManager
 	createCmd        *CreateCommand
+	rmCmd            *RmCommand
 }
 
-func NewAssembleCommand(cm containermanager.ContainerManager) *AssembleCommand {
+func NewAssembleCommand(cm containermanager.ContainerManager, prompter prompt.Prompter) *AssembleCommand {
 	return &AssembleCommand{
 		containermanager: cm,
 		createCmd:        NewCreateCommand(cm),
+		rmCmd:            NewRmCommand(cm, prompter),
 	}
 }
 
@@ -72,12 +74,29 @@ func (ac *AssembleCommand) Execute(ctx context.Context, opts AssembleOptions) er
 	return nil
 }
 
-func (ac *AssembleCommand) deleteItem(_ context.Context, _ manifest.Item, _ bool) error {
-	return errors.New("rm not implemented yet")
+func (ac *AssembleCommand) deleteItem(ctx context.Context, item manifest.Item, dryRun bool) error {
+	opts := RmOptions{
+		NoTTY:          dryRun,
+		Force:          true,
+		All:            false,
+		RemoveHome:     false,
+		ContainerNames: []string{item.Name},
+	}
+
+	_, err := ac.rmCmd.Execute(ctx, opts)
+	if err != nil {
+		return fmt.Errorf("failed to execute delete item '%s': %w", item.Name, err)
+	}
+	return nil
 }
 
-func (ac *AssembleCommand) replaceItem(_ context.Context, _ manifest.Item, _ bool) error {
-	return errors.New("replace not implemented yet")
+func (ac *AssembleCommand) replaceItem(ctx context.Context, item manifest.Item, dryRun bool) error {
+	err := ac.deleteItem(ctx, item, dryRun)
+	if err != nil {
+		return err
+	}
+
+	return ac.createItem(ctx, item, dryRun)
 }
 
 func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, dryRun bool) error {
