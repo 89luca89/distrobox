@@ -18,6 +18,7 @@ type RmCommand struct {
 	containerManager containermanager.ContainerManager
 	options          containermanager.RmOptions
 	prompter         prompt.Prompter
+	listCmd          *ListCommand
 }
 
 func NewRmCommand(
@@ -29,16 +30,17 @@ func NewRmCommand(
 		containerManager: cm,
 		options:          options,
 		prompter:         prompter,
+		listCmd:          NewListCommand(cm),
 	}
 }
 
 func (c *RmCommand) Execute(ctx context.Context, containerNames []string) (*RmResult, error) {
-	containers, err := c.containerManager.ListContainers(ctx)
+	listResult, err := c.listCmd.Execute(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed while listing contaiers: %w", err)
 	}
 
-	distroboxesToRemove := getContainersToRemove(containers, containerNames, c.options.All)
+	distroboxesToRemove := getContainersToRemove(listResult.Containers, containerNames, c.options.All)
 
 	var removedDistroboxes []containermanager.Container
 	for _, currentDistrobox := range distroboxesToRemove {
