@@ -16,35 +16,40 @@ type RmResult struct {
 
 type RmCommand struct {
 	containerManager containermanager.ContainerManager
-	options          containermanager.RmOptions
-	prompter         prompt.Prompter
 	listCmd          *ListCommand
+	prompter         prompt.Prompter
+}
+
+type RmOptions struct {
+	NoTTY          bool
+	Force          bool
+	All            bool
+	RemoveHome     bool
+	ContainerNames []string
 }
 
 func NewRmCommand(
 	cm containermanager.ContainerManager,
-	options containermanager.RmOptions,
 	prompter prompt.Prompter,
 ) *RmCommand {
 	return &RmCommand{
 		containerManager: cm,
-		options:          options,
-		prompter:         prompter,
 		listCmd:          NewListCommand(cm),
+		prompter:         prompter,
 	}
 }
 
-func (c *RmCommand) Execute(ctx context.Context, containerNames []string) (*RmResult, error) {
+func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, error) {
 	listResult, err := c.listCmd.Execute(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed while listing contaiers: %w", err)
 	}
 
-	distroboxesToRemove := getContainersToRemove(listResult.Containers, containerNames, c.options.All)
+	distroboxesToRemove := getContainersToRemove(listResult.Containers, options.ContainerNames, options.All)
 
 	var removedDistroboxes []containermanager.Container
 	for _, currentDistrobox := range distroboxesToRemove {
-		err := c.removeContainer(ctx, currentDistrobox, c.options)
+		err := c.removeContainer(ctx, currentDistrobox, options)
 		if err != nil {
 			//nolint:forbidigo // waiting for the logger implementation
 			fmt.Printf("error deleting %s: %s", currentDistrobox.Name, err)
@@ -58,7 +63,7 @@ func (c *RmCommand) Execute(ctx context.Context, containerNames []string) (*RmRe
 func (c *RmCommand) removeContainer(
 	ctx context.Context,
 	container containermanager.Container,
-	options containermanager.RmOptions,
+	options RmOptions,
 ) error {
 	if strings.Contains(container.Status, "Up") && !options.NoTTY && !options.Force {
 		if c.prompter.Prompt("Container is running, do you want to delete it?", false) {
@@ -73,7 +78,13 @@ func (c *RmCommand) removeContainer(
 		return nil
 	}
 
-	err := c.containerManager.Remove(ctx, container.Name, options, c.prompter)
+	cmOptions := containermanager.RmOptions{
+		NoTTY:      options.NoTTY,
+		Force:      options.Force,
+		All:        options.All,
+		RemoveHome: options.RemoveHome,
+	}
+	err := c.containerManager.Remove(ctx, container.Name, cmOptions, c.prompter)
 	if err != nil {
 		return fmt.Errorf("failed to remove container: %w", err)
 	}
