@@ -12,7 +12,7 @@ import (
 	"github.com/89luca89/distrobox/pkg/manifest"
 )
 
-func TestManifest_ParseSimple(t *testing.T) {
+func TestParse_Simple(t *testing.T) {
 	rawManifest := `
 [distrodev]
  #comment line
@@ -24,7 +24,7 @@ start_now=true
 `
 
 	manifestPath := t.TempDir() + "/manifest.ini"
-	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
 	require.NoError(t, err)
 
 	parsed, err := manifest.Parse(t.Context(), manifestPath)
@@ -40,7 +40,7 @@ start_now=true
 	assert.True(t, parsed[0].StartNow)
 }
 
-func TestManifest_ParseSkipUnknownKeys(t *testing.T) {
+func TestParse_SkipUnknownKeys(t *testing.T) {
 	rawManifest := `
 [distrodev]
 image=ubuntu:24.04
@@ -48,7 +48,7 @@ unknown_key=true
 `
 
 	manifestPath := t.TempDir() + "/manifest.ini"
-	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
 	require.NoError(t, err)
 
 	parsed, err := manifest.Parse(t.Context(), manifestPath)
@@ -58,11 +58,11 @@ unknown_key=true
 	assert.Len(t, parsed, 1)
 }
 
-func TestManifest_ParseEmptyManifest(t *testing.T) {
+func TestParse_EmptyManifest(t *testing.T) {
 	rawManifest := ``
 
 	manifestPath := t.TempDir() + "/manifest.ini"
-	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
 	require.NoError(t, err)
 
 	parsed, err := manifest.Parse(t.Context(), manifestPath)
@@ -72,14 +72,14 @@ func TestManifest_ParseEmptyManifest(t *testing.T) {
 	assert.Empty(t, parsed)
 }
 
-func TestManifest_ParseInvalidManifest(t *testing.T) {
+func TestParse_InvalidManifest(t *testing.T) {
 	rawManifest := `
 [distrodev
 image=ubuntu:24.04
 `
 
 	manifestPath := t.TempDir() + "/manifest.ini"
-	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
 	require.NoError(t, err)
 
 	parsed, err := manifest.Parse(t.Context(), manifestPath)
@@ -87,7 +87,7 @@ image=ubuntu:24.04
 	assert.Nil(t, parsed)
 }
 
-func TestManifest_ParseInvalidManifestValueOutsideSection(t *testing.T) {
+func TestParse_InvalidManifestValueOutsideSection(t *testing.T) {
 	rawManifest := `
 pull=true
 [distrodev]
@@ -95,7 +95,7 @@ image=ubuntu:24.04
 `
 
 	manifestPath := t.TempDir() + "/manifest.ini"
-	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
 	require.NoError(t, err)
 
 	parsed, err := manifest.Parse(t.Context(), manifestPath)
@@ -103,7 +103,7 @@ image=ubuntu:24.04
 	assert.Nil(t, parsed)
 }
 
-func TestManifest_ParseWithInclude(t *testing.T) {
+func TestParse_WithInclude(t *testing.T) {
 	rawManifest := `
 [distrodev]
 image=ubuntu:24.04
@@ -132,7 +132,7 @@ nvidia=true
 `
 
 	manifestPath := t.TempDir() + "/manifest.ini"
-	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
 	require.NoError(t, err)
 
 	parsed, err := manifest.Parse(t.Context(), manifestPath)
@@ -176,7 +176,7 @@ nvidia=true
 	assert.Equal(t, expectedDistrodevHooks, distrodev.InitHooks)
 }
 
-func TestManifest_ParsePreserveIncludeOrder(t *testing.T) {
+func TestParse_PreserveIncludeOrder(t *testing.T) {
 	rawManifest := `
 [ubuntu22]
 image=ubuntu:22.04
@@ -190,7 +190,7 @@ image=ubuntu:22.04 # this will override the included image
 `
 
 	manifestPath := t.TempDir() + "/manifest.ini"
-	err := os.WriteFile(manifestPath, []byte(rawManifest), 0644)
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
 	require.NoError(t, err)
 
 	parsed, err := manifest.Parse(t.Context(), manifestPath)
@@ -245,7 +245,7 @@ start_now=true
 	assert.True(t, parsed[0].StartNow)
 }
 
-func TestManifest_ParseFromUrlServerError(t *testing.T) {
+func TestParse_FromUrlServerError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	}))
