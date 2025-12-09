@@ -7,9 +7,9 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/89luca89/distrobox/internal/prompt"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/manifest"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 type AssembleOptions struct {
@@ -30,13 +30,19 @@ type AssembleCommand struct {
 	containermanager containermanager.ContainerManager
 	createCmd        *CreateCommand
 	rmCmd            *RmCommand
+	progress         *ui.Progress
 }
 
-func NewAssembleCommand(cm containermanager.ContainerManager, prompter prompt.Prompter) *AssembleCommand {
+func NewAssembleCommand(
+	cm containermanager.ContainerManager,
+	prompter ui.Prompter,
+	progress *ui.Progress,
+) *AssembleCommand {
 	return &AssembleCommand{
 		containermanager: cm,
-		createCmd:        NewCreateCommand(cm),
+		createCmd:        NewCreateCommand(cm, ui.NewDevNullProgress()),
 		rmCmd:            NewRmCommand(cm, prompter),
+		progress:         progress,
 	}
 }
 
@@ -75,6 +81,7 @@ func (ac *AssembleCommand) Execute(ctx context.Context, opts AssembleOptions) er
 }
 
 func (ac *AssembleCommand) deleteItem(ctx context.Context, item manifest.Item, dryRun bool) error {
+	ac.progress.Next("Deleting %s...", item.Name)
 	opts := RmOptions{
 		NoTTY:          dryRun,
 		Force:          true,
@@ -85,8 +92,10 @@ func (ac *AssembleCommand) deleteItem(ctx context.Context, item manifest.Item, d
 
 	_, err := ac.rmCmd.Execute(ctx, opts)
 	if err != nil {
+		ac.progress.Fail()
 		return fmt.Errorf("failed to execute delete item '%s': %w", item.Name, err)
 	}
+	ac.progress.Done()
 	return nil
 }
 
@@ -100,6 +109,7 @@ func (ac *AssembleCommand) replaceItem(ctx context.Context, item manifest.Item, 
 }
 
 func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, dryRun bool) error {
+	ac.progress.Next("Creating %s...", item.Name)
 	opts := CreateOptions{
 		ContainerClone:          item.Clone,
 		ContainerName:           item.Name,
@@ -126,7 +136,13 @@ func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, d
 	// TODO: pull image if needed
 	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L1016
 
-	return ac.createCmd.Execute(ctx, opts)
+	err := ac.createCmd.Execute(ctx, opts)
+	if err != nil {
+		ac.progress.Fail()
+		return err
+	}
+	ac.progress.Done()
+	return nil
 }
 
 func (ac *AssembleCommand) joinHooks(hooks []string) string {

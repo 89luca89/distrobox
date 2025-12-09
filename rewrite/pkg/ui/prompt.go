@@ -1,4 +1,4 @@
-package prompt
+package ui
 
 import (
 	"bufio"

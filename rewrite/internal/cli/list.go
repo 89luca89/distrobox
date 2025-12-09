@@ -10,12 +10,7 @@ import (
 
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/containermanager"
-)
-
-const (
-	colorGreen  = "\033[32m"
-	colorYellow = "\033[33m"
-	colorReset  = "\033[0m"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 func newListCommand() *cli.Command {
@@ -51,24 +46,24 @@ func listAction(ctx context.Context, cmd *cli.Command) error {
 }
 
 func printResult(result *commands.ListResult, noColor bool) {
+	rowFormat := "%-12s | %-20s | %-18s | %-30s\n"
+
 	//nolint:forbidigo // Using fmt.Printf is acceptable here for CLI output
-	fmt.Printf("%-12s | %-20s | %-18s | %-30s\n",
-		"ID", "NAME", "STATUS", "IMAGE")
+	fmt.Printf(rowFormat, "ID", "NAME", "STATUS", "IMAGE")
 
 	for _, c := range result.Containers {
-		if noColor {
-			//nolint:forbidigo // Using fmt.Printf is acceptable here for CLI output
-			fmt.Printf("%-12s | %-20s | %-18s | %-30s\n",
-				c.ID, c.Name, c.Status, c.Image)
-		} else {
-			color := colorYellow
-			if c.IsRunning() {
-				color = colorGreen
-			}
-			//nolint:forbidigo // Using fmt.Printf is acceptable here for CLI output
-			fmt.Printf("%s%-12s | %-20s | %-18s | %-30s%s\n",
-				color, c.ID, c.Name, c.Status, c.Image, colorReset)
+		var line string
+		switch {
+		case noColor:
+			line = rowFormat
+		case c.IsRunning():
+			line = ui.Green(rowFormat)
+		default:
+			line = ui.Yellow(rowFormat)
 		}
+
+		//nolint:forbidigo // Using fmt.Printf is acceptable here for CLI output
+		fmt.Printf(line, c.ID, c.Name, c.Status, c.Image)
 	}
 }
 

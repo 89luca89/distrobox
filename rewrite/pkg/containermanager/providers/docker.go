@@ -15,9 +15,9 @@ import (
 	"time"
 
 	insidedistrobox "github.com/89luca89/distrobox/internal/inside-distrobox"
-	"github.com/89luca89/distrobox/internal/prompt"
 	"github.com/89luca89/distrobox/internal/userenv"
 	"github.com/89luca89/distrobox/pkg/containermanager"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 const (
@@ -487,6 +487,8 @@ func (d *Docker) run(ctx context.Context, args []string, opts runOptions) (strin
 func (d *Docker) Enter(
 	ctx context.Context,
 	options containermanager.EnterOptions,
+	progress *ui.Progress,
+	printer *ui.Printer,
 ) error {
 	userEnv := userenv.LoadUserEnvironment(ctx)
 	user := userEnv.User
@@ -508,7 +510,18 @@ func (d *Docker) Enter(
 
 	inspectResult, err := d.InspectContainer(ctx, options.ContainerName)
 	if err != nil || inspectResult.ContainerStatus != RunningStatus {
-		_ = d.startContainer(ctx, options.ContainerName)
+		logTimestamp := timestampNow()
+
+		_ = d.startContainer(ctx, options.ContainerName, progress)
+
+		// Monitor logs for setup completion
+		if err := d.waitForSetup(ctx, options.ContainerName, logTimestamp, progress, printer); err != nil {
+			return err
+		}
+
+		progress.Finalize("Container Setup Complete!")
+
+		return nil
 	}
 
 	_, _ = d.run(ctx, append(command, commandArgs...), runOptions{Interactive: !options.NoTTY})
@@ -520,7 +533,7 @@ func (d *Docker) Remove(
 	ctx context.Context,
 	containerName string,
 	options containermanager.RmOptions,
-	prompter prompt.Prompter,
+	prompter ui.Prompter,
 ) error {
 	userEnv := userenv.LoadUserEnvironment(ctx)
 	userHome := userEnv.Home
@@ -908,9 +921,7 @@ func buildCommandArgs(customCommand string, user string, noTTY bool, unshareGrou
 	return args
 }
 
-func (d *Docker) startContainer(ctx context.Context, containerName string) error {
-	logTimestamp := timestampNow()
-
+func (d *Docker) startContainer(ctx context.Context, containerName string, progress *ui.Progress) error {
 	// Start the container
 	_, err := d.run(ctx, []string{"start", containerName}, runOptions{Interactive: true})
 	if err != nil {
@@ -927,7 +938,7 @@ func (d *Docker) startContainer(ctx context.Context, containerName string) error
 		return fmt.Errorf("could not start entrypoint.\n%s", logs)
 	}
 
-	fmt.Fprintf(os.Stderr, "%-40s\t", "Starting container...")
+	progress.Next("Starting container...")
 
 	userEnv := userenv.LoadUserEnvironment(ctx)
 
@@ -942,21 +953,21 @@ func (d *Docker) startContainer(ctx context.Context, containerName string) error
 		return fmt.Errorf("failed to create cache directory: %w", err)
 	}
 
-	// Monitor logs for setup completion
-	if err := d.waitForSetup(ctx, containerName, logTimestamp); err != nil {
-		return err
-	}
-
-	fmt.Fprintln(os.Stderr, "\nContainer Setup Complete!")
 	return nil
 }
 
-func (d *Docker) waitForSetup(ctx context.Context, containerName string, since string) error {
+func (d *Docker) waitForSetup(
+	ctx context.Context,
+	containerName string,
+	since string,
+	progress *ui.Progress,
+	printer *ui.Printer,
+) error {
 	for {
 		// Check container is still running
 		inspectResult, err := d.InspectContainer(ctx, containerName)
 		if err != nil || inspectResult.ContainerStatus != RunningStatus {
-			fmt.Fprintln(os.Stderr, "\nContainer Setup Failure!")
+			printer.PrintError("\nContainer Setup Failure!")
 			return fmt.Errorf("container stopped during setup: %w", err)
 		}
 
@@ -979,20 +990,21 @@ func (d *Docker) waitForSetup(ctx context.Context, containerName string, since s
 				continue
 
 			case strings.HasPrefix(line, "Error:"):
-				fmt.Fprintf(os.Stderr, "\033[31m %s\n\033[0m", line)
+				progress.Fail()
+				printer.PrintError(line)
 				return fmt.Errorf("container setup error: %s", line)
 
 			case strings.HasPrefix(line, "Warning:"):
-				fmt.Fprintf(os.Stderr, "\n\033[33m %s\033[0m", line)
+				printer.PrintWarning(line)
 
 			case strings.HasPrefix(line, "distrobox:"):
 				parts := strings.SplitN(line, " ", Two)
 				if len(parts) > 1 {
-					fmt.Fprintf(os.Stderr, "\033[32m [ OK ]\n\033[0m%-40s\t", parts[1])
+					progress.Done()
+					progress.Next("%s", parts[1])
 				}
 
 			case strings.HasPrefix(line, "container_setup_done"):
-				fmt.Fprintf(os.Stderr, "\033[32m [ OK ]\n\033[0m")
 				return nil
 			}
 		}
