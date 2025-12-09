@@ -9,10 +9,10 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/89luca89/distrobox/internal/prompt"
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/manifest"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 func newAssembleCommand() *cli.Command {
@@ -108,9 +108,10 @@ func assembleAction(ctx context.Context, cmd *cli.Command, deleteFlag bool) erro
 		opts.Replace = cmd.Bool("replace")
 	}
 
-	prompter := prompt.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
+	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
+	progress := ui.NewProgress(os.Stderr)
 
-	assembleCmd := commands.NewAssembleCommand(containerManager, prompter)
+	assembleCmd := commands.NewAssembleCommand(containerManager, prompter, progress)
 
 	err = assembleCmd.Execute(ctx, opts)
 	if err != nil {

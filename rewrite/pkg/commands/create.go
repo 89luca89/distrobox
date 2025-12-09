@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/89luca89/distrobox/pkg/containermanager"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 const (
@@ -24,6 +25,7 @@ var ErrHostnameTooLong = fmt.Errorf("hostname too long, must be less than %d cha
 type CreateCommand struct {
 	containerManager containermanager.ContainerManager
 	generateEntryCmd *GenerateEntryCommand
+	progress         *ui.Progress
 }
 
 type CreateOptions struct {
@@ -67,10 +69,11 @@ type CreateOptions struct {
 	Rootful       bool
 }
 
-func NewCreateCommand(cm containermanager.ContainerManager) *CreateCommand {
+func NewCreateCommand(cm containermanager.ContainerManager, progress *ui.Progress) *CreateCommand {
 	return &CreateCommand{
 		containerManager: cm,
 		generateEntryCmd: NewGenerateEntryCommand(NewListCommand(cm)),
+		progress:         progress,
 	}
 }
 
@@ -153,6 +156,8 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 	// TODO: pull image if needed
 	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L1016
 
+	c.progress.Next("Creating '%s' using image %s", containerName, containerImage)
+
 	err := c.containerManager.Create(
 		ctx,
 		containermanager.CreateOptions{
@@ -180,8 +185,11 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 	)
 
 	if err != nil {
+		c.progress.Fail()
 		return fmt.Errorf("failed to create container: %w", err)
 	}
+
+	c.progress.Done()
 
 	if opts.GenerateEntry && !opts.DryRun && !opts.Rootful {
 		err := c.generateEntryCmd.Execute(

@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/89luca89/distrobox/internal/prompt"
 	"github.com/89luca89/distrobox/pkg/containermanager"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 type RmResult struct {
@@ -17,7 +17,7 @@ type RmResult struct {
 type RmCommand struct {
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
-	prompter         prompt.Prompter
+	prompter         ui.Prompter
 }
 
 type RmOptions struct {
@@ -30,7 +30,7 @@ type RmOptions struct {
 
 func NewRmCommand(
 	cm containermanager.ContainerManager,
-	prompter prompt.Prompter,
+	prompter ui.Prompter,
 ) *RmCommand {
 	return &RmCommand{
 		containerManager: cm,
