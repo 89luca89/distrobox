@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/containermanager"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 //nolint:funlen // function length is acceptable for CLI command definition
@@ -208,7 +210,9 @@ func createAction(ctx context.Context, cmd *cli.Command) error {
 		Rootful:                 cmd.Bool("root"),
 	}
 
-	createCmd := commands.NewCreateCommand(containerManager)
+	progress := ui.NewProgress(os.Stderr)
+
+	createCmd := commands.NewCreateCommand(containerManager, progress)
 	err := createCmd.Execute(ctx, opts)
 	if err != nil {
 		return fmt.Errorf("create command failed: %w", err)
