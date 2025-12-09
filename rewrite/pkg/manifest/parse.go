@@ -125,74 +125,82 @@ func resolveIncludes(cfg *ini.File, section *ini.Section, seen map[string]bool) 
 }
 
 // sectionToItem converts an ini.Section to an Item struct.
-func sectionToItem(section *ini.Section) Item {
-	return Item{
-		Name:             section.Name(),
-		Image:            lastString(section, "image"),
-		Clone:            lastString(section, "clone"),
-		Home:             lastString(section, "home"),
-		Hostname:         lastString(section, "hostname"),
-		ExportedBinsPath: lastString(section, "exported_bins_path"),
+func sectionToItem(section *ini.Section) Item { //nolint:funlen // Function length is acceptable here.
+	item := Item{Name: section.Name()}
 
-		Init:           lastBool(section, "init"),
-		Nvidia:         lastBool(section, "nvidia"),
-		Entry:          lastBool(section, "entry"),
-		Pull:           lastBool(section, "pull"),
-		Root:           lastBool(section, "root"),
-		StartNow:       lastBool(section, "start_now"),
-		UnshareGroups:  lastBool(section, "unshare_groups"),
-		UnshareIPC:     lastBool(section, "unshare_ipc"),
-		UnshareNetns:   lastBool(section, "unshare_netns"),
-		UnshareProcess: lastBool(section, "unshare_process"),
-		UnshareDevsys:  lastBool(section, "unshare_devsys"),
-		UnshareAll:     lastBool(section, "unshare_all"),
+	for _, key := range section.Keys() {
+		vals := key.ValueWithShadows()
+		last := vals[len(vals)-1]
 
-		AdditionalFlags:    splitString(section, "additional_flags"),
-		AdditionalPackages: splitString(section, "additional_packages"),
-		ExportedApps:       splitString(section, "exported_apps"),
-		ExportedBins:       splitString(section, "exported_bins"),
+		switch key.Name() {
+		case "image":
+			item.Image = last
+		case "clone":
+			item.Clone = last
+		case "home":
+			item.Home = last
+		case "hostname":
+			item.Hostname = last
+		case "exported_bins_path":
+			item.ExportedBinsPath = last
 
-		InitHooks:    allStrings(section, "init_hooks"),
-		PreInitHooks: allStrings(section, "pre_init_hooks"),
-		Volumes:      allStrings(section, "volumes"),
+		case "init":
+			item.Init = parseBool(last)
+		case "nvidia":
+			item.Nvidia = parseBool(last)
+		case "entry":
+			item.Entry = parseBool(last)
+		case "pull":
+			item.Pull = parseBool(last)
+		case "root":
+			item.Root = parseBool(last)
+		case "start_now":
+			item.StartNow = parseBool(last)
+		case "unshare_groups":
+			item.UnshareGroups = parseBool(last)
+		case "unshare_ipc":
+			item.UnshareIPC = parseBool(last)
+		case "unshare_netns":
+			item.UnshareNetns = parseBool(last)
+		case "unshare_process":
+			item.UnshareProcess = parseBool(last)
+		case "unshare_devsys":
+			item.UnshareDevsys = parseBool(last)
+		case "unshare_all":
+			item.UnshareAll = parseBool(last)
+
+		case "additional_flags":
+			for _, v := range vals {
+				item.AdditionalFlags = append(item.AdditionalFlags, strings.Fields(v)...)
+			}
+		case "additional_packages":
+			for _, v := range vals {
+				item.AdditionalPackages = append(item.AdditionalPackages, strings.Fields(v)...)
+			}
+		case "exported_apps":
+			for _, v := range vals {
+				item.ExportedApps = append(item.ExportedApps, strings.Fields(v)...)
+			}
+		case "exported_bins":
+			for _, v := range vals {
+				item.ExportedBins = append(item.ExportedBins, strings.Fields(v)...)
+			}
+
+		case "init_hooks":
+			item.InitHooks = append(item.InitHooks, vals...)
+		case "pre_init_hooks":
+			item.PreInitHooks = append(item.PreInitHooks, vals...)
+		case "volumes":
+			item.Volumes = append(item.Volumes, vals...)
+		}
 	}
+
+	return item
 }
 
-// lastString returns the final value when a key appears multiple times, or empty string if unset.
-func lastString(s *ini.Section, key string) string {
-	vals := s.Key(key).ValueWithShadows()
-	if len(vals) == 0 || vals[0] == "" {
-		return ""
-	}
-
-	return vals[len(vals)-1]
-}
-
-// lastBool returns the final value when a key appears multiple times, parsed as a boolean (true/1).
-func lastBool(s *ini.Section, key string) bool {
-	v := lastString(s, key)
-
-	return v == "true" || v == "1"
-}
-
-// allStrings returns all values when a key appears multiple times, or nil if unset.
-func allStrings(s *ini.Section, key string) []string {
-	vals := s.Key(key).ValueWithShadows()
-	if len(vals) == 1 && vals[0] == "" {
-		return nil
-	}
-
-	return vals
-}
-
-// splitString splits all values of a key by whitespace and returns a flat slice.
-func splitString(s *ini.Section, key string) []string {
-	var result []string
-	for _, v := range s.Key(key).ValueWithShadows() {
-		result = append(result, strings.Fields(v)...)
-	}
-
-	return result
+// parseBool parses a string as a boolean (true/1).
+func parseBool(s string) bool {
+	return s == "true" || s == "1"
 }
 
 // readData reads data from a local file or a URL.
@@ -225,6 +233,7 @@ func fetchURL(ctx context.Context, u string) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
 	}
+
 	var buf bytes.Buffer
 	_, err = io.Copy(&buf, resp.Body)
 
