@@ -255,3 +255,47 @@ func TestParse_FromUrlServerError(t *testing.T) {
 	_, err := manifest.Parse(t.Context(), fileURL)
 	require.Error(t, err)
 }
+
+func TestParse_FailCircularInclude(t *testing.T) {
+	rawManifest := `
+[a]
+include=b
+image=img_a
+
+[b]
+include=a
+image=img_b
+`
+
+	manifestPath := t.TempDir() + "/manifest.ini"
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
+	require.NoError(t, err)
+
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
+	require.ErrorContains(t, err, "circular include detected: a")
+	assert.Nil(t, parsed)
+}
+
+func TestParse_FailIndirectCircularInclude(t *testing.T) {
+	rawManifest := `
+[a]
+include=b
+image=img_a
+
+[b]
+include=c
+image=img_b
+
+[c]
+include=a
+image=img_c
+`
+
+	manifestPath := t.TempDir() + "/manifest.ini"
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
+	require.NoError(t, err)
+
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
+	require.ErrorContains(t, err, "circular include detected: a")
+	assert.Nil(t, parsed)
+}
