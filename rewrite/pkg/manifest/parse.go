@@ -78,13 +78,15 @@ func Parse(ctx context.Context, filepath string) ([]Item, error) {
 
 // expandIncludes resolves include= directives by copying keys from referenced sections.
 func expandIncludes(cfg *ini.File) error {
+	processing := make(map[string]bool) // Currently in call stack (cycle detection)
+	processed := make(map[string]bool)  // Already fully resolved (skip duplicates)
+
 	for _, section := range cfg.Sections() {
 		if section.Name() == ini.DefaultSection {
 			continue
 		}
 
-		seen := make(map[string]bool)
-		if err := resolveIncludes(cfg, section, seen); err != nil {
+		if err := resolveIncludes(cfg, section, processing, processed); err != nil {
 			return err
 		}
 	}
@@ -92,29 +94,39 @@ func expandIncludes(cfg *ini.File) error {
 	return nil
 }
 
-// resolveIncludes processes include= directives for a given section.
-func resolveIncludes(cfg *ini.File, section *ini.Section, seen map[string]bool) error {
+func resolveIncludes(cfg *ini.File, section *ini.Section, processing, processed map[string]bool) error {
+	name := section.Name()
+
+	if processed[name] {
+		return nil
+	}
+	if processing[name] {
+		return fmt.Errorf("circular include detected: %s", name)
+	}
+
+	processing[name] = true
+
 	includes := section.Key("include").ValueWithShadows()
 	section.DeleteKey("include")
 
-	for _, name := range includes {
-		if name == "" {
+	for _, includeName := range includes {
+		if includeName == "" {
 			continue
 		}
-		if seen[name] {
-			return fmt.Errorf("circular include: %s", name)
-		}
-		seen[name] = true
 
-		src := cfg.Section(name)
+		src := cfg.Section(includeName)
 		if src == nil || src.Name() == ini.DefaultSection {
-			return fmt.Errorf("included section [%s] not found", name)
+			return fmt.Errorf("included section [%s] not found", includeName)
+		}
+
+		if err := resolveIncludes(cfg, src, processing, processed); err != nil {
+			return err
 		}
 
 		for _, key := range src.Keys() {
 			for _, v := range key.ValueWithShadows() {
 				if _, err := section.NewKey(key.Name(), v); err != nil {
-					return fmt.Errorf("failed to copy key %s from section [%s]: %w", key.Name(), name, err)
+					return fmt.Errorf("failed to copy key %s from section [%s]: %w", key.Name(), includeName, err)
 				}
 			}
 		}
