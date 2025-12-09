@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/89luca89/distrobox/internal/prompt"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 type Container struct {
@@ -68,8 +68,8 @@ type ContanerManagerType string
 
 type ContainerManager interface {
 	Name() string
-	Enter(ctx context.Context, options EnterOptions) error
+	Enter(ctx context.Context, options EnterOptions, progress *ui.Progress, printer *ui.Printer) error
 	ListContainers(ctx context.Context) ([]Container, error)
 	Create(ctx context.Context, opts CreateOptions) error
-	Remove(ctx context.Context, containerName string, opts RmOptions, prompter prompt.Prompter) error
+	Remove(ctx context.Context, containerName string, opts RmOptions, prompter ui.Prompter) error
 }

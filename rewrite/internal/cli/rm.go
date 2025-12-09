@@ -9,9 +9,9 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	"github.com/89luca89/distrobox/internal/prompt"
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/containermanager"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 func newRmCommand() *cli.Command {
@@ -55,7 +55,7 @@ func rmAction(ctx context.Context, cmd *cli.Command) error {
 		ContainerNames: cmd.Args().Slice(),
 	}
 
-	prompter := prompt.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
+	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
 	rmCmd := commands.NewRmCommand(containerManager, prompter)
 	_, err := rmCmd.Execute(ctx, options)

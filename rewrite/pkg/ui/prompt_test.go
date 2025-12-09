@@ -1,4 +1,4 @@
-package prompt_test
+package ui_test
 
 import (
 	"bufio"
@@ -6,13 +6,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/89luca89/distrobox/internal/prompt"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 func TestPrompt_YesReturnsTrue(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("yes\n"))
 	writer := &bytes.Buffer{}
-	p := prompt.NewPrompter(*reader, writer)
+	p := ui.NewPrompter(*reader, writer)
 
 	result := p.Prompt("Continue?", false)
 
@@ -24,7 +24,7 @@ func TestPrompt_YesReturnsTrue(t *testing.T) {
 func TestPrompt_YReturnsTrue(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("y\n"))
 	writer := &bytes.Buffer{}
-	p := prompt.NewPrompter(*reader, writer)
+	p := ui.NewPrompter(*reader, writer)
 
 	result := p.Prompt("Continue?", false)
 
@@ -36,7 +36,7 @@ func TestPrompt_YReturnsTrue(t *testing.T) {
 func TestPrompt_NoReturnsFalse(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("no\n"))
 	writer := &bytes.Buffer{}
-	p := prompt.NewPrompter(*reader, writer)
+	p := ui.NewPrompter(*reader, writer)
 
 	result := p.Prompt("Continue?", true)
 
@@ -48,7 +48,7 @@ func TestPrompt_NoReturnsFalse(t *testing.T) {
 func TestPrompt_NReturnsFalse(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("n\n"))
 	writer := &bytes.Buffer{}
-	p := prompt.NewPrompter(*reader, writer)
+	p := ui.NewPrompter(*reader, writer)
 
 	result := p.Prompt("Continue?", true)
 
@@ -60,7 +60,7 @@ func TestPrompt_NReturnsFalse(t *testing.T) {
 func TestPrompt_InvalidInputReturnsDefaultTrue(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("maybe\n"))
 	writer := &bytes.Buffer{}
-	p := prompt.NewPrompter(*reader, writer)
+	p := ui.NewPrompter(*reader, writer)
 
 	result := p.Prompt("Continue?", true)
 
@@ -72,7 +72,7 @@ func TestPrompt_InvalidInputReturnsDefaultTrue(t *testing.T) {
 func TestPrompt_InvalidInputReturnsDefaultFalse(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("maybe\n"))
 	writer := &bytes.Buffer{}
-	p := prompt.NewPrompter(*reader, writer)
+	p := ui.NewPrompter(*reader, writer)
 
 	result := p.Prompt("Continue?", false)
 
@@ -84,7 +84,7 @@ func TestPrompt_InvalidInputReturnsDefaultFalse(t *testing.T) {
 func TestPrompt_EmptyInputReturnsDefault(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("\n"))
 	writer := &bytes.Buffer{}
-	p := prompt.NewPrompter(*reader, writer)
+	p := ui.NewPrompter(*reader, writer)
 
 	result := p.Prompt("Continue?", true)
 
@@ -96,7 +96,7 @@ func TestPrompt_EmptyInputReturnsDefault(t *testing.T) {
 func TestPrompt_WritesPromptToWriter(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("y\n"))
 	writer := &bytes.Buffer{}
-	p := prompt.NewPrompter(*reader, writer)
+	p := ui.NewPrompter(*reader, writer)
 
 	p.Prompt("Continue?", true)
 
@@ -109,7 +109,7 @@ func TestPrompt_WritesPromptToWriter(t *testing.T) {
 func TestPrompt_WritesPromptWithDefaultNo(t *testing.T) {
 	reader := bufio.NewReader(strings.NewReader("n\n"))
 	writer := &bytes.Buffer{}
-	p := prompt.NewPrompter(*reader, writer)
+	p := ui.NewPrompter(*reader, writer)
 
 	p.Prompt("Delete file?", false)
 

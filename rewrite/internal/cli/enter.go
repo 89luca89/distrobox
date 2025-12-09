@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/containermanager"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 func newEnterCommand() *cli.Command {
@@ -77,7 +79,10 @@ func enterAction(ctx context.Context, cmd *cli.Command) error {
 		Verbose:         cmd.Bool("verbose"),
 	}
 
-	enterCmd := commands.NewEnterCommand(containerManager, options)
+	progress := ui.NewProgress(os.Stderr)
+	printer := ui.NewPrinter(os.Stderr, true)
+
+	enterCmd := commands.NewEnterCommand(containerManager, options, progress, printer)
 	_, err := enterCmd.Execute(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to execute create command: %w", err)
