@@ -214,6 +214,12 @@ func createAction(ctx context.Context, cmd *cli.Command) error {
 
 	createCmd := commands.NewCreateCommand(containerManager, progress)
 	err := createCmd.Execute(ctx, opts)
+
+	var containerAlreadyExistsErr *commands.ContainerAlreadyExistsError
+	if errors.As(err, &containerAlreadyExistsErr) {
+		printContainerAlreadyExists(progress, containerAlreadyExistsErr.ContainerName, opts.Rootful)
+	}
+
 	if err != nil {
 		return fmt.Errorf("create command failed: %w", err)
 	}
@@ -238,6 +244,22 @@ func printCreateCompleted(progress *ui.Progress, containerName string, rootful b
 	}
 
 	msg := "Distrobox '%s' successfully created.\nTo enter, run:\n\ndistrobox enter %s%s\n\n"
+
+	progress.Finalize(msg, containerName, rootFlag, containerName)
+}
+
+func printContainerAlreadyExists(progress *ui.Progress, containerName string, rootful bool) {
+	rootFlag := ""
+	if rootful {
+		rootFlag = "--root "
+	}
+
+	msg := `Distrobox named '%s' already exists.
+To enter, run:
+
+distrobox enter %s%s
+
+`
 
 	progress.Finalize(msg, containerName, rootFlag, containerName)
 }
