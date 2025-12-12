@@ -22,6 +22,14 @@ const (
 
 var ErrHostnameTooLong = fmt.Errorf("hostname too long, must be less than %d characters", maxHostnameLength)
 
+type ContainerAlreadyExistsError struct {
+	ContainerName string
+}
+
+func (e *ContainerAlreadyExistsError) Error() string {
+	return fmt.Sprintf("container named '%s' already exists", e.ContainerName)
+}
+
 type CreateCommand struct {
 	containerManager containermanager.ContainerManager
 	generateEntryCmd *GenerateEntryCommand
@@ -147,8 +155,9 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 		containerUserCustomHome = filepath.Join(opts.ContainerHomePrefix, containerName)
 	}
 
-	// TODO: check if container with the same name already exists
-	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L991
+	if c.containerManager.Exists(ctx, containerName) {
+		return &ContainerAlreadyExistsError{ContainerName: containerName}
+	}
 
 	// TODO: handle clone case (get image from existing container)
 	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L595
