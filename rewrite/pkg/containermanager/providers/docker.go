@@ -442,6 +442,12 @@ func (d *Docker) makeCreateCommand(
 	return cmd
 }
 
+func (d *Docker) Exists(ctx context.Context, containerName string) bool {
+	args := []string{"inspect", "--type", "container", containerName}
+	_, err := d.run(ctx, args, runOptions{})
+	return err == nil
+}
+
 func (d *Docker) run(ctx context.Context, args []string, opts runOptions) (string, error) {
 	command := "docker"
 	if d.root {
