@@ -526,8 +526,6 @@ func (d *Docker) Enter(
 		}
 
 		progress.Finalize("Container Setup Complete!")
-
-		return nil
 	}
 
 	_, _ = d.run(ctx, append(command, commandArgs...), runOptions{Interactive: !options.NoTTY})
