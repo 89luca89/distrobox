@@ -635,7 +635,12 @@ parse_file()
 		# Save options to tempfile, to source it later
 		touch "${tmpfile}"
 		if [ -n "${key}" ] && [ -n "${value}" ]; then
-			if grep -q "^${key}=" "${tmpfile}"; then
+			cumulative_keys="init_hooks pre_init_hooks additional_packages volume additional_flags exported_apps exported_bins"
+			is_cumulative=0
+			if echo " ${cumulative_keys} " | grep -q " ${key} "; then
+				is_cumulative=1
+			fi
+			if [ "${is_cumulative}" -eq 1 ] && grep -q "^${key}=" "${tmpfile}"; then
 				# make keys cumulative
 				value="\${${key}}¤${value}"
 			fi
