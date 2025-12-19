@@ -437,17 +437,17 @@ run_distrobox()
 		done
 		result_command="${result_command} --pre-init-hooks $(sanitize_variable "${args}")"
 	fi
-	if [ -n "${additional_packages}" ]; then
-		IFS="¤"
-		args=""
-		for packages in ${additional_packages}; do
-			if [ -z "${packages}" ]; then
-				continue
-			fi
-			args="${args} ${packages}"
-		done
-		result_command="${result_command} --additional-packages $(sanitize_variable "${args}")"
-	fi
+  if [ -n "${additional_packages}" ]; then
+    IFS="¤"
+    args=""
+    for packages in ${additional_packages}; do
+      if [ -z "${packages}" ]; then
+        continue
+      fi
+      args="${args}${args:+ }${packages}"
+    done
+    result_command="${result_command} --additional-packages $(sanitize_variable "${args}")"
+  fi
 	if [ -n "${volume}" ]; then
 		IFS="¤"
 		for vol in ${volume}; do
