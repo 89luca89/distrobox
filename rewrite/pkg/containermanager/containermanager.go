@@ -73,4 +73,5 @@ type ContainerManager interface {
 	Create(ctx context.Context, opts CreateOptions) error
 	Remove(ctx context.Context, containerName string, opts RmOptions, prompter ui.Prompter) error
 	Exists(ctx context.Context, containerName string) bool
+	Stop(ctx context.Context, containerNames []string) error
 }
