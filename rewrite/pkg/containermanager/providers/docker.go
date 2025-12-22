@@ -580,6 +580,17 @@ func (d *Docker) Remove(
 	return nil
 }
 
+func (d *Docker) Stop(ctx context.Context, containerNames []string) error {
+	args := []string{"stop"}
+	args = append(args, containerNames...)
+
+	_, err := d.run(ctx, args, runOptions{})
+	if err != nil {
+		return fmt.Errorf("error stopping containers: %w", err)
+	}
+	return nil
+}
+
 func parseContainerList(output string) ([]containermanager.Container, error) {
 	var containers []containermanager.Container
 
