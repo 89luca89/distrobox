@@ -2,10 +2,12 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
+	"github.com/89luca89/distrobox/internal/userenv"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
@@ -17,7 +19,7 @@ type RmResult struct {
 type RmCommand struct {
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
-	prompter         ui.Prompter
+	prompter         *ui.Prompter
 }
 
 type RmOptions struct {
@@ -30,7 +32,7 @@ type RmOptions struct {
 
 func NewRmCommand(
 	cm containermanager.ContainerManager,
-	prompter ui.Prompter,
+	prompter *ui.Prompter,
 ) *RmCommand {
 	return &RmCommand{
 		containerManager: cm,
@@ -40,6 +42,10 @@ func NewRmCommand(
 }
 
 func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, error) {
+	if !options.NoTTY && c.prompter == nil {
+		return nil, errors.New("prompter is required for interactive mode")
+	}
+
 	listResult, err := c.listCmd.Execute(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed while listing contaiers: %w", err)
@@ -47,9 +53,12 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 
 	distroboxesToRemove := getContainersToRemove(listResult.Containers, options.ContainerNames, options.All)
 
+	userEnv := userenv.LoadUserEnvironment(ctx)
+	userHome := userEnv.Home
+
 	var removedDistroboxes []containermanager.Container
 	for _, currentDistrobox := range distroboxesToRemove {
-		err := c.removeContainer(ctx, currentDistrobox, options)
+		err := c.removeContainer(ctx, currentDistrobox, options.Force, options.NoTTY, userHome)
 		if err != nil {
 			//nolint:forbidigo // waiting for the logger implementation
 			fmt.Printf("error deleting %s: %s", currentDistrobox.Name, err)
@@ -63,28 +72,40 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 func (c *RmCommand) removeContainer(
 	ctx context.Context,
 	container containermanager.Container,
-	options RmOptions,
+	force bool,
+	noTTY bool,
+	userHome string,
 ) error {
-	if strings.Contains(container.Status, "Up") && !options.NoTTY && !options.Force {
-		if c.prompter.Prompt("Container is running, do you want to delete it?", false) {
-			err := c.containerManager.Remove(ctx, container.Name, containermanager.RmOptions{
-				Force: true,
-				NoTTY: true,
-			}, c.prompter)
-			if err != nil {
-				return fmt.Errorf("failed to remove container: %w", err)
-			}
+	forceRemove := force
+	if !forceRemove && !noTTY && strings.Contains(container.Status, "Up") {
+		if c.prompter.Prompt("Container is running, do you want to force delete it?", false) {
+			forceRemove = true
+		} else {
+			return nil
 		}
-		return nil
+	}
+
+	inspectOutput, err := c.containerManager.InspectContainer(ctx, container.Name)
+	if err != nil {
+		return fmt.Errorf("error inspecting the container: %w", err)
+	}
+
+	removeHome := false
+	if !noTTY && inspectOutput.ContainerHome != userHome {
+		question := fmt.Sprintf(
+			"Do you really want to remove custom home of container %s (%s)?",
+			container.Name,
+			inspectOutput.ContainerHome,
+		)
+		answer := c.prompter.Prompt(question, false)
+		removeHome = answer
 	}
 
 	cmOptions := containermanager.RmOptions{
-		NoTTY:      options.NoTTY,
-		Force:      options.Force,
-		All:        options.All,
-		RemoveHome: options.RemoveHome,
+		Force:      forceRemove,
+		RemoveHome: removeHome,
 	}
-	err := c.containerManager.Remove(ctx, container.Name, cmOptions, c.prompter)
+	err = c.containerManager.Remove(ctx, container.Name, cmOptions)
 	if err != nil {
 		return fmt.Errorf("failed to remove container: %w", err)
 	}

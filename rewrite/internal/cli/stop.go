@@ -61,7 +61,7 @@ func stopAction(ctx context.Context, cmd *cli.Command) error {
 	errPrinter := ui.NewPrinter(os.Stderr, true)
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	stopCmd := commands.NewStopCommand(containerManager, &prompter)
+	stopCmd := commands.NewStopCommand(containerManager, prompter)
 
 	err := stopCmd.Execute(ctx, options)
 
