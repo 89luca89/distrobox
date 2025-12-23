@@ -13,8 +13,8 @@ type Prompter struct {
 	writer io.Writer
 }
 
-func NewPrompter(reader bufio.Reader, writer io.Writer) Prompter {
-	return Prompter{
+func NewPrompter(reader bufio.Reader, writer io.Writer) *Prompter {
+	return &Prompter{
 		reader: reader,
 		writer: writer,
 	}
