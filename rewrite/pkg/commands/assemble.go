@@ -35,7 +35,7 @@ type AssembleCommand struct {
 
 func NewAssembleCommand(
 	cm containermanager.ContainerManager,
-	prompter ui.Prompter,
+	prompter *ui.Prompter,
 	progress *ui.Progress,
 ) *AssembleCommand {
 	return &AssembleCommand{

@@ -15,6 +15,13 @@ type Container struct {
 	Labels map[string]string
 }
 
+type InspectResult struct {
+	ContainerStatus string
+	ContainerHome   string
+	ContainerPath   string
+	UnshareGroups   bool
+}
+
 type CreateOptions struct {
 	ContainerName           string
 	ContainerImage          string
@@ -49,10 +56,9 @@ type EnterOptions struct {
 }
 
 type RmOptions struct {
-	NoTTY      bool
-	Force      bool
-	All        bool
-	RemoveHome bool
+	Force         bool
+	RemoveHome    bool
+	ContainerHome string
 }
 
 func (c Container) IsDistrobox() bool {
@@ -71,7 +77,8 @@ type ContainerManager interface {
 	Enter(ctx context.Context, options EnterOptions, progress *ui.Progress, printer *ui.Printer) error
 	ListContainers(ctx context.Context) ([]Container, error)
 	Create(ctx context.Context, opts CreateOptions) error
-	Remove(ctx context.Context, containerName string, opts RmOptions, prompter ui.Prompter) error
+	Remove(ctx context.Context, containerName string, opts RmOptions) error
 	Exists(ctx context.Context, containerName string) bool
 	Stop(ctx context.Context, containerNames []string) error
+	InspectContainer(ctx context.Context, containerName string) (*InspectResult, error)
 }

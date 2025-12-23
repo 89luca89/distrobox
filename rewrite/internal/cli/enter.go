@@ -71,7 +71,7 @@ func enterAction(ctx context.Context, cmd *cli.Command) error {
 
 	containerName := getContainerName(cmd)
 
-	options := containermanager.EnterOptions{
+	options := commands.EnterOptions{
 		ContainerName:   containerName,
 		AdditionalFlags: cmd.String("additional-flags"),
 		NoTTY:           cmd.Bool("no-tty"),
@@ -82,8 +82,8 @@ func enterAction(ctx context.Context, cmd *cli.Command) error {
 	progress := ui.NewProgress(os.Stderr)
 	printer := ui.NewPrinter(os.Stderr, true)
 
-	enterCmd := commands.NewEnterCommand(containerManager, options, progress, printer)
-	_, err := enterCmd.Execute(ctx)
+	enterCmd := commands.NewEnterCommand(containerManager, progress, printer)
+	_, err := enterCmd.Execute(ctx, options)
 	if err != nil {
 		return fmt.Errorf("failed to execute create command: %w", err)
 	}
