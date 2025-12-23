@@ -69,13 +69,6 @@ type inspectOutput struct {
 	} `json:"Config"`
 }
 
-type InspectResult struct {
-	ContainerStatus string
-	ContainerHome   string
-	ContainerPath   string
-	UnshareGroups   bool
-}
-
 func (d *Docker) ListContainers(ctx context.Context) ([]containermanager.Container, error) {
 	args := []string{"ps", "-a", "--no-trunc", "--format", "json"}
 	out, err := d.run(ctx, args, runOptions{})
@@ -537,27 +530,7 @@ func (d *Docker) Remove(
 	ctx context.Context,
 	containerName string,
 	options containermanager.RmOptions,
-	prompter ui.Prompter,
 ) error {
-	userEnv := userenv.LoadUserEnvironment(ctx)
-	userHome := userEnv.Home
-
-	inspectOutput, err := d.InspectContainer(ctx, containerName)
-	if err != nil {
-		return fmt.Errorf("error inspecting the container: %w", err)
-	}
-
-	removeHome := false
-	if inspectOutput.ContainerHome != userHome && !options.NoTTY {
-		question := fmt.Sprintf(
-			"Do you really want to remove custom home of container %s (%s)?",
-			containerName,
-			inspectOutput.ContainerHome,
-		)
-		answer := prompter.Prompt(question, false)
-		removeHome = answer
-	}
-
 	args := []string{"rm"}
 	if options.Force {
 		args = append(args, "--force")
@@ -565,15 +538,15 @@ func (d *Docker) Remove(
 
 	args = append(args, []string{"--volumes", containerName}...)
 
-	_, err = d.run(ctx, args, runOptions{})
+	_, err := d.run(ctx, args, runOptions{})
 	if err != nil {
 		return fmt.Errorf("error removing the container: %w", err)
 	}
 
-	if removeHome {
-		err = os.RemoveAll(inspectOutput.ContainerHome)
+	if options.RemoveHome {
+		err = os.RemoveAll(options.ContainerHome)
 		if err != nil {
-			return fmt.Errorf("error removing home directory %s: %w", inspectOutput.ContainerHome, err)
+			return fmt.Errorf("error removing home directory %s: %w", options.ContainerHome, err)
 		}
 	}
 
@@ -658,8 +631,8 @@ func btoi(b bool) int {
 	return 0
 }
 
-func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*InspectResult, error) {
-	config := InspectResult{}
+func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*containermanager.InspectResult, error) {
+	config := containermanager.InspectResult{}
 	args := []string{"inspect", "--type", "container", "--format", "json", containerName}
 	output, err := d.run(ctx, args, runOptions{})
 	if err != nil {
@@ -695,7 +668,7 @@ func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*I
 	return &config, nil
 }
 
-func buildContainerPath(cleanPath bool, hostPath string, cfg *InspectResult) string {
+func buildContainerPath(cleanPath bool, hostPath string, cfg *containermanager.InspectResult) string {
 	standardPaths := []string{"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"}
 
 	if cleanPath {
@@ -833,7 +806,7 @@ func (d *Docker) generateEnterCommand(
 	noWorkDir bool,
 	cleanPath bool,
 	verbose bool,
-) ([]string, *InspectResult, error) {
+) ([]string, *containermanager.InspectResult, error) {
 	cmd := []string{}
 
 	if verbose {
