@@ -145,9 +145,9 @@ graphical apps (X11/Wayland), and audio.
 ## What it does
 
 Simply put it's a fancy wrapper around `podman`, `docker`, or `lilipod` to create and start
-containers highly integrated with the hosts.
+containers which are highly integrated with the hosts.
 
-The distrobox environment is based on an OCI image.
+The distrobox environment is based on an [OCI image](https://github.com/opencontainers/image-spec).
 This image is used to create a container that seamlessly integrates with the
 rest of the operating system by providing access to the user's home directory,
 the Wayland and X11 sockets, networking, removable devices (like USB sticks),
@@ -155,31 +155,31 @@ systemd journal, SSH agent, D-Bus,
 ulimits, /dev and the udev database, etc...
 
 It implements the same concepts introduced by <https://github.com/containers/toolbox>
-but in a simplified way using POSIX sh and aiming at broader compatibility.
+but in a simplified way, using POSIX sh and aiming at broader compatibility.
 
 All the props go to them as they had the great idea to implement this stuff.
 
 It is divided into 12 commands:
 
-- `distrobox-assemble` - creates and destroy containers based on a config file
-- `distrobox-create` - creates the container
-- `distrobox-enter`  - to enter the container
-- `distrobox-ephemeral`  - create a temporal container, destroy it when exiting the shell
-- `distrobox-list` - to list containers created with distrobox
-- `distrobox-rm` - to delete a container created with distrobox
-- `distrobox-stop` - to stop a running container created with distrobox
-- `distrobox-upgrade` - to upgrade one or more running containers created with distrobox at once
-- `distrobox-generate-entry` - to create an entry of a created container in the applications list
-- `distrobox-init`   - the entrypoint of the container (not meant to be used manually)
-- `distrobox-export` - it is meant to be used inside the container,
-  useful to export apps and services from the container to the host
-- `distrobox-host-exec` - to run commands/programs from the host, while inside
+- `distrobox-assemble` – create and destroy containers based on a config file
+- `distrobox-create` – create a container
+- `distrobox-enter`  – enter a container
+- `distrobox-ephemeral`  – create a temporal container, destroy it when exiting the shell
+- `distrobox-list` – list containers created with distrobox
+- `distrobox-rm` – delete a container created with distrobox
+- `distrobox-stop` – stop a running container created with distrobox
+- `distrobox-upgrade` – upgrade one or more running containers created with distrobox at once
+- `distrobox-generate-entry` – create an entry of a created container in the applications list
+- `distrobox-init`   – entry point of the container (not meant to be used manually)
+- `distrobox-export` – use inside the container,
+  export apps and services from the container to the host
+- `distrobox-host-exec` – run commands/programs from the host, while inside
  of the container
 
 It also includes a little wrapper to launch commands with `distrobox COMMAND`
 instead of calling the single files.
 
-Please check [the usage docs here](usage/usage.md) and [see some handy tips on how to use it](useful_tips.md)
+Please check [the usage docs](usage/usage.md) and [see some handy tips on how to use it](useful_tips.md).
 
 ### See it in action
 
@@ -193,12 +193,12 @@ Fedora Silverblue for the [uBlue](https://github.com/ublue-os) project
 ## Why
 
 - Provide a mutable environment on an immutable OS, like [ChromeOS, Endless OS,
-  Fedora Atomic Desktops (eg: Silverblue), OpenSUSE Aeon/Kalpa, Vanilla OS](compatibility.md#host-distros), or [SteamOS3](posts/steamdeck_guide.md)
+  Fedora Atomic Desktops (e.g. Silverblue), OpenSUSE Aeon/Kalpa, Vanilla OS](compatibility.md#host-distros), or [SteamOS3](posts/steamdeck_guide.md)
 - Provide a locally privileged environment for sudoless setups
-  (eg. company-provided laptops, security reasons, etc...)
-- To mix and match a stable base system (eg. Debian Stable, Ubuntu LTS, RedHat)
+  (e.g. company-provided laptops, security reasons, etc...)
+- To mix and match a stable base system (e.g. Debian Stable, Ubuntu LTS, Red Hat)
   with a bleeding-edge environment for development or gaming
-  (eg. Arch, OpenSUSE Tumbleweed, or Fedora with the latest Mesa)
+  (e.g. Arch, OpenSUSE Tumbleweed, or Fedora with the latest Mesa)
 - Leverage a high abundance of curated distro images for `docker`/`podman` to
   manage multiple environments.
 
@@ -239,7 +239,7 @@ so do not expect it to be highly sandboxed like a plain
 ⚠️ **BE CAREFUL**:⚠️  if you use `docker`, or you use `podman`/`lilipod` with the `--root/-r` flag,
 the containers will run as root, so **root inside the rootful container can modify
 system stuff outside the container**,
-Be also aware that **In rootful mode, you'll be asked to setup the user's password**, this will
+Be also aware that **In rootful mode, you'll be asked to set up the user's password**, this will
 ensure at least that the container is not a passwordless gate to root,
 but if you have security concerns for this, **use `podman` or `lilipod` that runs in rootless mode**.
 Rootless `docker` is still not working as intended and will be included in the future
@@ -265,7 +265,7 @@ available here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/issue
 `distrobox enter test`
 
 **Add one with a [different distribution](https://github.com/89luca89/distrobox/blob/main/docs/compatibility.md#host-distros),
-eg. Ubuntu 20.04:**
+e.g. Ubuntu 20.04:**
 
 `distrobox create -i ubuntu:20.04`
 
@@ -286,7 +286,7 @@ eg. Ubuntu 20.04:**
 `distrobox rm test`
 
 You can check [HERE for more advanced usage](usage/usage.md)
-and check a [comprehensive list of useful tips HERE](useful_tips.md)
+and check a [comprehensive list of useful tips HERE](useful_tips.md).
 
 # Assemble Distrobox
 
@@ -425,7 +425,7 @@ You can specify a custom directory with the `--prefix` flag
 such as `./install --prefix ~/.distrobox`.
 
 Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas
-the manpages get installed to `${prefix}/share/man`.
+the man pages get installed to `${prefix}/share/man`.
 
 ---
 
@@ -441,8 +441,8 @@ Please look in the [Compatibility Table](compatibility.md#host-distros) for your
 distribution notes.
 
 There are ways to install
-[Podman without root privileges and in home.](compatibility.md#install-podman-in-a-static-manner) or
-[Lilipod without root privileges and in home.](compatibility.md#install-lilipod-in-a-static-manner)
+[Podman without root privileges and in home](compatibility.md#install-podman-in-a-static-manner). Or
+[Lilipod without root privileges and in home](compatibility.md#install-lilipod-in-a-static-manner).
 This should play well with completely sudoless setups and with devices like the Steam Deck (SteamOS).
 
 ---
@@ -462,10 +462,10 @@ or if you specified a custom path:
 curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- --prefix ~/.local
 ```
 
-Else if cloned the project using `git clone` or using the latest archive release
+Else, if you cloned the project using `git clone` or using the latest archive release
 from [HERE](https://github.com/89luca89/distrobox/releases/latest),
 
-enter the directory and run `./uninstall`, by default it will assume the install
+enter the directory and run `./uninstall`, by default it will assume the installation
 directory was `/usr/local` if ran as root or `~/.local`,
 you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
