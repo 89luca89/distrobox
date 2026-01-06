@@ -96,6 +96,18 @@ distrobox_entrypoint_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-init"
 distrobox_export_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-export"
 distrobox_genentry_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-generate-entry"
 distrobox_hostexec_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-host-exec"
+
+# NixOS specific path definition
+nixos_bin_path="/run/current-system/sw/bin"
+
+# If not found relative to script, try NixOS system path
+if [ -d "${nixos_bin_path}" ]; then
+	[ ! -e "${distrobox_entrypoint_path}" ] && [ -e "${nixos_bin_path}/distrobox-init" ] && distrobox_entrypoint_path="${nixos_bin_path}/distrobox-init"
+	[ ! -e "${distrobox_export_path}" ] && [ -e "${nixos_bin_path}/distrobox-export" ] && distrobox_export_path="${nixos_bin_path}/distrobox-export"
+	[ ! -e "${distrobox_genentry_path}" ] && [ -e "${nixos_bin_path}/distrobox-generate-entry" ] && distrobox_genentry_path="${nixos_bin_path}/distrobox-generate-entry"
+	[ ! -e "${distrobox_hostexec_path}" ] && [ -e "${nixos_bin_path}/distrobox-host-exec" ] && distrobox_hostexec_path="${nixos_bin_path}/distrobox-host-exec"
+fi
+
 # In case some of the scripts are not in the same path as create, let's search
 # in PATH for them.
 [ ! -e "${distrobox_entrypoint_path}" ] && distrobox_entrypoint_path="$(command -v distrobox-init)"
@@ -177,9 +189,8 @@ fi
 #   None
 # Outputs:
 #   print usage with examples.
-show_help()
-{
-	cat << EOF
+show_help() {
+	cat <<EOF
 distrobox version: ${version}
 
 Usage:
@@ -256,15 +267,14 @@ EOF
 #   None
 # Outputs:
 #   print usage with examples.
-show_compatibility()
-{
+show_compatibility() {
 	if [ ! -e "${app_cache_dir}/distrobox-compatibility-${version}" ] ||
 		[ ! -s "${app_cache_dir}/distrobox-compatibility-${version}" ]; then
 		mkdir -p "${app_cache_dir}"
 
 		# If we don't have a cache file, we need connectivity. Ensure we have
 		# one and return error if not.
-		if ! curl -s "https://github.com" > /dev/null; then
+		if ! curl -s "https://github.com" >/dev/null; then
 			printf >&2 "ERROR: no cache file and no connectivity found, cannot retrieve compatibility list.\n"
 			exit 1
 		fi
@@ -276,7 +286,7 @@ show_compatibility()
 			cut -d '|' -f 4 |
 			sed 's|<br>|\n|g' |
 			tr -d ' ' |
-			sort -u > "${app_cache_dir}/distrobox-compatibility-${version}"
+			sort -u >"${app_cache_dir}/distrobox-compatibility-${version}"
 	fi
 	cat "${app_cache_dir}/distrobox-compatibility-${version}"
 }
@@ -284,182 +294,182 @@ show_compatibility()
 # Parse arguments
 while :; do
 	case $1 in
-		-h | --help)
-			# Call a "show_help" function to display a synopsis, then exit.
-			show_help
-			exit 0
-			;;
-		-v | --verbose)
-			verbose=1
+	-h | --help)
+		# Call a "show_help" function to display a synopsis, then exit.
+		show_help
+		exit 0
+		;;
+	-v | --verbose)
+		verbose=1
+		shift
+		;;
+	-V | --version)
+		printf "distrobox: %s\n" "${version}"
+		exit 0
+		;;
+	--no-entry)
+		shift
+		container_generate_entry=0
+		;;
+	-d | --dry-run)
+		shift
+		dryrun=1
+		;;
+	-r | --root)
+		shift
+		rootful=1
+		;;
+	--absolutely-disable-root-password-i-am-really-positively-sure)
+		shift
+		nopasswd=1
+		;;
+	-I | --init)
+		shift
+		init=1
+		unshare_groups=1
+		unshare_process=1
+		;;
+	--unshare-ipc)
+		shift
+		unshare_ipc=1
+		;;
+	--unshare-groups)
+		shift
+		unshare_groups=1
+		;;
+	--unshare-netns)
+		shift
+		unshare_netns=1
+		;;
+	--unshare-process)
+		shift
+		unshare_process=1
+		;;
+	--unshare-devsys)
+		shift
+		unshare_devsys=1
+		;;
+	--unshare-all)
+		shift
+		unshare_devsys=1
+		unshare_groups=1
+		unshare_ipc=1
+		unshare_netns=1
+		unshare_process=1
+		;;
+	-C | --compatibility)
+		show_compatibility
+		exit 0
+		;;
+	-i | --image)
+		if [ -n "$2" ]; then
+			container_image="$2"
 			shift
-			;;
-		-V | --version)
-			printf "distrobox: %s\n" "${version}"
-			exit 0
-			;;
-		--no-entry)
 			shift
-			container_generate_entry=0
-			;;
-		-d | --dry-run)
+		fi
+		;;
+	-n | --name)
+		if [ -n "$2" ]; then
+			container_name="$2"
 			shift
-			dryrun=1
-			;;
-		-r | --root)
 			shift
-			rootful=1
-			;;
-		--absolutely-disable-root-password-i-am-really-positively-sure)
+		fi
+		;;
+	--hostname)
+		if [ -n "$2" ]; then
+			container_hostname="$2"
 			shift
-			nopasswd=1
-			;;
-		-I | --init)
 			shift
-			init=1
-			unshare_groups=1
-			unshare_process=1
-			;;
-		--unshare-ipc)
+		fi
+		;;
+	-c | --clone)
+		if [ -n "$2" ]; then
+			container_clone="$2"
 			shift
-			unshare_ipc=1
-			;;
-		--unshare-groups)
 			shift
-			unshare_groups=1
-			;;
-		--unshare-netns)
+		fi
+		;;
+	-H | --home)
+		if [ -n "$2" ]; then
+			# Remove trailing slashes
+			container_user_custom_home="$(echo "$2" | sed 's:/*$::')"
 			shift
-			unshare_netns=1
-			;;
-		--unshare-process)
 			shift
-			unshare_process=1
-			;;
-		--unshare-devsys)
+		fi
+		;;
+	-p | --pull)
+		container_always_pull=1
+		shift
+		;;
+	--nvidia)
+		shift
+		nvidia=1
+		;;
+	-Y | --yes)
+		non_interactive=1
+		shift
+		;;
+	--volume)
+		if [ -n "$2" ]; then
+			container_additional_volumes="${container_additional_volumes} ${2}"
 			shift
-			unshare_devsys=1
-			;;
-		--unshare-all)
 			shift
-			unshare_devsys=1
-			unshare_groups=1
-			unshare_ipc=1
-			unshare_netns=1
-			unshare_process=1
-			;;
-		-C | --compatibility)
-			show_compatibility
-			exit 0
-			;;
-		-i | --image)
-			if [ -n "$2" ]; then
-				container_image="$2"
-				shift
-				shift
-			fi
-			;;
-		-n | --name)
-			if [ -n "$2" ]; then
-				container_name="$2"
-				shift
-				shift
-			fi
-			;;
-		--hostname)
-			if [ -n "$2" ]; then
-				container_hostname="$2"
-				shift
-				shift
-			fi
-			;;
-		-c | --clone)
-			if [ -n "$2" ]; then
-				container_clone="$2"
-				shift
-				shift
-			fi
-			;;
-		-H | --home)
-			if [ -n "$2" ]; then
-				# Remove trailing slashes
-				container_user_custom_home="$(echo "$2" | sed 's:/*$::')"
-				shift
-				shift
-			fi
-			;;
-		-p | --pull)
-			container_always_pull=1
+		fi
+		;;
+	--platform)
+		if [ -n "$2" ]; then
+			container_platform="--platform=${2}"
 			shift
-			;;
-		--nvidia)
 			shift
-			nvidia=1
-			;;
-		-Y | --yes)
-			non_interactive=1
+		fi
+		;;
+	-a | --additional-flags)
+		if [ -n "$2" ]; then
+			container_manager_additional_flags="${container_manager_additional_flags} ${2}"
 			shift
-			;;
-		--volume)
-			if [ -n "$2" ]; then
-				container_additional_volumes="${container_additional_volumes} ${2}"
-				shift
-				shift
-			fi
-			;;
-		--platform)
-			if [ -n "$2" ]; then
-				container_platform="--platform=${2}"
-				shift
-				shift
-			fi
-			;;
-		-a | --additional-flags)
-			if [ -n "$2" ]; then
-				container_manager_additional_flags="${container_manager_additional_flags} ${2}"
-				shift
-				shift
-			fi
-			;;
-		-ap | --additional-packages)
-			if [ -n "$2" ]; then
-				container_additional_packages="${container_additional_packages} ${2}"
-				shift
-				shift
-			fi
-			;;
-		--init-hooks)
-			if [ -n "$2" ]; then
-				container_init_hook="$2"
-				shift
-				shift
-			fi
-			;;
-		--pre-init-hooks)
-			if [ -n "$2" ]; then
-				container_pre_init_hook="${2}"
-				shift
-				shift
-			fi
-			;;
-		--) # End of all options.
 			shift
+		fi
+		;;
+	-ap | --additional-packages)
+		if [ -n "$2" ]; then
+			container_additional_packages="${container_additional_packages} ${2}"
+			shift
+			shift
+		fi
+		;;
+	--init-hooks)
+		if [ -n "$2" ]; then
+			container_init_hook="$2"
+			shift
+			shift
+		fi
+		;;
+	--pre-init-hooks)
+		if [ -n "$2" ]; then
+			container_pre_init_hook="${2}"
+			shift
+			shift
+		fi
+		;;
+	--) # End of all options.
+		shift
+		break
+		;;
+	-*) # Invalid options.
+		printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+		show_help
+		exit 1
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		# If we have a flagless option and container_name is not specified
+		# then let's accept argument as container_name
+		if [ -n "$1" ]; then
+			container_name="$1"
+			shift
+		else
 			break
-			;;
-		-*) # Invalid options.
-			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
-			show_help
-			exit 1
-			;;
-		*) # Default case: If no more options then break out of the loop.
-			# If we have a flagless option and container_name is not specified
-			# then let's accept argument as container_name
-			if [ -n "$1" ]; then
-				container_name="$1"
-				shift
-			else
-				break
-			fi
-			;;
+		fi
+		;;
 	esac
 done
 
@@ -515,37 +525,37 @@ fi
 # We depend on a container manager let's be sure we have it
 # First we use podman, else docker, else lilipod
 case "${container_manager}" in
-	autodetect)
-		if command -v podman > /dev/null; then
-			container_manager="podman"
-		elif command -v podman-launcher > /dev/null; then
-			container_manager="podman-launcher"
-		elif command -v docker > /dev/null; then
-			container_manager="docker"
-		elif command -v lilipod > /dev/null; then
-			container_manager="lilipod"
-		fi
-		;;
-	podman)
+autodetect)
+	if command -v podman >/dev/null; then
 		container_manager="podman"
-		;;
-	podman-launcher)
+	elif command -v podman-launcher >/dev/null; then
 		container_manager="podman-launcher"
-		;;
-	lilipod)
-		container_manager="lilipod"
-		;;
-	docker)
+	elif command -v docker >/dev/null; then
 		container_manager="docker"
-		;;
-	*)
-		printf >&2 "Invalid input %s.\n" "${container_manager}"
-		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker', 'lilipod'\n"
-		;;
+	elif command -v lilipod >/dev/null; then
+		container_manager="lilipod"
+	fi
+	;;
+podman)
+	container_manager="podman"
+	;;
+podman-launcher)
+	container_manager="podman-launcher"
+	;;
+lilipod)
+	container_manager="lilipod"
+	;;
+docker)
+	container_manager="docker"
+	;;
+*)
+	printf >&2 "Invalid input %s.\n" "${container_manager}"
+	printf >&2 "The available choices are: 'autodetect', 'podman', 'docker', 'lilipod'\n"
+	;;
 esac
 
 # Be sure we have a container manager to work with.
-if ! command -v "${container_manager}" > /dev/null && [ "${dryrun}" -eq 0 ]; then
+if ! command -v "${container_manager}" >/dev/null && [ "${dryrun}" -eq 0 ]; then
 	# Error: we need at least one between docker, podman or lilipod.
 	printf >&2 "Missing dependency: we need a container manager.\n"
 	printf >&2 "Please install one of podman,  docker or lilipod.\n"
@@ -597,8 +607,7 @@ fi
 #   None
 # Outputs:
 #   prints the image name of the newly cloned container
-get_clone_image()
-{
+get_clone_image() {
 	# We need to clone a container.
 	# to do this we will commit the container and create a new tag. Then use it
 	# as image for the new container.
@@ -623,7 +632,7 @@ get_clone_image()
 	# Commit current container state to a new image tag
 	printf >&2 "Duplicating %s...\n" "${container_clone}"
 	if ! ${container_manager} container commit \
-		"${container_source_id}" "${container_commit_tag}" > /dev/null; then
+		"${container_source_id}" "${container_commit_tag}" >/dev/null; then
 
 		printf >&2 "Cannot clone container: %s\n" "${container_clone}"
 		return 1
@@ -664,8 +673,7 @@ get_clone_image()
 #   None
 # Outputs:
 #   prints the podman, docker or lilipod command to create the distrobox container
-generate_create_command()
-{
+generate_create_command() {
 	# Set the container hostname the same as the container name.
 	result_command="${container_manager} create"
 	result_command="${result_command} ${container_platform}"
@@ -722,7 +730,7 @@ generate_create_command()
 	# This will ensure we will mount directories one-by-one thus avoiding this problem.
 	#
 	# This happens ONLY with podman+runc, docker and lilipod are unaffected, so let's do this only if we have podman AND runc.
-	if echo "${container_manager}" | grep -q "podman" && ${container_manager} info 2> /dev/null | grep -q runc > /dev/null 2>&1; then
+	if echo "${container_manager}" | grep -q "podman" && ${container_manager} info 2>/dev/null | grep -q runc >/dev/null 2>&1; then
 		for rootdir in /*; do
 
 			# Skip symlinks
@@ -927,7 +935,7 @@ generate_create_command()
 	if echo "${container_manager}" | grep -q "podman"; then
 		# If possible, always prefer crun, as it allows keeping original groups.
 		# useful for rootless containers.
-		if command -v crun > /dev/null 2>&1; then
+		if command -v crun >/dev/null 2>&1; then
 			result_command="${result_command}
 				--runtime=crun"
 		fi
@@ -946,7 +954,7 @@ generate_create_command()
 				--userns keep-id"
 
 			# Test if podman supports keep-id:size=
-			if podman run --rm --userns=keep-id:size=65536 "${container_image}" /bin/true > /dev/null 2>&1 || [ "$?" -eq 127 ]; then
+			if podman run --rm --userns=keep-id:size=65536 "${container_image}" /bin/true >/dev/null 2>&1 || [ "$?" -eq 127 ]; then
 				has_keepid_size=1
 			else
 				has_keepid_size=0
@@ -1005,7 +1013,7 @@ fi
 
 # Check if the container already exists.
 # If it does, notify the user and exit.
-if ${container_manager} inspect --type container "${container_name}" > /dev/null 2>&1; then
+if ${container_manager} inspect --type container "${container_name}" >/dev/null 2>&1; then
 	printf "Distrobox named '%s' already exists.\n" "${container_name}"
 	printf "To enter, run:\n\n"
 	# If it's a rootful container AND user is not logged as root.
@@ -1031,7 +1039,7 @@ fi
 # First, check if the image exists in the host or auto-pull is enabled
 # If not prompt to download it.
 if [ "${container_always_pull}" -eq 1 ] ||
-	! ${container_manager} inspect --type image "${container_image}" > /dev/null 2>&1; then
+	! ${container_manager} inspect --type image "${container_image}" >/dev/null 2>&1; then
 
 	# If we do auto-pull, don't ask questions
 	if [ "${non_interactive}" -eq 1 ] || [ "${container_always_pull}" -eq 1 ]; then
@@ -1046,21 +1054,21 @@ if [ "${container_always_pull}" -eq 1 ] ||
 
 	# Accept only y,Y,Yes,yes,n,N,No,no.
 	case "${response}" in
-		y | Y | Yes | yes | YES)
-			# Pull the image
-			# shellcheck disable=SC2086
-			${container_manager} pull ${container_platform} "${container_image}"
-			;;
-		n | N | No | no | NO)
-			printf >&2 "next time, run this command first:\n"
-			printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
-			exit 0
-			;;
-		*) # Default case: If no more options then break out of the loop.
-			printf >&2 "Invalid input.\n"
-			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
-			exit 1
-			;;
+	y | Y | Yes | yes | YES)
+		# Pull the image
+		# shellcheck disable=SC2086
+		${container_manager} pull ${container_platform} "${container_image}"
+		;;
+	n | N | No | no | NO)
+		printf >&2 "next time, run this command first:\n"
+		printf >&2 "\t%s pull %s\n" "${container_manager}" "${container_image}"
+		exit 0
+		;;
+	*) # Default case: If no more options then break out of the loop.
+		printf >&2 "Invalid input.\n"
+		printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+		exit 1
+		;;
 	esac
 fi
 
@@ -1069,7 +1077,7 @@ printf >&2 "Creating '%s' using image %s\t" "${container_name}" "${container_ima
 cmd="$(generate_create_command)"
 # Eval the generated command. If successful display an helpful message.
 # shellcheck disable=SC2086
-if eval ${cmd} > /dev/null; then
+if eval ${cmd} >/dev/null; then
 	printf >&2 "\033[32m [ OK ]\n\033[0mDistrobox '%s' successfully created.\n" "${container_name}"
 	printf >&2 "To enter, run:\n\n"
 	# If it's a rootful container AND user is not logged as root.
