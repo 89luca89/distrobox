@@ -37,10 +37,27 @@ if {
 	exit 1
 fi
 
+# Detect host operating system for cross-platform compatibility
+host_os="$(uname -s)"
+
 # Ensure we have our env variables correctly set
 [ -z "${USER}" ] && USER="$(id -run)"
-[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
-[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+if [ -z "${HOME}" ]; then
+	if [ "${host_os}" = "Darwin" ]; then
+		HOME="$(dscl . -read "/Users/${USER}" NFSHomeDirectory 2>/dev/null | awk '{print $2}')"
+		[ -z "${HOME}" ] && HOME="$(eval echo ~"${USER}")"
+	else
+		HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+	fi
+fi
+if [ -z "${SHELL}" ]; then
+	if [ "${host_os}" = "Darwin" ]; then
+		SHELL="$(dscl . -read "/Users/${USER}" UserShell 2>/dev/null | awk '{print $2}')"
+		[ -z "${SHELL}" ] && SHELL="/bin/bash"
+	else
+		SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+	fi
+fi
 
 # If the user runs this script as root in a login shell, set rootful=1.
 # There's no need for them to pass the --root flag option in such cases.
