@@ -49,8 +49,7 @@ jobs:
 
       - uses: actions/checkout@v6
         with:
-          persist-credentials: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT }}
 
       # Fetch from compatibility table all the distros supported
       - id: generate
