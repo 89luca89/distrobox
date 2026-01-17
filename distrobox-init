@@ -1815,8 +1815,7 @@ if [ "${upgrade}" -ne 0 ] || [ ! -e /.containersetupdone ]; then
 	fi
 	if [ ! -e /.containersetupdone ]; then
 		if ! check_missing_packages; then
-			printf "Error: could not set up base dependencies.\n"
-			exit 128
+			printf "Warning: some dependencies are missing.\n"
 		fi
 		touch /.containersetupdone
 	fi
