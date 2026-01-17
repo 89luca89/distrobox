@@ -159,7 +159,7 @@ Distrobox guests tested successfully with the following container images:
 | Archlinux (Toolbox) | | quay.io/toolbx/arch-toolbox:latest |
 | ALT Linux | p10 <br> p11 <br> sisyphus | docker.io/library/alt:p10 <br> docker.io/library/alt:p11 <br> docker.io/library/alt:sisyphus |
 | Bazzite Arch | | ghcr.io/ublue-os/bazzite-arch:latest <br> ghcr.io/ublue-os/bazzite-arch-gnome:latest |
-| Centos (Toolbox) | stream8 <br> stream9 | quay.io/toolbx-images/centos-toolbox:stream8 <br> quay.io/toolbx-images/centos-toolbox:stream9 <br> quay.io/toolbx-images/centos-toolbox:latest |
+| Centos (Toolbox) | stream9 <br> stream10 | quay.io/toolbx-images/centos-toolbox:stream9 <br> quay.io/toolbx-images/centos-toolbox:stream10 <br> quay.io/toolbx-images/centos-toolbox:latest |
 | Debian (Toolbox) | 11 <br> 12 <br> 13 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br> quay.io/toolbx-images/debian-toolbox:13 <br> quay.io/toolbx-images/debian-toolbox:testing <br> quay.io/toolbx-images/debian-toolbox:unstable <br> quay.io/toolbx-images/debian-toolbox:latest |
 | Fedora (Toolbox) | 38 <br> 39 <br> 40 <br> 41 <br> 42 <br> 43 <br> Rawhide | registry.fedoraproject.org/fedora-toolbox:38 <br> registry.fedoraproject.org/fedora-toolbox:39 <br> registry.fedoraproject.org/fedora-toolbox:40 <br> quay.io/fedora/fedora-toolbox:41 <br> quay.io/fedora/fedora-toolbox:42 <br> quay.io/fedora/fedora-toolbox:43 <br> quay.io/fedora/fedora-toolbox:rawhide |
 | openSUSE (Toolbox) | | registry.opensuse.org/opensuse/distrobox:latest |
