@@ -2430,9 +2430,7 @@ elif [ ! -e /etc/passwd.done ]; then
 		--home "${container_user_home}" \
 		--shell "${SHELL:-"/bin/bash"}" \
 		--groups "${additional_groups}" \
-		--uid "${container_user_uid}" \
 		--gid "${container_user_gid}" \
-		--login "${container_user_name}" \
 		"${user_to_modify:-"${container_user_name}"}"; then
 
 		printf "Warning: There was a problem setting up the user with usermod, trying manual addition\n"
@@ -2461,6 +2459,20 @@ elif [ ! -e /etc/passwd.done ]; then
 			fi
 		done
 	fi
+
+	# Separately modify username and UID if necessary, newer version of shadow
+	# do not allow for force-setting them at same value, so we need to check
+	# AOT before modifying.
+	if [ "${user_to_modify:-"${container_user_name}"}" != "${container_user_name}" ]; then
+		usermod \
+			--login "${container_user_name}" \
+			"${user_to_modify:-"${container_user_name}"}"
+	fi
+	if [ "$(getent passwd "${user_to_modify:-"${container_user_name}"}" | cut -d':' -f3)" != "${container_user_uid}" ]; then
+		usermod \
+			--uid "${container_user_uid}" \
+			"${user_to_modify:-"${container_user_name}"}"
+	fi
 fi
 
 # Ensure we have our home correctly set, in case of cloned containers or whatnot
@@ -2479,8 +2491,12 @@ if [ ! -e /etc/passwd.done ]; then
 	temporary_password="$(md5sum < /proc/sys/kernel/random/uuid | cut -d' ' -f1)"
 	# We generate a random password to initialize the entry for the user.
 	chpasswd_failed=0
-	printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd -e || chpasswd_failed=1
-	printf "%s:" "${container_user_name}" | chpasswd -e || chpasswd_failed=1
+	printf "%s:%s" "${container_user_name}" "${temporary_password}" | chpasswd || chpasswd_failed=1
+	# Then we remove the password for current user
+	if ! passwd -d "${container_user_name}"; then
+		# Fallback to chpasswd for older systems without passwd -d
+		printf "%s:" "${container_user_name}" | chpasswd || chpasswd_failed=1
+	fi
 
 	if [ "${chpasswd_failed}" -eq 1 ]; then
 		printf "Warning: There was a problem setting up the user, trying manual addition\n"
@@ -2498,7 +2514,10 @@ if [ ! -e /etc/passwd.done ]; then
 			passwd_cmd="passwd --stdin"
 		fi
 		printf "%s\n%s\n" "${temporary_password}" "${temporary_password}" | ${passwd_cmd} root
-		printf "%s:" "root" | chpasswd -e
+		if ! passwd -d "root"; then
+			# Fallback to chpasswd for older systems without passwd -d
+			printf "%s:" "root" | chpasswd
+		fi
 	else
 		# We're rootful, so we don't want passwordless accounts, so we lock them
 		# down by default.
