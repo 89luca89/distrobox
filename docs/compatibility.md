@@ -186,7 +186,7 @@ Distrobox guests tested successfully with the following container images:
 | Gentoo Linux | rolling | docker.io/gentoo/stage3:latest |
 | KDE neon | Latest | invent-registry.kde.org/neon/docker-images/plasma:latest |
 | Kali Linux | rolling | docker.io/kalilinux/kali-rolling:latest |
-| Mint | 21.1 | docker.io/linuxmintd/mint21.1-amd64 |
+| Mint | 22.3 | docker.io/linuxmintd/mint22.3-amd64 |
 | Neurodebian | nd120 | docker.io/library/neurodebian:nd120 |
 | openSUSE | Leap | registry.opensuse.org/opensuse/leap:latest |
 | openSUSE | Tumbleweed | registry.opensuse.org/opensuse/distrobox:latest <br> registry.opensuse.org/opensuse/tumbleweed:latest <br>  registry.opensuse.org/opensuse/toolbox:latest <br> registry.opensuse.org/opensuse/distrobox-bpftrace:latest |
