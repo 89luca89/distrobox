@@ -28,7 +28,7 @@ jobs:
           ref: main
           persist-credentials: false
           fetch-depth: 2
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Fetch from compatibility table all the distros supported
       - id: check_file_changed
@@ -47,7 +47,7 @@ jobs:
 
       - uses: actions/checkout@v6
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Fetch from compatibility table all the distros supported
       - id: generate
