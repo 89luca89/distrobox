@@ -640,7 +640,9 @@ setup_apk()
 			man-db
 			mesa
 			openssh-client
+			pinentry
 			posix-libc-utils
+			script
 		"
 	elif apk add alpine-base; then
 		deps="
@@ -1076,6 +1078,7 @@ setup_dnf()
 		util-linux-script
 		vte-profile
 		wget
+		wget2-wget
 		which
 		whois
 		words
