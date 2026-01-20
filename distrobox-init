@@ -969,6 +969,7 @@ setup_aptrpm()
 		control sudo public
 		control sudoreplay public
 		control su wheel
+		control pam_mktemp disabled
 		mkdir -p /etc/tcb/"${container_user_name}"
 		echo "${container_user_name}::::::::" > /etc/tcb/"${container_user_name}"/shadow
 		sed -i 's/*//g' /etc/passwd
