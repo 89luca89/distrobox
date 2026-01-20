@@ -32,6 +32,7 @@
 #	DBX_CONTAINER_MANAGER
 #	DBX_CONTAINER_NAME
 #	DBX_CONTAINER_CLEAN_PATH
+#	DBX_CONTAINER_RUNUSER
 #	DBX_NON_INTERACTIVE
 #	DBX_VERBOSE
 #	DBX_SKIP_WORKDIR
@@ -109,6 +110,7 @@ headless=0
 skip_workdir=0
 verbose=0
 clean_path=0
+use_runuser=0
 version="1.8.2.3"
 
 # Source configuration files, this is done in an hierarchy so local files have
@@ -146,6 +148,9 @@ if [ "$(id -ru)" -ne 0 ]; then
 	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
 fi
 
+# Read distrobox_container_runuser from config or env
+distrobox_container_runuser=${DBX_CONTAINER_RUNUSER:-${distrobox_container_runuser:-0}}
+
 [ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
 [ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
 [ -n "${DBX_CONTAINER_CLEAN_PATH}" ] && clean_path=1
@@ -158,6 +163,10 @@ fi
 [ "${non_interactive}" = "false" ] && non_interactive=0
 [ "${verbose}" = "true" ] && verbose=1
 [ "${verbose}" = "false" ] && verbose=0
+[ "${distrobox_container_runuser}" = "true" ] && use_runuser=1
+[ "${distrobox_container_runuser}" = "false" ] && use_runuser=0
+[ "${distrobox_container_runuser}" = "1" ] && use_runuser=1
+[ "${distrobox_container_runuser}" = "0" ] && use_runuser=0
 
 # show_help will print usage to stdout.
 # Arguments:
@@ -193,6 +202,7 @@ Options:
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
+	--container-runuser/-R:	inside the container, use runuser instead of su for user switching (only when unshare_groups is enabled)
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -230,6 +240,10 @@ while :; do
 		-nw | --no-workdir)
 			shift
 			skip_workdir=1
+			;;
+		-R | --container-runuser)
+			shift
+			use_runuser=1
 			;;
 		-n | --name)
 			if [ -n "$2" ]; then
@@ -696,7 +710,7 @@ if [ "${container_custom_command}" -eq 0 ]; then
 fi
 
 # If we have a command and we're unsharing groups, we need to execute those
-# command using su $container_command_user
+# command using su $container_command_user (or runuser if --runuser is specified)
 # if we're in a tty, also allocate one
 if [ "${unshare_groups:-0}" -eq 1 ]; then
 	# shellcheck disable=SC2089,SC2016
@@ -707,7 +721,11 @@ if [ "${unshare_groups:-0}" -eq 1 ]; then
 	fi
 	set -- "-m" "$@"
 	set -- "${container_command_user}" "$@"
-	set -- "su" "$@"
+	if [ "${use_runuser}" -eq 1 ]; then
+		set -- "runuser" "$@"
+	else
+		set -- "su" "$@"
+	fi
 fi
 
 # Generate the exec command and run it
