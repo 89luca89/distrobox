@@ -2474,17 +2474,10 @@ elif [ ! -e /etc/passwd.done ]; then
 		done
 	fi
 
-	# Separately modify username and UID if necessary, newer version of shadow
-	# do not allow for force-setting them at same value, so we need to check
-	# AOT before modifying.
+	# Modify username if necessary.
 	if [ "${user_to_modify:-"${container_user_name}"}" != "${container_user_name}" ]; then
 		usermod \
 			--login "${container_user_name}" \
-			"${user_to_modify:-"${container_user_name}"}"
-	fi
-	if [ "$(getent passwd "${user_to_modify:-"${container_user_name}"}" | cut -d':' -f3)" != "${container_user_uid}" ]; then
-		usermod \
-			--uid "${container_user_uid}" \
 			"${user_to_modify:-"${container_user_name}"}"
 	fi
 fi
