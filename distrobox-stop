@@ -290,7 +290,20 @@ case "${response}" in
 	y | Y | Yes | yes | YES)
 		# Stop the container
 		for container_name in ${container_name_list}; do
-			${container_manager} stop "${container_name}"
+			# Workaround for podman stop timeout issue with --pid host in rootless mode.
+			# See: https://github.com/chimera-linux/cports/issues/1718
+			# In rootless mode, podman stop uses "crun kill --all" which fails when
+			# cgroup-path is empty (which happens with --pid host, the distrobox default).
+			# Using "kill" first (which uses "crun kill" without --all) ensures the
+			# container is terminated.
+			if [ "${rootful}" -eq 0 ]; then
+				case "${container_manager}" in
+					*podman*)
+						${container_manager} kill "${container_name}" 2> /dev/null || :
+						;;
+				esac
+			fi
+			${container_manager} stop "${container_name}" 2> /dev/null || :
 		done
 		;;
 	n | N | No | no | NO)

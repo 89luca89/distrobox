@@ -389,6 +389,28 @@ delete_container()
 
 	# Remove the container
 	printf "Removing container...\n"
+	# Workaround for podman rm --force timeout issue with --pid host in rootless mode.
+	# See: https://github.com/chimera-linux/cports/issues/1718
+	#
+	# Root cause: In rootless mode with --pid host (distrobox default), the container's
+	# cgroup-path is empty. When podman rm --force tries to stop the container, it uses
+	# "crun kill --all" which relies on cgroup to find processes. With empty cgroup-path,
+	# no processes are found and killed, causing the stop to timeout.
+	#
+	# Solution: Use "podman kill" first, which calls "crun kill" (without --all flag).
+	# This sends the signal directly to the container's init process PID, bypassing
+	# the cgroup lookup issue.
+	#
+	# Note: distrobox-rm does not call distrobox-stop (by design, it relies on
+	# "podman rm --force" to handle stopping). A similar fix exists in distrobox-stop
+	# for the "distrobox stop" command.
+	if [ "${container_status}" = "running" ] && [ "${rootful}" -eq 0 ]; then
+		case "${container_manager}" in
+			*podman*)
+				${container_manager} kill "${container_name}" > /dev/null 2>&1 || :
+				;;
+		esac
+	fi
 	# shellcheck disable=SC2086,SC2248
 	${container_manager} rm ${force_flag} --volumes "${container_name}"
 
