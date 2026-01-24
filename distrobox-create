@@ -692,13 +692,6 @@ generate_create_command()
 	if [ "${unshare_process}" -eq 0 ]; then
 		result_command="${result_command}
 			--pid host"
-		# Warn about --pid host limitation in rootless podman mode.
-		# See: https://github.com/containers/podman/issues/11888
-		if [ "${rootful}" -eq 0 ] && echo "${container_manager}" | grep -q "podman"; then
-			printf >&2 "Warning: using --pid host with rootless podman.\n"
-			printf >&2 "Warning: orphaned child processes may remain after container stop.\n"
-			printf >&2 "Warning: consider using --unshare-process for full process cleanup.\n"
-		fi
 	fi
 	# Mount useful stuff inside the container.
 	# We also mount host's root filesystem to /run/host, to be able to syphon

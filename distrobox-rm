@@ -389,16 +389,22 @@ delete_container()
 
 	# Remove the container
 	printf "Removing container...\n"
-	# Workaround for podman rm --force timeout issue with --pid host in rootless mode.
+	# Workaround for podman rm --force timeout issue when cgroup-path is empty.
 	# See: https://github.com/chimera-linux/cports/issues/1718
 	#
-	# Root cause: In rootless mode with --pid host (distrobox default), the container's
-	# cgroup-path is empty. When podman rm --force tries to stop the container, it uses
-	# "crun kill --all" which relies on cgroup to find processes. With empty cgroup-path,
-	# no processes are found and killed, causing the stop to timeout.
+	# Root cause: In rootless mode, crun may fail to create a cgroup for the
+	# container (e.g., with cgroupfs manager or --pid host). When cgroup-path
+	# is empty, "crun kill --all" cannot enumerate processes via cgroup, causing
+	# podman rm --force to timeout. With systemd cgroup manager (e.g., Fedora),
+	# cgroup delegation works and this issue doesn't occur.
 	#
-	# Solution: Use "podman kill" first, which sends signal directly to the
-	# container's init process PID, bypassing the cgroup lookup issue.
+	# Solution: Check if crun's cgroup-path is empty. If so, use "podman kill"
+	# first, which sends signal directly to the container's init process PID,
+	# bypassing the cgroup lookup issue.
+	#
+	# Why not try rm --force first then fallback to kill? Because that could mask
+	# other failures - we want to apply the workaround only when we know the
+	# specific condition (empty cgroup-path) that causes the timeout.
 	#
 	# Note: This only kills the init process. Processes started via "podman exec"
 	# (e.g., distrobox-enter) run in separate process groups and will become
@@ -406,9 +412,18 @@ delete_container()
 	# Use --unshare-process when creating the container for full process cleanup.
 	# See: https://github.com/containers/podman/issues/11888
 	# distrobox-rm does not call distrobox-stop by design; a similar fix exists there.
-	if [ "${container_status}" = "running" ] && [ "${rootful}" -eq 0 ] && echo "${container_manager}" | grep -q "podman" &&
-		[ "$(${container_manager} inspect --format '{{.HostConfig.PidMode}}' "${container_name}" 2> /dev/null)" = "host" ]; then
-		${container_manager} kill "${container_name}" > /dev/null 2>&1 || :
+	if [ "${container_status}" = "running" ] && [ "${rootful}" -eq 0 ] && echo "${container_manager}" | grep -q "podman"; then
+		container_id=$(${container_manager} inspect --format '{{.Id}}' "${container_name}" 2> /dev/null)
+		crun_status="/run/user/$(id -u)/crun/${container_id}/status"
+		if [ -f "${crun_status}" ]; then
+			cgroup_path=$(sed -n 's/.*"cgroup-path": "\([^"]*\)".*/\1/p' "${crun_status}" 2> /dev/null)
+			if [ -z "${cgroup_path}" ]; then
+				${container_manager} kill "${container_name}" > /dev/null 2>&1 || :
+				printf >&2 "Warning: container was created with --pid host and cgroup is not available.\n"
+				printf >&2 "Warning: some child processes may remain running (orphaned).\n"
+				printf >&2 "Warning: use --unshare-process when creating containers for full cleanup.\n"
+			fi
+		fi
 	fi
 	# shellcheck disable=SC2086,SC2248
 	${container_manager} rm ${force_flag} --volumes "${container_name}"
