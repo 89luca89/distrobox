@@ -295,13 +295,13 @@ case "${response}" in
 			# In rootless mode, podman stop uses "crun kill --all" which fails when
 			# cgroup-path is empty (which happens with --pid host, the distrobox default).
 			# Using "kill" first (which uses "crun kill" without --all) ensures the
-			# container is terminated.
-			if [ "${rootful}" -eq 0 ]; then
-				case "${container_manager}" in
-					*podman*)
-						${container_manager} kill "${container_name}" 2> /dev/null || :
-						;;
-				esac
+			# container's init process is terminated.
+			#
+			# Note: This only kills the init process, not any orphaned child processes - this is
+			# a limitation of --pid host mode (see https://github.com/containers/podman/issues/11888).
+			# To ensure all processes are cleaned up, use --unshare-process when creating the container.
+			if [ "${rootful}" -eq 0 ] && echo "${container_manager}" | grep -q "podman"; then
+				${container_manager} kill "${container_name}" 2> /dev/null || :
 			fi
 			${container_manager} stop "${container_name}" 2> /dev/null || :
 		done

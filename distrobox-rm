@@ -401,15 +401,12 @@ delete_container()
 	# This sends the signal directly to the container's init process PID, bypassing
 	# the cgroup lookup issue.
 	#
-	# Note: distrobox-rm does not call distrobox-stop (by design, it relies on
-	# "podman rm --force" to handle stopping). A similar fix exists in distrobox-stop
-	# for the "distrobox stop" command.
-	if [ "${container_status}" = "running" ] && [ "${rootful}" -eq 0 ]; then
-		case "${container_manager}" in
-			*podman*)
-				${container_manager} kill "${container_name}" > /dev/null 2>&1 || :
-				;;
-		esac
+	# Note: This only kills the init process, not any orphaned child processes - this is
+	# a limitation of --pid host mode (see https://github.com/containers/podman/issues/11888).
+	# To ensure all processes are cleaned up, use --unshare-process when creating the container.
+	# distrobox-rm does not call distrobox-stop by design; a similar fix exists there.
+	if [ "${container_status}" = "running" ] && [ "${rootful}" -eq 0 ] && echo "${container_manager}" | grep -q "podman"; then
+		${container_manager} kill "${container_name}" > /dev/null 2>&1 || :
 	fi
 	# shellcheck disable=SC2086,SC2248
 	${container_manager} rm ${force_flag} --volumes "${container_name}"
