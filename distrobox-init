@@ -2351,14 +2351,27 @@ fi
 ###############################################################################
 
 ###############################################################################
-# If not existing, ensure we have a group for our user.
-if ! grep -q "^${container_user_name}:" /etc/group; then
-	printf "distrobox: Setting up user groups...\n"
+# Ensure we have primary group for our user with proper GID and name.
+group_to_modify=$(getent group "${container_user_gid}" | cut -d: -f1)
+if [ -n "${group_to_modify}" ]; then 
+	if [ "${group_to_modify}" != "${container_user_name}" ]; then
+		printf "distrobox: Setting up user group name...\n"
 
-	if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
-		# It may occur that we have users with unsupported user name (eg. on LDAP or AD)
-		# So let's try and force the group creation this way.
-		printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >> /etc/group
+		groupmod -n "${container_user_name}" "${group_to_modify}"
+	fi
+else
+	if ! getent group "${container_user_name}"; then
+		printf "distrobox: Setting up user groups...\n"
+
+		if ! groupadd --force --gid "${container_user_gid}" "${container_user_name}"; then
+			# It may occur that we have users with unsupported user name (eg. on LDAP or AD)
+			# So let's try and force the group creation this way.
+			printf "%s:x:%s:" "${container_user_name}" "${container_user_gid}" >> /etc/group
+		fi
+	else
+		printf "distrobox: Setting up user group ID...\n"
+
+		groupmod --gid "${container_user_gid}" "${container_user_name}"
 	fi
 fi
 ###############################################################################
