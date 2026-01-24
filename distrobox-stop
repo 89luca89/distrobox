@@ -299,13 +299,14 @@ case "${response}" in
 			# create child cgroups. On systemd systems, systemd-logind automatically delegates
 			# user slices (e.g., /sys/fs/cgroup/user.slice/user-1000.slice/) to users.
 			# On non-systemd systems (OpenRC/elogind), this delegation is NOT automatic -
-			# users lack write permission to /sys/fs/cgroup, so rootless podman cannot create
-			# cgroups for containers.
+			# users lack write permission to /sys/fs/cgroup, so podman cannot create
+			# cgroups for containers. Similarly, if cgroup support is disabled entirely,
+			# even root cannot create cgroups.
 			#
-			# Root cause: Without cgroup delegation, crun cannot create a cgroup for the
-			# container. When cgroup-path is empty, "crun kill --all" cannot enumerate
-			# processes via cgroup, causing podman stop to timeout waiting for the container
-			# to stop.
+			# Root cause: Without available cgroup, crun cannot create a cgroup for the
+			# container. When cgroup-path is empty (or null), "crun kill --all" cannot
+			# enumerate processes via cgroup, causing podman stop to timeout waiting for
+			# the container to stop.
 			#
 			# Solution: Check if crun's cgroup-path is empty. If so, use "podman kill"
 			# first, which sends signal directly to the container's init process PID,
@@ -321,11 +322,15 @@ case "${response}" in
 			# Use --unshare-process when creating the container for full process cleanup.
 			# See: https://github.com/containers/podman/issues/11888
 			#
-			# To fix this properly on non-systemd systems, configure cgroup delegation:
+			# To fix this properly, configure cgroup delegation:
 			# https://github.com/89luca89/distrobox/issues/1939
-			if [ "${rootful}" -eq 0 ] && echo "${container_manager}" | grep -q "podman"; then
+			if echo "${container_manager}" | grep -q "podman"; then
 				container_id=$(${container_manager} inspect --format '{{.Id}}' "${container_name}" 2> /dev/null)
-				crun_status="/run/user/$(id -u)/crun/${container_id}/status"
+				if [ "${rootful}" -eq 0 ]; then
+					crun_status="/run/user/$(id -u)/crun/${container_id}/status"
+				else
+					crun_status="/run/crun/${container_id}/status"
+				fi
 				if [ -f "${crun_status}" ]; then
 					cgroup_path=$(sed -n 's/.*"cgroup-path": "\([^"]*\)".*/\1/p' "${crun_status}" 2> /dev/null)
 					if [ -z "${cgroup_path}" ]; then
