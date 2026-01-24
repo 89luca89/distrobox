@@ -397,15 +397,17 @@ delete_container()
 	# "crun kill --all" which relies on cgroup to find processes. With empty cgroup-path,
 	# no processes are found and killed, causing the stop to timeout.
 	#
-	# Solution: Use "podman kill" first, which calls "crun kill" (without --all flag).
-	# This sends the signal directly to the container's init process PID, bypassing
-	# the cgroup lookup issue.
+	# Solution: Use "podman kill" first, which sends signal directly to the
+	# container's init process PID, bypassing the cgroup lookup issue.
 	#
-	# Note: This only kills the init process, not any orphaned child processes - this is
-	# a limitation of --pid host mode (see https://github.com/containers/podman/issues/11888).
-	# To ensure all processes are cleaned up, use --unshare-process when creating the container.
+	# Note: This only kills the init process. Processes started via "podman exec"
+	# (e.g., distrobox-enter) run in separate process groups and will become
+	# orphaned. Daemonized processes (setsid/double-fork) also cannot be tracked.
+	# Use --unshare-process when creating the container for full process cleanup.
+	# See: https://github.com/containers/podman/issues/11888
 	# distrobox-rm does not call distrobox-stop by design; a similar fix exists there.
-	if [ "${container_status}" = "running" ] && [ "${rootful}" -eq 0 ] && echo "${container_manager}" | grep -q "podman"; then
+	if [ "${container_status}" = "running" ] && [ "${rootful}" -eq 0 ] && echo "${container_manager}" | grep -q "podman" &&
+		[ "$(${container_manager} inspect --format '{{.HostConfig.PidMode}}' "${container_name}" 2> /dev/null)" = "host" ]; then
 		${container_manager} kill "${container_name}" > /dev/null 2>&1 || :
 	fi
 	# shellcheck disable=SC2086,SC2248
