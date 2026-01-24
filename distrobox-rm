@@ -392,11 +392,19 @@ delete_container()
 	# Workaround for podman rm --force timeout issue when cgroup-path is empty.
 	# See: https://github.com/chimera-linux/cports/issues/1718
 	#
-	# Root cause: In rootless mode, crun may fail to create a cgroup for the
-	# container (e.g., with cgroupfs manager or --pid host). When cgroup-path
-	# is empty, "crun kill --all" cannot enumerate processes via cgroup, causing
-	# podman rm --force to timeout. With systemd cgroup manager (e.g., Fedora),
-	# cgroup delegation works and this issue doesn't occur.
+	# Background - cgroup delegation:
+	# In cgroup v2, only root can create sub-cgroups by default. "Delegation" means
+	# granting a non-root user write access to a cgroup subtree, allowing them to
+	# create child cgroups. On systemd systems, systemd-logind automatically delegates
+	# user slices (e.g., /sys/fs/cgroup/user.slice/user-1000.slice/) to users.
+	# On non-systemd systems (OpenRC/elogind), this delegation is NOT automatic -
+	# users lack write permission to /sys/fs/cgroup, so rootless podman cannot create
+	# cgroups for containers.
+	#
+	# Root cause: Without cgroup delegation, crun cannot create a cgroup for the
+	# container. When cgroup-path is empty, "crun kill --all" cannot enumerate
+	# processes via cgroup, causing podman rm --force to timeout waiting for the
+	# container to stop.
 	#
 	# Solution: Check if crun's cgroup-path is empty. If so, use "podman kill"
 	# first, which sends signal directly to the container's init process PID,
@@ -411,6 +419,10 @@ delete_container()
 	# orphaned. Daemonized processes (setsid/double-fork) also cannot be tracked.
 	# Use --unshare-process when creating the container for full process cleanup.
 	# See: https://github.com/containers/podman/issues/11888
+	#
+	# To fix this properly on non-systemd systems, configure cgroup delegation:
+	# https://github.com/89luca89/distrobox/issues/1939
+	#
 	# distrobox-rm does not call distrobox-stop by design; a similar fix exists there.
 	if [ "${container_status}" = "running" ] && [ "${rootful}" -eq 0 ] && echo "${container_manager}" | grep -q "podman"; then
 		container_id=$(${container_manager} inspect --format '{{.Id}}' "${container_name}" 2> /dev/null)
@@ -419,9 +431,10 @@ delete_container()
 			cgroup_path=$(sed -n 's/.*"cgroup-path": "\([^"]*\)".*/\1/p' "${crun_status}" 2> /dev/null)
 			if [ -z "${cgroup_path}" ]; then
 				${container_manager} kill "${container_name}" > /dev/null 2>&1 || :
-				printf >&2 "Warning: container was created with --pid host and cgroup is not available.\n"
+				printf >&2 "Warning: cgroup is not available for this container.\n"
+				printf >&2 "Warning: this is common on non-systemd systems (OpenRC/elogind) without cgroup delegation.\n"
 				printf >&2 "Warning: some child processes may remain running (orphaned).\n"
-				printf >&2 "Warning: use --unshare-process when creating containers for full cleanup.\n"
+				printf >&2 "Warning: to fix: https://github.com/89luca89/distrobox/issues/1939\n"
 			fi
 		fi
 	fi
