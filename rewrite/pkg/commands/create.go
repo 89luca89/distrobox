@@ -225,7 +225,7 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 func (c *CreateCommand) clone(ctx context.Context, containerName string) (string, error) {
 	i, err := c.containerManager.InspectContainer(ctx, containerName)
 	if err != nil {
-		return "", fmt.Errorf("Failed to inspect container status: %w", err)
+		return "", fmt.Errorf("failed to inspect container status: %w", err)
 	}
 
 	if i.ContainerStatus == "running" {
