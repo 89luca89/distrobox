@@ -77,6 +77,8 @@ func beforeAction(ctx context.Context, cmd *cli.Command) (context.Context, error
 	switch containerManagerType {
 	case "docker":
 		containerManager = providers.NewDocker(root, sudoCommand, verbose)
+	case "podman":
+		containerManager = providers.NewPodman(root, sudoCommand, verbose)
 	default:
 		return nil, fmt.Errorf("unsupported container manager: %s", containerManagerType)
 	}
