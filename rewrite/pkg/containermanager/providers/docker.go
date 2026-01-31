@@ -565,6 +565,11 @@ func (d *Docker) Stop(ctx context.Context, containerNames []string) error {
 	return nil
 }
 
+func (d *Docker) Commit(ctx context.Context, containerID string, tag string) error {
+	_, err := d.run(ctx, []string{"container", "commit", containerID, tag}, runOptions{})
+	return err
+}
+
 func parseContainerList(output string) ([]containermanager.Container, error) {
 	var containers []containermanager.Container
 
