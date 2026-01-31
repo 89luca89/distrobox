@@ -60,6 +60,7 @@ type runOptions struct {
 }
 
 type inspectOutput struct {
+	ID    string `json:"Id"`
 	State struct {
 		Status string `json:"Status"`
 	} `json:"State"`
@@ -649,6 +650,7 @@ func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*c
 	}
 
 	inspect := inspects[0]
+	config.ContanerID = inspect.ID
 	config.ContainerStatus = inspect.State.Status
 
 	// Check for unshare_groups label
