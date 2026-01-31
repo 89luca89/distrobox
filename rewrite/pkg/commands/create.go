@@ -236,7 +236,7 @@ func (c *CreateCommand) clone(ctx context.Context, containerName string) (string
 
 	err = c.containerManager.Commit(ctx, i.ContanerID, commitTag)
 	if err != nil {
-		return "", fmt.Errorf("Failed to commit container: %w", err)
+		return "", fmt.Errorf("failed to commit container '%s:%s': %w", i.ContanerID, commitTag, err)
 	}
 
 	return commit_tag, nil
