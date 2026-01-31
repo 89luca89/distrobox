@@ -88,74 +88,14 @@ func NewCreateCommand(cm containermanager.ContainerManager, progress *ui.Progres
 }
 
 func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
-	// Determine right containerImage to use
-	//
-	// If no clone option and no container image, let's choose a default image to use.
-	//
-	// If no name is specified and we're using the default container_image, then let's
-	// set a default name for the container, that is distinguishable from the default
-	// toolbx one. This will avoid problems when using both toolbx and distrobox on
-	// the same system.
-	containerImage := opts.ContainerImage
-	if opts.ContainerClone == "" && containerImage == "" {
-		containerImage = DefaultCreateContainerImage
-	}
-	if opts.DryRun && opts.ContainerClone != "" {
-		containerImage = opts.ContainerClone
+	containerImage := c.makeContainerImage(&opts)
+	containerName := c.makeContainerName(&opts, containerImage)
+	containerHostname, err := c.makeContainerHostname(&opts)
+	if err != nil {
+		return err
 	}
 
-	// Determine right containerName to use
-	//
-	// If no name is specified and no image is specified, then let's
-	// set a default name for the container, that is distinguishable from the default
-	// toolbx one. This will avoid problems when using both toolbx and distrobox on
-	// the same system.
-	//
-	// If no container_name is declared, we build our container name starting from the
-	// container image specified.
-	//
-	// Examples:
-	//	alpine -> alpine
-	//	ubuntu:20.04 -> ubuntu-20.04
-	//	registry.fedoraproject.org/fedora-toolbox:39 -> fedora-toolbox-39
-	//	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
-	containerName := opts.ContainerName
-	if opts.ContainerImage == "" {
-		containerName = DefaultCreateContainerName
-	}
-	if containerName == "" {
-		base := path.Base(containerImage)
-		base = strings.ReplaceAll(base, ":", "-")
-		base = strings.ReplaceAll(base, ".", "-")
-		containerName = base
-	}
-
-	// Determine right containerHostname to use
-	//
-	containerHostname := opts.ContainerHostname
-	if containerHostname == "" {
-		hostname, err := os.Hostname()
-		if err != nil {
-			return fmt.Errorf("unable to get hostname: %w", err)
-		}
-		containerHostname = hostname
-		if opts.UnshareNetNs {
-			containerHostname = fmt.Sprintf("%s.%s", containerHostname, hostname)
-		}
-	}
-	if len(containerHostname) > maxHostnameLength {
-		return ErrHostnameTooLong
-	}
-
-	// Determine right containerUserCustomHome to use
-	//
-	// We check if the user has a custom home prefix to use for the container home.
-	// If we have a home prefix to use, and no custom home set, then we set
-	// the custom home to be PREFIX/CONTAINER_NAME
-	containerUserCustomHome := opts.ContainerUserCustomHome
-	if opts.ContainerHomePrefix != "" && containerUserCustomHome == "" {
-		containerUserCustomHome = filepath.Join(opts.ContainerHomePrefix, containerName)
-	}
+	containerUserCustomHome := c.makeContainerUserCustomHome(&opts, containerName)
 
 	if c.containerManager.Exists(ctx, containerName) {
 		return &ContainerAlreadyExistsError{ContainerName: containerName}
@@ -174,7 +114,7 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 
 	c.progress.Next("Creating '%s' using image %s", containerName, containerImage)
 
-	err := c.containerManager.Create(
+	err = c.containerManager.Create(
 		ctx,
 		containermanager.CreateOptions{
 			ContainerName:           containerName,
@@ -220,6 +160,93 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 	}
 
 	return nil
+}
+
+// Determine right containerImage to use
+//
+// If no clone option and no container image, let's choose a default image to use.
+//
+// If no name is specified and we're using the default container_image, then let's
+// set a default name for the container, that is distinguishable from the default
+// toolbx one. This will avoid problems when using both toolbx and distrobox on
+// the same system.
+func (c *CreateCommand) makeContainerImage(opts *CreateOptions) string {
+	containerImage := opts.ContainerImage
+	if opts.ContainerClone == "" && containerImage == "" {
+		containerImage = DefaultCreateContainerImage
+	}
+	if opts.DryRun && opts.ContainerClone != "" {
+		containerImage = opts.ContainerClone
+	}
+
+	return containerImage
+}
+
+// Determine right containerName to use
+//
+// If no name is specified and no image is specified, then let's
+// set a default name for the container, that is distinguishable from the default
+// toolbx one. This will avoid problems when using both toolbx and distrobox on
+// the same system.
+//
+// If no container_name is declared, we build our container name starting from the
+// container image specified.
+//
+// Examples:
+//
+//	alpine -> alpine
+//	ubuntu:20.04 -> ubuntu-20.04
+//	registry.fedoraproject.org/fedora-toolbox:39 -> fedora-toolbox-39
+//	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
+func (c *CreateCommand) makeContainerName(opts *CreateOptions, containerImage string) string {
+	containerName := opts.ContainerName
+	if opts.ContainerImage == "" {
+		containerName = DefaultCreateContainerName
+	}
+	if containerName == "" {
+		base := path.Base(containerImage)
+		base = strings.ReplaceAll(base, ":", "-")
+		base = strings.ReplaceAll(base, ".", "-")
+		containerName = base
+	}
+
+	return containerName
+}
+
+func (c *CreateCommand) makeContainerHostname(opts *CreateOptions) (string, error) {
+	containerHostname := opts.ContainerHostname
+	if containerHostname == "" {
+		hostname, err := os.Hostname()
+		if err != nil {
+			return "", fmt.Errorf("unable to get hostname: %w", err)
+		}
+		containerHostname = hostname
+		if opts.UnshareNetNs {
+			containerHostname = fmt.Sprintf("%s.%s", containerHostname, hostname)
+		}
+	}
+
+	if len(containerHostname) > maxHostnameLength {
+		return "", ErrHostnameTooLong
+	}
+
+	return containerHostname, nil
+}
+
+// Determine right containerUserCustomHome to use
+//
+// We check if the user has a custom home prefix to use for the container home.
+// If we have a home prefix to use, and no custom home set, then we set
+// the custom home to be PREFIX/CONTAINER_NAME
+func (c *CreateCommand) makeContainerUserCustomHome(
+	opts *CreateOptions,
+	containerName string,
+) string {
+	containerUserCustomHome := opts.ContainerUserCustomHome
+	if opts.ContainerHomePrefix != "" && containerUserCustomHome == "" {
+		containerUserCustomHome = filepath.Join(opts.ContainerHomePrefix, containerName)
+	}
+	return containerUserCustomHome
 }
 
 func (c *CreateCommand) clone(ctx context.Context, containerName string) (string, error) {
