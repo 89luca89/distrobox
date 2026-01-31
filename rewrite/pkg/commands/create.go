@@ -2,11 +2,13 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
@@ -159,8 +161,13 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 		return &ContainerAlreadyExistsError{ContainerName: containerName}
 	}
 
-	// TODO: handle clone case (get image from existing container)
-	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L595
+	if opts.ContainerClone != "" && !opts.DryRun {
+		cloneImage, err := c.clone(ctx, opts.ContainerClone)
+		if err != nil {
+			return fmt.Errorf("failed to clone container %s: %w", opts.ContainerClone, err)
+		}
+		containerImage = cloneImage
+	}
 
 	// TODO: pull image if needed
 	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L1016
@@ -213,4 +220,24 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 	}
 
 	return nil
+}
+
+func (c *CreateCommand) clone(ctx context.Context, containerName string) (string, error) {
+	i, err := c.containerManager.InspectContainer(ctx, containerName)
+	if err != nil {
+		return "", fmt.Errorf("Failed to inspect container status: %w", err)
+	}
+
+	if i.ContainerStatus == "running" {
+		return "", errors.New("Cannot clone running container")
+	}
+
+	commit_tag := fmt.Sprintf("%s:%s", strings.ToLower(containerName), time.Now().Format("2006-01-02"))
+
+	err = c.containerManager.Commit(ctx, i.ContanerID, commit_tag)
+	if err != nil {
+		return "", fmt.Errorf("Failed to commit container: %w", err)
+	}
+
+	return commit_tag, nil
 }
