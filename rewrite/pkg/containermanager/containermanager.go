@@ -16,6 +16,7 @@ type Container struct {
 }
 
 type InspectResult struct {
+	ContanerID      string
 	ContainerStatus string
 	ContainerHome   string
 	ContainerPath   string
