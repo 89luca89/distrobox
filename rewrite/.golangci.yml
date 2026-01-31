@@ -472,3 +472,10 @@ linters:
       - text: '^shadow: declaration of "(err|ok)" shadows declaration'
         linters:
           - govet
+      # Ignore duplication warnings for podman provider - intentionally similar to docker provider
+      - path: 'pkg/containermanager/providers/podman(_internal_test)?\.go'
+        linters:
+          - dupl
+      - path: 'pkg/containermanager/providers/docker(_internal_test)?\.go'
+        linters:
+          - dupl
