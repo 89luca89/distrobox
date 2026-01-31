@@ -229,7 +229,7 @@ func (c *CreateCommand) clone(ctx context.Context, containerName string) (string
 	}
 
 	if i.ContainerStatus == "running" {
-		return "", errors.New("Cannot clone running container")
+		return "", errors.New("cannot clone running container, name: " + containerName)
 	}
 
 	commit_tag := fmt.Sprintf("%s:%s", strings.ToLower(containerName), time.Now().Format("2006-01-02"))
