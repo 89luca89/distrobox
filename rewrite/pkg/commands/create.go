@@ -234,7 +234,7 @@ func (c *CreateCommand) clone(ctx context.Context, containerName string) (string
 
 	commitTag := fmt.Sprintf("%s:%s", strings.ToLower(containerName), time.Now().Format("2006-01-02"))
 
-	err = c.containerManager.Commit(ctx, i.ContanerID, commit_tag)
+	err = c.containerManager.Commit(ctx, i.ContanerID, commitTag)
 	if err != nil {
 		return "", fmt.Errorf("Failed to commit container: %w", err)
 	}
