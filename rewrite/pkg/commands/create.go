@@ -239,5 +239,5 @@ func (c *CreateCommand) clone(ctx context.Context, containerName string) (string
 		return "", fmt.Errorf("failed to commit container '%s:%s': %w", i.ContanerID, commitTag, err)
 	}
 
-	return commit_tag, nil
+	return commitTag, nil
 }
