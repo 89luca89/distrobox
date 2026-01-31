@@ -82,4 +82,5 @@ type ContainerManager interface {
 	Exists(ctx context.Context, containerName string) bool
 	Stop(ctx context.Context, containerNames []string) error
 	InspectContainer(ctx context.Context, containerName string) (*InspectResult, error)
+	Commit(ctx context.Context, containerID string, tag string) error
 }
