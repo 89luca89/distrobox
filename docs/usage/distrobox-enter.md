@@ -25,6 +25,7 @@ If using it inside a script, an application, or a service, you can specify the
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
+	--container-runuser/-R:	inside the container, use runuser instead of su for user switching (only when unshare_groups is enabled)
 	--dry-run/-d:		only print the container manager command generated
 	--verbose/-v:		show more verbosity
 	--version/-V:		show version
@@ -57,6 +58,7 @@ You can also use environment variables to specify container manager and containe
 
 	DBX_CONTAINER_NAME
 	DBX_CONTAINER_MANAGER
+	DBX_CONTAINER_RUNUSER
 	DBX_SKIP_WORKDIR
 	DBX_SUDO_PROGRAM
 
@@ -85,3 +87,12 @@ run podman/docker/lilipod as root, such as 'pkexec' or 'doas', you may specify i
 Additionally, in one of the config file paths that distrobox supports, such as `~/.distroboxrc`,
 you can also append the line `distrobox_sudo_program="doas"` (for example) to always run
 distrobox commands involving rootful containers using 'doas'.
+
+Similarly, to use runuser instead of su inside the container (when unshare_groups is enabled),
+you can specify it with `DBX_CONTAINER_RUNUSER` environment variable. For example:
+
+	DBX_CONTAINER_RUNUSER="true" distrobox enter -n container
+
+Additionally, in one of the config file paths that distrobox supports, such as `~/.distroboxrc`,
+you can also append the line `distrobox_container_runuser="true"` to always use runuser
+instead of su inside the container.
