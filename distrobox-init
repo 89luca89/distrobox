@@ -2433,59 +2433,85 @@ elif [ ! -e /etc/passwd.done ]; then
 	# for us inside container. We should modify the user's prepopulated shadowfile
 	# entry though as per user's active preferences.
 
-	# If the user was there with a different username, get that username so
-	# we can modify it
-	if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/passwd; then
-		user_to_modify=$(getent passwd "${container_user_uid}" | cut -d: -f1)
-	fi
+	# Get current user attributes using container_user_uid as the reference
+	# (script runs as root, so we must look up the target user by UID)
+	current_user_entry=$(getent passwd "${container_user_uid}")
+	current_user_name=$(printf '%s' "${current_user_entry}" | cut -d: -f1)
+	current_shell=$(printf '%s' "${current_user_entry}" | cut -d: -f7)
+	current_gid=$(printf '%s' "${current_user_entry}" | cut -d: -f4)
+	current_groups=$(id -nG "${current_user_name}" 2> /dev/null)
 
-	printf "distrobox: Setting up existing user...\n"
-	if ! usermod \
-		--home "${container_user_home}" \
-		--shell "${SHELL:-"/bin/bash"}" \
-		--groups "${additional_groups}" \
-		--gid "${container_user_gid}" \
-		"${user_to_modify:-"${container_user_name}"}"; then
-
-		printf "Warning: There was a problem setting up the user with usermod, trying manual addition\n"
-
-		# Modify the user
-		printf "distrobox: Setting up existing user: /etc/passwd...\n"
-		sed -i "s|^${container_user_name}.*||g" /etc/passwd
-		printf "%s:x:%s:%s:%s:%s:%s\n" \
-			"${container_user_name}" "${container_user_uid}" \
-			"${container_user_gid}" "${container_user_name}" \
-			"${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
-
-		# Add or modify the default group
-		# and add or modify the additional groups
-		printf "distrobox: Setting up existing user: /etc/group...\n"
-		for group in ${container_user_name} ${additional_groups}; do
-			# Check if we have the user in the group
-			if ! grep -q "^${group}.*${container_user_name}.*" /etc/group; then
-				group_line="$(grep "^${group}.*" /etc/group)"
-				# If no users in the group just add it
-				if grep -q "^${group}.*:$" /etc/group; then
-					sed -i "s|${group_line}|${group_line}${container_user_name}|g" /etc/group
-				else
-					sed -i "s|${group_line}|${group_line},${container_user_name}|g" /etc/group
-				fi
+	# Modify username if needed
+	if [ "${current_user_name}" != "${container_user_name}" ]; then
+		printf "distrobox: Setting up existing user - username...\n"
+		if ! usermod --login "${container_user_name}" "${current_user_name}"; then
+			printf "Warning: usermod --login failed, trying manual modification\n"
+			sed -i "s|^${current_user_name}:|${container_user_name}:|g" /etc/passwd
+			if ! getent passwd "${container_user_name}" > /dev/null 2>&1; then
+				printf "Error: Failed to modify user login name\n" >&2
+				exit 1
 			fi
-		done
+		fi
+		# Update current_user_name for subsequent commands
+		current_user_name="${container_user_name}"
 	fi
 
-	# Separately modify username and UID if necessary, newer version of shadow
-	# do not allow for force-setting them at same value, so we need to check
-	# AOT before modifying.
-	if [ "${user_to_modify:-"${container_user_name}"}" != "${container_user_name}" ]; then
-		usermod \
-			--login "${container_user_name}" \
-			"${user_to_modify:-"${container_user_name}"}"
+	# Modify shell if needed
+	if [ "${current_shell}" != "${SHELL:-"/bin/bash"}" ]; then
+		printf "distrobox: Setting up existing user - shell...\n"
+		if ! usermod --shell "${SHELL:-"/bin/bash"}" "${current_user_name}"; then
+			printf "Warning: usermod --shell failed, trying manual modification\n"
+			# sed to update shell field (7th field) in /etc/passwd
+			sed -i "s|^\(${current_user_name}:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:\).*|\1${SHELL:-"/bin/bash"}|g" /etc/passwd
+		fi
 	fi
-	if [ "$(getent passwd "${user_to_modify:-"${container_user_name}"}" | cut -d':' -f3)" != "${container_user_uid}" ]; then
-		usermod \
-			--uid "${container_user_uid}" \
-			"${user_to_modify:-"${container_user_name}"}"
+
+	# Modify GID if needed
+	if [ "${current_gid}" != "${container_user_gid}" ]; then
+		printf "distrobox: Setting up existing user - GID...\n"
+		if ! usermod --gid "${container_user_gid}" "${current_user_name}"; then
+			printf "Warning: usermod --gid failed, trying manual modification\n"
+			# sed to update gid field (4th field) in /etc/passwd
+			sed -i "s|^\(${current_user_name}:[^:]*:[^:]*:\)[^:]*|\1${container_user_gid}|g" /etc/passwd
+		fi
+	fi
+
+	# Modify groups if needed (check if user is missing from any additional group)
+	groups_need_modification=0
+	for group in ${additional_groups}; do
+		if ! printf '%s' " ${current_groups} " | grep -q " ${group} "; then
+			groups_need_modification=1
+			break
+		fi
+	done
+	if [ "${groups_need_modification}" -eq 1 ]; then
+		printf "distrobox: Setting up existing user - groups...\n"
+		# Workaround: usermod --groups fails if an /etc/group file does not end with
+		# a newline, so we preemptively add one just in case.
+		printf '\n' >> /etc/group
+		if ! usermod --append --groups "${additional_groups}" "${current_user_name}"; then
+			printf "Warning: usermod --groups failed, trying manual modification\n"
+			for group in ${additional_groups}; do
+				if ! grep -q "^${group}.*${current_user_name}.*" /etc/group; then
+					group_line="$(grep "^${group}.*" /etc/group)"
+					if grep -q "^${group}.*:$" /etc/group; then
+						sed -i "s|${group_line}|${group_line}${current_user_name}|g" /etc/group
+					else
+						sed -i "s|${group_line}|${group_line},${current_user_name}|g" /etc/group
+					fi
+				fi
+			done
+		fi
+	fi
+
+	# Modify UID if needed
+	current_uid=$(getent passwd "${current_user_name}" | cut -d: -f3)
+	if [ "${current_uid}" != "${container_user_uid}" ]; then
+		printf "distrobox: UID...\n"
+		if ! usermod --uid "${container_user_uid}" "${current_user_name}"; then
+			printf "Warning: usermod --uid failed, trying manual modification\n"
+			sed -i "s|^\(${current_user_name}:[^:]*:\)[^:]*|\1${container_user_uid}|g" /etc/passwd
+		fi
 	fi
 fi
 
