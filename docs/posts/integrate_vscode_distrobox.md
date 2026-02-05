@@ -88,7 +88,7 @@ We will use the [podman-remote](https://docs.redhat.com/en/documentation/red_hat
 5. Configure Dev Containers Extension by putting `podman-remote` in 
 [vscode://settings/dev.containers.dockerPath](vscode://settings/dev.containers.dockerPath)
 6. If you click refresh in Dev Containers extension you should see your host's containers 
-
+![image](https://raw.githubusercontent.com/89luca89/distrobox/450e2bd06294558fb5ed70fdda1004716c5bd3b6/docs/assets/png/integrate_vscode_distrobox.png)
 ## From flatpak
 
 Alternatively you may want to install VSCode on your host. We will explore how
