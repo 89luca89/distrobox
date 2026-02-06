@@ -15,7 +15,9 @@ VScode doesn't need presentations, and it's a powerful tool for development.
 You may want to use it, but how to handle the dualism between host and container?
 
 In this experiment we will use [VSCodium](https://vscodium.com/) as an opensource
-alternative to VSCode. Due to Microsoft's actions Dev Containers extension works only for non-opensource version of VS code. There are community made extensions like [DevPod Containers](https://open-vsx.org/extension/3timeslazy/vscodium-devpodcontainers) that work in VSCodium
+alternative to VSCode. Due to Microsoft's actions Dev Containers extension works only
+for non-opensource version of VS code. There are community made extensions like
+[DevPod Containers](https://open-vsx.org/extension/3timeslazy/vscodium-devpodcontainers) that work in VSCodium
 
 This guide has become outdated and you will need to expect that some things have broke since then.
 
@@ -23,7 +25,8 @@ This guide has become outdated and you will need to expect that some things have
 
 Well, you could just install VSCodium in your Distrobox of choice, and export it!
 
-For example using an Arch Linux container (We use --home so to not clutter our home directory. You can change it if you have VSCode configuration in your home directory that you like):
+For example using an Arch Linux container (We use --home so to not clutter our home directory.
+You can change it if you have VSCode configuration in your home directory that you like):
 
 ```shell
 ~$ distrobox create --image archlinux:latest --name arch-distrobox --home ./devcontainer
@@ -48,7 +51,7 @@ For prioperiatary version you need to use the binary hosted on [AUR](https://aur
 
 To enable and install from AUR do:
 
-```
+```bash
 sudo pacman -Syu git base-devel &&\
 git clone https://aur.archlinux.org/yay.git &&\
 cd yay &&\
@@ -66,29 +69,35 @@ it without problems.
 
 ### Manage podman from Distrobox
 
-We will use the [podman-remote](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/building_running_and_managing_containers/using-the-container-tools-api) to manage our containers running on host
+We will use the
+[podman-remote](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/8/html/building_running_and_managing_containers/using-the-container-tools-api)
+to manage our containers running on host
 
-1. Install [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) in VSCode
+1. Install
+[Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+in VSCode
 2. Make sure that podman sockets is enabled on the host system
   `
-  ls -l /run/user/$(id -u)/podman/podman.sock
+ls -l /run/user/$(id -u)/podman/podman.sock
   `
   if it isn't, enable it with:
   `
-  systemctl --user enable --now podman.socket
+systemctl --user enable --now podman.socket
   `
 3. Inside the Distrobox install podman to provide `podman-remote`
   `
-  sudo pacman -Syu podman
+sudo pacman -Syu podman
   `
 4. Check if it's working by running:
   `
-  podman-remote info
+podman-remote info
   `
-5. Configure Dev Containers Extension by putting `podman-remote` in 
+5. Configure Dev Containers Extension by putting `podman-remote` in
 [vscode://settings/dev.containers.dockerPath](vscode://settings/dev.containers.dockerPath)
-6. If you click refresh in Dev Containers extension you should see your host's containers 
+6. If you click refresh in Dev Containers extension you should see your host's containers
+
 ![image](https://raw.githubusercontent.com/89luca89/distrobox/450e2bd06294558fb5ed70fdda1004716c5bd3b6/docs/assets/png/integrate_vscode_distrobox.png)
+
 ## From flatpak
 
 Alternatively you may want to install VSCode on your host. We will explore how
