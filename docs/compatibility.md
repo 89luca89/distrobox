@@ -167,7 +167,7 @@ Distrobox guests tested successfully with the following container images:
 | Rocky Linux (Toolbox) | 8 <br> 9 | quay.io/toolbx-images/rockylinux-toolbox:8 <br> quay.io/toolbx-images/rockylinux-toolbox:9 <br> quay.io/toolbx-images/rockylinux-toolbox:latest |
 | Ubuntu (Toolbox) | 16.04 <br> 18.04 <br> 20.04 <br> 22.04 <br> 24.04 | quay.io/toolbx/ubuntu-toolbox:16.04 <br> quay.io/toolbx/ubuntu-toolbox:18.04 <br> quay.io/toolbx/ubuntu-toolbox:20.04 <br> quay.io/toolbx/ubuntu-toolbox:22.04 <br> quay.io/toolbx/ubuntu-toolbox:24.04 <br> quay.io/toolbx/ubuntu-toolbox:latest |
 | Chainguard Wolfi (Toolbox) | | quay.io/toolbx-images/wolfi-toolbox:latest |
-| Ublue | bluefin-cli <br> ubuntu-toolbox <br> fedora-toolbox <br> wolfi-toolbox <br> archlinux-distrobox <br> powershell-toolbox | ghcr.io/ublue-os/bluefin-cli <br> ghcr.io/ublue-os/bluefin-cli <br> ghcr.io/ublue-os/ubuntu-toolbox <br> ghcr.io/ublue-os/fedora-toolbox <br> ghcr.io/ublue-os/wolfi-toolbox <br> ghcr.io/ublue-os/arch-toolbox <br> ghcr.io/ublue-os/powershell-toolbox |
+| Ublue | ubuntu-toolbox <br> fedora-toolbox <br> wolfi-toolbox <br> archlinux-distrobox | ghcr.io/ublue-os/ubuntu-toolbox <br> ghcr.io/ublue-os/fedora-toolbox <br> ghcr.io/ublue-os/wolfi-toolbox <br> ghcr.io/ublue-os/arch-toolbox |
 | | | |
 | AlmaLinux | 8 <br> 8-minimal <br> 9 <br> 9-minimal | docker.io/library/almalinux:8 <br> docker.io/library/almalinux:9 |
 | Alpine Linux | 3.20 <br> 3.21 <br> 3.22 <br> edge | docker.io/library/alpine:3.20 <br> docker.io/library/alpine:3.21 <br> docker.io/library/alpine:3.22 <br> docker.io/library/alpine:edge <br> docker.io/library/alpine:latest |
