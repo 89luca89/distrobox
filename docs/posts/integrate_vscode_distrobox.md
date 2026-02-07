@@ -47,7 +47,7 @@ Now that we have installed it, we can export it:
 user@ubuntu-distrobox:~$ distrobox-export --app code
 ```
 
-For prioperiatary version you need to use the binary hosted on [AUR](https://aur.archlinux.org/packages/visual-studio-code-bin).
+For proprietary version you need to use the binary hosted on [AUR](https://aur.archlinux.org/packages/visual-studio-code-bin).
 
 To enable and install from AUR do:
 
