@@ -50,10 +50,27 @@ if {
 	exit 1
 fi
 
+# Detect host operating system for cross-platform compatibility
+host_os="$(uname -s)"
+
 # Ensure we have our env variables correctly set
 [ -z "${USER}" ] && USER="$(id -run)"
-[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
-[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+if [ -z "${HOME}" ]; then
+	if [ "${host_os}" = "Darwin" ]; then
+		HOME="$(dscl . -read "/Users/${USER}" NFSHomeDirectory 2>/dev/null | awk '{print $2}')"
+		[ -z "${HOME}" ] && HOME="$(eval echo ~"${USER}")"
+	else
+		HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+	fi
+fi
+if [ -z "${SHELL}" ]; then
+	if [ "${host_os}" = "Darwin" ]; then
+		SHELL="$(dscl . -read "/Users/${USER}" UserShell 2>/dev/null | awk '{print $2}')"
+		[ -z "${SHELL}" ] && SHELL="/bin/bash"
+	else
+		SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+	fi
+fi
 
 # Defaults
 container_additional_packages=""
@@ -703,6 +720,13 @@ generate_create_command()
 	# Mount also the distrobox-init utility as the container entrypoint.
 	# Also mount in the container the distrobox-export and distrobox-host-exec
 	# utilities.
+	# On macOS, /tmp is a symlink to /private/tmp, so mount the real directory
+	if [ "${host_os}" = "Darwin" ]; then
+		tmp_mount="--volume /private/tmp:/tmp:rslave"
+	else
+		tmp_mount="--volume /tmp:/tmp:rslave"
+	fi
+
 	result_command="${result_command}
 		--label \"manager=distrobox\"
 		--label \"distrobox.unshare_groups=${unshare_groups}\"
@@ -711,7 +735,7 @@ generate_create_command()
 		--env \"container=${container_manager}\"
 		--env \"TERMINFO_DIRS=/usr/share/terminfo:/run/host/usr/share/terminfo\"
 		--env \"CONTAINER_ID=${container_name}\"
-		--volume /tmp:/tmp:rslave
+		${tmp_mount}
 		--volume \"${distrobox_entrypoint_path}\":/usr/bin/entrypoint:ro
 		--volume \"${distrobox_export_path}\":/usr/bin/distrobox-export:ro
 		--volume \"${distrobox_hostexec_path}\":/usr/bin/distrobox-host-exec:ro
@@ -722,7 +746,8 @@ generate_create_command()
 	# This will ensure we will mount directories one-by-one thus avoiding this problem.
 	#
 	# This happens ONLY with podman+runc, docker and lilipod are unaffected, so let's do this only if we have podman AND runc.
-	if echo "${container_manager}" | grep -q "podman" && ${container_manager} info 2> /dev/null | grep -q runc > /dev/null 2>&1; then
+	# Also skip on macOS as findmnt is not available there.
+	if echo "${container_manager}" | grep -q "podman" && ${container_manager} info 2> /dev/null | grep -q runc > /dev/null 2>&1 && [ "${host_os}" != "Darwin" ]; then
 		for rootdir in /*; do
 
 			# Skip symlinks

@@ -1,3 +1,6 @@
 tags
 *.vim
 TODO.txt
+
+# Test artifacts
+.test-tmp-*
