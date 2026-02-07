@@ -19,7 +19,7 @@ alternative to VSCode. Due to Microsoft's actions Dev Containers extension works
 for non-opensource version of VS code. There are community made extensions like
 [DevPod Containers](https://open-vsx.org/extension/3timeslazy/vscodium-devpodcontainers) that work in VSCodium
 
-This guide has become outdated and you will need to expect that some things have broke since then.
+This guide has become outdated and you will need to expect that some things broke since then.
 
 ## From distrobox
 
