@@ -15,7 +15,7 @@ VScode doesn't need presentations, and it's a powerful tool for development.
 You may want to use it, but how to handle the dualism between host and container?
 
 In this experiment we will use [VSCodium](https://vscodium.com/) as an opensource
-alternative to VSCode. Due to Microsoft's actions Dev Containers extension works only
+alternative to VSCode. Dev Containers extension works only
 for non-opensource version of VS code. There are community made extensions like
 [DevPod Containers](https://open-vsx.org/extension/3timeslazy/vscodium-devpodcontainers) that work in VSCodium
 
