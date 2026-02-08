@@ -1937,6 +1937,7 @@ printf "distrobox: Setting up host's sockets integration...\n"
 # for example using `podman --remote` to control the host's podman from inside
 # the container or accessing docker and libvirt sockets.
 host_sockets="$(find /run/host/run \
+	-xdev \
 	-path /run/host/run/media -prune -o \
 	-path /run/host/run/timeshift -prune -o \
 	-name 'user' -prune -o \
