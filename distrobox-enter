@@ -474,6 +474,42 @@ generate_enter_command()
 		else
 			container_paths="${PATH}"
 		fi
+
+		# Ensure /usr/local/{s,}bin appears before /usr/{s,}bin in PATH.
+		# This follows FHS conventions: /usr/local should override /usr,
+		# and ensures distrobox wrappers in /usr/local/bin are found first.
+		reordered_paths=""
+		IFS_OLD="${IFS}"
+		IFS=":"
+		for p in ${container_paths}; do
+			case "${p}" in
+				/usr/local/bin | /usr/local/sbin)
+					# skip, will be re-inserted before their /usr counterpart
+					;;
+				/usr/bin)
+					# insert /usr/local/bin right before /usr/bin
+					reordered_paths="${reordered_paths:+${reordered_paths}:}/usr/local/bin:${p}"
+					;;
+				/usr/sbin)
+					# insert /usr/local/sbin right before /usr/sbin
+					reordered_paths="${reordered_paths:+${reordered_paths}:}/usr/local/sbin:${p}"
+					;;
+				*)
+					reordered_paths="${reordered_paths:+${reordered_paths}:}${p}"
+					;;
+			esac
+		done
+		IFS="${IFS_OLD}"
+
+		# If /usr/bin or /usr/sbin were not in PATH, the corresponding
+		# /usr/local paths were skipped above. Re-add them if missing.
+		for lp in /usr/local/bin /usr/local/sbin; do
+			pattern="(:|^)${lp}(:|$)"
+			if ! echo "${reordered_paths}" | grep -Eq "${pattern}"; then
+				reordered_paths="${lp}:${reordered_paths}"
+			fi
+		done
+		container_paths="${reordered_paths}"
 	fi
 
 	result_command="${result_command}
