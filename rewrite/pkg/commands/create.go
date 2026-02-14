@@ -222,7 +222,7 @@ func (c *CreateCommand) makeContainerHostname(opts *CreateOptions) (string, erro
 		}
 		containerHostname = hostname
 		if opts.UnshareNetNs {
-			containerHostname = fmt.Sprintf("%s.%s", containerHostname, hostname)
+			containerHostname = fmt.Sprintf("%s.%s", opts.ContainerName, hostname)
 		}
 	}
 
