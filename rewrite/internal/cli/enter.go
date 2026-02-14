@@ -74,6 +74,7 @@ func enterAction(ctx context.Context, cmd *cli.Command) error {
 	options := commands.EnterOptions{
 		ContainerName:   containerName,
 		AdditionalFlags: cmd.String("additional-flags"),
+		DryRun:          cmd.Bool("dry-run"),
 		NoTTY:           cmd.Bool("no-tty"),
 		CleanPath:       cmd.Bool("clean-path"),
 		Verbose:         cmd.Bool("verbose"),

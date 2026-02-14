@@ -482,6 +482,12 @@ func (p *Podman) Enter(
 
 	commandArgs := buildCommandArgs("", user, options.NoTTY, config.UnshareGroups)
 
+	if options.DryRun {
+		_, _ = p.run(ctx, append(command, commandArgs...), runOptions{DryRun: true})
+
+		return nil
+	}
+
 	inspectResult, err := p.InspectContainer(ctx, options.ContainerName)
 	if err != nil || inspectResult.ContainerStatus != RunningStatus {
 		logTimestamp := timestampNow()
