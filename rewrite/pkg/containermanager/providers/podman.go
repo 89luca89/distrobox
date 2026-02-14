@@ -571,6 +571,11 @@ func commandExists(cmd string) bool {
 	return err == nil
 }
 
+func (p *Podman) Commit(ctx context.Context, containerID string, tag string) error {
+	_, err := p.run(ctx, []string{"container", "commit", containerID, tag}, runOptions{})
+	return err
+}
+
 func (p *Podman) InspectContainer(ctx context.Context, containerName string) (*containermanager.InspectResult, error) {
 	config := containermanager.InspectResult{}
 	args := []string{"inspect", "--type", "container", "--format", "json", containerName}
