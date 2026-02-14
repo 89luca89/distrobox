@@ -18,7 +18,6 @@ func newEphemeralCommand() *cli.Command {
 	createCmd := newCreateCommand()
 
 	ignoredFlags := []string{
-		"dry-run",
 		"compatibility",
 		"no-entry",
 	}
@@ -71,10 +70,10 @@ func ephemeralAction(ctx context.Context, cmd *cli.Command) error {
 			ContainerInitHook:       cmd.String("init-hooks"),
 			ContainerPreInitHook:    cmd.String("pre-init-hooks"),
 			ContainerPlatform:       cmd.String("platform"),
-			DryRun:                  false,
 			GenerateEntry:           false,
 			Rootful:                 cmd.Bool("root"),
 		},
+		DryRun: cmd.Bool("dry-run"),
 	}
 
 	progress := ui.NewProgress(os.Stderr)

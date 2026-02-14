@@ -11,6 +11,8 @@ import (
 
 type EphemeralOptions struct {
 	CreateOptions
+
+	DryRun bool
 }
 
 type EphemeralCommand struct {
@@ -44,7 +46,7 @@ func (c *EphemeralCommand) Execute(ctx context.Context, opts EphemeralOptions) e
 	createOpts.ContainerName = name
 	// override options not relevant for creating ephemeral containers
 	createOpts.GenerateEntry = false
-	createOpts.DryRun = false
+	createOpts.DryRun = opts.DryRun
 	// TODO: pull image if needed
 	// The feature is still a todo in the CreateCommand. When implemented,
 	// remember to set it here as well.
@@ -55,6 +57,7 @@ func (c *EphemeralCommand) Execute(ctx context.Context, opts EphemeralOptions) e
 	// enter into it
 	enterOpts := EnterOptions{
 		ContainerName: name,
+		DryRun:        opts.DryRun,
 		// TODO: handle enter command
 	}
 	if _, err := c.enterCmd.Execute(ctx, enterOpts); err != nil {
