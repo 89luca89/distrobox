@@ -21,7 +21,7 @@ jobs:
       distrobox_changed: ${{ steps.check_file_changed.outputs.distrobox_changed }}
     steps:
 
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
         with:
           # Checkout as many commits as needed for the diff
           repository: 89luca89/distrobox
@@ -47,7 +47,7 @@ jobs:
       contents: write
     steps:
 
-      - uses: actions/checkout@v6.0.1
+      - uses: actions/checkout@v6.0.2
         with:
           token: ${{ secrets.PAT }}
 
