@@ -417,7 +417,7 @@ func (p *Podman) Exists(ctx context.Context, containerName string) bool {
 }
 
 func (p *Podman) run(ctx context.Context, args []string, opts runOptions) (string, error) {
-	command := "podman"
+	command := p.Name()
 	if p.root {
 		args = append([]string{command}, args...)
 		command = p.sudoCommand
