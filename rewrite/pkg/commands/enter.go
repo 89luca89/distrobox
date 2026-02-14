@@ -13,6 +13,7 @@ type EnterResult struct{}
 type EnterOptions struct {
 	ContainerName   string
 	AdditionalFlags string
+	DryRun          bool
 	NoTTY           bool
 	Verbose         bool
 	CleanPath       bool
@@ -40,6 +41,7 @@ func (c *EnterCommand) Execute(ctx context.Context, opts EnterOptions) (*EnterRe
 	cmdOpts := containermanager.EnterOptions{
 		ContainerName:   opts.ContainerName,
 		AdditionalFlags: opts.AdditionalFlags,
+		DryRun:          opts.DryRun,
 		NoTTY:           opts.NoTTY,
 		Verbose:         opts.Verbose,
 		CleanPath:       opts.CleanPath,
