@@ -480,10 +480,12 @@ func (p *Podman) Enter(
 		return fmt.Errorf("err: %w", err)
 	}
 
-	commandArgs := buildCommandArgs("", user, options.NoTTY, config.UnshareGroups)
+	commandArgs := buildCommandArgs(options.CustomCommand, user, options.NoTTY, config.UnshareGroups)
 
 	if options.DryRun {
-		_, _ = p.run(ctx, append(command, commandArgs...), runOptions{DryRun: true})
+		command = append(command, commandArgs...)
+		//nolint:forbidigo // Print command in dry-run mode
+		fmt.Println(p.Name() + " " + strings.Join(command, "\n"))
 
 		return nil
 	}
@@ -652,8 +654,9 @@ func (p *Podman) generateEnterCommand(
 		cmd = append(cmd, fmt.Sprintf("--user=%s", username))
 	}
 
-	// TTY allocation
-	if !noTTY {
+	// TTY allocation — auto-detect headless mode like the shell version:
+	// if stdin or stdout is not a terminal, skip --tty.
+	if !noTTY && isTTY() {
 		cmd = append(cmd, "--tty")
 	}
 
@@ -697,7 +700,7 @@ func (p *Podman) generateEnterCommand(
 
 	// Additional flags
 	if len(additionalFlags) > 0 {
-		cmd = append(cmd, additionalFlags)
+		cmd = append(cmd, strings.Fields(additionalFlags)...)
 	}
 
 	// Container name

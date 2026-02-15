@@ -50,6 +50,7 @@ type CreateOptions struct {
 type EnterOptions struct {
 	ContainerName   string
 	AdditionalFlags string
+	CustomCommand   string
 	DryRun          bool
 	NoTTY           bool
 	NoWorkDir       bool
