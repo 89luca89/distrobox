@@ -506,10 +506,12 @@ func (d *Docker) Enter(
 		return fmt.Errorf("err: %w", err)
 	}
 
-	commandArgs := buildCommandArgs("", user, options.NoTTY, config.UnshareGroups)
+	commandArgs := buildCommandArgs(options.CustomCommand, user, options.NoTTY, config.UnshareGroups)
 
 	if options.DryRun {
-		_, _ = d.run(ctx, append(command, commandArgs...), runOptions{DryRun: true})
+		command = append(command, commandArgs...)
+		//nolint:forbidigo // Print command in dry-run mode
+		fmt.Println(d.Name() + " " + strings.Join(command, "\n"))
 
 		return nil
 	}
@@ -786,6 +788,18 @@ func filterEnvVars() []string {
 	return result
 }
 
+// isTTY returns true if both stdin and stdout are terminals.
+// Mirrors the shell's: if [ ! -t 0 ] || [ ! -t 1 ]; then headless=1; fi
+func isTTY() bool {
+	if fi, err := os.Stdin.Stat(); err != nil || fi.Mode()&os.ModeCharDevice == 0 {
+		return false
+	}
+	if fi, err := os.Stdout.Stat(); err != nil || fi.Mode()&os.ModeCharDevice == 0 {
+		return false
+	}
+	return true
+}
+
 func getWorkDir(containerHome string, noWorkDir bool) (string, error) {
 	workDir, err := os.Getwd()
 	if err != nil {
@@ -844,8 +858,9 @@ func (d *Docker) generateEnterCommand(
 		cmd = append(cmd, fmt.Sprintf("--user=%s", username))
 	}
 
-	// TTY allocation
-	if !noTTY {
+	// TTY allocation — auto-detect headless mode like the shell version:
+	// if stdin or stdout is not a terminal, skip --tty.
+	if !noTTY && isTTY() {
 		cmd = append(cmd, "--tty")
 	}
 
@@ -889,7 +904,7 @@ func (d *Docker) generateEnterCommand(
 
 	// Additional flags
 	if len(additionalFlags) > 0 {
-		cmd = append(cmd, additionalFlags)
+		cmd = append(cmd, strings.Fields(additionalFlags)...)
 	}
 
 	// Container name
