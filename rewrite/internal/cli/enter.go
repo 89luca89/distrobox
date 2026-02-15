@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/urfave/cli/v3"
 
@@ -54,12 +55,9 @@ func newEnterCommand() *cli.Command {
 				Usage:   "always start the container from container's home directory",
 			},
 		},
-		Arguments: []cli.Argument{
-			&cli.StringArg{
-				Name: "name",
-			},
-		},
-		Action: enterAction,
+		UseShortOptionHandling: true,
+		SkipFlagParsing:        false,
+		Action:                 enterAction,
 	}
 }
 
@@ -69,11 +67,25 @@ func enterAction(ctx context.Context, cmd *cli.Command) error {
 		return errors.New("container manager not found in context")
 	}
 
-	containerName := getContainerName(cmd)
+	// Container name: --name flag takes priority, otherwise first positional arg.
+	// Everything after the container name (or after --) is the custom command.
+	containerName := cmd.String("name")
+	var customCommand string
+
+	args := cmd.Args().Slice()
+	if containerName == "" && len(args) > 0 {
+		containerName = args[0]
+		args = args[1:]
+	}
+
+	if len(args) > 0 {
+		customCommand = strings.Join(args, " ")
+	}
 
 	options := commands.EnterOptions{
 		ContainerName:   containerName,
 		AdditionalFlags: cmd.String("additional-flags"),
+		CustomCommand:   customCommand,
 		DryRun:          cmd.Bool("dry-run"),
 		NoTTY:           cmd.Bool("no-tty"),
 		CleanPath:       cmd.Bool("clean-path"),
@@ -86,16 +98,8 @@ func enterAction(ctx context.Context, cmd *cli.Command) error {
 	enterCmd := commands.NewEnterCommand(containerManager, progress, printer)
 	_, err := enterCmd.Execute(ctx, options)
 	if err != nil {
-		return fmt.Errorf("failed to execute create command: %w", err)
+		return fmt.Errorf("failed to execute enter command: %w", err)
 	}
 
 	return nil
-}
-
-func getContainerName(cmd *cli.Command) string {
-	argName := cmd.StringArg("name")
-	if len(argName) == 0 {
-		return cmd.String("name")
-	}
-	return argName
 }
