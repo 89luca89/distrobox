@@ -15,8 +15,9 @@ import (
 
 func newListCommand() *cli.Command {
 	return &cli.Command{
-		Name:  "list",
-		Usage: "List distroboxes",
+		Name:    "list",
+		Aliases: []string{"ls"},
+		Usage:   "List distroboxes",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "no-color",
