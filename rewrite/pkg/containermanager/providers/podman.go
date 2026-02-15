@@ -146,7 +146,7 @@ func (p *Podman) makeCreateCommand(
 	var options []string
 
 	if containerPlatform != "" {
-		options = append(options, "--platform", containerPlatform)
+		options = append(options, "--platform="+containerPlatform)
 	}
 	options = append(options, "--hostname", containerHostname)
 	options = append(options, "--name", containerName)
@@ -363,7 +363,7 @@ func (p *Podman) makeCreateCommand(
 
 	// Use keep-id only if going rootless.
 	if !p.root {
-		options = append(options, "--userns", "keep-id")
+		options = append(options, "--userns", "keep-id:size=65536")
 	}
 
 	// Now execute the entrypoint, refer to `distrobox-init -h` for instructions
