@@ -97,7 +97,7 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 
 	containerUserCustomHome := c.makeContainerUserCustomHome(&opts, containerName)
 
-	if c.containerManager.Exists(ctx, containerName) {
+	if !opts.DryRun && c.containerManager.Exists(ctx, containerName) {
 		return &ContainerAlreadyExistsError{ContainerName: containerName}
 	}
 
