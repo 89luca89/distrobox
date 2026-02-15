@@ -168,7 +168,7 @@ func (d *Docker) makeCreateCommand(
 	var options []string
 
 	if containerPlatform != "" {
-		options = append(options, "--platform", containerPlatform)
+		options = append(options, "--platform="+containerPlatform)
 	}
 	options = append(options, "--hostname", containerHostname)
 	options = append(options, "--name", containerName)

@@ -56,7 +56,7 @@ func TestPodman_makeCreateCommand(t *testing.T) {
 		"--annotation run.oci.keep_original_groups=1",
 		"--ulimit host",
 		"--systemd=always",
-		"--userns keep-id",
+		"--userns keep-id:size=65536",
 	}
 
 	for _, flag := range requiredFlags {
@@ -299,8 +299,8 @@ func TestPodman_makeCreateCommandWithPlatform(t *testing.T) {
 
 	cmdStr := strings.Join(cmd, " ")
 
-	if !strings.Contains(cmdStr, "--platform linux/arm64") {
-		t.Errorf("Expected command to contain '--platform linux/arm64', but it was missing.\nCommand: %s", cmdStr)
+	if !strings.Contains(cmdStr, "--platform=linux/arm64") {
+		t.Errorf("Expected command to contain '--platform=linux/arm64', but it was missing.\nCommand: %s", cmdStr)
 	}
 }
 
