@@ -77,6 +77,7 @@ func (p *Podman) Create(
 	}
 
 	cmd := p.makeCreateCommand(
+		ctx,
 		opts.ContainerName,
 		opts.ContainerImage,
 		opts.AdditionalFlags,
@@ -112,6 +113,7 @@ func (p *Podman) Create(
 //
 //nolint:gocognit,funlen // ignore cognitive complexity here, the function is mostly imperative option appending
 func (p *Podman) makeCreateCommand(
+	ctx context.Context,
 	containerName string,
 	containerImage string,
 	containerAdditionalFlags []string,
@@ -202,7 +204,18 @@ func (p *Podman) makeCreateCommand(
 		fmt.Sprintf("%s:%s", distroboxHostexecPath, "/usr/bin/distrobox-host-exec:ro"),
 	)
 	options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", containerUserHome, containerUserHome))
-	options = append(options, "--volume", "/:/run/host/:rslave")
+
+	// Due to breaking change in https://github.com/opencontainers/runc/commit/d4b670fca6d0ac606777376440ffe49686ce15f4
+	// now we cannot mount /:/run/host as before, as it will try to mount RO partitions as RW thus breaking things.
+	// This will ensure we will mount directories one-by-one thus avoiding this problem.
+	//
+	// This happens ONLY with podman+runc, docker and lilipod are unaffected,
+	// so let's do this only if we have podman AND runc.
+	if p.usesRunc(ctx) {
+		options = append(options, hostRootMountsForRunc(ctx)...)
+	} else {
+		options = append(options, "--volume", "/:/run/host/:rslave")
+	}
 
 	if !unshareDevsys {
 		options = append(options, "--volume", "/dev:/dev:rslave")
@@ -577,6 +590,74 @@ func parsePodmanContainerList(output string) ([]containermanager.Container, erro
 func commandExists(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
+}
+
+// usesRunc detects whether podman is configured to use runc as the OCI runtime.
+// Equivalent to shell: podman info 2>/dev/null | grep -q runc.
+func (p *Podman) usesRunc(ctx context.Context) bool {
+	out, err := p.run(ctx, []string{"info"}, runOptions{})
+	if err != nil {
+		return false
+	}
+
+	return strings.Contains(out, "runc")
+}
+
+// hostRootMountsForRunc returns per-directory volume mounts for /run/host,
+// working around a runc breaking change that prevents mounting / as a whole.
+func hostRootMountsForRunc(ctx context.Context) []string {
+	var mounts []string
+
+	entries, err := os.ReadDir("/")
+	if err != nil {
+		return mounts
+	}
+
+	for _, entry := range entries {
+		// Skip hidden directories (shell glob /* doesn't match dotfiles)
+		if strings.HasPrefix(entry.Name(), ".") {
+			continue
+		}
+
+		rootdir := "/" + entry.Name()
+
+		// Skip symlinks
+		info, err := os.Lstat(rootdir)
+		if err != nil || info.Mode()&os.ModeSymlink != 0 {
+			continue
+		}
+
+		target := fmt.Sprintf("%s:/run/host%s", rootdir, rootdir)
+		if isMountReadOnly(ctx, rootdir) {
+			mounts = append(mounts, "--volume", target+":ro,rslave")
+		} else {
+			mounts = append(mounts, "--volume", target+":rslave")
+		}
+	}
+
+	return mounts
+}
+
+// isMountReadOnly checks if the given path resides on a read-only mount
+// by parsing findmnt output. Equivalent to shell:
+// findmnt --notruncate --noheadings --list --output OPTIONS --target "$path" | tr ',' '\n' | grep -q "^ro$".
+func isMountReadOnly(ctx context.Context, path string) bool {
+	out, err := exec.CommandContext(
+		ctx,
+		"findmnt", "--notruncate", "--noheadings", "--list",
+		"--output", "OPTIONS", "--target", path,
+	).Output()
+	if err != nil {
+		return false
+	}
+
+	for _, opt := range strings.Split(string(out), ",") {
+		if strings.TrimSpace(opt) == "ro" {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (p *Podman) Commit(ctx context.Context, containerID string, tag string) error {

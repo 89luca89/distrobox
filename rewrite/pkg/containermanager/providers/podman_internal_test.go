@@ -25,6 +25,7 @@ func TestPodman_makeCreateCommand(t *testing.T) {
 	}
 
 	cmd := podman.makeCreateCommand(
+		t.Context(),
 		"my-container",                // containerName
 		"my-image",                    // containerImage
 		containerAdditionalFlags,      // containerAdditionalFlags
@@ -112,6 +113,7 @@ func TestPodman_makeCreateCommandRootful(t *testing.T) {
 	}
 
 	cmd := podman.makeCreateCommand(
+		t.Context(),
 		"my-container",
 		"my-image",
 		[]string{},
@@ -165,6 +167,7 @@ func TestPodman_makeCreateCommandNoInit(t *testing.T) {
 	}
 
 	cmd := podman.makeCreateCommand(
+		t.Context(),
 		"my-container",
 		"my-image",
 		[]string{},
@@ -220,6 +223,7 @@ func TestPodman_makeCreateCommandWithCrun(t *testing.T) {
 	}
 
 	cmd := podman.makeCreateCommand(
+		t.Context(),
 		"my-container",
 		"my-image",
 		[]string{},
@@ -273,6 +277,7 @@ func TestPodman_makeCreateCommandWithPlatform(t *testing.T) {
 	}
 
 	cmd := podman.makeCreateCommand(
+		t.Context(),
 		"my-container",
 		"my-image",
 		[]string{},
@@ -316,6 +321,7 @@ func TestPodman_makeCreateCommandWithCustomHome(t *testing.T) {
 	}
 
 	cmd := podman.makeCreateCommand(
+		t.Context(),
 		"my-container",
 		"my-image",
 		[]string{},
@@ -380,6 +386,7 @@ func TestPodman_makeCreateCommandWithAdditionalFlags(t *testing.T) {
 	}
 
 	cmd := podman.makeCreateCommand(
+		t.Context(),
 		"my-container",
 		"my-image",
 		additionalFlags,
@@ -432,6 +439,7 @@ func TestPodman_makeCreateCommandWithAdditionalPackages(t *testing.T) {
 	}
 
 	cmd := podman.makeCreateCommand(
+		t.Context(),
 		"my-container",
 		"my-image",
 		[]string{},
@@ -534,6 +542,7 @@ func TestPodman_makeCreateCommandUnshareOptions(t *testing.T) {
 			}
 
 			cmd := podman.makeCreateCommand(
+				t.Context(),
 				"my-container",
 				"my-image",
 				[]string{},
