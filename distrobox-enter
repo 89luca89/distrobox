@@ -542,6 +542,59 @@ generate_enter_command()
 container_home="${HOME}"
 container_path="${PATH}"
 unshare_groups=0
+
+################################################################################
+# In this section we will manipulate the positional parameters
+# in order to generate our long docker/podman/lilipod command to execute.
+#
+# We use positional parameters in order to have the shell manage escaping and spaces
+# so we remove the problem of we having to handle them.
+#
+# 1 - handle absence of custom command, we will need to add a getent command to
+#     execute the right container's user's shell
+# 2 - in case of unshared groups (or initful) we need to trigger a proper login
+#     using `su`, so we will need to manipulate these arguments accorodingly
+# 3 - prepend our generated command
+#     to do this, we use `tac` so we reverse loop it and prepend each argument.
+# 4 - now that we're done, we can prepend our container_command
+#     we will need to use `rev` to reverse it as we reverse loop and prepend each
+#     argument
+################################################################################
+#
+# Setup default commands if none are specified
+# execute a getent command using the /bin/sh shell
+# to find out the default shell of the user, and
+# do a login shell with it (eg: /bin/bash -l)
+if [ "${container_custom_command}" -eq 0 ]; then
+	set - "$@" "/bin/sh" "-c" "\$(getent passwd '${container_command_user}' | cut -f 7 -d :) -l"
+fi
+
+# If we have a command and we're unsharing groups, we need to execute those
+# command using su $container_command_user
+# if we're in a tty, also allocate one
+if [ "${unshare_groups:-0}" -eq 1 ]; then
+	# shellcheck disable=SC2089,SC2016
+	set -- "-c" '"$0" "$@"' -- "$@"
+	set -- "-s" "/bin/sh" "$@"
+	if [ "${headless}" -eq 0 ]; then
+		set -- "--pty" "$@"
+	fi
+	set -- "-m" "$@"
+	set -- "${container_command_user}" "$@"
+	set -- "su" "$@"
+fi
+
+################################################################################
+# Execution section
+################################################################################
+
+# dry run mode, just generate the command and print it. No execution.
+if [ "${dryrun}" -ne 0 ]; then
+	cmd="$(generate_enter_command | sed 's/\t//g')"
+	printf "%s %s\n" "${cmd}" "$*"
+	exit 0
+fi
+
 # Now inspect the container we're working with.
 container_status="unknown"
 eval "$(${container_manager} inspect --type container --format \
@@ -550,13 +603,6 @@ eval "$(${container_manager} inspect --type container --format \
 	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "HOME=")}}container_home={{slice . 5 | printf "%q"}}{{end}}{{end}};
 	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "PATH=")}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
 	"${container_name}")"
-
-# dry run mode, just generate the command and print it. No execution.
-if [ "${dryrun}" -ne 0 ]; then
-	cmd="$(generate_enter_command | sed 's/\t//g')"
-	printf "%s %s\n" "${cmd}" "$*"
-	exit 0
-fi
 
 # Check if the container is even there
 if [ "${container_status}" = "unknown" ]; then
@@ -667,47 +713,6 @@ if [ "${container_status}" != "running" ]; then
 	# cleanup fifo
 	rm -f "${app_cache_dir}/.${container_name}.fifo"
 	printf >&2 "\nContainer Setup Complete!\n"
-fi
-
-################################################################################
-# Execution section, in this section we will manipulate the positional parameters
-# in order to generate our long docker/podman/lilipod command to execute.
-#
-# We use positional parameters in order to have the shell manage escaping and spaces
-# so we remove the problem of we having to handle them.
-#
-# 1 - handle absence of custom command, we will need to add a getent command to
-#     execute the right container's user's shell
-# 2 - in case of unshared groups (or initful) we need to trigger a proper login
-#     using `su`, so we will need to manipulate these arguments accorodingly
-# 3 - prepend our generated command
-#     to do this, we use `tac` so we reverse loop it and prepend each argument.
-# 4 - now that we're done, we can prepend our container_command
-#     we will need to use `rev` to reverse it as we reverse loop and prepend each
-#     argument
-################################################################################
-#
-# Setup default commands if none are specified
-# execute a getent command using the /bin/sh shell
-# to find out the default shell of the user, and
-# do a login shell with it (eg: /bin/bash -l)
-if [ "${container_custom_command}" -eq 0 ]; then
-	set - "$@" "/bin/sh" "-c" "\$(getent passwd '${container_command_user}' | cut -f 7 -d :) -l"
-fi
-
-# If we have a command and we're unsharing groups, we need to execute those
-# command using su $container_command_user
-# if we're in a tty, also allocate one
-if [ "${unshare_groups:-0}" -eq 1 ]; then
-	# shellcheck disable=SC2089,SC2016
-	set -- "-c" '"$0" "$@"' -- "$@"
-	set -- "-s" "/bin/sh" "$@"
-	if [ "${headless}" -eq 0 ]; then
-		set -- "--pty" "$@"
-	fi
-	set -- "-m" "$@"
-	set -- "${container_command_user}" "$@"
-	set -- "su" "$@"
 fi
 
 # Generate the exec command and run it
