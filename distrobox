@@ -44,6 +44,7 @@ Choose one of the available commands:
 	enter
 	list | ls
 	rm
+	snapshot
 	stop
 	upgrade
 	ephemeral
@@ -76,6 +77,9 @@ case "${distrobox_command}" in
 		;;
 	ls | list)
 		"${distrobox_path}"/distrobox-list "$@"
+		;;
+	snapshot)
+		"${distrobox_path}"/distrobox-snapshot "$@"
 		;;
 	stop)
 		"${distrobox_path}"/distrobox-stop "$@"

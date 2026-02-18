@@ -12,6 +12,7 @@ _distrobox_commands() {
     'list:List all distrobox containers'
     'ls:Alias for list'
     'rm:Remove a distrobox container'
+    'snapshot:Snapshot a distrobox container'
     'stop:Stop a running distrobox container'
     'upgrade:Upgrade a distrobox container'
     'ephemeral:Create a temporary distrobox container'
@@ -42,6 +43,9 @@ case $state in
         ;;
       rm)
         _distrobox-rm
+        ;;
+      snapshot)
+        _distrobox-snapshot
         ;;
       stop)
         _distrobox-stop

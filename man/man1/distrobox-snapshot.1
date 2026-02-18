@@ -1,0 +1,102 @@
+.\
+.\"
+.TH "DISTROBOX\-SNAPSHOT" "1" "Feb 2026" "Distrobox" "User Manual"
+.SH NAME
+.IP
+.EX
+distrobox snapshot
+distrobox\-snapshot
+.EE
+.SH DESCRIPTION
+distrobox\-snapshot creates, lists, saves, and removes snapshots of distrobox containers.
+.PP
+A snapshot commits the current state of a container to an OCI image.
+This allows you to save the state of a container at a point in time and
+restore it later by creating a new container from the snapshot image.
+.PP
+Snapshots are stored as images with the naming convention
+\f[B]distrobox\-snapshot/<container\-name>:<tag>\f[R].
+.PP
+Snapshots are not supported with lilipod.
+.SH SYNOPSIS
+\f[B]distrobox snapshot\f[R]
+.IP
+.EX
+\-\-name/\-n:      name of the container to snapshot
+\-\-tag/\-t:       custom tag for the snapshot (default: YYYY\-MM\-DD\-HHMMSS)
+\-\-list/\-l:      list snapshots for the container
+\-\-save/\-s:      export a snapshot to a tar archive (use with \-\-tag and \-\-output)
+\-\-output/\-o:    output file for \-\-save (defaults to stdout)
+\-\-remove/\-d:    remove a snapshot by tag (use with \-\-tag)
+\-\-yes/\-Y:       non\-interactive, skip confirmation prompts
+\-\-help/\-h:      show this message
+\-\-root/\-r:      launch podman/docker with root privileges. Note that if you need root this is the preferred
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+\-\-verbose/\-v:       show more verbosity
+\-\-version/\-V:       show version
+.EE
+.SH EXAMPLES
+.PP
+Create a snapshot with an auto\-generated timestamp tag:
+.IP
+.EX
+distrobox\-snapshot container\-name
+distrobox\-snapshot \-\-name container\-name
+.EE
+.PP
+Create a snapshot with a custom tag:
+.IP
+.EX
+distrobox\-snapshot \-\-name container\-name \-\-tag my\-backup
+.EE
+.PP
+List all snapshots for a container:
+.IP
+.EX
+distrobox\-snapshot \-\-name container\-name \-\-list
+.EE
+.PP
+Export a snapshot to a tar file:
+.IP
+.EX
+distrobox\-snapshot \-\-name container\-name \-\-save \-\-tag my\-backup \-\-output backup.tar
+.EE
+.PP
+Remove a snapshot:
+.IP
+.EX
+distrobox\-snapshot \-\-name container\-name \-\-remove \-\-tag my\-backup
+.EE
+.PP
+You can also use environment variables to specify container manager and
+name:
+.IP
+.EX
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test\-alpine distrobox\-snapshot
+.EE
+.SH RESTORING A SNAPSHOT
+To restore a container from a snapshot, remove the existing container and
+re\-create it using the snapshot image:
+.IP
+.EX
+distrobox rm container\-name
+distrobox create \-\-image distrobox\-snapshot/container\-name:my\-backup \-\-name container\-name
+distrobox enter container\-name
+.EE
+.PP
+If the container is still running, stop it first:
+.IP
+.EX
+distrobox stop container\-name
+distrobox rm container\-name
+distrobox create \-\-image distrobox\-snapshot/container\-name:my\-backup \-\-name container\-name
+.EE
+.SH ENVIRONMENT VARIABLES
+.IP
+.EX
+DBX_CONTAINER_MANAGER
+DBX_CONTAINER_NAME
+DBX_NON_INTERACTIVE
+DBX_SUDO_PROGRAM
+.EE

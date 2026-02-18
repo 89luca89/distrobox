@@ -1,0 +1,28 @@
+#compdef distrobox-snapshot
+
+_distrobox-snapshot() {
+    local expl
+    local -a options
+
+    options=(
+        '(-n --name)'{-n,--name}'[name of the container to snapshot]:container:_distrobox_containers'
+        '(-t --tag)'{-t,--tag}'[custom tag for the snapshot]:tag:'
+        '(-l --list)'{-l,--list}'[list snapshots for the container]'
+        '(-s --save)'{-s,--save}'[export a snapshot to a tar archive]'
+        '(-o --output)'{-o,--output}'[output file for --save]:file:_files'
+        '(-d --remove)'{-d,--remove}'[remove a snapshot by tag]'
+        '(-Y --yes)'{-Y,--yes}'[non-interactive, skip confirmation prompts]'
+        '(-r --root)'{-r,--root}'[launch podman/docker with root privileges]'
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+
+    _message -r "Snapshot a distrobox container."
+    _arguments -C \
+        '*:containers:_distrobox_containers' \
+        $options[@]
+
+}
+
+_distrobox-snapshot

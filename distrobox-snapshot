@@ -1,0 +1,483 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+# Optional env variables:
+#	DBX_CONTAINER_MANAGER
+#	DBX_CONTAINER_NAME
+#	DBX_NON_INTERACTIVE
+#	DBX_VERBOSE
+#	DBX_SUDO_PROGRAM
+
+# Despite of running this script via SUDO/DOAS being not supported (the
+# script itself will call the appropriate tool when necessary), we still want
+# to allow people to run it as root, logged in in a shell, and create rootful
+# containers.
+#
+# SUDO_USER is a variable set by SUDO and can be used to check whether the script was called by it. Same thing for DOAS_USER, set by DOAS.
+if {
+	[ -n "${SUDO_USER}" ] || [ -n "${DOAS_USER}" ]
+} && [ "$(id -ru)" -eq 0 ]; then
+	printf >&2 "Running %s via SUDO/DOAS is not supported. Instead, please try running:\n" "$(basename "${0}")"
+	printf >&2 "  %s --root %s\n" "$(basename "${0}")" "$*"
+	exit 1
+fi
+
+# Ensure we have our env variables correctly set
+[ -z "${USER}" ] && USER="$(id -run)"
+[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+
+# Defaults
+action="create"
+container_manager="autodetect"
+container_name=""
+container_name_default="my-distrobox"
+non_interactive=0
+output_file=""
+# If the user runs this script as root in a login shell, set rootful=1.
+# There's no need for them to pass the --root flag option in such cases.
+[ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
+snapshot_tag=""
+verbose=0
+version="1.8.2.4"
+
+# Source configuration files, this is done in an hierarchy so local files have
+# priority over system defaults
+# leave priority to environment variables.
+#
+# On NixOS, for the distrobox derivation to pick up a static config file shipped
+# by the package maintainer the path must be relative to the script itself.
+self_dir="$(dirname "$(realpath "$0")")"
+nix_config_file="${self_dir}/../share/distrobox/distrobox.conf"
+
+config_files="
+	${nix_config_file}
+	/usr/share/distrobox/distrobox.conf
+	/usr/share/defaults/distrobox/distrobox.conf
+	/usr/etc/distrobox/distrobox.conf
+	/usr/local/share/distrobox/distrobox.conf
+	/etc/distrobox/distrobox.conf
+	${XDG_CONFIG_HOME:-"${HOME}/.config"}/distrobox/distrobox.conf
+	${HOME}/.distroboxrc
+"
+for config_file in ${config_files}; do
+	# Shellcheck will give error for sourcing a variable file as it cannot follow
+	# it. We don't care so let's disable this linting for now.
+	# shellcheck disable=SC1090
+	[ -e "${config_file}" ] && . "$(realpath "${config_file}")"
+done
+
+[ -n "${DBX_CONTAINER_MANAGER}" ] && container_manager="${DBX_CONTAINER_MANAGER}"
+[ -n "${DBX_CONTAINER_NAME}" ] && container_name="${DBX_CONTAINER_NAME}"
+[ -n "${DBX_NON_INTERACTIVE}" ] && non_interactive="${DBX_NON_INTERACTIVE}"
+[ -n "${DBX_VERBOSE}" ] && verbose="${DBX_VERBOSE}"
+
+# Fixup variable=[true|false], in case we find it in the config file(s)
+[ "${verbose}" = "true" ] && verbose=1
+[ "${verbose}" = "false" ] && verbose=0
+[ "${non_interactive}" = "true" ] && non_interactive=1
+[ "${non_interactive}" = "false" ] && non_interactive=0
+
+# If we're running this script as root - as in logged in in the shell as root
+# user, and not via SUDO/DOAS -, we don't need to set distrobox_sudo_program
+# as it's meaningless for this use case.
+if [ "$(id -ru)" -ne 0 ]; then
+	# If the DBX_SUDO_PROGRAM/distrobox_sudo_program variable was set by the
+	# user, use its value instead of "sudo". But only if not running the script
+	# as root (UID 0).
+	distrobox_sudo_program=${DBX_SUDO_PROGRAM:-${distrobox_sudo_program:-"sudo"}}
+fi
+
+[ -n "${DBX_SUDO_PROGRAM}" ] && distrobox_sudo_program="${DBX_SUDO_PROGRAM}"
+
+# show_help will print usage to stdout.
+# Arguments:
+#   None
+# Expected global variables:
+#   version: distrobox version
+# Expected env variables:
+#   None
+# Outputs:
+#   print usage with examples.
+show_help()
+{
+	cat << EOF
+distrobox version: ${version}
+
+Usage:
+
+	distrobox-snapshot --name container-name
+	distrobox-snapshot --name container-name --tag my-backup
+	distrobox-snapshot --name container-name --list
+	distrobox-snapshot --name container-name --save --tag my-backup --output backup.tar
+	distrobox-snapshot --name container-name --remove --tag my-backup
+
+Options:
+
+	--name/-n:		name of the container to snapshot
+	--tag/-t:		custom tag for the snapshot	default: YYYY-MM-DD-HHMMSS
+	--list/-l:		list snapshots for the container
+	--save/-s:		export a snapshot to a tar archive (use with --tag and --output)
+	--output/-o:		output file for --save (defaults to stdout)
+	--remove/-d:		remove a snapshot by tag (use with --tag)
+	--yes/-Y:		non-interactive, skip confirmation prompts
+	--help/-h:		show this message
+	--root/-r:		launch podman/docker with root privileges. Note that if you need root this is the preferred
+				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
+				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
+	--verbose/-v:		show more verbosity
+	--version/-V:		show version
+EOF
+}
+
+# Parse arguments
+while :; do
+	case $1 in
+		-h | --help)
+			# Call a "show_help" function to display a synopsis, then exit.
+			show_help
+			exit 0
+			;;
+		-d | --remove)
+			action="remove"
+			shift
+			;;
+		-l | --list)
+			action="list"
+			shift
+			;;
+		-n | --name)
+			if [ -n "$2" ]; then
+				container_name="$2"
+				shift
+				shift
+			fi
+			;;
+		-o | --output)
+			if [ -n "$2" ]; then
+				output_file="$2"
+				shift
+				shift
+			fi
+			;;
+		-r | --root)
+			shift
+			rootful=1
+			;;
+		-s | --save)
+			action="save"
+			shift
+			;;
+		-t | --tag)
+			if [ -n "$2" ]; then
+				snapshot_tag="$2"
+				shift
+				shift
+			fi
+			;;
+		-v | --verbose)
+			verbose=1
+			shift
+			;;
+		-V | --version)
+			printf "distrobox: %s\n" "${version}"
+			exit 0
+			;;
+		-Y | --yes)
+			non_interactive=1
+			shift
+			;;
+		--) # End of all options.
+			shift
+			break
+			;;
+		-*) # Invalid options.
+			printf >&2 "ERROR: Invalid flag '%s'\n\n" "$1"
+			show_help
+			exit 1
+			;;
+		*) # Default case: If no more options then break out of the loop.
+			# If we have a flagless option and container_name is not specified
+			# then let's accept argument as container_name
+			if [ -n "$1" ]; then
+				container_name="$1"
+				shift
+			else
+				break
+			fi
+			;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+# set verbosity
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+if [ -z "${container_name}" ]; then
+	container_name="${container_name_default}"
+fi
+
+# Generate a default snapshot tag if not specified
+if [ -z "${snapshot_tag}" ] && [ "${action}" = "create" ]; then
+	snapshot_tag="$(date +%Y-%m-%d-%H%M%S)"
+fi
+
+# We depend on a container manager let's be sure we have it
+# First we use podman, else docker, else lilipod
+case "${container_manager}" in
+	autodetect)
+		if command -v podman > /dev/null; then
+			container_manager="podman"
+		elif command -v podman-launcher > /dev/null; then
+			container_manager="podman-launcher"
+		elif command -v docker > /dev/null; then
+			container_manager="docker"
+		elif command -v lilipod > /dev/null; then
+			container_manager="lilipod"
+		fi
+		;;
+	podman)
+		container_manager="podman"
+		;;
+	podman-launcher)
+		container_manager="podman-launcher"
+		;;
+	lilipod)
+		container_manager="lilipod"
+		;;
+	docker)
+		container_manager="docker"
+		;;
+	*)
+		printf >&2 "Invalid input %s.\n" "${container_manager}"
+		printf >&2 "The available choices are: 'autodetect', 'podman', 'docker', 'lilipod'\n"
+		;;
+esac
+
+# Be sure we have a container manager to work with.
+if ! command -v "${container_manager}" > /dev/null; then
+	# Error: we need at least one between docker, podman or lilipod.
+	printf >&2 "Missing dependency: we need a container manager.\n"
+	printf >&2 "Please install one of podman,  docker or lilipod.\n"
+	printf >&2 "You can follow the documentation on:\n"
+	printf >&2 "\tman distrobox-compatibility\n"
+	printf >&2 "or:\n"
+	printf >&2 "\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md\n"
+	exit 127
+fi
+
+# Snapshots are not supported with lilipod
+if [ "${container_manager}" = "lilipod" ]; then
+	printf >&2 "Snapshots are not supported with lilipod.\n"
+	exit 1
+fi
+
+# add  verbose if -v is specified
+if [ "${verbose}" -ne 0 ]; then
+	container_manager="${container_manager} --log-level debug"
+fi
+
+# prepend sudo (or the specified sudo program) if we want our container manager to be rootful
+if [ "${rootful}" -ne 0 ]; then
+	container_manager="${distrobox_sudo_program-} ${container_manager}"
+fi
+
+# create_snapshot will commit the current container state to a new image.
+# Arguments:
+#   None
+# Expected global variables:
+#   container_manager: string container manager to use
+#   container_name: string container name to snapshot
+#   snapshot_tag: string tag for the snapshot image
+# Expected env variables:
+#   None
+# Outputs:
+#   prints the snapshot image name on success
+create_snapshot()
+{
+	# Validate the container exists
+	if ! ${container_manager} inspect --type container "${container_name}" > /dev/null 2>&1; then
+		printf >&2 "ERROR: Container '%s' does not exist.\n" "${container_name}"
+		return 1
+	fi
+
+	snapshot_image="distrobox-snapshot/${container_name}:${snapshot_tag}"
+
+	printf "Creating snapshot of '%s' with tag '%s'...\n" "${container_name}" "${snapshot_tag}"
+
+	# Commit the container state to a new image
+	# -p pauses the container during commit for filesystem consistency
+	# shellcheck disable=SC2086
+	if ! ${container_manager} container commit \
+		-p "${container_name}" "${snapshot_image}" > /dev/null; then
+
+		printf >&2 "\033[31m [ ERR ]\033[0m Failed to create snapshot of '%s'.\n" "${container_name}"
+		return 1
+	fi
+
+	printf "\033[32m [ OK ]\033[0m Snapshot created: %s\n" "${snapshot_image}"
+	return 0
+}
+
+# list_snapshots will list all snapshot images for a given container.
+# Arguments:
+#   None
+# Expected global variables:
+#   container_manager: string container manager to use
+#   container_name: string container name to list snapshots for
+# Expected env variables:
+#   None
+# Outputs:
+#   prints a table of snapshot images
+list_snapshots()
+{
+	# shellcheck disable=SC2086
+	${container_manager} images \
+		--filter "reference=distrobox-snapshot/${container_name}" \
+		--format "table {{.Repository}}:{{.Tag}}\t{{.Size}}\t{{.Created}}"
+	return 0
+}
+
+# save_snapshot will export a snapshot image to a tar archive.
+# Arguments:
+#   None
+# Expected global variables:
+#   container_manager: string container manager to use
+#   container_name: string container name
+#   snapshot_tag: string tag of the snapshot to export
+#   output_file: string output file path (empty for stdout)
+# Expected env variables:
+#   None
+# Outputs:
+#   writes tar archive to output_file or stdout
+save_snapshot()
+{
+	if [ -z "${snapshot_tag}" ]; then
+		printf >&2 "ERROR: --tag is required when using --save.\n"
+		return 1
+	fi
+
+	snapshot_image="distrobox-snapshot/${container_name}:${snapshot_tag}"
+
+	# Validate the snapshot image exists
+	if ! ${container_manager} image inspect "${snapshot_image}" > /dev/null 2>&1; then
+		printf >&2 "ERROR: Snapshot '%s' does not exist.\n" "${snapshot_image}"
+		printf >&2 "Use --list to see available snapshots.\n"
+		return 1
+	fi
+
+	if [ -n "${output_file}" ]; then
+		printf >&2 "Saving snapshot '%s' to '%s'...\n" "${snapshot_image}" "${output_file}"
+		# shellcheck disable=SC2086
+		if ! ${container_manager} save "${snapshot_image}" -o "${output_file}"; then
+			printf >&2 "\033[31m [ ERR ]\033[0m Failed to save snapshot '%s'.\n" "${snapshot_image}"
+			return 1
+		fi
+		printf >&2 "\033[32m [ OK ]\033[0m Snapshot saved to '%s'.\n" "${output_file}"
+	else
+		# Output to stdout
+		# shellcheck disable=SC2086
+		${container_manager} save "${snapshot_image}"
+	fi
+	return 0
+}
+
+# remove_snapshot will delete a snapshot image.
+# Arguments:
+#   None
+# Expected global variables:
+#   container_manager: string container manager to use
+#   container_name: string container name
+#   snapshot_tag: string tag of the snapshot to remove
+#   non_interactive: int whether to skip confirmation
+# Expected env variables:
+#   None
+# Outputs:
+#   prints confirmation of removal
+remove_snapshot()
+{
+	if [ -z "${snapshot_tag}" ]; then
+		printf >&2 "ERROR: --tag is required when using --remove.\n"
+		return 1
+	fi
+
+	snapshot_image="distrobox-snapshot/${container_name}:${snapshot_tag}"
+
+	# Validate the snapshot image exists
+	if ! ${container_manager} image inspect "${snapshot_image}" > /dev/null 2>&1; then
+		printf >&2 "ERROR: Snapshot '%s' does not exist.\n" "${snapshot_image}"
+		printf >&2 "Use --list to see available snapshots.\n"
+		return 1
+	fi
+
+	if [ "${non_interactive}" -eq 0 ]; then
+		printf "Do you really want to remove snapshot '%s'? [Y/n]: " "${snapshot_image}"
+		read -r response
+		response="${response:-"Y"}"
+	else
+		response="yes"
+	fi
+
+	# Accept only y,Y,Yes,yes,n,N,No,no.
+	case "${response}" in
+		y | Y | Yes | yes | YES)
+			# shellcheck disable=SC2086
+			if ! ${container_manager} rmi "${snapshot_image}"; then
+				printf >&2 "\033[31m [ ERR ]\033[0m Failed to remove snapshot '%s'.\n" "${snapshot_image}"
+				return 1
+			fi
+			printf "\033[32m [ OK ]\033[0m Snapshot '%s' removed.\n" "${snapshot_image}"
+			;;
+		n | N | No | no | NO)
+			printf "Aborted.\n"
+			return 0
+			;;
+		*) # Default case: invalid input.
+			printf >&2 "Invalid input.\n"
+			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			return 1
+			;;
+	esac
+	return 0
+}
+
+# Execute the requested action
+case "${action}" in
+	create)
+		create_snapshot
+		;;
+	list)
+		list_snapshots
+		;;
+	save)
+		save_snapshot
+		;;
+	remove)
+		remove_snapshot
+		;;
+	*)
+		printf >&2 "ERROR: Unknown action '%s'.\n" "${action}"
+		exit 1
+		;;
+esac
