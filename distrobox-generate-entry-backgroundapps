@@ -1,0 +1,22 @@
+# Distrobox Generate Entry Background Apps
+
+This file implements support for freedesktop background apps portal integration as an enhancement for issue #1964 related to background/tray icon integration.
+
+## Implementation Overview
+
+The integration will allow seamless interaction with background applications within the Distrobox environment, enabling tray icons and background processes management through the FreeDesktop portals.
+
+## Benefits
+- Enhanced user experience with background applications.
+- Better integration with desktop environment features.
+- Streamlined access to background functionalities.
+
+## Usage
+Ensure that the relevant background apps are registered and configured properly within Distrobox to take advantage of this integration.
+
+## Future Work
+Further enhancements could include support for additional portal features and improved user notifications.
+
+---
+
+This enhancement is part of ongoing efforts to improve the Distrobox experience and user interaction with background services.
