@@ -1,22 +1,30 @@
-# Distrobox Generate Entry Background Apps
+# Distrobox Background Apps Entry Generation Script
 
-This file implements support for freedesktop background apps portal integration as an enhancement for issue #1964 related to background/tray icon integration.
+# Function to generate background apps entry for Distrobox with error checking
 
-## Implementation Overview
+generate_background_app_entry() {
+    # Check if the provided parameters are valid
+    if [ -z "$1" ]; then
+        echo "Error: Application name is required."
+        exit 1
+    fi
 
-The integration will allow seamless interaction with background applications within the Distrobox environment, enabling tray icons and background processes management through the FreeDesktop portals.
+    APP_NAME="$1"
 
-## Benefits
-- Enhanced user experience with background applications.
-- Better integration with desktop environment features.
-- Streamlined access to background functionalities.
+    # Generate entry command
+    # Replace the following line with the actual command to generate the entry
+    ENTRY_COMMAND="your-command-here"
 
-## Usage
-Ensure that the relevant background apps are registered and configured properly within Distrobox to take advantage of this integration.
+    # Check if the command was successful
+    if ! eval "$ENTRY_COMMAND"; then
+        echo "Error: Failed to generate entry for $APP_NAME."
+        exit 1
+    fi
 
-## Future Work
-Further enhancements could include support for additional portal features and improved user notifications.
+    echo "Successfully generated entry for $APP_NAME."
+}
 
----
-
-This enhancement is part of ongoing efforts to improve the Distrobox experience and user interaction with background services.
+# Main script execution
+if [ "${BASH_SOURCE[0]}" == "${0}" ]; then
+    generate_background_app_entry "$@"
+fi
