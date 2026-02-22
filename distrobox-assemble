@@ -466,13 +466,16 @@ run_distrobox()
 			result_command="${result_command} --additional-flags $(sanitize_variable "${flag}")"
 		done
 	fi
+	if [ "${dryrun}" -ne 0 ]; then
+		result_command="${result_command} --dry-run"
+	fi
 
 	# Execute the distrobox-create command
+	eval "${result_command}"
+
 	if [ "${dryrun}" -ne 0 ]; then
-		echo "${result_command}"
 		return
 	fi
-	eval "${result_command}"
 
 	# If we need to start immediately, do it, so that the container
 	# is ready to be entered.
