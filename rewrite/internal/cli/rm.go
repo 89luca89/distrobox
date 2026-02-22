@@ -20,19 +20,19 @@ func newRmCommand() *cli.Command {
 		Usage: "Remove distroboxes",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:  "all",
+				Name:    "all",
 				Aliases: []string{"a"},
-				Usage: "delete all distroboxes",
+				Usage:   "delete all distroboxes",
 			},
 			&cli.BoolFlag{
-				Name:  "force",
+				Name:    "force",
 				Aliases: []string{"f"},
-				Usage: "force deletion",
+				Usage:   "force deletion",
 			},
 			&cli.BoolFlag{
-				Name:  "yes",
+				Name:    "yes",
 				Aliases: []string{"Y"},
-				Usage: "non-interactive mode",
+				Usage:   "non-interactive mode",
 			},
 			&cli.BoolFlag{
 				Name:  "rm-home",
