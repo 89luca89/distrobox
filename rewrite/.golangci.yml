@@ -41,7 +41,7 @@ formatters:
     golines:
       # Target maximum line length.
       # Default: 100
-      max-len: 120
+      max-len: 230
 
 linters:
   enable:
