@@ -1624,8 +1624,17 @@ setup_zypper()
 	# poor out-of-the-box experience (e.g., when trying to run GUI apps).
 	# So, let's enable them. For the same reason, we make sure we install
 	# docs.
-	sed -i 's/.*solver.onlyRequires.*/solver.onlyRequires = false/g' /etc/zypp/zypp.conf
-	sed -i 's/.*rpm.install.excludedocs.*/rpm.install.excludedocs = no/g' /etc/zypp/zypp.conf
+	if [ -d /etc/zypp/zypp.conf.d ]; then
+		cat << EOF > /etc/zypp/zypp.conf.d/99-distrobox.conf
+[main]
+solver.onlyRequires = false
+rpm.install.excludedocs = no
+EOF
+	else
+		sed -i 's/.*solver.onlyRequires.*/solver.onlyRequires = false/g' /etc/zypp/zypp.conf
+		sed -i 's/.*rpm.install.excludedocs.*/rpm.install.excludedocs = no/g' /etc/zypp/zypp.conf
+	fi
+
 	# With recommended packages, something might try to pull in
 	# parallel-printer-support which can't be installed in rootless containers.
 	# Since we very much likely never need it, just lock it
