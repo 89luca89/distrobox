@@ -260,7 +260,10 @@ func TestPodman_makeCreateCommandWithCrun(t *testing.T) {
 		}
 	} else {
 		if strings.Contains(cmdStr, "--runtime=crun") {
-			t.Errorf("Expected command NOT to contain '--runtime=crun' when crun is not available, but it was present.\nCommand: %s", cmdStr)
+			t.Errorf(
+				"Expected command NOT to contain '--runtime=crun' when crun is not available, but it was present.\nCommand: %s",
+				cmdStr,
+			)
 		}
 	}
 }
