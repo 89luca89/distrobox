@@ -58,6 +58,7 @@ func NewRootCommand() *cli.Command {
 			newRmCommand(),
 			newStopCommand(),
 			newEphemeralCommand(),
+			newUpgradeCommand(),
 		},
 	}
 }
