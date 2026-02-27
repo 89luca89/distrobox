@@ -246,7 +246,10 @@ Rootless `docker` is still not working as intended and will be included in the f
 when it will be complete.
 
 That said, it is useful to read the discussion about decoupling with the host,
-available here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/issues/28)
+available here: [#28 Sandboxed mode](https://github.com/89luca89/distrobox/issues/28).
+
+If you are looking for something similar to Distrobox but with sandboxing capabilities,
+there are other options to consider which do prioritise isolation such as [Litterbox](https://github.com/Gerharddc/litterbox).
 
 ---
 
