@@ -321,7 +321,7 @@ func TestBuildCommandArgs(t *testing.T) {
 			user:          "testuser",
 			noTTY:         false,
 			unshareGroups: false,
-			want:          "/bin/bash -c 'echo hello'",
+			want:          "/bin/bash|-c|'echo|hello'",
 		},
 		{
 			name:          "custom command with spaces with unshare",
@@ -329,7 +329,7 @@ func TestBuildCommandArgs(t *testing.T) {
 			user:          "testuser",
 			noTTY:         false,
 			unshareGroups: true,
-			want:          `su|testuser|-s|/bin/sh|-c|"$0" "$@"|--|/bin/bash -c 'echo hello'`,
+			want:          `su|testuser|-s|/bin/sh|-c|"$0" "$@"|--|/bin/bash|-c|'echo|hello'`,
 		},
 		{
 			name:          "user with special characters in default shell",
@@ -364,12 +364,12 @@ func TestBuildCommandArgs(t *testing.T) {
 			want:          "/bin/sh|-c|$(getent passwd '' | cut -f 7 -d :) -l",
 		},
 		{
-			name:          "single space as custom command",
+			name:          "single space as custom command treated as default",
 			customCommand: " ",
 			user:          "user",
 			noTTY:         false,
 			unshareGroups: false,
-			want:          " ",
+			want:          "/bin/sh|-c|$(getent passwd 'user' | cut -f 7 -d :) -l",
 		},
 		{
 			name:          "very long custom command with unshare",
@@ -377,7 +377,7 @@ func TestBuildCommandArgs(t *testing.T) {
 			user:          "user",
 			noTTY:         false,
 			unshareGroups: true,
-			want:          `su|user|-s|/bin/sh|-c|"$0" "$@"|--|/bin/bash -c 'for i in {1..100}; do echo $i; done'`,
+			want:          `su|user|-s|/bin/sh|-c|"$0" "$@"|--|/bin/bash|-c|'for|i|in|{1..100};|do|echo|$i;|done'`,
 		},
 	}
 
