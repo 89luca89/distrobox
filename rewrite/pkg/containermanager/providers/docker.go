@@ -916,8 +916,8 @@ func (d *Docker) generateEnterCommand(
 func buildCommandArgs(customCommand string, user string, noTTY bool, unshareGroups bool) []string {
 	var args []string
 
-	if len(customCommand) > 0 {
-		args = []string{customCommand}
+	if len(strings.TrimSpace(customCommand)) > 0 {
+		args = strings.Fields(customCommand)
 	} else {
 		// Default: execute user's shell with login
 		args = []string{"/bin/sh", "-c", fmt.Sprintf("$(getent passwd '%s' | cut -f 7 -d :) -l", user)}
