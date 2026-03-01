@@ -30,6 +30,7 @@ type AssembleCommand struct {
 	containermanager containermanager.ContainerManager
 	createCmd        *CreateCommand
 	rmCmd            *RmCommand
+	enterCmd         *EnterCommand
 	progress         *ui.Progress
 }
 
@@ -37,11 +38,13 @@ func NewAssembleCommand(
 	cm containermanager.ContainerManager,
 	prompter *ui.Prompter,
 	progress *ui.Progress,
+	printer *ui.Printer,
 ) *AssembleCommand {
 	return &AssembleCommand{
 		containermanager: cm,
 		createCmd:        NewCreateCommand(cm, ui.NewDevNullProgress()),
 		rmCmd:            NewRmCommand(cm, prompter),
+		enterCmd:         NewEnterCommand(cm, progress, printer),
 		progress:         progress,
 	}
 }
@@ -141,6 +144,15 @@ func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, d
 		ac.progress.Fail()
 		return err
 	}
+
+	if !dryRun {
+		err = ac.setupBox(ctx, item)
+		if err != nil {
+			ac.progress.Fail()
+			return err
+		}
+	}
+
 	ac.progress.Done()
 	return nil
 }
@@ -165,4 +177,18 @@ func (ac *AssembleCommand) joinHooks(hooks []string) string {
 	}
 
 	return sb.String()
+}
+
+func (ac *AssembleCommand) setupBox(ctx context.Context, item manifest.Item) error {
+	_, err := ac.enterCmd.Execute(ctx, EnterOptions{
+		ContainerName: item.Name,
+		NoTTY:         true,
+		CustomCommand: "true", // we just want to run the init hooks, so we can skip the shell
+		DryRun:        false,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to execute init hooks for item '%s': %w", item.Name, err)
+	}
+
+	return nil
 }
