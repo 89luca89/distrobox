@@ -28,7 +28,7 @@ type Item struct {
 	Nvidia             bool
 	InitHooks          []string
 	PreInitHooks       []string
-	Pull               bool
+	AlwaysPull         bool
 	Root               bool
 	StartNow           bool
 	UnshareGroups      bool
@@ -163,7 +163,7 @@ func sectionToItem(section *ini.Section) Item { //nolint:funlen // Function leng
 		case "entry":
 			item.Entry = parseBool(last)
 		case "pull":
-			item.Pull = parseBool(last)
+			item.AlwaysPull = parseBool(last)
 		case "root":
 			item.Root = parseBool(last)
 		case "start_now":

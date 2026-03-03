@@ -208,6 +208,8 @@ func createAction(ctx context.Context, cmd *cli.Command) error {
 		DryRun:                  cmd.Bool("dry-run"),
 		GenerateEntry:           !cmd.Bool("no-entry"),
 		Rootful:                 cmd.Bool("root"),
+		ContainerAlwaysPull:     cmd.Bool("pull"),
+		NonInteractive:          cmd.Bool("yes"),
 	}
 
 	progress := ui.NewProgress(os.Stderr)
@@ -218,6 +220,11 @@ func createAction(ctx context.Context, cmd *cli.Command) error {
 	var containerAlreadyExistsErr *commands.ContainerAlreadyExistsError
 	if errors.As(err, &containerAlreadyExistsErr) {
 		printContainerAlreadyExists(progress, containerAlreadyExistsErr.ContainerName, opts.Rootful)
+	}
+
+	if errors.Is(err, commands.ErrImagePullAbortedByUser) {
+		progress.Finalize("next time, pull the image first")
+		return nil
 	}
 
 	if err != nil {

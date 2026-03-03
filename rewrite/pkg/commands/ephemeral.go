@@ -47,9 +47,7 @@ func (c *EphemeralCommand) Execute(ctx context.Context, opts EphemeralOptions) e
 	// override options not relevant for creating ephemeral containers
 	createOpts.GenerateEntry = false
 	createOpts.DryRun = opts.DryRun
-	// TODO: pull image if needed
-	// The feature is still a todo in the CreateCommand. When implemented,
-	// remember to set it here as well.
+	createOpts.NonInteractive = true
 	if err := c.createCmd.Execute(ctx, createOpts); err != nil {
 		return fmt.Errorf("failed to create ephemeral container: %w", err)
 	}
