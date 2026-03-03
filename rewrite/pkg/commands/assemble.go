@@ -134,10 +134,9 @@ func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, d
 		GenerateEntry:           item.Entry,
 		Rootful:                 item.Root,
 		DryRun:                  dryRun,
+		NonInteractive:          true,
+		ContainerAlwaysPull:     item.AlwaysPull,
 	}
-
-	// TODO: pull image if needed
-	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L1016
 
 	err := ac.createCmd.Execute(ctx, opts)
 	if err != nil {
