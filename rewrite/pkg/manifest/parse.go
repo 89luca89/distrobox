@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"gopkg.in/ini.v1"
+
+	"github.com/89luca89/distrobox/internal/userenv"
 )
 
 // Item represents a single section in the manifest file.
@@ -65,12 +67,14 @@ func Parse(ctx context.Context, filepath string) ([]Item, error) {
 		return nil, fmt.Errorf("failed to expand includes: %w", err)
 	}
 
+	env := userenv.LoadUserEnvironment(ctx)
+
 	items := make([]Item, 0, len(cfg.Sections())-1)
 	for _, section := range cfg.Sections() {
 		if section.Name() == ini.DefaultSection {
 			continue
 		}
-		items = append(items, sectionToItem(section))
+		items = append(items, sectionToItem(section, env))
 	}
 
 	return items, nil
@@ -137,8 +141,11 @@ func resolveIncludes(cfg *ini.File, section *ini.Section, processing, processed 
 }
 
 // sectionToItem converts an ini.Section to an Item struct.
-func sectionToItem(section *ini.Section) Item { //nolint:funlen // Function length is acceptable here.
+func sectionToItem(section *ini.Section, env *userenv.UserEnvironment) Item { //nolint:funlen // Function length is acceptable here.
 	item := Item{Name: section.Name()}
+
+	// default, to be overridden by manifest value if provided
+	item.ExportedBinsPath = env.Home + "/.local/bin"
 
 	for _, key := range section.Keys() {
 		vals := key.ValueWithShadows()

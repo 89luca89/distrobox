@@ -179,14 +179,60 @@ func (ac *AssembleCommand) joinHooks(hooks []string) string {
 }
 
 func (ac *AssembleCommand) setupBox(ctx context.Context, item manifest.Item) error {
-	_, err := ac.enterCmd.Execute(ctx, EnterOptions{
-		ContainerName: item.Name,
-		NoTTY:         true,
-		CustomCommand: "true", // we just want to run the init hooks, so we can skip the shell
-		DryRun:        false,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to execute init hooks for item '%s': %w", item.Name, err)
+	if item.StartNow {
+		_, err := ac.enterCmd.Execute(ctx, EnterOptions{
+			ContainerName: item.Name,
+			NoTTY:         true,
+			CustomCommand: "true", // we just want to run the init hooks, so we can skip the shell
+			DryRun:        false,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to execute init hooks for item '%s': %w", item.Name, err)
+		}
+	}
+
+	// validate app name to prevent command injection, since it's used in a custom command
+	var validAppName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._+\-]*$`)
+	for _, app := range item.ExportedApps {
+		if !validAppName.MatchString(app) {
+			return fmt.Errorf("invalid app name '%s' for item '%s': must be alphanumeric (with dots, underscores, hyphens)", app, item.Name)
+		}
+	}
+	for _, app := range item.ExportedApps {
+		cmd := fmt.Sprintf("distrobox-export --app %s", app)
+		_, err := ac.enterCmd.Execute(ctx, EnterOptions{
+			ContainerName: item.Name,
+			NoTTY:         true,
+			CustomCommand: cmd,
+			DryRun:        false,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to export app '%s' for item '%s': %w", app, item.Name, err)
+		}
+	}
+
+	// validate bin path to prevent command injection, since it's used in a custom command
+	var validBinPath = regexp.MustCompile(`^/[a-zA-Z0-9._+\-/]+$`)
+	if len(item.ExportedBins) > 0 && !validBinPath.MatchString(item.ExportedBinsPath) {
+		return fmt.Errorf("invalid exported bins path '%s' for item '%s': must be an absolute path with alphanumeric characters, dots, underscores, or hyphens", item.ExportedBinsPath, item.Name)
+	}
+	// we allow slashes in bin paths, but we validate each path segment to prevent command injection
+	for _, bin := range item.ExportedBins {
+		if !validBinPath.MatchString(bin) {
+			return fmt.Errorf("invalid bin path '%s' for item '%s': must be an absolute path with alphanumeric characters, dots, underscores, or hyphens", bin, item.Name)
+		}
+	}
+	for _, bin := range item.ExportedBins {
+		cmd := fmt.Sprintf("distrobox-export --bin %s --export-path %s", bin, item.ExportedBinsPath)
+		_, err := ac.enterCmd.Execute(ctx, EnterOptions{
+			ContainerName: item.Name,
+			NoTTY:         true,
+			CustomCommand: cmd,
+			DryRun:        false,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to export bin '%s' for item '%s': %w", bin, item.Name, err)
+		}
 	}
 
 	return nil
