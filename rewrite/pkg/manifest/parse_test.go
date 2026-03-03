@@ -35,7 +35,7 @@ start_now=true
 
 	assert.Equal(t, "distrodev", parsed[0].Name)
 	assert.Equal(t, "ubuntu:24.04", parsed[0].Image)
-	assert.True(t, parsed[0].Pull)
+	assert.True(t, parsed[0].AlwaysPull)
 	assert.False(t, parsed[0].Init)
 	assert.True(t, parsed[0].StartNow)
 }
@@ -158,7 +158,7 @@ nvidia=true
 	distrodev := parsed[0]
 	assert.Equal(t, "distrodev", distrodev.Name)
 	assert.Equal(t, "ubuntu:24.04", distrodev.Image)
-	assert.True(t, distrodev.Pull)
+	assert.True(t, distrodev.AlwaysPull)
 	assert.False(t, distrodev.Init)
 	assert.True(t, distrodev.StartNow)
 
@@ -203,14 +203,14 @@ image=ubuntu:22.04 # this will override the included image
 	ubuntu22 := parsed[0]
 	assert.Equal(t, "ubuntu22", ubuntu22.Name)
 	assert.Equal(t, "ubuntu:22.04", ubuntu22.Image)
-	assert.True(t, ubuntu22.Pull)
+	assert.True(t, ubuntu22.AlwaysPull)
 	assert.True(t, ubuntu22.Root)
 
 	// Check ubuntu24
 	ubuntu24 := parsed[1]
 	assert.Equal(t, "ubuntu24", ubuntu24.Name)
 	assert.Equal(t, "ubuntu:22.04", ubuntu24.Image)
-	assert.True(t, ubuntu24.Pull)
+	assert.True(t, ubuntu24.AlwaysPull)
 	assert.True(t, ubuntu24.Root)
 }
 
@@ -240,7 +240,7 @@ start_now=true
 
 	assert.Equal(t, "distrodev", parsed[0].Name)
 	assert.Equal(t, "ubuntu:24.04", parsed[0].Image)
-	assert.True(t, parsed[0].Pull)
+	assert.True(t, parsed[0].AlwaysPull)
 	assert.False(t, parsed[0].Init)
 	assert.True(t, parsed[0].StartNow)
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -57,6 +58,7 @@ type dockerContainer struct {
 type runOptions struct {
 	DryRun      bool
 	Interactive bool
+	TailLogs    bool
 }
 
 type inspectOutput struct {
@@ -68,6 +70,11 @@ type inspectOutput struct {
 		Labels map[string]string `json:"Labels"`
 		Env    []string          `json:"Env"`
 	} `json:"Config"`
+}
+
+type InspectImageOutput struct {
+	ID           string `json:"ID"`
+	Architecture string `json:"Architecture"`
 }
 
 func (d *Docker) ListContainers(ctx context.Context) ([]containermanager.Container, error) {
@@ -473,6 +480,11 @@ func (d *Docker) run(ctx context.Context, args []string, opts runOptions) (strin
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
+	if opts.TailLogs {
+		cmd.Stdout = io.MultiWriter(&stdout, os.Stdout)
+		cmd.Stderr = io.MultiWriter(&stderr, os.Stderr)
+	}
+
 	err := cmd.Run()
 	if err != nil {
 		captured := strings.TrimSpace(stderr.String())
@@ -681,6 +693,36 @@ func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*c
 	}
 
 	return &config, nil
+}
+
+func (d *Docker) ImageExists(ctx context.Context, imageName string) bool {
+	args := []string{"inspect", "--type", "image", "--format", "json", imageName}
+	output, err := d.run(ctx, args, runOptions{})
+	if err != nil {
+		return false
+	}
+
+	var inspects []inspectOutput
+	if err := json.Unmarshal([]byte(output), &inspects); err != nil {
+		return false
+	}
+
+	if len(inspects) == 0 {
+		return false
+	}
+
+	return true
+}
+
+func (d *Docker) PullImage(ctx context.Context, imageName string, platform string) error {
+	var args []string
+	if platform != "" {
+		args = []string{"pull", "--platform", platform, imageName}
+	} else {
+		args = []string{"pull", imageName}
+	}
+	_, err := d.run(ctx, args, runOptions{TailLogs: true})
+	return err
 }
 
 func buildContainerPath(cleanPath bool, hostPath string, cfg *containermanager.InspectResult) string {
