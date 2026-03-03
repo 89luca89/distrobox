@@ -522,6 +522,36 @@ func (p *Podman) Enter(
 	return nil
 }
 
+func (p *Podman) ImageExists(ctx context.Context, imageName string) bool {
+	args := []string{"inspect", "--type", "image", "--format", "json", imageName}
+	output, err := p.run(ctx, args, runOptions{})
+	if err != nil {
+		return false
+	}
+
+	var inspects []inspectOutput
+	if err := json.Unmarshal([]byte(output), &inspects); err != nil {
+		return false
+	}
+
+	if len(inspects) == 0 {
+		return false
+	}
+
+	return true
+}
+
+func (p *Podman) PullImage(ctx context.Context, imageName string, platform string) error {
+	var args []string
+	if platform != "" {
+		args = []string{"pull", "--platform", platform, imageName}
+	} else {
+		args = []string{"pull", imageName}
+	}
+	_, err := p.run(ctx, args, runOptions{TailLogs: true})
+	return err
+}
+
 func (p *Podman) Remove(
 	ctx context.Context,
 	containerName string,

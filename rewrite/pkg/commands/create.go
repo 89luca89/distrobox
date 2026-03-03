@@ -23,6 +23,7 @@ const (
 )
 
 var ErrHostnameTooLong = fmt.Errorf("hostname too long, must be less than %d characters", maxHostnameLength)
+var ErrImagePullAbortedByUser = errors.New("image pull operation aborted by user")
 
 type ContainerAlreadyExistsError struct {
 	ContainerName string
@@ -36,6 +37,7 @@ type CreateCommand struct {
 	containerManager containermanager.ContainerManager
 	generateEntryCmd *GenerateEntryCommand
 	progress         *ui.Progress
+	prompter         *ui.Prompter
 }
 
 type CreateOptions struct {
@@ -77,6 +79,9 @@ type CreateOptions struct {
 
 	GenerateEntry bool
 	Rootful       bool
+
+	ContainerAlwaysPull bool
+	NonInteractive      bool
 }
 
 func NewCreateCommand(cm containermanager.ContainerManager, progress *ui.Progress) *CreateCommand {
@@ -109,8 +114,9 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 		containerImage = cloneImage
 	}
 
-	// TODO: pull image if needed
-	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L1016
+	if err := c.askPullImage(ctx, containerImage, opts); err != nil {
+		return err
+	}
 
 	c.progress.Next("Creating '%s' using image %s", containerName, containerImage)
 
@@ -267,4 +273,24 @@ func (c *CreateCommand) clone(ctx context.Context, containerName string) (string
 	}
 
 	return commitTag, nil
+}
+
+func (c *CreateCommand) askPullImage(ctx context.Context, containerImage string, opts CreateOptions) error {
+	if opts.ContainerAlwaysPull || !c.containerManager.ImageExists(ctx, containerImage) {
+		skipConfirm := opts.NonInteractive || opts.ContainerAlwaysPull
+		if !skipConfirm {
+			msg := fmt.Sprintf("Image '%s' not found.\n. Do you want to pull the image now?", containerImage)
+			answer := c.prompter.Prompt(msg, true)
+			if !answer {
+				return ErrImagePullAbortedByUser
+			}
+		}
+
+		err := c.containerManager.PullImage(ctx, containerImage, opts.ContainerPlatform)
+		if err != nil {
+			return fmt.Errorf("failed to pull image '%s': %w", containerImage, err)
+		}
+	}
+
+	return nil
 }
