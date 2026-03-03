@@ -969,9 +969,21 @@ setup_aptrpm()
 		control sudo public
 		control sudoreplay public
 		control su wheel
-		mkdir /etc/tcb/"${container_user_name}"
+		control pam_mktemp disabled
+		mkdir -p /etc/tcb/"${container_user_name}"
 		echo "${container_user_name}::::::::" > /etc/tcb/"${container_user_name}"/shadow
 		sed -i 's/*//g' /etc/passwd
+
+		# ALT Linux ships its own su incompatible with util-linux su flags.
+		# distrobox-enter passes flags like -m, --pty, -s, -c which ALT su rejects.
+		# runuser (from util-linux, always present) accepts the same flags.
+		# Place the wrapper in /usr/local/bin so it is found before /bin/su.
+		mkdir -p /usr/local/bin
+		cat << 'EOF' > /usr/local/bin/su
+#!/bin/sh
+exec /usr/sbin/runuser "$@"
+EOF
+		chmod +x /usr/local/bin/su
 	fi
 
 	# In case the locale is not available, install it
@@ -1864,8 +1876,10 @@ fi
 # This won't work well on very old distros with su version from util-linux
 # before version 2.34 or other su implementations but will give an usable
 # shell nonetheless
-if ! su --version | grep -q util-linux ||
-	su --version | awk '{printf  "%s\n%s", $4, 2.34}' | sort --check=quiet --version-sort; then
+if [ ! -e /usr/local/bin/su ] && {
+	! su --version | grep -q util-linux ||
+		su --version | awk '{printf  "%s\n%s", $4, 2.34}' | sort --check=quiet --version-sort
+}; then
 	cat << EOF > /usr/local/bin/su
 #!/bin/sh
 
