@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -19,6 +21,7 @@ type RmResult struct {
 type RmCommand struct {
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
+	generateEntryCmd *GenerateEntryCommand
 	prompter         *ui.Prompter
 }
 
@@ -34,9 +37,12 @@ func NewRmCommand(
 	cm containermanager.ContainerManager,
 	prompter *ui.Prompter,
 ) *RmCommand {
+	listCmd := NewListCommand(cm)
+	generateEntryCmd := NewGenerateEntryCommand(listCmd)
 	return &RmCommand{
 		containerManager: cm,
-		listCmd:          NewListCommand(cm),
+		listCmd:          listCmd,
+		generateEntryCmd: generateEntryCmd,
 		prompter:         prompter,
 	}
 }
@@ -110,7 +116,37 @@ func (c *RmCommand) removeContainer(
 		return fmt.Errorf("failed to remove container: %w", err)
 	}
 
+	c.cleanup(ctx, userHome, container.Name)
+
 	return nil
+}
+
+func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string) {
+	bins := findExportedBinaries(userHome, containerName)
+	desktopApps := findExportedDesktopApps(userHome, containerName)
+
+	toDelete := slices.Concat(bins, desktopApps)
+
+	for _, path := range toDelete {
+		if err := os.Remove(path); err != nil {
+			//nolint:forbidigo // FIXME: use logger instead of fmt.Printf when available
+			fmt.Printf("warning: failed to remove file '%s': %s\n", path, err)
+		}
+	}
+
+	err := c.generateEntryCmd.Execute(
+		ctx,
+		&GenerateEntryOptions{
+			ContainerName: containerName,
+			Delete:        true,
+			// TODO: handle verbose
+			Verbose: false,
+		},
+	)
+	if err != nil {
+		//nolint:forbidigo // FIXME: use logger instead of fmt.Printf when available
+		fmt.Printf("warning: failed to remove desktop entry for container '%s': %s\n", containerName, err)
+	}
 }
 
 func getContainersToRemove(
@@ -132,4 +168,124 @@ func getContainersToRemove(
 	}
 
 	return filtered
+}
+
+func findExportedBinaries(userHome, containerName string) []string {
+	binDir := filepath.Join(userHome, ".local", "bin")
+
+	entries, err := os.ReadDir(binDir)
+	if err != nil {
+		return nil
+	}
+
+	var files []string
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		path := filepath.Join(binDir, entry.Name())
+
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+
+		content := string(data)
+		if strings.Contains(content, "# distrobox_binary") &&
+			strings.Contains(content, "# name: "+containerName+"\n") {
+			absPath, err := filepath.Abs(path)
+			if err != nil {
+				continue
+			}
+
+			files = append(files, absPath)
+		}
+	}
+
+	return files
+}
+
+func findExportedDesktopApps(userHome, containerName string) []string {
+	appsPattern := filepath.Join(userHome, ".local", "share", "applications", containerName+"*")
+
+	matches, err := filepath.Glob(appsPattern)
+	if err != nil {
+		//nolint:forbidigo // FIXME: use logger instead of fmt.Printf when available
+		fmt.Printf("warning: failed to glob desktop apps: %s\n", err)
+		return []string{}
+	}
+
+	var files []string
+
+	for _, desktopFile := range matches {
+		iconValue, ok := parseDesktopExport(desktopFile, containerName)
+		if !ok {
+			continue
+		}
+
+		absDesktop, err := filepath.Abs(desktopFile)
+		if err != nil {
+			continue
+		}
+
+		files = append(files, absDesktop)
+
+		if iconValue != "" {
+			files = append(files, findIconFiles(userHome, iconValue)...)
+		}
+	}
+
+	return files
+}
+
+func parseDesktopExport(desktopFile, containerName string) (string, bool) {
+	data, err := os.ReadFile(desktopFile)
+	if err != nil {
+		return "", false
+	}
+
+	hasExecMatch := false
+	var iconValue string
+
+	for _, line := range strings.Split(string(data), "\n") {
+		if strings.HasPrefix(line, "Exec=") && strings.Contains(line, containerName+" ") {
+			hasExecMatch = true
+		}
+
+		if strings.HasPrefix(line, "Icon=") {
+			iconValue = strings.TrimPrefix(line, "Icon=")
+		}
+	}
+
+	return iconValue, hasExecMatch
+}
+
+func findIconFiles(userHome, iconName string) []string {
+	iconsDir := filepath.Join(userHome, ".local", "share", "icons")
+	iconPrefix := iconName + "."
+
+	var files []string
+
+	_ = filepath.WalkDir(iconsDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil //nolint:nilerr // skip unreadable directories
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		if strings.HasPrefix(d.Name(), iconPrefix) {
+			absIcon, err := filepath.Abs(path)
+			if err == nil {
+				files = append(files, absIcon)
+			}
+		}
+
+		return nil
+	})
+
+	return files
 }
