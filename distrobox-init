@@ -2106,7 +2106,8 @@ if [ "${nvidia}" -eq 1 ]; then
 	if [ -e "/usr/lib/x86_64-linux-gnu" ]; then
 		lib64_dir="/usr/lib/x86_64-linux-gnu/"
 		lib32_dir="/usr/lib/i386-linux-gnu/"
-	elif [ -e "/usr/lib64" ]; then
+	elif [ -e "/usr/lib64" ] && [ ! -L "/usr/lib64" ]; then
+		# /usr/lib64 is a real, separate directory (RPM-based guest distros)
 		lib64_dir="/usr/lib64/"
 	fi
 	if [ -e "/usr/lib32" ]; then
@@ -2119,7 +2120,17 @@ if [ "${nvidia}" -eq 1 ]; then
 	#
 	# /usr/lib64 is common in Arch or RPM based distros, while /usr/lib/x86_64-linux-gnu is
 	# common on Debian derivatives, so we need to adapt between the two nomenclatures.
-	NVIDIA_LIBS="$(find /run/host/usr/lib*/ -not -type d \
+	#
+	# We search lib64 before lib so that on merged-lib guests (e.g. Arch,
+	# where /usr/lib64 is a symlink to /usr/lib), 64-bit host libraries are
+	# mounted first and the "file exists" check below skips the 32-bit
+	# duplicates from the host's /usr/lib/.
+	host_lib_search_paths=""
+	for _hlsp in /run/host/usr/lib64 /run/host/usr/lib32 /run/host/usr/lib; do
+		[ -d "$_hlsp" ] && host_lib_search_paths="${host_lib_search_paths} ${_hlsp}/"
+	done
+	# shellcheck disable=SC2086
+	NVIDIA_LIBS="$(find ${host_lib_search_paths} -not -type d \
 		-iname "*lib*nvidia*.so*" \
 		-o -iname "*nvidia*.so*" \
 		-o -iname "libcuda*.so*" \
