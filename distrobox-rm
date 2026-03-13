@@ -418,32 +418,40 @@ else
 	response="yes"
 fi
 
+# Collect running containers first
+running_containers=""
 for container in ${container_name_list}; do
 	if [ "$(${container_manager} inspect --type container --format '{{.State.Status}}' "${container}")" = "running" ]; then
-		if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
-			printf "Container %s running, do you want to force delete them? [Y/n]: " "${container_name_list}"
-			read -r response_force
-			response_force="${response_force:-"Y"}"
-		else
-			response_force="yes"
-		fi
+		running_containers="${running_containers} ${container}"
+	fi
+done
+
+# If there are running containers, ask once for all of them
+if [ -n "${running_containers}" ]; then
+	if [ "${non_interactive}" -eq 0 ] && [ "${force}" -eq 0 ]; then
+		printf "Containers%s are running, do you want to force delete them? [Y/n]: " "${running_containers}"
+		read -r response_force
+		response_force="${response_force:-"Y"}"
+	else
+		response_force="yes"
 	fi
 
 	# Accept only y,Y,Yes,yes,n,N,No,no.
-	case "${response_force:-"N"}" in
+	case "${response_force}" in
 		y | Y | Yes | yes | YES)
 			force=1
 			force_flag="--force"
-			break
 			;;
-		n | N | No | no | NO) ;;
-
-		*) # Default case: If no more options then break out of the loop.
+		n | N | No | no | NO)
+			# Continue without force flag - running containers will fail to delete
+			;;
+		*)
 			printf >&2 "Invalid input.\n"
 			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+			exit 1
 			;;
 	esac
-done
+fi
 
 # Accept only y,Y,Yes,yes,n,N,No,no.
 case "${response}" in
