@@ -49,6 +49,12 @@ func TestDocker_makeCreateCommand(t *testing.T) {
 		"/path/to/distrobox-hostexec", // distroboxHostexecPath
 	)
 
+	// Build expected string dynamically for paths that depend on host filesystem
+	selinuxVolume := ""
+	if pathExists("/sys/fs/selinux") {
+		selinuxVolume = " --volume /sys/fs/selinux"
+	}
+
 	expected := oneline(`
  create
  --hostname my-hostname
@@ -82,7 +88,7 @@ func TestDocker_makeCreateCommand(t *testing.T) {
  --mount type=tmpfs,destination=/var/lib/journal
  --volume /dev/pts
  --volume /dev/null:/dev/ptmx
- --volume /sys/fs/selinux
+ ` + selinuxVolume + `
  --volume /var/log/journal
  --volume /etc/hosts:/etc/hosts:ro
  --volume /etc/resolv.conf:/etc/resolv.conf:ro
@@ -98,7 +104,7 @@ func TestDocker_makeCreateCommand(t *testing.T) {
  --init 1
  --nvidia 0
  --pre-init-hooks echo 'pre-init-hook'
- --additional-packages 
+ --additional-packages
  -- echo 'init-hook'
 `)
 
