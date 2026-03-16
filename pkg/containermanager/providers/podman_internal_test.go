@@ -613,9 +613,8 @@ func TestPodman_Name(t *testing.T) {
 }
 
 func TestParsePodmanContainerList(t *testing.T) {
-	// Test parsing JSON output from podman ps
-	output := `{"Command":"sleep infinity","CreatedAt":"2024-01-31 10:00:00 +0000 UTC","ID":"abc123def456789012345678901234567890","Image":"fedora:39","Labels":"manager=distrobox,distrobox.unshare_groups=0","Mounts":"","Names":"my-container","Networks":"","Ports":"","State":"running","Status":"Up 2 hours"}
-{"Command":"/bin/bash","CreatedAt":"2024-01-31 09:00:00 +0000 UTC","ID":"xyz789abc123456789012345678901234567890","Image":"ubuntu:22.04","Labels":"manager=distrobox","Mounts":"","Names":"test-box","Networks":"","Ports":"","State":"exited","Status":"Exited (0) 1 hour ago"}`
+	// Test parsing JSON array output from podman ps --format json
+	output := `[{"Command":"sleep infinity","CreatedAt":"2024-01-31 10:00:00 +0000 UTC","ID":"abc123def456789012345678901234567890","Image":"fedora:39","Labels":{"manager":"distrobox","distrobox.unshare_groups":"0"},"Mounts":"","Names":["my-container"],"Networks":"","Ports":"","State":"running","Status":"Up 2 hours"},{"Command":"/bin/bash","CreatedAt":"2024-01-31 09:00:00 +0000 UTC","ID":"xyz789abc123456789012345678901234567890","Image":"ubuntu:22.04","Labels":{"manager":"distrobox"},"Mounts":"","Names":["test-box"],"Networks":"","Ports":"","State":"exited","Status":"Exited (0) 1 hour ago"}]`
 
 	containers, err := parsePodmanContainerList(output)
 	if err != nil {
