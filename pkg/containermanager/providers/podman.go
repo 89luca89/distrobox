@@ -591,6 +591,11 @@ func (p *Podman) Stop(ctx context.Context, containerNames []string) error {
 }
 
 func parsePodmanContainerList(output string) ([]containermanager.Container, error) {
+	output = strings.TrimSpace(output)
+	if output == "" {
+		return nil, nil
+	}
+
 	var containers []containermanager.Container
 
 	var pc []podmanContainer
