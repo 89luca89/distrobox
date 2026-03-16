@@ -3,6 +3,26 @@
 local curcontext="$curcontext" state line
 typeset -A opt_args
 
+_distrobox_containers() {
+    local -a containers
+    containers=("${(@f)$(distrobox list | sed 1d | awk -F'|' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')}")
+    _describe -t containers 'available containers' containers
+}
+
+_distrobox_images() {
+    local -a images
+    images=("${(@f)$(distrobox create --compatibility | awk 'NF {print $0}')}")
+    _wanted images expl 'compatible image' compadd -a images
+}
+
+_distrobox_running_containers() {
+    local -a containers
+    containers=($(distrobox list | awk -F'|' '$3 ~ /Up/ { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }'))
+    if (( ${#containers} > 0 )); then
+      _describe -t running-containers 'running containers' containers
+    fi
+}
+
 _distrobox_commands() {
   local -a commands
   commands=(
@@ -19,6 +39,299 @@ _distrobox_commands() {
     'version:Show distrobox version'
   )
   _describe -t commands 'distrobox command' commands
+}
+
+_distrobox-assemble() {
+    _message -r "Create or remove containers in batches, based on a manifest file."
+    _arguments \
+      '1:command:(create rm)' \
+      '--file[path to the distrobox manifest/ini file]:file:_files' \
+      '(--name -n)'{-n,--name}'[run against a single entry in the manifest/ini file]:entry name:' \
+      '(--replace -R)'{-R,--replace}'[replace already existing distroboxes with matching names]' \
+      '(--dry-run -d)'{-d,--dry-run}'[only print the container manager command generated]' \
+      '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+      '(--version -V)'{-V,--version}'[show version]'
+}
+
+_distrobox-create() {
+    local -a options
+    local expl
+    local state
+    options=(
+        '(-i --image)'{-i,--image}'[Specify image to use for the container]:image:_distrobox_images'
+        '(-n --name)'{-n,--name}'[Specify name for the distrobox]:distrobox name:'
+        '--hostname[Specify hostname for the distrobox]:hostname:'
+        '(-p --pull)'{-p,--pull}'[Pull the image even if it exists locally (implies --yes)]'
+        '(-Y --yes)'{-Y,--yes}'[Non-interactive, pull images without asking]'
+        '(-r --root)'{-r,--root}'[Launch with root privileges using podman/docker/lilipod]'
+        '(-c --clone)'{-c,--clone}'[Name of the distrobox container to use as base for a new container]:clone container name:'
+        '(-H --home)'{-H,--home}'[Select a custom HOME directory for the container]:path:_files -/'
+        '--volume[Add additional volumes to the container]:volume:_files'
+        '(-a --additional-flags)'{-a,--additional-flags}'[Additional flags to pass to the container manager command]:flags:'
+        '(-ap --additional-packages)'{-ap,--additional-packages}'[Additional packages to install during setup]:package:'
+        '--init-hooks[Commands to execute during container initialization]:command:'
+        '--pre-init-hooks[Commands to execute prior to container initialization]:command:'
+        '(-I --init)'{-I,--init}'[Use an init system inside the container]'
+        '--nvidia[Try to integrate host nVidia drivers into the guest]'
+        '--unshare-devsys[Do not share host devices and sysfs dirs from host]'
+        '--unshare-groups[Do not forward users additional groups into the container]'
+        '--unshare-ipc[Do not share ipc namespace with host]'
+        '--unshare-netns[Do not share the net namespace with host]'
+        '--unshare-process[Do not share process namespace with host]'
+        '--unshare-all[Activate all the unshare flags]'
+        '(-C --compatibility)'{-C,--compatibility}'[Show list of compatible images]'
+        '(-h --help)'{-h,--help}'[Show this message]'
+        '--no-entry[Do not generate a container entry in the application list]'
+        '(-d --dry-run)'{-d,--dry-run}'[Only print the container manager command generated]'
+        '(-v --verbose)'{-v,--verbose}'[Show more verbosity]'
+        '(-V --version)'{-V,--version}'[Show version]'
+        '--absolutely-disable-root-password-i-am-really-positively-sure[Skip user password setup, leaving it blank]'
+    )
+    _message -r "Create new distroboxes."
+    _arguments \
+      '1:containers:->container' \
+      '*:options:->options' \
+      $options[@]
+}
+
+_distrobox-enter() {
+    local -a options
+    local expl
+    local state
+    local _db_cc
+
+    _db_cc=("${(@f)$(distrobox list | sed 1d | awk -F'|' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')}")
+
+    options=(
+      '(--name -n)'{-n,--name}'[name for the distrobox]:container:_distrobox_containers'
+      '--[end arguments and execute the rest as command to execute at login]:command:_command_names'
+      '(--no-tty -T)'{-T,--no-tty}'[do not instantiate a tty]'
+      '(--no-workdir -nw)'{-nw,--no-workdir}'[always start the container from container home directory]'
+      '(--additional-flags -a)'{-a,--additional-flags}'[additional flags to pass to the container manager command]:flags:'
+      '(--help -h)'{-h,--help}'[show this message]'
+      '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]'
+      '(--dry-run -d)'{-d,--dry-run}'[only print the container manager command generated]'
+      '(--verbose -v)'{-v,--verbose}'[show more verbosity]'
+      '(--version -V)'{-V,--version}'[show version]'
+    )
+    _message -r "Start and enter a distrobox."
+    if [[ -n "$_db_cc" ]]; then
+      _arguments -C \
+        '1:containers:_distrobox_containers' \
+        $options[@]
+    else
+      _message -r "No containers exist."
+      _arguments $options[@]
+    fi
+}
+
+_distrobox-ephemeral() {
+    local -a options
+    local expl
+    local state
+    options=(
+        '(-i --image)'{-i,--image}'[Specify image to use for the container]:image:_distrobox_images'
+        '(-n --name)'{-n,--name}'[Specify name for the distrobox]:distrobox name:'
+        '--hostname[Specify hostname for the distrobox]:hostname:'
+        '(-p --pull)'{-p,--pull}'[Pull the image even if it exists locally (implies --yes)]'
+        '(-Y --yes)'{-Y,--yes}'[Non-interactive, pull images without asking]'
+        '(-r --root)'{-r,--root}'[Launch with root privileges using podman/docker/lilipod]'
+        '(-c --clone)'{-c,--clone}'[Name of the distrobox container to use as base for a new container]:clone container name:'
+        '(-H --home)'{-H,--home}'[Select a custom HOME directory for the container]:path:_files -/'
+        '--volume[Add additional volumes to the container]:volume:_files'
+        '(-a --additional-flags)'{-a,--additional-flags}'[Additional flags to pass to the container manager command]:flags:'
+        '(-ap --additional-packages)'{-ap,--additional-packages}'[Additional packages to install during setup]:package:'
+        '--init-hooks[Commands to execute during container initialization]:command:'
+        '--pre-init-hooks[Commands to execute prior to container initialization]:command:'
+        '(-I --init)'{-I,--init}'[Use an init system inside the container]'
+        '--nvidia[Try to integrate host nVidia drivers into the guest]'
+        '--unshare-devsys[Do not share host devices and sysfs dirs from host]'
+        '--unshare-groups[Do not forward users additional groups into the container]'
+        '--unshare-ipc[Do not share ipc namespace with host]'
+        '--unshare-netns[Do not share the net namespace with host]'
+        '--unshare-process[Do not share process namespace with host]'
+        '--unshare-all[Activate all the unshare flags]'
+        '(-C --compatibility)'{-C,--compatibility}'[Show list of compatible images]'
+        '(-h --help)'{-h,--help}'[Show this message]'
+        '--no-entry[Do not generate a container entry in the application list]'
+        '(-d --dry-run)'{-d,--dry-run}'[Only print the container manager command generated]'
+        '(-v --verbose)'{-v,--verbose}'[Show more verbosity]'
+        '(-V --version)'{-V,--version}'[Show version]'
+        '--absolutely-disable-root-password-i-am-really-positively-sure[Skip user password setup, leaving it blank]'
+    )
+    _message -r "Create temporary distroboxes that are auto destroyed."
+    _arguments \
+      '1:containers:->container' \
+      '*:options:->options' \
+      $options[@]
+}
+
+_distrobox-export() {
+    _message -r "Export an app or a binary from the container to the host."
+    _arguments \
+      '(--app -a)'{-a,--app}'[name of the application to export]:application name:' \
+      '(--bin -b)'{-b,--bin}'[absolute path of the binary to export]:path to binary:_files' \
+      '(--delete -d)'{-d,--delete}'[delete exported application or binary]' \
+      '(--export-label -el)'{-el,--export-label}'[label to add to exported application name, use "none" to disable]:label:' \
+      '(--export-path -ep)'{-ep,--export-path}'[path where to export the binary]:export path:_files' \
+      '(--extra-flags -ef)'{-ef,--extra-flags}'[extra flags to add to the command]:extra flags:' \
+      '(--enter-flags -nf)'{-nf,--enter-flags}'[flags to add to distrobox enter]:enter flags:' \
+      '--list-apps[list applications exported from this container]' \
+      '--list-binaries[list binaries exported from this container, use -ep to specify custom paths to search]' \
+      '(--sudo -S)'{-S,--sudo}'[specify if the exported item should be run as sudo]' \
+      '(--help -h)'{-h,--help}'[show this message]' \
+      '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+      '(--version -V)'{-V,--version}'[show version]'
+}
+
+_distrobox generate-entry() {
+    local expl
+    local -a options
+    local _db_cc
+    _db_cc=("${(@f)$(distrobox list | sed 1d | awk -F'|' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')}")
+    options=(
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-a --all)'{-a,--all}'[perform for all distroboxes]'
+        '(-d --delete)'{-d,--delete}'[delete the entry]'
+        '(-i --icon)'{-i,--icon}'[specify a custom icon (default auto)]:icon path:(auto _files)'
+        '(-r --root)'{-r,--root}'[perform on rootful distroboxes]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+    _message -r "Create a desktop icon for a distrobox"
+    if [[ -n "$_db_cc" ]]; then
+      _arguments \
+        '*:containers:_distrobox_containers' \
+        $options[@]
+    else
+      _message -r "No containers exist."
+      _arguments $options[@]
+    fi
+}
+
+_distrobox-host-exec() {
+    _message -r "Execute a command on the host while in a container"
+    _arguments \
+      '*:command:_command' \
+      '(--help -h)'{-h,--help}'[show this message]' \
+      '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+      '(--version -V)'{-V,--version}'[show version]' \
+      '(--yes -Y)'{-Y,--yes}'[Automatically answer yes to prompt host-spawn will be installed on the guest system if not detected]'
+}
+
+_distrobox-init() {
+    _message -r "Init the distrobox (not to be launched manually)"
+    _arguments \
+      '(--name -n)'{-n,--name}'[user name]:user name:' \
+      '(--user -u)'{-u,--user}'[uid of the user]:uid:' \
+      '(--group -g)'{-g,--group}'[gid of the user]:gid:' \
+      '(--home -d)'{-d,--home}'[path/to/home of the user]:home path:_files' \
+      '(--help -h)'{-h,--help}'[show this message]' \
+      '--additional-packages[packages to install in addition]:packages:' \
+      '(--init -I)'{-I,--init}'[whether to use or not init]' \
+      '--pre-init-hooks[commands to execute prior to init]:commands:' \
+      '--nvidia[try to integrate hosts nVidia drivers in the guest]' \
+      '(--upgrade -U)'{-U,--upgrade}'[run init in upgrade mode]' \
+      '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+      '(--version -V)'{-V,--version}'[show version]' \
+      '--:[end arguments execute the rest as command to execute during init]:command:_command'
+}
+
+_distrobox-list() {
+    _message -r "List available distroboxes."
+    _arguments \
+      '(--help -h)'{-h,--help}'[show this message]' \
+      '--no-color[disable color formatting]' \
+      '(--root -r)'{-r,--root}'[launch podman/docker/lilipod with root privileges]' \
+      '(--verbose -v)'{-v,--verbose}'[show more verbosity]' \
+      '(--version -V)'{-V,--version}'[show version]'
+}
+
+_distrobox-rm() {
+    # expl is an internal zsh array that gets passed to _arguments bts
+    local expl
+    local -a options
+    local _db_cc
+    # Check for existing containers and store the result into var _db_cc
+    _db_cc=("${(@f)$(distrobox list | sed 1d | awk -F'|' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')}")
+    # Array of optargs to pass to _arguments for matching and completion
+    options=(
+        '(-a --all)'{-a,--all}'[delete all distroboxes]'
+        '(-f --force)'{-f,--force}'[force deletion]'
+        '--rm-home[remove the mounted home if it differs from the host users one]'
+        '(-r --root)'{-r,--root}'[launch podman/docker/lilipod with root privileges]'
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+    _message -r "Delete one or more distroboxes."
+    # If containers exist then do an action
+    if [[ -n "$_db_cc" ]]; then
+      # Match both container names and optargs
+      _arguments \
+        '*:containers:_distrobox_containers' \
+        $options[@]
+    # If no containers exist then do an action
+    else
+      # Display message to user and match optargs only
+      _message -r "No containers exist."
+      _arguments $options[@]
+    fi
+
+}
+
+_distrobox-stop() {
+    local expl
+    local -a options
+    local _db_rcc
+
+     _db_rcc=($(distrobox list | awk -F'|' '$3 ~ /Up/ { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }'))
+
+    options=(
+        '(-a --all)'{-a,--all}'[stop all distroboxes]'
+        '(-Y --yes)'{-Y,--yes}'[non-interactive, stop without asking]'
+        '(-r --root)'{-r,--root}'[launch podman/docker/lilipod with root privileges]'
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+
+    _message -r "Stop running distrobox containers."
+    if [[ -n "$_db_rcc" ]]; then
+      _arguments -C \
+        '*:containers:_distrobox_running_containers' \
+        $options[@]
+    else
+      _message -r "No running containers."
+      _arguments $options[@]
+    fi
+}
+
+_distrobox-upgrade() {
+    local expl
+    local -a options
+    local _db_cc
+
+    _db_cc=("${(@f)$(distrobox list | sed 1d | awk -F'|' '{print $2}' | sed 's/^[ \t]*//;s/[ \t]*$//')}")
+
+    options=(
+        '(-a --all)'{-a,--all}'[upgrade all distroboxes]'
+        '--running[perform only for running distroboxes]'
+        '(-r --root)'{-r,--root}'[launch podman/docker/lilipod with root privileges]'
+        '(-h --help)'{-h,--help}'[show this message]'
+        '(-v --verbose)'{-v,--verbose}'[show more verbosity]'
+        '(-V --version)'{-V,--version}'[show version]'
+    )
+
+    _message -r "Upgrade distroboxes using container's package manager."
+    if [[ -n "$_db_cc" ]]; then
+      _arguments \
+        '*:containers:_distrobox_containers' \
+        $options[@]
+    else
+      _message -r "No containers exist."
+      _arguments $options[@]
+    fi
 }
 
 _arguments -C \

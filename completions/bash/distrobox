@@ -38,7 +38,7 @@ _generate_from_help() {
 	fi
 
 	if [[ ${prev} == "--image" ]] || [[ ${prev} == "-i" ]]; then
-		COMPREPLY+=($(compgen -W "$(distrobox-create --compatibility)" -- ${cur}))
+		COMPREPLY+=($(compgen -W "$(distrobox create --compatibility)" -- ${cur}))
 		return 0
 	fi
 
@@ -50,7 +50,7 @@ _generate_from_help() {
 		[[ ${command} != *"version"* ]] && [[ ${command} != *"help"* ]]; then
 		while IFS= read -r line; do
 			list+="$line "
-		done < <(distrobox-list --no-color | tail -n+2 | cut -d'|' -f2)
+		done < <(distrobox list --no-color | tail -n+2 | cut -d'|' -f2)
 		COMPREPLY=($(compgen -W "${list}" "${cur}"))
 		return 0
 	fi
@@ -62,7 +62,7 @@ __distrobox() {
 		VALID_WORDS+=" --version --help"
 		COMPREPLY=($(compgen -W "${VALID_WORDS}" -- "${COMP_WORDS[1]}"))
 	elif [ "${#COMP_WORDS[@]}" -gt "2" ]; then
-		_generate_from_help distrobox-"${COMP_WORDS[1]}"
+		_generate_from_help distrobox "${COMP_WORDS[1]}"
 	fi
 }
 

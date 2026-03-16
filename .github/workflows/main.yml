@@ -14,7 +14,50 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+env:
+  SHELL_SCRIPTS_DIR: internal/inside-distrobox/assets
+
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.1
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: "go.mod"
+      - run: make
+
+  golangci:
+    name: Golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.1
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: "go.mod"
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+        with:
+          version: v2.5.0
+
+  fmtcheck:
+    name: Go fmt check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.1
+      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: "go.mod"
+      - name: format check
+        run: |
+          make fmt
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Code is not formatted. Please run 'make fmt' and commit the changes."
+            git --no-pager diff
+            exit 1
+          fi
+
   dash:
     runs-on: ubuntu-latest
 
@@ -24,7 +67,7 @@ jobs:
       - name: Run dash -n
         run: |
           result=0
-          for file in $(find . -type f -not -path "*.git*" -a -not -path "*completions*"); do
+          for file in $(find ${SHELL_SCRIPTS_DIR} -type f); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
               dash -n $file
@@ -43,7 +86,7 @@ jobs:
         run: |
           result=0
           podman pull docker.io/peterdavehello/shfmt:latest
-          for file in $(find . -type f -not -path "*.git*"); do
+          for file in $(find ${SHELL_SCRIPTS_DIR} -type f); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
               podman run --rm -v "$PWD:/mnt" docker.io/peterdavehello/shfmt:latest shfmt -d -s -ci -sr -kp -fn -i=0 -p /mnt/$file
@@ -67,7 +110,7 @@ jobs:
         run: |
           result=0
           podman pull docker.io/koalaman/shellcheck:stable
-          for file in $(find . -type f -name ".*" -prune -o -print | grep -v '.git'); do
+          for file in $(find ${SHELL_SCRIPTS_DIR} -type f); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
               # Should read the .shellcheckrc file to behave like  -s sh -a -o all -Sstyle -Calways -x -e SC2310,SC2311,SC2312
@@ -93,6 +136,7 @@ jobs:
         uses: redhat-plumbers-in-action/differential-shellcheck@v5
         with:
           severity: style
+          scan-directory: ${{ env.SHELL_SCRIPTS_DIR }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
   bashate:
@@ -108,7 +152,7 @@ jobs:
       - name: Run bashate
         run: |
           sudo pip3 install -U bashate
-          for file in $(find . -type f -not -path "*.git*"); do
+          for file in $(find ${SHELL_SCRIPTS_DIR} -type f); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
                bashate -i E002,E003,E010,E011 --max-line-length 120 $file
@@ -137,6 +181,6 @@ jobs:
         run: |
           curl -L -O https://github.com/89luca89/shell-funcheck/releases/download/v0.0.1/shell-funcheck-amd64
           chmod +x ./shell-funcheck-amd64
-          for i in distrobox*; do
+          for i in ${SHELL_SCRIPTS_DIR}/*; do
           ./shell-funcheck-amd64 check "$i"
           done
