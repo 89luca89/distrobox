@@ -732,7 +732,18 @@ func buildContainerPath(cleanPath bool, hostPath string, cfg *containermanager.I
 		return strings.Join(standardPaths, ":")
 	}
 
-	containerPaths := cfg.ContainerPath
+	var containerPaths string
+	if cfg != nil {
+		containerPaths = cfg.ContainerPath
+	}
+
+	// If no host PATH, use the container's PATH if available
+	if hostPath == "" {
+		if containerPaths != "" {
+			return containerPaths
+		}
+		return strings.Join(standardPaths, ":")
+	}
 
 	// Add standard paths not in host PATH
 	var additionalPaths []string
@@ -744,16 +755,10 @@ func buildContainerPath(cleanPath bool, hostPath string, cfg *containermanager.I
 	}
 
 	if len(additionalPaths) > 0 {
-		if containerPaths != "" || hostPath != "" {
-			return hostPath + ":" + strings.Join(additionalPaths, ":")
-		}
-		return strings.Join(additionalPaths, ":")
+		return hostPath + ":" + strings.Join(additionalPaths, ":")
 	}
 
-	if hostPath != "" {
-		return hostPath
-	}
-	return containerPaths
+	return hostPath
 }
 
 func buildXDGPaths(envVar string, standardPaths []string) string {
