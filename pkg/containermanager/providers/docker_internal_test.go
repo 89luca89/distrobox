@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/89luca89/distrobox/internal/userenv"
-	"github.com/89luca89/distrobox/pkg/containermanager"
 )
 
 func TestDocker_makeCreateCommand(t *testing.T) {
@@ -112,108 +111,99 @@ func TestDocker_makeCreateCommand(t *testing.T) {
 
 func TestBuildContainerPath(t *testing.T) {
 	tests := []struct {
-		name      string
-		cleanPath bool
-		hostPath  string
-		cfg       *containermanager.InspectResult
-		want      string
+		name          string
+		cleanPath     bool
+		hostPath      string
+		containerPath string
+		want          string
 	}{
 		{
-			name:      "cleanPath returns only standard paths",
-			cleanPath: true,
-			hostPath:  "/custom/path:/other/path",
-			cfg:       &containermanager.InspectResult{ContainerPath: "/container/path"},
-			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			name:          "cleanPath returns only standard paths",
+			cleanPath:     true,
+			hostPath:      "/custom/path:/other/path",
+			containerPath: "/container/path",
+			want:          "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		},
 		{
 			name:      "cleanPath ignores hostPath and containerPath",
 			cleanPath: true,
 			hostPath:  "",
-			cfg:       &containermanager.InspectResult{ContainerPath: ""},
 			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		},
 		{
-			name:      "hostPath has all standard paths - returns hostPath only",
-			cleanPath: false,
-			hostPath:  "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-			cfg:       &containermanager.InspectResult{ContainerPath: "/container/path"},
-			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			name:          "hostPath has all standard paths - returns hostPath only",
+			cleanPath:     false,
+			hostPath:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			containerPath: "/container/path",
+			want:          "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		},
 		{
-			name:      "hostPath missing some standard paths - adds them",
-			cleanPath: false,
-			hostPath:  "/usr/bin:/bin",
-			cfg:       &containermanager.InspectResult{ContainerPath: "/container/path"},
-			want:      "/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin",
+			name:          "hostPath missing some standard paths - adds them",
+			cleanPath:     false,
+			hostPath:      "/usr/bin:/bin",
+			containerPath: "/container/path",
+			want:          "/usr/bin:/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin",
 		},
 		{
-			name:      "hostPath with custom paths and missing standard paths",
-			cleanPath: false,
-			hostPath:  "/custom/bin:/usr/bin:/another/path",
-			cfg:       &containermanager.InspectResult{ContainerPath: "/container/path"},
-			want:      "/custom/bin:/usr/bin:/another/path:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/bin",
+			name:          "hostPath with custom paths and missing standard paths",
+			cleanPath:     false,
+			hostPath:      "/custom/bin:/usr/bin:/another/path",
+			containerPath: "/container/path",
+			want:          "/custom/bin:/usr/bin:/another/path:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/bin",
 		},
 		{
-			name:      "empty hostPath - returns containerPath",
-			cleanPath: false,
-			hostPath:  "",
-			cfg:       &containermanager.InspectResult{ContainerPath: "/container/path"},
-			want:      "/container/path",
+			name:          "empty hostPath - returns containerPath",
+			cleanPath:     false,
+			hostPath:      "",
+			containerPath: "/container/path",
+			want:          "/container/path",
 		},
 		{
 			name:      "empty hostPath and containerPath - returns standard paths",
 			cleanPath: false,
 			hostPath:  "",
-			cfg:       &containermanager.InspectResult{ContainerPath: ""},
 			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		},
 		{
 			name:      "hostPath with standard paths at beginning",
 			cleanPath: false,
 			hostPath:  "/bin:/usr/bin:/custom/path",
-			cfg:       &containermanager.InspectResult{ContainerPath: ""},
 			want:      "/bin:/usr/bin:/custom/path:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin",
 		},
 		{
 			name:      "hostPath with standard paths at end",
 			cleanPath: false,
 			hostPath:  "/custom/path:/bin:/usr/bin",
-			cfg:       &containermanager.InspectResult{ContainerPath: ""},
 			want:      "/custom/path:/bin:/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin",
 		},
 		{
 			name:      "hostPath with similar but not exact standard paths",
 			cleanPath: false,
 			hostPath:  "/usr/binary:/binfo",
-			cfg:       &containermanager.InspectResult{ContainerPath: ""},
 			want:      "/usr/binary:/binfo:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		},
 		{
-			name:      "single custom path in hostPath",
-			cleanPath: false,
-			hostPath:  "/opt/custom/bin",
-			cfg:       &containermanager.InspectResult{ContainerPath: "/container/path"},
-			want:      "/opt/custom/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			name:          "single custom path in hostPath",
+			cleanPath:     false,
+			hostPath:      "/opt/custom/bin",
+			containerPath: "/container/path",
+			want:          "/opt/custom/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		},
 		{
-			name:      "nil cfg with non-empty hostPath",
+			name:      "empty containerPath with non-empty hostPath",
 			cleanPath: false,
 			hostPath:  "/custom/path",
-			cfg:       nil,
 			want:      "/custom/path:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		},
 		{
-			name:      "nil cfg with empty hostPath",
-			cleanPath: false,
-			hostPath:  "",
-			cfg:       nil,
-			want:      "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+			name: "empty containerPath with empty hostPath",
+			want: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := buildContainerPath(tt.cleanPath, tt.hostPath, tt.cfg)
+			got := buildContainerPath(tt.cleanPath, tt.hostPath, tt.containerPath)
 			if got != tt.want {
 				t.Errorf("buildContainerPath() = %v, want %v", got, tt.want)
 			}
@@ -224,8 +214,7 @@ func TestBuildContainerPath(t *testing.T) {
 // TestBuildContainerPathEdgeCases tests edge cases and boundary conditions
 func TestBuildContainerPathEdgeCases(t *testing.T) {
 	t.Run("hostPath with colon at start", func(t *testing.T) {
-		cfg := &containermanager.InspectResult{ContainerPath: ""}
-		got := buildContainerPath(false, ":/usr/bin", cfg)
+		got := buildContainerPath(false, ":/usr/bin", "")
 		// Should treat this as hostPath not containing standard paths initially
 		if !contains(got, "/usr/local/sbin") {
 			t.Errorf("Expected standard paths to be added")
@@ -233,16 +222,14 @@ func TestBuildContainerPathEdgeCases(t *testing.T) {
 	})
 
 	t.Run("hostPath with colon at end", func(t *testing.T) {
-		cfg := &containermanager.InspectResult{ContainerPath: ""}
-		got := buildContainerPath(false, "/usr/bin:", cfg)
+		got := buildContainerPath(false, "/usr/bin:", "")
 		if !contains(got, "/usr/local/sbin") {
 			t.Errorf("Expected standard paths to be added")
 		}
 	})
 
 	t.Run("hostPath with multiple colons", func(t *testing.T) {
-		cfg := &containermanager.InspectResult{ContainerPath: ""}
-		got := buildContainerPath(false, "/usr/bin::/sbin", cfg)
+		got := buildContainerPath(false, "/usr/bin::/sbin", "")
 		// Should still add missing standard paths
 		if !contains(got, "/usr/local/sbin") {
 			t.Errorf("Expected standard paths to be added")

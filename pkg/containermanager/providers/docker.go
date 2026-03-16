@@ -725,22 +725,17 @@ func (d *Docker) PullImage(ctx context.Context, imageName string, platform strin
 	return err
 }
 
-func buildContainerPath(cleanPath bool, hostPath string, cfg *containermanager.InspectResult) string {
+func buildContainerPath(cleanPath bool, hostPath string, containerPath string) string {
 	standardPaths := []string{"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"}
 
 	if cleanPath {
 		return strings.Join(standardPaths, ":")
 	}
 
-	var containerPaths string
-	if cfg != nil {
-		containerPaths = cfg.ContainerPath
-	}
-
 	// If no host PATH, use the container's PATH if available
 	if hostPath == "" {
-		if containerPaths != "" {
-			return containerPaths
+		if containerPath != "" {
+			return containerPath
 		}
 		return strings.Join(standardPaths, ":")
 	}
@@ -932,7 +927,7 @@ func (d *Docker) generateEnterCommand(
 		cmd = append(cmd, fmt.Sprintf("--env=%s", env))
 	}
 	// PATH handling
-	containerPaths := buildContainerPath(cleanPath, os.Getenv("PATH"), containerConfig)
+	containerPaths := buildContainerPath(cleanPath, os.Getenv("PATH"), containerConfig.ContainerPath)
 	cmd = append(cmd, fmt.Sprintf("--env=PATH=%s", containerPaths))
 
 	// XDG_DATA_DIRS
