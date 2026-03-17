@@ -376,7 +376,11 @@ func (p *Podman) makeCreateCommand(
 
 	// Use keep-id only if going rootless.
 	if !p.root {
-		options = append(options, "--userns", "keep-id:size=65536")
+		if p.supportsKeepIDSize(ctx, containerImage) {
+			options = append(options, "--userns", "keep-id:size=65536")
+		} else {
+			options = append(options, "--userns", "keep-id")
+		}
 	}
 
 	// Now execute the entrypoint, refer to `distrobox-init -h` for instructions
@@ -625,6 +629,18 @@ func parsePodmanContainerList(output string) ([]containermanager.Container, erro
 func commandExists(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
+}
+
+// supportsKeepIDSize tests whether podman supports the keep-id:size= userns option
+// by attempting a quick container run. Older podman versions do not support the size suboption.
+func (p *Podman) supportsKeepIDSize(ctx context.Context, image string) bool {
+	_, err := p.run(ctx, []string{"run", "--rm", "--userns=keep-id:size=65536", image, "/bin/true"}, runOptions{})
+	if err == nil {
+		return true
+	}
+	// If the error mentions "size" as unknown option, the feature is not supported.
+	// Other errors (e.g., /bin/true not found exit 127) mean the option itself was accepted.
+	return !strings.Contains(err.Error(), "unknown option specified: \"size\"")
 }
 
 // usesRunc detects whether podman is configured to use runc as the OCI runtime.
