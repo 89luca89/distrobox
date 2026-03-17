@@ -807,7 +807,7 @@ func (p *Podman) generateEnterCommand(
 
 	// Environment variables
 	cmd = append(cmd, fmt.Sprintf("--env=CONTAINER_ID=%s", containerName))
-	cmd = append(cmd, fmt.Sprintf("--env=DISTROBOX_ENTER_PATH=%s", executablePath))
+	cmd = append(cmd, fmt.Sprintf("--env=DISTROBOX_PATH=%s", executablePath))
 
 	for _, env := range filterEnvVars() {
 		cmd = append(cmd, fmt.Sprintf("--env=%s", env))

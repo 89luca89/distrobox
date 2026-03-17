@@ -160,6 +160,8 @@ normalize_enter_cmd()
 		sed -E 's/^(sudo\s+)?(podman|docker|lilipod)\s+//' |
 		sed -E 's/ --/\n--/g' |
 		sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' |
+		# The DISTROBOX_PATH will differ — remove it
+		grep -v 'DISTROBOX_PATH' |
 		# The DISTROBOX_ENTER_PATH will differ — remove it
 		grep -v 'DISTROBOX_ENTER_PATH' |
 		# Environment variables forwarded from host will be the same,
