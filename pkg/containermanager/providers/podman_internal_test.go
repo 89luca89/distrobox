@@ -57,7 +57,7 @@ func TestPodman_makeCreateCommand(t *testing.T) {
 		"--annotation run.oci.keep_original_groups=1",
 		"--ulimit host",
 		"--systemd=always",
-		"--userns keep-id:size=65536",
+		"--userns keep-id",
 	}
 
 	for _, flag := range requiredFlags {
