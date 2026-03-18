@@ -233,7 +233,13 @@ fi
 #
 # if /run/.nopasswd is present, let's treat the init as rootless, this is not
 # a good thing, users behold!
-if stat /run/host/etc/shadow > /dev/null &&
+#
+# if /run/.distrobox.rootless is present, the container was explicitly created
+# without --root (distrobox-create mounts this marker for rootless containers).
+# Trust it over the shadow heuristic, which gives false positives on Docker
+# Desktop (macOS) where the container always has root access to the VM's fs.
+if [ ! -e /run/.distrobox.rootless ] &&
+	stat /run/host/etc/shadow > /dev/null &&
 	{
 		[ "$(stat -c "%u" /run/host/etc/shadow)" = "0" ] || [ "$(stat -f "%u" /run/host/etc/shadow 2> /dev/null)" = "0" ]
 	} &&
@@ -1978,7 +1984,7 @@ host_sockets="$(find /run/host/run \
 # create many problems with package managers thinking they have access to
 # system dbus, user auth cache misused or query wrong user information.
 for host_socket in ${host_sockets}; do
-	container_socket="$(printf "%s" "${host_socket}" | sed 's|/run/host||g')"
+	container_socket="${host_socket#/run/host}"
 	# Check if the socket already exists or the symlink already exists
 	if [ ! -S "${container_socket}" ] && [ ! -L "${container_socket}" ]; then
 		# link it.

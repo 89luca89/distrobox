@@ -62,6 +62,7 @@ Distrobox has been successfully tested on:
 | Fedora | 35 <br> 36 <br> 37 <br> 38 <br> Rawhide | `distrobox` is available in default repos.(thanks [alcir](https://github.com/alcir)!) |
 | Gentoo | | To setup rootless podman, look [HERE](https://wiki.gentoo.org/wiki/Podman) |
 | KDE neon | | `distrobox` is available in default repo |
+| macOS | | Requires [Docker Desktop](https://docs.docker.com/desktop/install/mac-install/). Support is limited to CLI use only; GUI, sound, and graphics are not supported. Please do not open issues for GUI/sound/graphics-related bugs on macOS. |
 | Manjaro | | To setup rootless podman, look [HERE](https://wiki.archlinux.org/title/Podman) |
 | NixOS | 21.11 | Make sure to mind your executable paths. Sometimes a container will not have nix paths, and sometimes it will not have its own paths.  <br>  Distrobox is available in Nixpkg collection (thanks [AtilaSaraiva](https://github.com/AtilaSaraiva)!)< <br> To setup Docker, look [HERE](https://wiki.nixos.org/wiki/Docker)  <br> To setup Podman, look [HERE](https://wiki.nixos.org/wiki/Podman) and [HERE](https://gist.github.com/adisbladis/187204cb772800489ee3dac4acdd9947) |
 | openSUSE | Leap | `distrobox` is available in default repos (thanks [dfaggioli](https://github.com/dfaggioli)!). <br> Prior to Leap 15.6 ``podman`` logging needs to be configured properly, more details in [this openSUSE bug](https://bugzilla.opensuse.org/show_bug.cgi?id=1199871). |
