@@ -2621,6 +2621,13 @@ fi
 
 # Now we're done
 touch /etc/passwd.done
+
+# Ensure shadow files are readable by root without relying on CAP_DAC_OVERRIDE,
+# which may not be effective on all container storage drivers (e.g. fuse-overlayfs
+# in rootless mode, or VMs like Docker Desktop / Colima on macOS).
+# Fedora/Arch ship these as mode 000, expecting the capability to bypass DAC.
+chmod 0400 /etc/shadow 2> /dev/null || :
+chmod 0400 /etc/gshadow 2> /dev/null || :
 ###############################################################################
 
 ###############################################################################
