@@ -591,7 +591,14 @@ export_application()
 			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 		sed -i "s|pixmaps|icons|g" \
 			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
-	done
+        
+        # In case of sudo, needs to be sure to have Terminal=true to keep pwd
+        # remaining between commands.
+        if [ "${is_sudo}" -ne 0 ]; then
+            sed -i "s|Terminal=.*|Terminal=true|g" \
+			    "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+	    fi
+    done
 
 	# Update the desktop files database to ensure exported applications will
 	# show up in the taskbar/desktop menu/whatnot right after running this
