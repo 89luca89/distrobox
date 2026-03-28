@@ -48,12 +48,9 @@ graphical apps (X11/Wayland), and audio.
 - [Assemble Distrobox](#assemble-distrobox)
 - [Configure Distrobox](#configure-distrobox)
 - [Installation](#installation)
-  - [Alternative methods](#alternative-methods)
-    - [Curl or Wget](#curl-or-wget)
-    - [Git](#git)
+  - [Building from source](#building-from-source)
   - [Dependencies](#dependencies)
     - [Install Podman without root](compatibility.md#install-podman-in-a-static-manner)
-  - [Uninstallation](#uninstallation)
 - [Compatibility](compatibility.md)
   - [Supported container managers](compatibility.md#supported-container-managers)
   - [Host Distros](compatibility.md#host-distros)
@@ -355,80 +352,35 @@ Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30),
 [alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli),
 [AtilaSaraiva](https://github.com/AtilaSaraiva), [michel-slm](https://github.com/michel-slm)
 
-## Alternative methods
+## Building from source
 
-Here is a list of alternative ways to install `distrobox`.
+To build distrobox from source, you need [Go](https://go.dev/) >= 1.25 and `make`.
 
-### Curl or Wget
-
-If you like to live your life dangerously, or you want the latest release,
-you can trust me and simply run this in your terminal:
+Clone the repository and build:
 
 ```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
+git clone https://github.com/89luca89/distrobox.git
+cd distrobox
+make build
 ```
 
-or using wget
+Then install:
 
 ```sh
-wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
+sudo make install
 ```
 
-or if you want to select a custom directory to install without sudo:
+This installs the `distrobox` binary to `/usr/local/bin` by default.
+For a local install without sudo:
 
 ```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
+make install PREFIX=~/.local
 ```
-
-or using wget
-
-```sh
-wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
-```
-
-If you want to install the last development version, directly from the last commit on Git, you can use:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --next
-```
-
-or using wget
-
-```sh
-wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --next
-```
-
-or:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
-```
-
-or using wget
-
-```sh
-wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
-```
-
-### Upgrading
-
-Just run the `curl` or `wget` command again.
 
 > [!WARNING]
-> Remember to add prefix-path-you-choose/bin to your PATH, to make it work.
+> Make sure the destination directory is in your `PATH`.
 
-### Git
-
-Alternatively, you can clone the project using `git clone` or using the latest
-release [HERE](https://github.com/89luca89/distrobox/releases/latest).
-
-Enter the directory and run `./install`, by default it will attempt to install
-in `~/.local` but if you run the script as root, it will default to `/usr/local`.
-You can specify a custom directory with the `--prefix` flag
-such as `./install --prefix ~/.distrobox`.
-
-Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas
-the man pages get installed to `${prefix}/share/man`.
+To uninstall, run `make uninstall` with the same `PREFIX` used during installation.
 
 ---
 
@@ -449,28 +401,6 @@ There are ways to install
 This should play well with completely sudoless setups and with devices like the Steam Deck (SteamOS).
 
 ---
-
-## Uninstallation
-
-If you installed `distrobox` using the `install` script in the default install
-directory use this:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sudo sh
-```
-
-or if you specified a custom path:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- --prefix ~/.local
-```
-
-Else, if you cloned the project using `git clone` or using the latest archive release
-from [HERE](https://github.com/89luca89/distrobox/releases/latest),
-
-enter the directory and run `./uninstall`, by default it will assume the installation
-directory was `/usr/local` if ran as root or `~/.local`,
-you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
 ---
 
