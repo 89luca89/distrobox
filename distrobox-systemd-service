@@ -1,0 +1,147 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project:
+#    https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+# Optional env variables:
+#	DBX_CONTAINER_MANAGER
+#	DBX_VERBOSE
+
+# Ensure we have our env variables correctly set
+[ -z "${USER}" ] && USER="$(id -run)"
+[ -z "${HOME}" ] && HOME="$(getent passwd "${USER}" | cut -d':' -f6)"
+[ -z "${SHELL}" ] && SHELL="$(getent passwd "${USER}" | cut -d':' -f7)"
+
+# Defaults
+container_name="${1:-}"
+action="${2:-start}"
+verbose=0
+version="1.8.2.4"
+
+show_help()
+{
+	cat << EOF
+distrobox version: ${version}
+
+Usage:
+	distrobox-systemd-service <container_name> [start|stop] [--verbose]
+
+Description:
+	Manage background app registration and system tray integration for distrobox containers.
+	This enables visibility in GNOME Background Apps and system tray areas.
+
+Options:
+
+	-h, --help              Show this message
+	-v, --verbose           Show more verbosity
+	-V, --version           Show version
+
+Examples:
+	distrobox-systemd-service my-container start
+	distrobox-systemd-service my-container stop
+
+EOF
+}
+
+# Parse arguments
+while [ $# -gt 0 ]; do
+	case "${1}" in
+		-h | --help)
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
+			verbose=1
+			shift
+			;;
+		-V | --version)
+			printf "distrobox version: %s\n" "${version}"
+			exit 0
+			;;
+		*)
+			if [ -z "${container_name}" ]; then
+				container_name="${1}"
+			elif [ -z "${action}" ]; then
+				action="${1}"
+			fi
+			shift
+			;;
+	esac
+done
+
+if [ -z "${container_name}" ]; then
+	printf >&2 "Error: container name required\n"
+	show_help
+	exit 1
+fi
+
+# Register background app with freedesktop portal
+register_background_app()
+{
+	local container="${1}"
+	local app_id="distrobox.${container}"
+	local xdg_data_home="${XDG_DATA_HOME:-${HOME}/.local/share}"
+	local service_dir="${xdg_data_home}/dbus-1/services"
+
+	mkdir -p "${service_dir}"
+
+	# Create dbus service file for background app
+	cat > "${service_dir}/${app_id}.service" << EOF
+[D-BUS Service]
+Name=${app_id}
+Exec=distrobox-enter ${container} -- true
+EOF
+
+	if [ "${verbose}" -eq 1 ]; then
+		printf "Registered background app: %s\n" "${app_id}"
+	fi
+}
+
+unregister_background_app()
+{
+	local container="${1}"
+	local app_id="distrobox.${container}"
+	local xdg_data_home="${XDG_DATA_HOME:-${HOME}/.local/share}"
+	local service_dir="${xdg_data_home}/dbus-1/services"
+	local service_file="${service_dir}/${app_id}.service"
+
+	if [ -f "${service_file}" ]; then
+		rm -f "${service_file}"
+		if [ "${verbose}" -eq 1 ]; then
+			printf "Unregistered background app: %s\n" "${app_id}"
+		fi
+	fi
+}
+
+# Main execution
+case "${action}" in
+	start)
+		register_background_app "${container_name}"
+		;;
+	stop)
+		unregister_background_app "${container_name}"
+		;;
+	*)
+		printf >&2 "Invalid action: %s\n" "${action}"
+		show_help
+		exit 1
+		;;
+esac
+
+exit 0
