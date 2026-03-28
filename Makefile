@@ -16,6 +16,18 @@ vet:
 fmt:
 	$(GO_BUILD_ENV) go fmt ./...
 
+PREFIX ?= /usr/local
+BINDIR ?= $(PREFIX)/bin
+
+.PHONY: install
+install: build
+	install -d $(DESTDIR)$(BINDIR)
+	install -m 0755 ./bin/distrobox $(DESTDIR)$(BINDIR)/distrobox
+
+.PHONY: uninstall
+uninstall:
+	rm -f $(DESTDIR)$(BINDIR)/distrobox
+
 .PHONY: clean
 clean:
 	rm -f ./bin/distrobox
