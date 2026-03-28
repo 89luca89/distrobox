@@ -7,7 +7,7 @@ name: Docs
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [main]
+    branches: [main, next]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
