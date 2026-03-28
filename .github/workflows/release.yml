@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "2.0.0-rc.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go build -o distrobox-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/distrobox
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distrobox-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: distrobox-${{ matrix.goos }}-${{ matrix.goarch }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME}"
+          gh release create "${version}" \
+            --title "${version}" \
+            --generate-notes \
+            --prerelease \
+            artifacts/*
