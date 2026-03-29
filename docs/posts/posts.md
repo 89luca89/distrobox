@@ -12,4 +12,4 @@
 - [Run Libvirt using distrobox](run_libvirt_in_distrobox.md)
 - [Run latest GNOME and KDE Plasma using distrobox](run_latest_gnome_kde_on_distrobox.md)
 - [Announcing the next generation of Distrobox](announcing-distrobox-next-gen.md)
-- [Distrobox Next architecture](announcing-distrobox-next-gen.md)
+- [Distrobox Next architecture](distrobox-next-architecture.md)
