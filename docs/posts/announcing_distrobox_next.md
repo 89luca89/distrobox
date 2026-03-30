@@ -1,4 +1,4 @@
-- [Distrobox](README.md)
+- [Distrobox](../README.md)
   - [Announcing the next generation of Distrobox](#announcing-the-next-generation-of-distrobox)
     - [Try it now](#try-it-now)
     - [Why we rewrote Distrobox](#why-we-rewrote-distrobox)
