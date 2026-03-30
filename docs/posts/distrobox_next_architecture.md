@@ -1,4 +1,4 @@
-- [Distrobox](README.md)
+- [Distrobox](../README.md)
   - [Distrobox Go Rewrite: Architecture and Design](#distrobox-go-rewrite-architecture-and-design)
     - [Overview](#overview)
     - [Directory Structure](#directory-structure)
