@@ -94,7 +94,7 @@ func (c *GenerateEntryCommand) Execute(
 	// Determine DistroboxPath
 	distroboxPath := opts.DistroboxPath
 	if distroboxPath == "" {
-		p, err := config.GetDistroboxPath()
+		p, err := os.Executable()
 		if err != nil {
 			return fmt.Errorf("cannot read distrobox path, %w", err)
 		}
