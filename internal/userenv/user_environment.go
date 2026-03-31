@@ -6,16 +6,18 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
 
 type UserEnvironment struct {
-	User    string
-	UserID  string
-	GroupID string
-	Home    string
-	Shell   string
+	User                string
+	UserID              string
+	GroupID             string
+	Home                string
+	Shell               string
+	DesktopEntryBaseDir string
 }
 
 // LoadUserEnvironment loads the user environment variables
@@ -25,6 +27,8 @@ type UserEnvironment struct {
 // - USER
 // - HOME
 // - SHELL
+//
+//nolint:gocognit
 func LoadUserEnvironment(ctx context.Context) *UserEnvironment {
 	env := &UserEnvironment{}
 
@@ -79,6 +83,13 @@ func LoadUserEnvironment(ctx context.Context) *UserEnvironment {
 		env.GroupID = strconv.Itoa(gid)
 	} else if gid, err := exec.CommandContext(ctx, "id", "-rg").Output(); err == nil {
 		env.GroupID = strings.TrimSpace(string(gid))
+	}
+
+	// DESKTOP ENTRY DIR
+	if xdgDataHome := os.Getenv("XDG_DATA_HOME"); xdgDataHome != "" {
+		env.DesktopEntryBaseDir = xdgDataHome
+	} else {
+		env.DesktopEntryBaseDir = filepath.Join(env.Home, ".local", "share")
 	}
 
 	return env

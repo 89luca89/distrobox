@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/urfave/cli/v3"
 
@@ -64,11 +63,10 @@ func generateEntryAction(ctx context.Context, cmd *cli.Command, cfg *config.Valu
 	listCmd := commands.NewListCommand(cfg, containerManager)
 
 	opts := &commands.GenerateEntryOptions{
-		Verbose:             cmd.Bool("verbose"),
-		Delete:              cmd.Bool("delete"),
-		Root:                cmd.Bool("root"),
-		DesktopEntryBaseDir: getDesktopEntryDir(),
-		DistroboxPath:       distroboxPath,
+		Verbose:       cmd.Bool("verbose"),
+		Delete:        cmd.Bool("delete"),
+		Root:          cmd.Bool("root"),
+		DistroboxPath: distroboxPath,
 	}
 	if cmd.Bool("all") {
 		opts.All = true
@@ -85,14 +83,4 @@ func generateEntryAction(ctx context.Context, cmd *cli.Command, cfg *config.Valu
 	}
 
 	return nil
-}
-
-// getDesktopEntryDir resolves the system path for the desktop entry file
-func getDesktopEntryDir() string {
-	xdgDataHome := os.Getenv("XDG_DATA_HOME")
-	if xdgDataHome == "" {
-		home := os.Getenv("HOME")
-		return filepath.Join(home, ".local", "share")
-	}
-	return xdgDataHome
 }
