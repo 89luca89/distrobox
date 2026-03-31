@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/89luca89/distrobox/internal/userenv"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
@@ -19,6 +20,7 @@ type RmResult struct {
 }
 
 type RmCommand struct {
+	cfg              *config.Values
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
 	generateEntryCmd *GenerateEntryCommand
@@ -34,12 +36,14 @@ type RmOptions struct {
 }
 
 func NewRmCommand(
+	cfg *config.Values,
 	cm containermanager.ContainerManager,
 	prompter *ui.Prompter,
 ) *RmCommand {
-	listCmd := NewListCommand(cm)
-	generateEntryCmd := NewGenerateEntryCommand(listCmd)
+	listCmd := NewListCommand(cfg, cm)
+	generateEntryCmd := NewGenerateEntryCommand(cfg, listCmd)
 	return &RmCommand{
+		cfg:              cfg,
 		containerManager: cm,
 		listCmd:          listCmd,
 		generateEntryCmd: generateEntryCmd,

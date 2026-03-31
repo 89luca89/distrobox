@@ -10,12 +10,13 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/manifest"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
-func newAssembleCommand() *cli.Command {
+func newAssembleCommand(cfg *config.Values) *cli.Command {
 	fileFlag := &cli.StringFlag{Name: "file", Usage: "path or URL to the distrobox manifest/ini file"}
 	nameFlag := &cli.StringFlag{
 		Name:    "name",
@@ -60,7 +61,7 @@ Options:
 					dryRunFlag,
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					return assembleAction(ctx, cmd, false)
+					return assembleAction(ctx, cmd, cfg, false)
 				},
 			},
 			{
@@ -71,14 +72,14 @@ Options:
 					dryRunFlag,
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					return assembleAction(ctx, cmd, true)
+					return assembleAction(ctx, cmd, cfg, true)
 				},
 			},
 		},
 	}
 }
 
-func assembleAction(ctx context.Context, cmd *cli.Command, deleteFlag bool) error {
+func assembleAction(ctx context.Context, cmd *cli.Command, cfg *config.Values, deleteFlag bool) error {
 	containerManager, ok := ctx.Value(containerManagerKey).(containermanager.ContainerManager)
 	if !ok {
 		return errors.New("container manager not found in context")
@@ -112,7 +113,7 @@ func assembleAction(ctx context.Context, cmd *cli.Command, deleteFlag bool) erro
 	progress := ui.NewProgress(os.Stderr)
 	printer := ui.NewPrinter(os.Stdout, true)
 
-	assembleCmd := commands.NewAssembleCommand(containerManager, prompter, progress, printer)
+	assembleCmd := commands.NewAssembleCommand(cfg, containerManager, prompter, progress, printer)
 
 	err = assembleCmd.Execute(ctx, opts)
 	if err != nil {

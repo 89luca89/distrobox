@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
@@ -21,17 +22,20 @@ type EnterOptions struct {
 }
 
 type EnterCommand struct {
+	cfg              *config.Values
 	containerManager containermanager.ContainerManager
 	progress         *ui.Progress
 	printer          *ui.Printer
 }
 
 func NewEnterCommand(
+	cfg *config.Values,
 	cm containermanager.ContainerManager,
 	progress *ui.Progress,
 	printer *ui.Printer,
 ) *EnterCommand {
 	return &EnterCommand{
+		cfg:              cfg,
 		containerManager: cm,
 		progress:         progress,
 		printer:          printer,

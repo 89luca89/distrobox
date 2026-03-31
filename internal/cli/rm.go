@@ -10,11 +10,12 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
-func newRmCommand() *cli.Command {
+func newRmCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
 		Name:  "rm",
 		Usage: "Remove distroboxes",
@@ -40,11 +41,13 @@ func newRmCommand() *cli.Command {
 			},
 		},
 
-		Action: rmAction,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return rmAction(ctx, cmd, cfg)
+		},
 	}
 }
 
-func rmAction(ctx context.Context, cmd *cli.Command) error {
+func rmAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 	containerManager, ok := ctx.Value(containerManagerKey).(containermanager.ContainerManager)
 	if !ok {
 		return errors.New("container manager not found in context")
@@ -60,7 +63,7 @@ func rmAction(ctx context.Context, cmd *cli.Command) error {
 
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	rmCmd := commands.NewRmCommand(containerManager, prompter)
+	rmCmd := commands.NewRmCommand(cfg, containerManager, prompter)
 	_, err := rmCmd.Execute(ctx, options)
 	if err != nil {
 		return fmt.Errorf("failed to execute rm command: %w", err)

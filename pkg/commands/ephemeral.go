@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
@@ -16,6 +17,7 @@ type EphemeralOptions struct {
 }
 
 type EphemeralCommand struct {
+	cfg              *config.Values
 	containerManager containermanager.ContainerManager
 	createCmd        *CreateCommand
 	enterCmd         *EnterCommand
@@ -23,16 +25,18 @@ type EphemeralCommand struct {
 }
 
 func NewEphemeralCommand(
+	cfg *config.Values,
 	cm containermanager.ContainerManager,
 	progress *ui.Progress,
 	printer *ui.Printer,
 	prompter *ui.Prompter,
 ) *EphemeralCommand {
 	return &EphemeralCommand{
+		cfg:              cfg,
 		containerManager: cm,
-		createCmd:        NewCreateCommand(cm, progress, prompter),
-		enterCmd:         NewEnterCommand(cm, progress, printer),
-		rmCmd:            NewRmCommand(cm, prompter),
+		createCmd:        NewCreateCommand(cfg, cm, progress, prompter),
+		enterCmd:         NewEnterCommand(cfg, cm, progress, printer),
+		rmCmd:            NewRmCommand(cfg, cm, prompter),
 	}
 }
 

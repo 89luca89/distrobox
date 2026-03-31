@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager/providers"
 )
 
@@ -18,13 +19,13 @@ func TestGenerateEntryCommand_Execute(t *testing.T) {
 
 	// create the list command
 	containerManager := providers.NewDocker(false, "sudo", false)
-	listCmd := commands.NewListCommand(containerManager)
+	listCmd := commands.NewListCommand(&config.Values{}, containerManager)
 
 	//
 	// Generate the entry
 	//
 
-	generateEntryCmd := commands.NewGenerateEntryCommand(listCmd)
+	generateEntryCmd := commands.NewGenerateEntryCommand(&config.Values{}, listCmd)
 
 	opts := &commands.GenerateEntryOptions{
 		ContainerName:       "test-container",
@@ -102,9 +103,9 @@ func TestGenerateEntryCommand_Execute_Root(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	containerManager := providers.NewDocker(false, "sudo", false)
-	listCmd := commands.NewListCommand(containerManager)
+	listCmd := commands.NewListCommand(&config.Values{}, containerManager)
 
-	generateEntryCmd := commands.NewGenerateEntryCommand(listCmd)
+	generateEntryCmd := commands.NewGenerateEntryCommand(&config.Values{}, listCmd)
 
 	opts := &commands.GenerateEntryOptions{
 		ContainerName:       "test-container",
@@ -167,10 +168,10 @@ func TestGenerateAllEntriesCommand_Execute(t *testing.T) {
 
 	// create the list command
 	containerManager := providers.NewDocker(false, "sudo", false)
-	listCmd := commands.NewListCommand(containerManager)
+	listCmd := commands.NewListCommand(&config.Values{}, containerManager)
 
 	// create the generate all entries command
-	genAllEntriesCmd := commands.NewGenerateEntryCommand(listCmd)
+	genAllEntriesCmd := commands.NewGenerateEntryCommand(&config.Values{}, listCmd)
 
 	//
 	// Generate the entries
