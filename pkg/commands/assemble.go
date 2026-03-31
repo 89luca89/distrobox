@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/manifest"
 	"github.com/89luca89/distrobox/pkg/ui"
@@ -27,6 +28,7 @@ type AssembleOptions struct {
 }
 
 type AssembleCommand struct {
+	cfg              *config.Values
 	containermanager containermanager.ContainerManager
 	createCmd        *CreateCommand
 	rmCmd            *RmCommand
@@ -35,16 +37,18 @@ type AssembleCommand struct {
 }
 
 func NewAssembleCommand(
+	cfg *config.Values,
 	cm containermanager.ContainerManager,
 	prompter *ui.Prompter,
 	progress *ui.Progress,
 	printer *ui.Printer,
 ) *AssembleCommand {
 	return &AssembleCommand{
+		cfg:              cfg,
 		containermanager: cm,
-		createCmd:        NewCreateCommand(cm, ui.NewDevNullProgress(), prompter),
-		rmCmd:            NewRmCommand(cm, prompter),
-		enterCmd:         NewEnterCommand(cm, progress, printer),
+		createCmd:        NewCreateCommand(cfg, cm, ui.NewDevNullProgress(), prompter),
+		rmCmd:            NewRmCommand(cfg, cm, prompter),
+		enterCmd:         NewEnterCommand(cfg, cm, progress, printer),
 		progress:         progress,
 	}
 }

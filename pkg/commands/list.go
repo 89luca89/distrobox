@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 )
 
@@ -12,11 +13,13 @@ type ListResult struct {
 }
 
 type ListCommand struct {
+	cfg              *config.Values
 	containerManager containermanager.ContainerManager
 }
 
-func NewListCommand(cm containermanager.ContainerManager) *ListCommand {
+func NewListCommand(cfg *config.Values, cm containermanager.ContainerManager) *ListCommand {
 	return &ListCommand{
+		cfg:              cfg,
 		containerManager: cm,
 	}
 }

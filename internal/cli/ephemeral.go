@@ -11,12 +11,13 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
-func newEphemeralCommand() *cli.Command {
-	createCmd := newCreateCommand()
+func newEphemeralCommand(cfg *config.Values) *cli.Command {
+	createCmd := newCreateCommand(cfg)
 
 	ignoredFlags := []string{
 		"compatibility",
@@ -40,12 +41,14 @@ Examples:
     distrobox ephemeral --image alpine:latest -- cat /etc/os-release
     distrobox ephemeral --root --image fedora:39
     distrobox ephemeral -- bash -c "echo hello"`,
-		Flags:  flags,
-		Action: ephemeralAction,
+		Flags: flags,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return ephemeralAction(ctx, cmd, cfg)
+		},
 	}
 }
 
-func ephemeralAction(ctx context.Context, cmd *cli.Command) error {
+func ephemeralAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 	containerManager, ok := ctx.Value(containerManagerKey).(containermanager.ContainerManager)
 	if !ok {
 		return errors.New("container manager not found in context")
@@ -81,7 +84,7 @@ func ephemeralAction(ctx context.Context, cmd *cli.Command) error {
 	printer := ui.NewPrinter(os.Stderr, true)
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	ephemeralCmd := commands.NewEphemeralCommand(containerManager, progress, printer, prompter)
+	ephemeralCmd := commands.NewEphemeralCommand(cfg, containerManager, progress, printer, prompter)
 
 	err := ephemeralCmd.Execute(ctx, opts)
 	if err != nil {

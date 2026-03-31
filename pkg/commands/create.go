@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
@@ -34,6 +35,7 @@ func (e *ContainerAlreadyExistsError) Error() string {
 }
 
 type CreateCommand struct {
+	cfg              *config.Values
 	containerManager containermanager.ContainerManager
 	generateEntryCmd *GenerateEntryCommand
 	progress         *ui.Progress
@@ -84,10 +86,11 @@ type CreateOptions struct {
 	NonInteractive      bool
 }
 
-func NewCreateCommand(cm containermanager.ContainerManager, progress *ui.Progress, prompter *ui.Prompter) *CreateCommand {
+func NewCreateCommand(cfg *config.Values, cm containermanager.ContainerManager, progress *ui.Progress, prompter *ui.Prompter) *CreateCommand {
 	return &CreateCommand{
+		cfg:              cfg,
 		containerManager: cm,
-		generateEntryCmd: NewGenerateEntryCommand(NewListCommand(cm)),
+		generateEntryCmd: NewGenerateEntryCommand(cfg, NewListCommand(cfg, cm)),
 		progress:         progress,
 		prompter:         prompter,
 	}
