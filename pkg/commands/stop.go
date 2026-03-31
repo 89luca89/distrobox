@@ -53,7 +53,7 @@ func (c *StopCommand) Execute(ctx context.Context, opts *StopOptions) error {
 	case len(opts.ContainerNames) > 0:
 		containerNames = opts.ContainerNames
 	default:
-		containerNames = []string{DefaultCreateContainerName}
+		containerNames = []string{c.cfg.DefaultContainerName}
 	}
 
 	proceed := opts.NonInteractive || c.prompter.Prompt(
