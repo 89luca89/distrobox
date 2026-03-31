@@ -9,11 +9,12 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
-func newListCommand() *cli.Command {
+func newListCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
 		Name:    "list",
 		Aliases: []string{"ls"},
@@ -24,17 +25,19 @@ func newListCommand() *cli.Command {
 				Usage: "Disable color output",
 			},
 		},
-		Action: listAction,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return listAction(ctx, cmd, cfg)
+		},
 	}
 }
 
-func listAction(ctx context.Context, cmd *cli.Command) error {
+func listAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 	containerManager, ok := ctx.Value(containerManagerKey).(containermanager.ContainerManager)
 	if !ok {
 		return errors.New("container manager not found in context")
 	}
 
-	listCmd := commands.NewListCommand(containerManager)
+	listCmd := commands.NewListCommand(cfg, containerManager)
 	result, err := listCmd.Execute(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to execute list command: %w", err)

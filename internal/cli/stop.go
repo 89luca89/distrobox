@@ -10,11 +10,12 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
-func newStopCommand() *cli.Command {
+func newStopCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
 		Name:  "stop",
 		Usage: "stop running distrobox containers",
@@ -37,11 +38,13 @@ Examples:
 				Usage:   "non-interactive, stop without asking",
 			},
 		},
-		Action: stopAction,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return stopAction(ctx, cmd, cfg)
+		},
 	}
 }
 
-func stopAction(ctx context.Context, cmd *cli.Command) error {
+func stopAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 	containerManager, ok := ctx.Value(containerManagerKey).(containermanager.ContainerManager)
 	if !ok {
 		return errors.New("container manager not found in context")
@@ -61,7 +64,7 @@ func stopAction(ctx context.Context, cmd *cli.Command) error {
 	errPrinter := ui.NewPrinter(os.Stderr, true)
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	stopCmd := commands.NewStopCommand(containerManager, prompter)
+	stopCmd := commands.NewStopCommand(cfg, containerManager, prompter)
 
 	err := stopCmd.Execute(ctx, options)
 

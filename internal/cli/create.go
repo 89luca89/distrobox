@@ -10,12 +10,13 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 //nolint:funlen // function length is acceptable for CLI command definition
-func newCreateCommand() *cli.Command {
+func newCreateCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
 
 		Name:  "create",
@@ -168,11 +169,13 @@ may require additional packages depending on the container image: https://github
 				Usage:   "show compatibility information and exit",
 			},
 		},
-		Action: createAction,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return createAction(ctx, cmd, cfg)
+		},
 	}
 }
 
-func createAction(ctx context.Context, cmd *cli.Command) error {
+func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 	if cmd.Bool("compatibility") {
 		err := showCompatibility()
 		if err != nil {
@@ -216,7 +219,7 @@ func createAction(ctx context.Context, cmd *cli.Command) error {
 	progress := ui.NewProgress(os.Stderr)
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	createCmd := commands.NewCreateCommand(containerManager, progress, prompter)
+	createCmd := commands.NewCreateCommand(cfg, containerManager, progress, prompter)
 	err := createCmd.Execute(ctx, opts)
 
 	var containerAlreadyExistsErr *commands.ContainerAlreadyExistsError

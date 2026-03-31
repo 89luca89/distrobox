@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 type StopCommand struct {
+	cfg              *config.Values
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
 	prompter         *ui.Prompter
@@ -24,10 +26,11 @@ type StopOptions struct {
 var ErrEmptyContainerList = errors.New("cannot find containers to stop")
 var ErrStopAbortedByUserError = errors.New("stop operation aborted by user")
 
-func NewStopCommand(containerManager containermanager.ContainerManager, prompter *ui.Prompter) *StopCommand {
+func NewStopCommand(cfg *config.Values, containerManager containermanager.ContainerManager, prompter *ui.Prompter) *StopCommand {
 	return &StopCommand{
+		cfg:              cfg,
 		containerManager: containerManager,
-		listCmd:          NewListCommand(containerManager),
+		listCmd:          NewListCommand(cfg, containerManager),
 		prompter:         prompter,
 	}
 }
