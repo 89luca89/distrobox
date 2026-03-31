@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
@@ -20,6 +21,7 @@ type UpgradeOptions struct {
 }
 
 type UpgradeCommand struct {
+	cfg              *config.Values
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
 	enterCmd         *EnterCommand
@@ -29,15 +31,17 @@ type UpgradeCommand struct {
 var ErrUpgradeAbortedByUser = errors.New("upgrade operation aborted by user")
 
 func NewUpgradeCommand(
+	cfg *config.Values,
 	cm containermanager.ContainerManager,
 	progress *ui.Progress,
 	printer *ui.Printer,
 	prompter *ui.Prompter,
 ) *UpgradeCommand {
 	return &UpgradeCommand{
+		cfg:              cfg,
 		containerManager: cm,
-		listCmd:          NewListCommand(cm),
-		enterCmd:         NewEnterCommand(cm, progress, printer),
+		listCmd:          NewListCommand(cfg, cm),
+		enterCmd:         NewEnterCommand(cfg, cm, progress, printer),
 		prompter:         prompter,
 	}
 }

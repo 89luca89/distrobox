@@ -10,11 +10,12 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
-func newEnterCommand() *cli.Command {
+func newEnterCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
 		Name:  "enter",
 		Usage: "Enter a distrobox",
@@ -57,11 +58,13 @@ func newEnterCommand() *cli.Command {
 		},
 		UseShortOptionHandling: true,
 		SkipFlagParsing:        false,
-		Action:                 enterAction,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return enterAction(ctx, cmd, cfg)
+		},
 	}
 }
 
-func enterAction(ctx context.Context, cmd *cli.Command) error {
+func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 	containerManager, ok := ctx.Value(containerManagerKey).(containermanager.ContainerManager)
 	if !ok {
 		return errors.New("container manager not found in context")
@@ -95,7 +98,7 @@ func enterAction(ctx context.Context, cmd *cli.Command) error {
 	progress := ui.NewProgress(os.Stderr)
 	printer := ui.NewPrinter(os.Stderr, true)
 
-	enterCmd := commands.NewEnterCommand(containerManager, progress, printer)
+	enterCmd := commands.NewEnterCommand(cfg, containerManager, progress, printer)
 	_, err := enterCmd.Execute(ctx, options)
 	if err != nil {
 		return fmt.Errorf("failed to execute enter command: %w", err)

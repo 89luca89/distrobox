@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/internal/testutil"
 	"github.com/89luca89/distrobox/pkg/manifest"
@@ -19,7 +20,7 @@ func newTestAssembleCommand(mock *testutil.MockContainerManager) *commands.Assem
 	progress := ui.NewDevNullProgress()
 	prompter := ui.NewPrompter(*bufio.NewReader(strings.NewReader("")), io.Discard)
 	printer := ui.NewPrinter(io.Discard, false)
-	return commands.NewAssembleCommand(mock, prompter, progress, printer)
+	return commands.NewAssembleCommand(&config.Values{}, mock, prompter, progress, printer)
 }
 
 func getEnterOptions(spy testutil.ContainerManagerSpy, index int) containermanager.EnterOptions {

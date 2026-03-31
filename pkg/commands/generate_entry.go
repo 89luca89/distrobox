@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/89luca89/distrobox/internal/config"
+	pkgconfig "github.com/89luca89/distrobox/pkg/config"
 )
 
 //go:embed assets/desktop_entry.toml.tmpl
@@ -32,11 +33,13 @@ type GenerateEntryOptions struct {
 }
 
 type GenerateEntryCommand struct {
+	cfg         *pkgconfig.Values
 	listCommand *ListCommand
 }
 
-func NewGenerateEntryCommand(listCommand *ListCommand) *GenerateEntryCommand {
+func NewGenerateEntryCommand(cfg *pkgconfig.Values, listCommand *ListCommand) *GenerateEntryCommand {
 	return &GenerateEntryCommand{
+		cfg:         cfg,
 		listCommand: listCommand,
 	}
 }

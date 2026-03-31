@@ -10,11 +10,12 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
-func newUpgradeCommand() *cli.Command {
+func newUpgradeCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
 		Name:  "upgrade",
 		Usage: "upgrade packages inside distrobox containers",
@@ -42,11 +43,13 @@ Examples:
 				Usage:   "non-interactive, upgrade without asking",
 			},
 		},
-		Action: upgradeAction,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			return upgradeAction(ctx, cmd, cfg)
+		},
 	}
 }
 
-func upgradeAction(ctx context.Context, cmd *cli.Command) error {
+func upgradeAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 	containerManager, ok := ctx.Value(containerManagerKey).(containermanager.ContainerManager)
 	if !ok {
 		return errors.New("container manager not found in context")
@@ -64,7 +67,7 @@ func upgradeAction(ctx context.Context, cmd *cli.Command) error {
 	progress := ui.NewProgress(os.Stderr)
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	upgradeCmd := commands.NewUpgradeCommand(containerManager, progress, printer, prompter)
+	upgradeCmd := commands.NewUpgradeCommand(cfg, containerManager, progress, printer, prompter)
 
 	err := upgradeCmd.Execute(ctx, options)
 
