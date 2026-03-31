@@ -42,14 +42,14 @@ Examples:
 				Aliases: []string{"i"},
 				Usage: fmt.Sprintf(
 					"image to use for the container (default: %s)",
-					commands.DefaultCreateContainerImage,
+					cfg.DefaultContainerImage,
 				),
-				Value: commands.DefaultCreateContainerImage,
+				Value: cfg.DefaultContainerImage,
 			},
 			&cli.StringFlag{
 				Name:    "name",
 				Aliases: []string{"n"},
-				Usage:   fmt.Sprintf("name for the distrobox (default: %s)", commands.DefaultCreateContainerName),
+				Usage:   fmt.Sprintf("name for the distrobox (default: %s)", cfg.DefaultContainerName),
 			},
 			&cli.StringFlag{
 				Name:  "hostname",
