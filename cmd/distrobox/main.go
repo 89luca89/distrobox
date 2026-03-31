@@ -6,15 +6,16 @@ import (
 	"os"
 
 	"github.com/89luca89/distrobox/internal/cli"
-	"github.com/89luca89/distrobox/internal/config"
+	"github.com/89luca89/distrobox/pkg/config"
 )
 
 func main() {
-	if err := config.LoadConfig(); err != nil {
+	cfg, err := config.LoadValues()
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	cmd := cli.NewRootCommand()
+	cmd := cli.NewRootCommand(cfg)
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
 	}
