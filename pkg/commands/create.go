@@ -16,11 +16,7 @@ import (
 )
 
 const (
-	// DefaultCreateContainerImage Fedora toolbox is a sensitive default
-	// FIXME: the default image should be determined based on the configuration
-	DefaultCreateContainerImage = "registry.fedoraproject.org/fedora-toolbox:latest"
-	DefaultCreateContainerName  = "my-distrobox"
-	maxHostnameLength           = 64
+	maxHostnameLength = 64
 )
 
 var ErrHostnameTooLong = fmt.Errorf("hostname too long, must be less than %d characters", maxHostnameLength)
@@ -183,7 +179,7 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 func (c *CreateCommand) makeContainerImage(opts *CreateOptions) string {
 	containerImage := opts.ContainerImage
 	if opts.ContainerClone == "" && containerImage == "" {
-		containerImage = DefaultCreateContainerImage
+		containerImage = c.cfg.DefaultContainerImage
 	}
 	if opts.DryRun && opts.ContainerClone != "" {
 		containerImage = opts.ContainerClone
@@ -211,7 +207,7 @@ func (c *CreateCommand) makeContainerImage(opts *CreateOptions) string {
 func (c *CreateCommand) makeContainerName(opts *CreateOptions, containerImage string) string {
 	containerName := opts.ContainerName
 	if opts.ContainerImage == "" {
-		containerName = DefaultCreateContainerName
+		containerName = c.cfg.DefaultContainerName
 	}
 	if containerName == "" {
 		base := path.Base(containerImage)
