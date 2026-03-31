@@ -8,6 +8,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 
+	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/containermanager/providers"
 )
@@ -16,23 +17,22 @@ type contextKey string
 
 const containerManagerKey contextKey = "containerManager"
 
-func NewRootCommand() *cli.Command {
+func NewRootCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
 		Name:    "distrobox",
 		Version: "1.0.0",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "container-manager",
-				Usage:   "",
-				Sources: cli.EnvVars("DBX_CONTAINER_MANAGER", "container_manager"),
-				Hidden:  true,
+				Name:   "container-manager",
+				Usage:  "",
+				Hidden: true,
+				Value:  cfg.ContainerManagerType,
 			},
 			&cli.StringFlag{
-				Name:    "sudo-command",
-				Usage:   "",
-				Sources: cli.EnvVars("DBX_SUDO_COMMAND", "sudo_command"),
-				Hidden:  true,
-				Value:   "sudo",
+				Name:   "sudo-command",
+				Usage:  "",
+				Hidden: true,
+				Value:  cfg.SudoProgram,
 			},
 			&cli.BoolFlag{
 				Name: "root",
@@ -45,7 +45,7 @@ func NewRootCommand() *cli.Command {
 				Name:    "verbose",
 				Aliases: []string{"v"},
 				Usage:   "show more verbosity",
-				Sources: cli.EnvVars("DBX_VERBOSE", "verbose"),
+				Value:   cfg.Verbose,
 			},
 		},
 		Before: beforeAction,
