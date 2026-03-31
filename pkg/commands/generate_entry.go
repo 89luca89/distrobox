@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/89luca89/distrobox/internal/config"
+	"github.com/89luca89/distrobox/internal/userenv"
 	pkgconfig "github.com/89luca89/distrobox/pkg/config"
 )
 
@@ -77,7 +77,8 @@ func (c *GenerateEntryCommand) Execute(
 	// Determine the desktop entry base dir
 	desktopEntryBaseDir := opts.DesktopEntryBaseDir
 	if desktopEntryBaseDir == "" {
-		desktopEntryBaseDir = config.GetDesktopEntryDir()
+		userEnv := userenv.LoadUserEnvironment(ctx)
+		desktopEntryBaseDir = userEnv.DesktopEntryBaseDir
 	}
 
 	if opts.Delete {
