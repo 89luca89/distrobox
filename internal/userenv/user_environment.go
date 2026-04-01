@@ -71,14 +71,14 @@ func LoadUserEnvironment(ctx context.Context) *UserEnvironment {
 	if uid := os.Getuid(); uid >= 0 {
 		env.UserID = strconv.Itoa(uid)
 	} else if uid, err := exec.CommandContext(ctx, "id", "-ru").Output(); err == nil {
-		env.UserID = string(uid)
+		env.UserID = strings.TrimSpace(string(uid))
 	}
 
 	// GROUP ID
 	if gid := os.Getgid(); gid >= 0 {
 		env.GroupID = strconv.Itoa(gid)
 	} else if gid, err := exec.CommandContext(ctx, "id", "-rg").Output(); err == nil {
-		env.GroupID = string(gid)
+		env.GroupID = strings.TrimSpace(string(gid))
 	}
 
 	return env
