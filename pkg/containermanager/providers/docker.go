@@ -283,8 +283,10 @@ func (d *Docker) makeCreateCommand(
 	// Resolve this detecting if /dev/shm is a symlink and mount original
 	// source also in the container.
 	if isSymlink("/dev/shm") && !unshareIPC {
-		realPath, _ := filepath.EvalSymlinks("/dev/shm")
-		options = append(options, "--volume", fmt.Sprintf("%s:%s", realPath, realPath))
+		realPath, err := filepath.EvalSymlinks("/dev/shm")
+		if err == nil {
+			options = append(options, "--volume", fmt.Sprintf("%s:%s", realPath, realPath))
+		}
 	}
 
 	// Ensure support forwarding of RedHat subscription-manager
