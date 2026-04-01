@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/containermanager/providers"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 type contextKey string
@@ -74,17 +76,46 @@ func beforeAction(ctx context.Context, cmd *cli.Command) (context.Context, error
 	containerManagerType := cmd.String("container-manager")
 	verbose := cmd.Bool("verbose")
 
+	errPrinter := ui.NewPrinter(os.Stderr, true)
 	var containerManager containermanager.ContainerManager
 	switch containerManagerType {
 	case "docker":
 		containerManager = providers.NewDocker(root, sudoCommand, verbose)
-	case "podman", "podman-static", "":
+	case "podman":
 		containerManager = providers.NewPodman(root, sudoCommand, verbose)
+	case "podman-launcher":
+		containerManager = providers.NewPodman(root, sudoCommand, verbose)
+	case "autodetect", "":
+		var err error
+		containerManager, err = providers.NewAutoDetect(root, sudoCommand, verbose)
+		if err != nil {
+			if errors.Is(err, providers.ErrNoContainerManager) {
+				printMissingContainerManager(errPrinter)
+			}
+
+			return nil, fmt.Errorf("failed to auto-detect container manager: %w", err)
+		}
 	default:
-		return nil, fmt.Errorf("unsupported container manager: %s", containerManagerType)
+		printInvalidContainerManager(errPrinter, containerManagerType)
+
+		return nil, fmt.Errorf("invalid input %s", containerManagerType)
 	}
 
 	return context.WithValue(ctx, contextKey("containerManager"), containerManager), nil
+}
+
+func printMissingContainerManager(p *ui.Printer) {
+	p.Println("Missing dependency: we need a container manager.")
+	p.Println("Please install one of podman or docker.")
+	p.Println("You can follow the documentation on:")
+	p.Println("\tman distrobox-compatibility")
+	p.Println("or:")
+	p.Println("\thttps://github.com/89luca89/distrobox/blob/main/docs/compatibility.md")
+}
+
+func printInvalidContainerManager(p *ui.Printer, containerManagerType string) {
+	p.Println("Invalid input %s.", containerManagerType)
+	p.Println("The available choices are: 'autodetect', 'podman', 'docker'")
 }
 
 func validateSudo(ctx context.Context) error {
