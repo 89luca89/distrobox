@@ -29,7 +29,7 @@ func NewEphemeralCommand(
 ) *EphemeralCommand {
 	return &EphemeralCommand{
 		containerManager: cm,
-		createCmd:        NewCreateCommand(cm, progress),
+		createCmd:        NewCreateCommand(cm, progress, nil),
 		enterCmd:         NewEnterCommand(cm, progress, printer),
 		rmCmd:            NewRmCommand(cm, nil),
 	}

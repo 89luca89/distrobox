@@ -42,7 +42,7 @@ func NewAssembleCommand(
 ) *AssembleCommand {
 	return &AssembleCommand{
 		containermanager: cm,
-		createCmd:        NewCreateCommand(cm, ui.NewDevNullProgress()),
+		createCmd:        NewCreateCommand(cm, ui.NewDevNullProgress(), nil),
 		rmCmd:            NewRmCommand(cm, prompter),
 		enterCmd:         NewEnterCommand(cm, progress, printer),
 		progress:         progress,

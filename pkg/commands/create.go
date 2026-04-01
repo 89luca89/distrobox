@@ -84,11 +84,12 @@ type CreateOptions struct {
 	NonInteractive      bool
 }
 
-func NewCreateCommand(cm containermanager.ContainerManager, progress *ui.Progress) *CreateCommand {
+func NewCreateCommand(cm containermanager.ContainerManager, progress *ui.Progress, prompter *ui.Prompter) *CreateCommand {
 	return &CreateCommand{
 		containerManager: cm,
 		generateEntryCmd: NewGenerateEntryCommand(NewListCommand(cm)),
 		progress:         progress,
+		prompter:         prompter,
 	}
 }
 
