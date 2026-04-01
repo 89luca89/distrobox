@@ -73,7 +73,7 @@ func (c Container) IsRunning() bool {
 	return strings.Contains(s, "up") || strings.Contains(s, "running")
 }
 
-type ManagerType string
+type ContainerManagerType string
 
 type ContainerManager interface {
 	Name() string
