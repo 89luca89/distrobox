@@ -73,6 +73,7 @@ func (c Container) IsRunning() bool {
 	return strings.Contains(s, "up") || strings.Contains(s, "running")
 }
 
+//nolint:revive // ContainerManagerType is intentionally named for clarity despite the stutter
 type ContainerManagerType string
 
 type ContainerManager interface {
