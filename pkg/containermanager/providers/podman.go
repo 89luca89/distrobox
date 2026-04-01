@@ -615,10 +615,15 @@ func parsePodmanContainerList(output string) ([]containermanager.Container, erro
 			id = id[:containerIDMaxLength]
 		}
 
+		name := id
+		if len(c.Names) > 0 {
+			name = c.Names[0]
+		}
+
 		containers = append(containers, containermanager.Container{
 			ID:     id,
 			Image:  c.Image,
-			Name:   c.Names[0],
+			Name:   name,
 			Status: c.Status,
 			Labels: c.Labels,
 		})
