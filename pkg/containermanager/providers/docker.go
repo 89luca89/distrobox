@@ -675,7 +675,7 @@ func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*c
 	}
 
 	inspect := inspects[0]
-	config.ContanerID = inspect.ID
+	config.ContainerID = inspect.ID
 	config.ContainerStatus = inspect.State.Status
 
 	// Check for unshare_groups label
