@@ -108,8 +108,9 @@ func (c *RmCommand) removeContainer(
 	}
 
 	cmOptions := containermanager.RmOptions{
-		Force:      forceRemove,
-		RemoveHome: removeHome,
+		Force:         forceRemove,
+		RemoveHome:    removeHome,
+		ContainerHome: inspectOutput.ContainerHome,
 	}
 	err = c.containerManager.Remove(ctx, container.Name, cmOptions)
 	if err != nil {
