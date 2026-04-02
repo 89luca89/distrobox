@@ -617,7 +617,7 @@ func parsePodmanContainerList(output string) ([]containermanager.Container, erro
 			id = id[:containerIDMaxLength]
 		}
 
-		name := id
+		name := ""
 		if len(c.Names) > 0 {
 			name = c.Names[0]
 		}

@@ -665,24 +665,28 @@ func TestParsePodmanContainerListEmpty(t *testing.T) {
 
 func TestParsePodmanContainerListEmptyNames(t *testing.T) {
 	tests := []struct {
-		name   string
-		json   string
-		wantID string
+		name     string
+		json     string
+		wantName string
+		wantID   string
 	}{
 		{
-			name:   "empty names array falls back to truncated container ID",
-			json:   `[{"ID":"abc123def456789012345678","Image":"fedora:39","Names":[],"Status":"running","Labels":{}}]`,
-			wantID: "abc123def456",
+			name:     "empty names array falls back to empty string",
+			json:     `[{"ID":"abc123def456789012345678","Image":"fedora:39","Names":[],"Status":"running","Labels":{}}]`,
+			wantName: "",
+			wantID:   "abc123def456",
 		},
 		{
-			name:   "null names falls back to truncated container ID",
-			json:   `[{"ID":"xyz789abc123456789012345","Image":"ubuntu:22.04","Names":null,"Status":"exited","Labels":{}}]`,
-			wantID: "xyz789abc123",
+			name:     "null names falls back to empty string",
+			json:     `[{"ID":"xyz789abc123456789012345","Image":"ubuntu:22.04","Names":null,"Status":"exited","Labels":{}}]`,
+			wantName: "",
+			wantID:   "xyz789abc123",
 		},
 		{
-			name:   "short ID (under 12 chars) is used as-is",
-			json:   `[{"ID":"shortid","Image":"alpine:latest","Names":[],"Status":"running","Labels":{}}]`,
-			wantID: "shortid",
+			name:     "short ID (under 12 chars) is used as-is",
+			json:     `[{"ID":"shortid","Image":"alpine:latest","Names":[],"Status":"running","Labels":{}}]`,
+			wantName: "",
+			wantID:   "shortid",
 		},
 	}
 
@@ -695,8 +699,8 @@ func TestParsePodmanContainerListEmptyNames(t *testing.T) {
 			if len(containers) != 1 {
 				t.Fatalf("Expected 1 container, got %d", len(containers))
 			}
-			if containers[0].Name != tt.wantID {
-				t.Errorf("Expected Name to fall back to container ID %q, got %q", tt.wantID, containers[0].Name)
+			if containers[0].Name != tt.wantName {
+				t.Errorf("Expected Name %q, got %q", tt.wantName, containers[0].Name)
 			}
 			if containers[0].ID != tt.wantID {
 				t.Errorf("Expected ID %q, got %q", tt.wantID, containers[0].ID)
