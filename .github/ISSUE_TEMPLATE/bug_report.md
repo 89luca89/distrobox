@@ -7,6 +7,17 @@ assignees: ''
 
 ---
 
+#################################################################################
+#
+# Please be aware that at the moment, we are only discussing bugs relative to Distrobox v2.
+# If you are reporting a bug on Distrobox v1, we encourage you to verify that the bug isn't 
+# already fixed in v2.
+#
+# For more information, read the Distrobox v2 announcement: 
+#   https://distrobox.it/posts/announcing_distrobox_next/
+#
+#################################################################################
+
 Please, before opening a bug:
 
 - make sure you've read the documentation.
