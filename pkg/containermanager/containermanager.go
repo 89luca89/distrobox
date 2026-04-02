@@ -16,7 +16,7 @@ type Container struct {
 }
 
 type InspectResult struct {
-	ContanerID      string
+	ContainerID     string
 	ContainerStatus string
 	ContainerHome   string
 	ContainerPath   string
@@ -73,7 +73,8 @@ func (c Container) IsRunning() bool {
 	return strings.Contains(s, "up") || strings.Contains(s, "running")
 }
 
-type ContanerManagerType string
+//nolint:revive // ContainerManagerType is intentionally named for clarity despite the stutter
+type ContainerManagerType string
 
 type ContainerManager interface {
 	Name() string
