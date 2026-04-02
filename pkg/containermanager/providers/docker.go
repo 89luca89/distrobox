@@ -21,6 +21,11 @@ import (
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
+const (
+	RunningStatus = "running"
+	Two           = 2
+)
+
 type Docker struct {
 	root        bool
 	sudoCommand string
@@ -48,6 +53,23 @@ type dockerContainer struct {
 	Names  string `json:"Names"`
 	Status string `json:"Status"`
 	Labels string `json:"Labels"`
+}
+
+type runOptions struct {
+	DryRun      bool
+	Interactive bool
+	TailLogs    bool
+}
+
+type inspectOutput struct {
+	ID    string `json:"Id"`
+	State struct {
+		Status string `json:"Status"`
+	} `json:"State"`
+	Config struct {
+		Labels map[string]string `json:"Labels"`
+		Env    []string          `json:"Env"`
+	} `json:"Config"`
 }
 
 type InspectImageOutput struct {
