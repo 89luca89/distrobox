@@ -26,12 +26,13 @@ func NewEphemeralCommand(
 	cm containermanager.ContainerManager,
 	progress *ui.Progress,
 	printer *ui.Printer,
+	prompter *ui.Prompter,
 ) *EphemeralCommand {
 	return &EphemeralCommand{
 		containerManager: cm,
-		createCmd:        NewCreateCommand(cm, progress, nil),
+		createCmd:        NewCreateCommand(cm, progress, prompter),
 		enterCmd:         NewEnterCommand(cm, progress, printer),
-		rmCmd:            NewRmCommand(cm, nil),
+		rmCmd:            NewRmCommand(cm, prompter),
 	}
 }
 
