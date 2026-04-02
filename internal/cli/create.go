@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -213,8 +214,9 @@ func createAction(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	progress := ui.NewProgress(os.Stderr)
+	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	createCmd := commands.NewCreateCommand(containerManager, progress)
+	createCmd := commands.NewCreateCommand(containerManager, progress, prompter)
 	err := createCmd.Execute(ctx, opts)
 
 	var containerAlreadyExistsErr *commands.ContainerAlreadyExistsError

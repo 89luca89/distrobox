@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -78,8 +79,9 @@ func ephemeralAction(ctx context.Context, cmd *cli.Command) error {
 
 	progress := ui.NewProgress(os.Stderr)
 	printer := ui.NewPrinter(os.Stderr, true)
+	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	ephemeralCmd := commands.NewEphemeralCommand(containerManager, progress, printer)
+	ephemeralCmd := commands.NewEphemeralCommand(containerManager, progress, printer, prompter)
 
 	err := ephemeralCmd.Execute(ctx, opts)
 	if err != nil {
