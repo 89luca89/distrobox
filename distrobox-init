@@ -2004,7 +2004,9 @@ if [ "${nvidia}" -eq 1 ]; then
 	# Refresh ldconfig cache, also detect if there are empty files remaining
 	# and clean them.
 	# This could happen when upgrading drivers and changing versions.
-	find /usr/lib* -empty -iname "*.so.*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
+	# Use "*.so*" instead of "*.so.*" to also match unversioned .so stubs
+	# (e.g. libcuda.so, libnvcuvid.so) that block CUDA detection. See #1764.
+	find /usr/lib* -empty -iname "*.so*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
 	find /usr/ /etc/ -empty -iname "*nvidia*" -exec sh -c 'rm -rf "$1" || umount "$1" && rm -rf "$1"' sh {} ';' || :
 
 	# First we find all generic config files we might need
