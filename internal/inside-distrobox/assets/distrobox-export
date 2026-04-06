@@ -288,7 +288,7 @@ if [ "${is_sudo}" -ne 0 ]; then
 fi
 
 # Prefix to add to an existing command to work through the container
-container_command_prefix="${DISTROBOX_PATH:-"distrobox"} enter ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} "
+container_command_prefix="${DISTROBOX_PATH:-"distrobox"} enter${rootful:+ ${rootful}} -n ${container_name}${enter_flags:+ ${enter_flags}} --${sudo_prefix:+ ${sudo_prefix}} "
 
 if [ -n "${rootful}" ]; then
 	container_command_prefix="env SUDO_ASKPASS=\"${sudo_askpass_path}\" DBX_SUDO_PROGRAM=\"sudo --askpass\" ${container_command_prefix}"
@@ -564,8 +564,8 @@ export_application()
 		# Add closing quote
 		# If a TryExec is present, we have to fake it as it will not work
 		# through the container separation
-		sed "s|^Exec=\(.*\)|Exec=${container_command_prefix} \1 |g" "${desktop_file}" |
-			sed "s|\(%.*\)|${extra_flags} \1|g" |
+		sed "s|^Exec=\(.*\)|Exec=${container_command_prefix}\1|g" "${desktop_file}" |
+			sed "s|\(%.*\)|${extra_flags:+${extra_flags} }\1|g" |
 			sed "/^TryExec=.*/d" |
 			sed "/^DBusActivatable=true/d" |
 			sed "s|Name.*|&${exported_app_label}|g" \
