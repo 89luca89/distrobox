@@ -52,7 +52,7 @@ Name=Test-container
 GenericName=Terminal entering Test-container
 Comment=Terminal entering Test-container
 Categories=Distrobox;System;Utility
-Exec=/usr/bin/distrobox enter  test-container
+Exec=/usr/bin/distrobox enter test-container
 Icon=https://raw.githubusercontent.com/89luca89/distrobox/main/icons/terminal-distrobox-icon.svg
 Keywords=distrobox;
 NoDisplay=false
@@ -63,7 +63,8 @@ Actions=Remove;
 
 [Desktop Action Remove]
 Name=Remove Test-container from system
-Exec=/usr/bin/distrobox rm  test-container`
+Exec=/usr/bin/distrobox rm test-container
+`
 
 	content, err := os.ReadFile(expectedEntryPath)
 	if err != nil {
@@ -143,7 +144,8 @@ Actions=Remove;
 
 [Desktop Action Remove]
 Name=Remove Test-container from system
-Exec=/usr/bin/distrobox rm --root test-container`
+Exec=/usr/bin/distrobox rm --root test-container
+`
 
 	content, err := os.ReadFile(expectedEntryPath)
 	if err != nil {
