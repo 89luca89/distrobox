@@ -579,6 +579,18 @@ container_home="${HOME}"
 container_path="${PATH}"
 unshare_groups=0
 
+# Inspect the container we're working with.
+# This must happen before the command setup below, because unshare_groups,
+# container_home and container_path are needed by both the su block and
+# generate_enter_command.
+container_status="unknown"
+eval "$(${container_manager} inspect --type container --format \
+	'container_status={{.State.Status}};
+	unshare_groups={{ index .Config.Labels "distrobox.unshare_groups" }};
+	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "HOME=")}}container_home={{slice . 5 | printf "%q"}}{{end}}{{end}};
+	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "PATH=")}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
+	"${container_name}")"
+
 ################################################################################
 # In this section we will manipulate the positional parameters
 # in order to generate our long docker/podman/lilipod command to execute.
@@ -609,14 +621,18 @@ fi
 # command using su $container_command_user
 # if we're in a tty, also allocate one
 if [ "${unshare_groups:-0}" -eq 1 ]; then
+	# su(1) expects: su [options] [-] [user [argument...]]
+	# All options must come before the user, or strict su implementations
+	# (e.g. util-linux 2.42) treat them as shell arguments.
+	set -- "${container_command_user}" "$@"
+	set -- "--" "$@"
 	# shellcheck disable=SC2089,SC2016
-	set -- "-c" '"$0" "$@"' -- "$@"
+	set -- "-c" '"$0" "$@"' "$@"
 	set -- "-s" "/bin/sh" "$@"
 	if [ "${headless}" -eq 0 ]; then
 		set -- "--pty" "$@"
 	fi
 	set -- "-m" "$@"
-	set -- "${container_command_user}" "$@"
 	set -- "su" "$@"
 fi
 
@@ -630,15 +646,6 @@ if [ "${dryrun}" -ne 0 ]; then
 	printf "%s %s\n" "${cmd}" "$*"
 	exit 0
 fi
-
-# Now inspect the container we're working with.
-container_status="unknown"
-eval "$(${container_manager} inspect --type container --format \
-	'container_status={{.State.Status}};
-	unshare_groups={{ index .Config.Labels "distrobox.unshare_groups" }};
-	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "HOME=")}}container_home={{slice . 5 | printf "%q"}}{{end}}{{end}};
-	{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "PATH=")}}container_path={{slice . 5 | printf "%q"}}{{end}}{{end}}' \
-	"${container_name}")"
 
 # Check if the container is even there
 if [ "${container_status}" = "unknown" ]; then
