@@ -611,12 +611,12 @@ fi
 if [ "${unshare_groups:-0}" -eq 1 ]; then
 	# shellcheck disable=SC2089,SC2016
 	set -- "-c" '"$0" "$@"' -- "$@"
+	set -- "${container_command_user}" "$@"
 	set -- "-s" "/bin/sh" "$@"
 	if [ "${headless}" -eq 0 ]; then
 		set -- "--pty" "$@"
 	fi
 	set -- "-m" "$@"
-	set -- "${container_command_user}" "$@"
 	set -- "su" "$@"
 fi
 
