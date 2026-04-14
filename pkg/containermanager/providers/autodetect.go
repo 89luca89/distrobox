@@ -17,7 +17,7 @@ func NewAutoDetect(root bool, sudoCommand string, verbose bool) (containermanage
 		return NewPodman(root, sudoCommand, verbose), nil
 	}
 	if _, err := exec.LookPath("podman-launcher"); err == nil {
-		return NewPodman(root, sudoCommand, verbose), nil
+		return NewPodmanLauncher(root, sudoCommand, verbose), nil
 	}
 	if _, err := exec.LookPath("docker"); err == nil {
 		return NewDocker(root, sudoCommand, verbose), nil
