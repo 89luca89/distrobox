@@ -84,7 +84,7 @@ func beforeAction(ctx context.Context, cmd *cli.Command) (context.Context, error
 	case "podman":
 		containerManager = providers.NewPodman(root, sudoCommand, verbose)
 	case "podman-launcher":
-		containerManager = providers.NewPodman(root, sudoCommand, verbose)
+		containerManager = providers.NewPodmanLauncher(root, sudoCommand, verbose)
 	case "autodetect", "":
 		var err error
 		containerManager, err = providers.NewAutoDetect(root, sudoCommand, verbose)
