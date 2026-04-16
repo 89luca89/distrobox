@@ -612,6 +612,11 @@ func TestPodman_Name(t *testing.T) {
 	if podman.Name() != "podman" {
 		t.Errorf("Expected Name() to return 'podman', got '%s'", podman.Name())
 	}
+
+	launcher := NewPodmanLauncher(false, "sudo", false)
+	if launcher.Name() != "podman-launcher" {
+		t.Errorf("Expected Name() to return 'podman-launcher', got '%s'", launcher.Name())
+	}
 }
 
 func TestParsePodmanContainerList(t *testing.T) {

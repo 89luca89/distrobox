@@ -54,7 +54,7 @@ func NewPodmanLauncher(root bool, sudoCommand string, verbose bool) *Podman {
 }
 
 func (p *Podman) Name() string {
-	return "podman"
+	return string(p.command)
 }
 
 // podmanContainer represents the JSON output from `podman ps --format json`.
@@ -155,8 +155,6 @@ func (p *Podman) makeCreateCommand(
 	distroboxExportPath string,
 	distroboxHostexecPath string,
 ) []string {
-	containerManager := p.Name()
-
 	containerUserHome := userEnv.Home
 	containerUserName := userEnv.User
 	containerUserUID := userEnv.UserID
@@ -207,7 +205,7 @@ func (p *Podman) makeCreateCommand(
 	)
 	options = append(options, "--env", fmt.Sprintf("SHELL=%s", shellFilepath))
 	options = append(options, "--env", fmt.Sprintf("HOME=%s", containerUserHome))
-	options = append(options, "--env", fmt.Sprintf("container=%s", containerManager))
+	options = append(options, "--env", "container=podman")
 	options = append(
 		options,
 		"--env",

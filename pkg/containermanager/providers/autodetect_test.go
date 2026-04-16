@@ -36,7 +36,7 @@ func TestNewAutoDetect(t *testing.T) {
 		{
 			name:         "podman-launcher only",
 			binaries:     []string{"podman-launcher"},
-			expectedName: "podman",
+			expectedName: "podman-launcher",
 		},
 		{
 			name:        "nothing available",
