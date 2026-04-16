@@ -1,6 +1,8 @@
 package providers
 
 import (
+	"bytes"
+	"os"
 	"strings"
 	"testing"
 
@@ -610,6 +612,11 @@ func TestPodman_Name(t *testing.T) {
 	if podman.Name() != "podman" {
 		t.Errorf("Expected Name() to return 'podman', got '%s'", podman.Name())
 	}
+
+	launcher := NewPodmanLauncher(false, "sudo", false)
+	if launcher.Name() != "podman-launcher" {
+		t.Errorf("Expected Name() to return 'podman-launcher', got '%s'", launcher.Name())
+	}
 }
 
 func TestParsePodmanContainerList(t *testing.T) {
@@ -704,6 +711,54 @@ func TestParsePodmanContainerListEmptyNames(t *testing.T) {
 			}
 			if containers[0].ID != tt.wantID {
 				t.Errorf("Expected ID %q, got %q", tt.wantID, containers[0].ID)
+			}
+		})
+	}
+}
+
+func TestPodman_runUsesCorrectBinary(t *testing.T) {
+	tests := []struct {
+		name           string
+		constructor    func() *Podman
+		expectedPrefix string
+	}{
+		{
+			name:           "NewPodman uses podman binary",
+			constructor:    func() *Podman { return NewPodman(false, "sudo", false) },
+			expectedPrefix: "podman ",
+		},
+		{
+			name:           "NewPodmanLauncher uses podman-launcher binary",
+			constructor:    func() *Podman { return NewPodmanLauncher(false, "sudo", false) },
+			expectedPrefix: "podman-launcher ",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := tt.constructor()
+
+			// Capture stdout during DryRun
+			origStdout := os.Stdout
+			r, w, err := os.Pipe()
+			if err != nil {
+				t.Fatalf("failed to create pipe: %v", err)
+			}
+			os.Stdout = w //nolint:reassign // redirect stdout to capture dry-run output in test
+
+			_, _ = p.run(t.Context(), []string{"info"}, runOptions{DryRun: true})
+
+			w.Close()
+			os.Stdout = origStdout //nolint:reassign // restore original stdout
+
+			var buf bytes.Buffer
+			if _, err := buf.ReadFrom(r); err != nil {
+				t.Fatalf("failed to read captured output: %v", err)
+			}
+			got := buf.String()
+
+			if !strings.HasPrefix(got, tt.expectedPrefix) {
+				t.Errorf("expected output to start with %q, got %q", tt.expectedPrefix, got)
 			}
 		})
 	}

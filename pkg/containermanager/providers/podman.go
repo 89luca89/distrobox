@@ -20,23 +20,41 @@ import (
 )
 
 type Podman struct {
+	command     podmanCommand
 	root        bool
 	sudoCommand string
 	verbose     bool
 }
 
+// podmanCommand represents the executable name for the Podman provider.
+type podmanCommand string
+
+const (
+	podmanCommandPodman   podmanCommand = "podman"
+	podmanCommandLauncher podmanCommand = "podman-launcher"
+)
+
 var _ containermanager.ContainerManager = &Podman{}
 
-func NewPodman(root bool, sudoCommand string, verbose bool) *Podman {
+func newPodman(command podmanCommand, root bool, sudoCommand string, verbose bool) *Podman {
 	return &Podman{
+		command:     command,
 		sudoCommand: sudoCommand,
 		root:        root,
 		verbose:     verbose,
 	}
 }
 
+func NewPodman(root bool, sudoCommand string, verbose bool) *Podman {
+	return newPodman(podmanCommandPodman, root, sudoCommand, verbose)
+}
+
+func NewPodmanLauncher(root bool, sudoCommand string, verbose bool) *Podman {
+	return newPodman(podmanCommandLauncher, root, sudoCommand, verbose)
+}
+
 func (p *Podman) Name() string {
-	return "podman"
+	return string(p.command)
 }
 
 // podmanContainer represents the JSON output from `podman ps --format json`.
@@ -137,8 +155,6 @@ func (p *Podman) makeCreateCommand(
 	distroboxExportPath string,
 	distroboxHostexecPath string,
 ) []string {
-	containerManager := p.Name()
-
 	containerUserHome := userEnv.Home
 	containerUserName := userEnv.User
 	containerUserUID := userEnv.UserID
@@ -189,7 +205,7 @@ func (p *Podman) makeCreateCommand(
 	)
 	options = append(options, "--env", fmt.Sprintf("SHELL=%s", shellFilepath))
 	options = append(options, "--env", fmt.Sprintf("HOME=%s", containerUserHome))
-	options = append(options, "--env", fmt.Sprintf("container=%s", containerManager))
+	options = append(options, "--env", "container=podman")
 	options = append(
 		options,
 		"--env",
@@ -436,7 +452,7 @@ func (p *Podman) Exists(ctx context.Context, containerName string) bool {
 }
 
 func (p *Podman) run(ctx context.Context, args []string, opts runOptions) (string, error) {
-	command := p.Name()
+	command := string(p.command)
 	if p.root {
 		args = append([]string{command}, args...)
 		command = p.sudoCommand
