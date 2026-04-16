@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/89luca89/distrobox/internal/userenv"
 )
 
@@ -110,9 +112,7 @@ func TestDocker_makeCreateCommand(t *testing.T) {
 
 	got := oneline(strings.Join(cmd, " "))
 
-	if got != expected {
-		t.Errorf("Expected command:\n'%s'\nGot:\n'%s'", expected, got)
-	}
+	assert.Equal(t, expected, got)
 }
 
 func TestBuildContainerPath(t *testing.T) {
@@ -210,9 +210,7 @@ func TestBuildContainerPath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := buildContainerPath(tt.cleanPath, tt.hostPath, tt.containerPath)
-			if got != tt.want {
-				t.Errorf("buildContainerPath() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -222,24 +220,18 @@ func TestBuildContainerPathEdgeCases(t *testing.T) {
 	t.Run("hostPath with colon at start", func(t *testing.T) {
 		got := buildContainerPath(false, ":/usr/bin", "")
 		// Should treat this as hostPath not containing standard paths initially
-		if !contains(got, "/usr/local/sbin") {
-			t.Errorf("Expected standard paths to be added")
-		}
+		assert.True(t, contains(got, "/usr/local/sbin"), "Expected standard paths to be added")
 	})
 
 	t.Run("hostPath with colon at end", func(t *testing.T) {
 		got := buildContainerPath(false, "/usr/bin:", "")
-		if !contains(got, "/usr/local/sbin") {
-			t.Errorf("Expected standard paths to be added")
-		}
+		assert.True(t, contains(got, "/usr/local/sbin"), "Expected standard paths to be added")
 	})
 
 	t.Run("hostPath with multiple colons", func(t *testing.T) {
 		got := buildContainerPath(false, "/usr/bin::/sbin", "")
 		// Should still add missing standard paths
-		if !contains(got, "/usr/local/sbin") {
-			t.Errorf("Expected standard paths to be added")
-		}
+		assert.True(t, contains(got, "/usr/local/sbin"), "Expected standard paths to be added")
 	})
 }
 
@@ -379,9 +371,7 @@ func TestBuildCommandArgs(t *testing.T) {
 			got := buildCommandArgs(tt.customCommand, tt.user, tt.noTTY, tt.unshareGroups)
 			gotStr := strings.Join(got, "|")
 
-			if gotStr != tt.want {
-				t.Errorf("buildCommandArgs() = %q, want %q", gotStr, tt.want)
-			}
+			assert.Equal(t, tt.want, gotStr)
 		})
 	}
 }
@@ -460,15 +450,11 @@ func TestBuildCommandArgsMatrix(t *testing.T) {
 			resultStr := strings.Join(result, "|")
 
 			for _, want := range tt.wantContains {
-				if !strings.Contains(resultStr, want) {
-					t.Errorf("Expected result to contain %q, got: %q", want, resultStr)
-				}
+				assert.Contains(t, resultStr, want)
 			}
 
 			for _, notWant := range tt.wantNotContains {
-				if strings.Contains(resultStr, notWant) {
-					t.Errorf("Expected result NOT to contain %q, got: %q", notWant, resultStr)
-				}
+				assert.NotContains(t, resultStr, notWant)
 			}
 		})
 	}

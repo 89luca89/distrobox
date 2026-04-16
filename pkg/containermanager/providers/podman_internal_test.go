@@ -6,6 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/89luca89/distrobox/internal/userenv"
 )
 
@@ -63,9 +66,7 @@ func TestPodman_makeCreateCommand(t *testing.T) {
 	}
 
 	for _, flag := range requiredFlags {
-		if !strings.Contains(cmdStr, flag) {
-			t.Errorf("Expected command to contain '%s', but it was missing.\nCommand: %s", flag, cmdStr)
-		}
+		assert.Contains(t, cmdStr, flag)
 	}
 
 	// Check Docker-specific flags are NOT present
@@ -78,13 +79,7 @@ func TestPodman_makeCreateCommand(t *testing.T) {
 	}
 
 	for _, flag := range dockerOnlyFlags {
-		if strings.Contains(cmdStr, flag) {
-			t.Errorf(
-				"Expected command NOT to contain Docker-specific flag '%s', but it was present.\nCommand: %s",
-				flag,
-				cmdStr,
-			)
-		}
+		assert.NotContains(t, cmdStr, flag)
 	}
 
 	// Check common flags are present
@@ -96,9 +91,7 @@ func TestPodman_makeCreateCommand(t *testing.T) {
 	}
 
 	for _, flag := range commonFlags {
-		if !strings.Contains(cmdStr, flag) {
-			t.Errorf("Expected command to contain common flag '%s', but it was missing.\nCommand: %s", flag, cmdStr)
-		}
+		assert.Contains(t, cmdStr, flag)
 	}
 }
 
@@ -143,17 +136,11 @@ func TestPodman_makeCreateCommandRootful(t *testing.T) {
 	cmdStr := strings.Join(cmd, " ")
 
 	// Rootful mode should NOT have --userns keep-id
-	if strings.Contains(cmdStr, "--userns keep-id") {
-		t.Errorf("Expected rootful command NOT to contain '--userns keep-id', but it was present.\nCommand: %s", cmdStr)
-	}
+	assert.NotContains(t, cmdStr, "--userns keep-id")
 
 	// Should still have other Podman-specific flags
-	if !strings.Contains(cmdStr, "--annotation run.oci.keep_original_groups=1") {
-		t.Errorf("Expected command to contain '--annotation run.oci.keep_original_groups=1'")
-	}
-	if !strings.Contains(cmdStr, "--ulimit host") {
-		t.Errorf("Expected command to contain '--ulimit host'")
-	}
+	assert.Contains(t, cmdStr, "--annotation run.oci.keep_original_groups=1")
+	assert.Contains(t, cmdStr, "--ulimit host")
 }
 
 func TestPodman_makeCreateCommandNoInit(t *testing.T) {
@@ -197,17 +184,10 @@ func TestPodman_makeCreateCommandNoInit(t *testing.T) {
 	cmdStr := strings.Join(cmd, " ")
 
 	// Without init, should NOT have --systemd=always
-	if strings.Contains(cmdStr, "--systemd=always") {
-		t.Errorf(
-			"Expected non-init command NOT to contain '--systemd=always', but it was present.\nCommand: %s",
-			cmdStr,
-		)
-	}
+	assert.NotContains(t, cmdStr, "--systemd=always")
 
 	// Should still have other Podman-specific flags
-	if !strings.Contains(cmdStr, "--annotation run.oci.keep_original_groups=1") {
-		t.Errorf("Expected command to contain '--annotation run.oci.keep_original_groups=1'")
-	}
+	assert.Contains(t, cmdStr, "--annotation run.oci.keep_original_groups=1")
 }
 
 func TestPodman_makeCreateCommandWithCrun(t *testing.T) {
@@ -254,19 +234,9 @@ func TestPodman_makeCreateCommandWithCrun(t *testing.T) {
 
 	// If crun exists, it should be in the command
 	if commandExists("crun") {
-		if !strings.Contains(cmdStr, "--runtime=crun") {
-			t.Errorf(
-				"Expected command to contain '--runtime=crun' when crun is available, but it was missing.\nCommand: %s",
-				cmdStr,
-			)
-		}
+		assert.Contains(t, cmdStr, "--runtime=crun")
 	} else {
-		if strings.Contains(cmdStr, "--runtime=crun") {
-			t.Errorf(
-				"Expected command NOT to contain '--runtime=crun' when crun is not available, but it was present.\nCommand: %s",
-				cmdStr,
-			)
-		}
+		assert.NotContains(t, cmdStr, "--runtime=crun")
 	}
 }
 
@@ -309,9 +279,7 @@ func TestPodman_makeCreateCommandWithPlatform(t *testing.T) {
 
 	cmdStr := strings.Join(cmd, " ")
 
-	if !strings.Contains(cmdStr, "--platform=linux/arm64") {
-		t.Errorf("Expected command to contain '--platform=linux/arm64', but it was missing.\nCommand: %s", cmdStr)
-	}
+	assert.Contains(t, cmdStr, "--platform=linux/arm64")
 }
 
 func TestPodman_makeCreateCommandWithCustomHome(t *testing.T) {
@@ -354,24 +322,16 @@ func TestPodman_makeCreateCommandWithCustomHome(t *testing.T) {
 	cmdStr := strings.Join(cmd, " ")
 
 	// Check custom home is set
-	if !strings.Contains(cmdStr, "--env HOME=/custom/home") {
-		t.Errorf("Expected command to contain '--env HOME=/custom/home', but it was missing")
-	}
+	assert.Contains(t, cmdStr, "--env HOME=/custom/home")
 
 	// Check DISTROBOX_HOST_HOME is set to original home
-	if !strings.Contains(cmdStr, "--env DISTROBOX_HOST_HOME=/home/user") {
-		t.Errorf("Expected command to contain '--env DISTROBOX_HOST_HOME=/home/user', but it was missing")
-	}
+	assert.Contains(t, cmdStr, "--env DISTROBOX_HOST_HOME=/home/user")
 
 	// Check custom home is mounted
-	if !strings.Contains(cmdStr, "--volume /custom/home:/custom/home:rslave") {
-		t.Errorf("Expected command to contain custom home volume mount, but it was missing")
-	}
+	assert.Contains(t, cmdStr, "--volume /custom/home:/custom/home:rslave")
 
 	// Check entrypoint args use custom home
-	if !strings.Contains(cmdStr, "--home /custom/home") {
-		t.Errorf("Expected entrypoint args to use custom home, but it was missing")
-	}
+	assert.Contains(t, cmdStr, "--home /custom/home")
 }
 
 func TestPodman_makeCreateCommandWithAdditionalFlags(t *testing.T) {
@@ -418,12 +378,8 @@ func TestPodman_makeCreateCommandWithAdditionalFlags(t *testing.T) {
 
 	cmdStr := strings.Join(cmd, " ")
 
-	if !strings.Contains(cmdStr, "--cap-add=SYS_ADMIN") {
-		t.Errorf("Expected command to contain additional flag '--cap-add=SYS_ADMIN', but it was missing")
-	}
-	if !strings.Contains(cmdStr, "--device=/dev/fuse") {
-		t.Errorf("Expected command to contain additional flag '--device=/dev/fuse', but it was missing")
-	}
+	assert.Contains(t, cmdStr, "--cap-add=SYS_ADMIN")
+	assert.Contains(t, cmdStr, "--device=/dev/fuse")
 }
 
 func TestPodman_makeCreateCommandWithAdditionalPackages(t *testing.T) {
@@ -471,12 +427,9 @@ func TestPodman_makeCreateCommandWithAdditionalPackages(t *testing.T) {
 
 	cmdStr := strings.Join(cmd, " ")
 
-	if !strings.Contains(cmdStr, "--additional-packages vim git htop") {
-		t.Errorf("Expected command to contain additional packages, but it was missing")
-	}
+	assert.Contains(t, cmdStr, "--additional-packages vim git htop")
 }
 
-//nolint:gocognit
 func TestPodman_makeCreateCommandUnshareOptions(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -575,33 +528,21 @@ func TestPodman_makeCreateCommandUnshareOptions(t *testing.T) {
 			cmdStr := strings.Join(cmd, " ")
 
 			if tt.wantIPC {
-				if !strings.Contains(cmdStr, "--ipc host") {
-					t.Errorf("Expected '--ipc host' in command")
-				}
+				assert.Contains(t, cmdStr, "--ipc host")
 			} else {
-				if strings.Contains(cmdStr, "--ipc host") {
-					t.Errorf("Did not expect '--ipc host' in command")
-				}
+				assert.NotContains(t, cmdStr, "--ipc host")
 			}
 
 			if tt.wantNetwork {
-				if !strings.Contains(cmdStr, "--network host") {
-					t.Errorf("Expected '--network host' in command")
-				}
+				assert.Contains(t, cmdStr, "--network host")
 			} else {
-				if strings.Contains(cmdStr, "--network host") {
-					t.Errorf("Did not expect '--network host' in command")
-				}
+				assert.NotContains(t, cmdStr, "--network host")
 			}
 
 			if tt.wantPID {
-				if !strings.Contains(cmdStr, "--pid host") {
-					t.Errorf("Expected '--pid host' in command")
-				}
+				assert.Contains(t, cmdStr, "--pid host")
 			} else {
-				if strings.Contains(cmdStr, "--pid host") {
-					t.Errorf("Did not expect '--pid host' in command")
-				}
+				assert.NotContains(t, cmdStr, "--pid host")
 			}
 		})
 	}
@@ -609,14 +550,10 @@ func TestPodman_makeCreateCommandUnshareOptions(t *testing.T) {
 
 func TestPodman_Name(t *testing.T) {
 	podman := NewPodman(false, "sudo", false)
-	if podman.Name() != "podman" {
-		t.Errorf("Expected Name() to return 'podman', got '%s'", podman.Name())
-	}
+	assert.Equal(t, "podman", podman.Name())
 
 	launcher := NewPodmanLauncher(false, "sudo", false)
-	if launcher.Name() != "podman-launcher" {
-		t.Errorf("Expected Name() to return 'podman-launcher', got '%s'", launcher.Name())
-	}
+	assert.Equal(t, "podman-launcher", launcher.Name())
 }
 
 func TestParsePodmanContainerList(t *testing.T) {
@@ -624,50 +561,26 @@ func TestParsePodmanContainerList(t *testing.T) {
 	output := `[{"Command":"sleep infinity","CreatedAt":"2024-01-31 10:00:00 +0000 UTC","ID":"abc123def456789012345678901234567890","Image":"fedora:39","Labels":{"manager":"distrobox","distrobox.unshare_groups":"0"},"Mounts":"","Names":["my-container"],"Networks":"","Ports":"","State":"running","Status":"Up 2 hours"},{"Command":"/bin/bash","CreatedAt":"2024-01-31 09:00:00 +0000 UTC","ID":"xyz789abc123456789012345678901234567890","Image":"ubuntu:22.04","Labels":{"manager":"distrobox"},"Mounts":"","Names":["test-box"],"Networks":"","Ports":"","State":"exited","Status":"Exited (0) 1 hour ago"}]`
 
 	containers, err := parsePodmanContainerList(output)
-	if err != nil {
-		t.Fatalf("parsePodmanContainerList returned error: %v", err)
-	}
-
-	if len(containers) != 2 {
-		t.Fatalf("Expected 2 containers, got %d", len(containers))
-	}
+	require.NoError(t, err)
+	require.Len(t, containers, 2)
 
 	// Check first container
-	if containers[0].ID != "abc123def456" {
-		t.Errorf("Expected container ID 'abc123def456', got '%s'", containers[0].ID)
-	}
-	if containers[0].Name != "my-container" {
-		t.Errorf("Expected container name 'my-container', got '%s'", containers[0].Name)
-	}
-	if containers[0].Image != "fedora:39" {
-		t.Errorf("Expected container image 'fedora:39', got '%s'", containers[0].Image)
-	}
-	if containers[0].Labels["manager"] != "distrobox" {
-		t.Errorf("Expected label manager=distrobox")
-	}
-	if containers[0].Labels["distrobox.unshare_groups"] != "0" {
-		t.Errorf("Expected label distrobox.unshare_groups=0")
-	}
+	assert.Equal(t, "abc123def456", containers[0].ID)
+	assert.Equal(t, "my-container", containers[0].Name)
+	assert.Equal(t, "fedora:39", containers[0].Image)
+	assert.Equal(t, "distrobox", containers[0].Labels["manager"])
+	assert.Equal(t, "0", containers[0].Labels["distrobox.unshare_groups"])
 
 	// Check second container
-	if containers[1].ID != "xyz789abc123" {
-		t.Errorf("Expected container ID 'xyz789abc123', got '%s'", containers[1].ID)
-	}
-	if containers[1].Name != "test-box" {
-		t.Errorf("Expected container name 'test-box', got '%s'", containers[1].Name)
-	}
+	assert.Equal(t, "xyz789abc123", containers[1].ID)
+	assert.Equal(t, "test-box", containers[1].Name)
 }
 
 func TestParsePodmanContainerListEmpty(t *testing.T) {
 	output := ""
 	containers, err := parsePodmanContainerList(output)
-	if err != nil {
-		t.Fatalf("parsePodmanContainerList returned error: %v", err)
-	}
-
-	if len(containers) != 0 {
-		t.Errorf("Expected 0 containers for empty output, got %d", len(containers))
-	}
+	require.NoError(t, err)
+	assert.Empty(t, containers)
 }
 
 func TestParsePodmanContainerListEmptyNames(t *testing.T) {
@@ -700,18 +613,10 @@ func TestParsePodmanContainerListEmptyNames(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			containers, err := parsePodmanContainerList(tt.json)
-			if err != nil {
-				t.Fatalf("parsePodmanContainerList returned error: %v", err)
-			}
-			if len(containers) != 1 {
-				t.Fatalf("Expected 1 container, got %d", len(containers))
-			}
-			if containers[0].Name != tt.wantName {
-				t.Errorf("Expected Name %q, got %q", tt.wantName, containers[0].Name)
-			}
-			if containers[0].ID != tt.wantID {
-				t.Errorf("Expected ID %q, got %q", tt.wantID, containers[0].ID)
-			}
+			require.NoError(t, err)
+			require.Len(t, containers, 1)
+			assert.Equal(t, tt.wantName, containers[0].Name)
+			assert.Equal(t, tt.wantID, containers[0].ID)
 		})
 	}
 }
@@ -741,9 +646,7 @@ func TestPodman_runUsesCorrectBinary(t *testing.T) {
 			// Capture stdout during DryRun
 			origStdout := os.Stdout
 			r, w, err := os.Pipe()
-			if err != nil {
-				t.Fatalf("failed to create pipe: %v", err)
-			}
+			require.NoError(t, err)
 			os.Stdout = w //nolint:reassign // redirect stdout to capture dry-run output in test
 
 			_, _ = p.run(t.Context(), []string{"info"}, runOptions{DryRun: true})
@@ -752,26 +655,20 @@ func TestPodman_runUsesCorrectBinary(t *testing.T) {
 			os.Stdout = origStdout //nolint:reassign // restore original stdout
 
 			var buf bytes.Buffer
-			if _, err := buf.ReadFrom(r); err != nil {
-				t.Fatalf("failed to read captured output: %v", err)
-			}
+			_, err = buf.ReadFrom(r)
+			require.NoError(t, err)
 			got := buf.String()
 
-			if !strings.HasPrefix(got, tt.expectedPrefix) {
-				t.Errorf("expected output to start with %q, got %q", tt.expectedPrefix, got)
-			}
+			assert.True(t, strings.HasPrefix(got, tt.expectedPrefix),
+				"expected output to start with %q, got %q", tt.expectedPrefix, got)
 		})
 	}
 }
 
 func TestCommandExists(t *testing.T) {
 	// Test with a command that should exist on all systems
-	if !commandExists("sh") {
-		t.Error("Expected 'sh' command to exist")
-	}
+	assert.True(t, commandExists("sh"), "Expected 'sh' command to exist")
 
 	// Test with a command that should not exist
-	if commandExists("this-command-definitely-does-not-exist-12345") {
-		t.Error("Did not expect non-existent command to be found")
-	}
+	assert.False(t, commandExists("this-command-definitely-does-not-exist-12345"), "Did not expect non-existent command to be found")
 }

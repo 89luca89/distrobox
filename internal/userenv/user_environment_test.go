@@ -9,6 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/89luca89/distrobox/internal/userenv"
 )
 
@@ -34,31 +37,19 @@ func TestLoadUserEnvironment_EnvironmentVariables(t *testing.T) {
 	env := userenv.LoadUserEnvironment(ctx)
 
 	// Verify env vars took precedence
-	if env.User != "testuser" {
-		t.Errorf("Expected User='testuser', got '%s'", env.User)
-	}
-	if env.Home != "/test/home" {
-		t.Errorf("Expected Home='/test/home', got '%s'", env.Home)
-	}
-	if env.Shell != "/test/shell" {
-		t.Errorf("Expected Shell='/test/shell', got '%s'", env.Shell)
-	}
+	assert.Equal(t, "testuser", env.User)
+	assert.Equal(t, "/test/home", env.Home)
+	assert.Equal(t, "/test/shell", env.Shell)
 
 	// UserID and GroupID should still be populated from system
-	if env.UserID == "" {
-		t.Error("UserID should not be empty")
-	}
-	if env.GroupID == "" {
-		t.Error("GroupID should not be empty")
-	}
+	assert.NotEmpty(t, env.UserID, "UserID should not be empty")
+	assert.NotEmpty(t, env.GroupID, "GroupID should not be empty")
 
 	// Verify they're numeric strings
-	if _, err := strconv.Atoi(env.UserID); err != nil {
-		t.Errorf("UserID should be numeric, got '%s': %v", env.UserID, err)
-	}
-	if _, err := strconv.Atoi(env.GroupID); err != nil {
-		t.Errorf("GroupID should be numeric, got '%s': %v", env.GroupID, err)
-	}
+	_, err := strconv.Atoi(env.UserID)
+	require.NoError(t, err, "UserID should be numeric, got '%s'", env.UserID)
+	_, err = strconv.Atoi(env.GroupID)
+	assert.NoError(t, err, "GroupID should be numeric, got '%s'", env.GroupID)
 }
 
 func TestLoadUserEnvironment_NoEnvironmentVariables(t *testing.T) {
@@ -87,30 +78,18 @@ func TestLoadUserEnvironment_NoEnvironmentVariables(t *testing.T) {
 	env := userenv.LoadUserEnvironment(ctx)
 
 	// Should have found values from system
-	if env.User == "" {
-		t.Error("User should not be empty")
-	}
+	assert.NotEmpty(t, env.User, "User should not be empty")
 
 	if env.User == "nobody" {
 		t.Log("Warning: User defaulted to 'nobody', system lookups might have failed")
 	}
 
-	if env.Home == "" {
-		t.Error("Home should not be empty")
-	}
+	assert.NotEmpty(t, env.Home, "Home should not be empty")
 
 	// Shell should at least have the default
-	if env.Shell == "" {
-		t.Error("Shell should not be empty")
-	}
-
-	if env.UserID == "" {
-		t.Error("UserID should not be empty")
-	}
-
-	if env.GroupID == "" {
-		t.Error("GroupID should not be empty")
-	}
+	assert.NotEmpty(t, env.Shell, "Shell should not be empty")
+	assert.NotEmpty(t, env.UserID, "UserID should not be empty")
+	assert.NotEmpty(t, env.GroupID, "GroupID should not be empty")
 }
 
 func TestLoadUserEnvironment_ContextCancellation(t *testing.T) {
@@ -131,17 +110,11 @@ func TestLoadUserEnvironment_ContextCancellation(t *testing.T) {
 
 	// Should still work but getent might fail due to cancelled context
 	// The function should handle this gracefully
-	if env.User == "" {
-		t.Error("User should not be empty even with cancelled context")
-	}
+	assert.NotEmpty(t, env.User, "User should not be empty even with cancelled context")
 
 	// Should have defaults or fallbacks
-	if env.Home == "" {
-		t.Error("Home should not be empty")
-	}
-	if env.Shell == "" {
-		t.Error("Shell should not be empty")
-	}
+	assert.NotEmpty(t, env.Home, "Home should not be empty")
+	assert.NotEmpty(t, env.Shell, "Shell should not be empty")
 }
 
 func TestLoadUserEnvironment_ContextTimeout(t *testing.T) {
@@ -155,17 +128,11 @@ func TestLoadUserEnvironment_ContextTimeout(t *testing.T) {
 	env := userenv.LoadUserEnvironment(ctx)
 
 	// Function should still return valid data through fallbacks
-	if env == nil {
-		t.Fatal("LoadUserEnvironment should never return nil")
-	}
+	require.NotNil(t, env, "LoadUserEnvironment should never return nil")
 
 	// Basic fields should still be populated
-	if env.UserID == "" {
-		t.Error("UserID should be populated even with timeout")
-	}
-	if env.GroupID == "" {
-		t.Error("GroupID should be populated even with timeout")
-	}
+	assert.NotEmpty(t, env.UserID, "UserID should be populated even with timeout")
+	assert.NotEmpty(t, env.GroupID, "GroupID should be populated even with timeout")
 }
 
 func TestLoadUserEnvironment_PartialEnvironment(t *testing.T) {
@@ -199,14 +166,10 @@ func TestLoadUserEnvironment_PartialEnvironment(t *testing.T) {
 	ctx := context.Background()
 	env := userenv.LoadUserEnvironment(ctx)
 
-	if env.User != "testuser" {
-		t.Errorf("Expected User='testuser', got '%s'", env.User)
-	}
+	assert.Equal(t, "testuser", env.User)
 
 	// HOME should be populated (either from passwd or default)
-	if env.Home == "" {
-		t.Error("Home should not be empty")
-	}
+	assert.NotEmpty(t, env.Home, "Home should not be empty")
 
 	// If getent fails for testuser, should have default home
 	if env.Home == "/home/testuser" {
@@ -214,9 +177,7 @@ func TestLoadUserEnvironment_PartialEnvironment(t *testing.T) {
 	}
 
 	// Shell should have a value (from passwd or default)
-	if env.Shell == "" {
-		t.Error("Shell should not be empty")
-	}
+	assert.NotEmpty(t, env.Shell, "Shell should not be empty")
 
 	// Default shell should be /bin/sh if user doesn't exist
 	if env.Shell == "/bin/sh" {
@@ -229,32 +190,19 @@ func TestLoadUserEnvironment_IDs(t *testing.T) {
 	env := userenv.LoadUserEnvironment(ctx)
 
 	// These should always be populated on a Unix system
-	if env.UserID == "" {
-		t.Error("UserID should not be empty")
-	}
-
-	if env.GroupID == "" {
-		t.Error("GroupID should not be empty")
-	}
+	assert.NotEmpty(t, env.UserID, "UserID should not be empty")
+	assert.NotEmpty(t, env.GroupID, "GroupID should not be empty")
 
 	// Verify they're valid integers
 	uid, err := strconv.Atoi(env.UserID)
-	if err != nil {
-		t.Errorf("UserID should be a valid integer, got '%s': %v", env.UserID, err)
-	}
+	require.NoError(t, err, "UserID should be a valid integer, got '%s'", env.UserID)
 
 	gid, err := strconv.Atoi(env.GroupID)
-	if err != nil {
-		t.Errorf("GroupID should be a valid integer, got '%s': %v", env.GroupID, err)
-	}
+	require.NoError(t, err, "GroupID should be a valid integer, got '%s'", env.GroupID)
 
 	// Verify they match os.Getuid() and os.Getgid()
-	if uid != os.Getuid() {
-		t.Errorf("UserID mismatch: got %d, expected %d", uid, os.Getuid())
-	}
-	if gid != os.Getgid() {
-		t.Errorf("GroupID mismatch: got %d, expected %d", gid, os.Getgid())
-	}
+	assert.Equal(t, os.Getuid(), uid, "UserID mismatch")
+	assert.Equal(t, os.Getgid(), gid, "GroupID mismatch")
 }
 
 func TestLoadUserEnvironment_SystemCommands(t *testing.T) {
@@ -285,9 +233,7 @@ func TestLoadUserEnvironment_SystemCommands(t *testing.T) {
 			}
 
 			result := strings.TrimSpace(string(output))
-			if result == "" {
-				t.Errorf("%s returned empty output", tc.name)
-			}
+			assert.NotEmpty(t, result, "%s returned empty output", tc.name)
 
 			t.Logf("%s output: %s", tc.name, result)
 		})
