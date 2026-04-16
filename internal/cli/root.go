@@ -106,7 +106,7 @@ func beforeAction(ctx context.Context, cmd *cli.Command) (context.Context, error
 
 func printMissingContainerManager(p *ui.Printer) {
 	p.Println("Missing dependency: we need a container manager.")
-	p.Println("Please install one of podman or docker.")
+	p.Println("Please install one of podman, podman-launcher, or docker.")
 	p.Println("You can follow the documentation on:")
 	p.Println("\tman distrobox-compatibility")
 	p.Println("or:")
@@ -115,7 +115,7 @@ func printMissingContainerManager(p *ui.Printer) {
 
 func printInvalidContainerManager(p *ui.Printer, containerManagerType string) {
 	p.Println("Invalid input %s.", containerManagerType)
-	p.Println("The available choices are: 'autodetect', 'podman', 'docker'")
+	p.Println("The available choices are: 'autodetect', 'podman', 'podman-launcher', 'docker'")
 }
 
 func validateSudo(ctx context.Context) error {
