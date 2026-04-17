@@ -8,6 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
@@ -40,21 +43,12 @@ func TestAssembleCommand_SetupBox_StartNowTrue(t *testing.T) {
 			},
 		},
 	})
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if len(mock.Spy.Enter) == 0 {
-		t.Fatal("expected Enter to be called when StartNow is true, but it was not")
-	}
+	require.NoError(t, err)
+	require.NotEmpty(t, mock.Spy.Enter, "expected Enter to be called when StartNow is true")
 
 	opts := getEnterOptions(mock.Spy, 0)
-	if opts.ContainerName != "test-box" {
-		t.Errorf("expected ContainerName %q, got %q", "test-box", opts.ContainerName)
-	}
-	if opts.CustomCommand != "true" {
-		t.Errorf("expected CustomCommand %q, got %q", "true", opts.CustomCommand)
-	}
+	assert.Equal(t, "test-box", opts.ContainerName)
+	assert.Equal(t, "true", opts.CustomCommand)
 }
 
 func TestAssembleCommand_SetupBox_ExportedApps_Valid(t *testing.T) {
@@ -83,21 +77,13 @@ func TestAssembleCommand_SetupBox_ExportedApps_Valid(t *testing.T) {
 					},
 				},
 			})
-			if err != nil {
-				t.Fatalf("expected valid app name %q to succeed, got error: %v", app, err)
-			}
-			if len(mock.Spy.Enter) != len(apps) {
-				t.Fatalf("expected Enter to be called %d times, got %d", len(apps), len(mock.Spy.Enter))
-			}
+			require.NoError(t, err, "expected valid app name %q to succeed", app)
+			require.Len(t, mock.Spy.Enter, len(apps))
 			for i, a := range apps {
 				opts := getEnterOptions(mock.Spy, i)
 				expectedCmd := fmt.Sprintf("distrobox-export --app %s", a)
-				if opts.ContainerName != "test-box" {
-					t.Errorf("call %d: expected ContainerName %q, got %q", i, "test-box", opts.ContainerName)
-				}
-				if opts.CustomCommand != expectedCmd {
-					t.Errorf("call %d: expected CustomCommand %q, got %q", i, expectedCmd, opts.CustomCommand)
-				}
+				assert.Equal(t, "test-box", opts.ContainerName, "call %d", i)
+				assert.Equal(t, expectedCmd, opts.CustomCommand, "call %d", i)
 			}
 		})
 	}
@@ -129,12 +115,8 @@ func TestAssembleCommand_SetupBox_ExportedApps_Invalid(t *testing.T) {
 					},
 				},
 			})
-			if err == nil {
-				t.Fatalf("expected invalid app name %q to be rejected, but got no error", app)
-			}
-			if len(mock.Spy.Enter) != 0 {
-				t.Errorf("expected Enter to not be called for invalid app name %q, but it was called %d times", app, len(mock.Spy.Enter))
-			}
+			require.Error(t, err, "expected invalid app name %q to be rejected", app)
+			assert.Empty(t, mock.Spy.Enter, "expected Enter to not be called for invalid app name %q", app)
 		})
 	}
 }
@@ -165,21 +147,13 @@ func TestAssembleCommand_SetupBox_ExportedBins_Valid(t *testing.T) {
 					},
 				},
 			})
-			if err != nil {
-				t.Fatalf("expected valid bin path %q to succeed, got error: %v", bin, err)
-			}
-			if len(mock.Spy.Enter) != len(bins) {
-				t.Fatalf("expected Enter to be called %d times, got %d", len(bins), len(mock.Spy.Enter))
-			}
+			require.NoError(t, err, "expected valid bin path %q to succeed", bin)
+			require.Len(t, mock.Spy.Enter, len(bins))
 			for i, b := range bins {
 				opts := getEnterOptions(mock.Spy, i)
 				expectedCmd := fmt.Sprintf("distrobox-export --bin %s --export-path /home/user/.local/bin", b)
-				if opts.ContainerName != "test-box" {
-					t.Errorf("call %d: expected ContainerName %q, got %q", i, "test-box", opts.ContainerName)
-				}
-				if opts.CustomCommand != expectedCmd {
-					t.Errorf("call %d: expected CustomCommand %q, got %q", i, expectedCmd, opts.CustomCommand)
-				}
+				assert.Equal(t, "test-box", opts.ContainerName, "call %d", i)
+				assert.Equal(t, expectedCmd, opts.CustomCommand, "call %d", i)
 			}
 		})
 	}
@@ -211,12 +185,8 @@ func TestAssembleCommand_SetupBox_ExportedBins_Invalid(t *testing.T) {
 					},
 				},
 			})
-			if err == nil {
-				t.Fatalf("expected invalid bin path %q to be rejected, but got no error", bin)
-			}
-			if len(mock.Spy.Enter) != 0 {
-				t.Errorf("expected Enter to not be called for invalid bin path %q, but it was called %d times", bin, len(mock.Spy.Enter))
-			}
+			require.Error(t, err, "expected invalid bin path %q to be rejected", bin)
+			assert.Empty(t, mock.Spy.Enter, "expected Enter to not be called for invalid bin path %q", bin)
 		})
 	}
 }
@@ -245,12 +215,8 @@ func TestAssembleCommand_SetupBox_ExportedBins_InvalidExportPath(t *testing.T) {
 					},
 				},
 			})
-			if err == nil {
-				t.Fatalf("expected invalid export path %q to be rejected, but got no error", path)
-			}
-			if len(mock.Spy.Enter) != 0 {
-				t.Errorf("expected Enter to not be called for invalid export path %q, but it was called %d times", path, len(mock.Spy.Enter))
-			}
+			require.Error(t, err, "expected invalid export path %q to be rejected", path)
+			assert.Empty(t, mock.Spy.Enter, "expected Enter to not be called for invalid export path %q", path)
 		})
 	}
 }
