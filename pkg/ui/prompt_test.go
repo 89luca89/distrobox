@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
@@ -16,9 +18,7 @@ func TestPrompt_YesReturnsTrue(t *testing.T) {
 
 	result := p.Prompt("Continue?", false)
 
-	if result != true {
-		t.Errorf("expected true, got %v", result)
-	}
+	assert.True(t, result)
 }
 
 func TestPrompt_YReturnsTrue(t *testing.T) {
@@ -28,9 +28,7 @@ func TestPrompt_YReturnsTrue(t *testing.T) {
 
 	result := p.Prompt("Continue?", false)
 
-	if result != true {
-		t.Errorf("expected true, got %v", result)
-	}
+	assert.True(t, result)
 }
 
 func TestPrompt_NoReturnsFalse(t *testing.T) {
@@ -40,9 +38,7 @@ func TestPrompt_NoReturnsFalse(t *testing.T) {
 
 	result := p.Prompt("Continue?", true)
 
-	if result != false {
-		t.Errorf("expected false, got %v", result)
-	}
+	assert.False(t, result)
 }
 
 func TestPrompt_NReturnsFalse(t *testing.T) {
@@ -52,9 +48,7 @@ func TestPrompt_NReturnsFalse(t *testing.T) {
 
 	result := p.Prompt("Continue?", true)
 
-	if result != false {
-		t.Errorf("expected false, got %v", result)
-	}
+	assert.False(t, result)
 }
 
 func TestPrompt_InvalidInputReturnsDefaultTrue(t *testing.T) {
@@ -64,9 +58,7 @@ func TestPrompt_InvalidInputReturnsDefaultTrue(t *testing.T) {
 
 	result := p.Prompt("Continue?", true)
 
-	if result != true {
-		t.Errorf("expected true (default), got %v", result)
-	}
+	assert.True(t, result)
 }
 
 func TestPrompt_InvalidInputReturnsDefaultFalse(t *testing.T) {
@@ -76,9 +68,7 @@ func TestPrompt_InvalidInputReturnsDefaultFalse(t *testing.T) {
 
 	result := p.Prompt("Continue?", false)
 
-	if result != false {
-		t.Errorf("expected false (default), got %v", result)
-	}
+	assert.False(t, result)
 }
 
 func TestPrompt_EmptyInputReturnsDefault(t *testing.T) {
@@ -88,9 +78,7 @@ func TestPrompt_EmptyInputReturnsDefault(t *testing.T) {
 
 	result := p.Prompt("Continue?", true)
 
-	if result != true {
-		t.Errorf("expected true (default), got %v", result)
-	}
+	assert.True(t, result)
 }
 
 func TestPrompt_WritesPromptToWriter(t *testing.T) {
@@ -100,10 +88,7 @@ func TestPrompt_WritesPromptToWriter(t *testing.T) {
 
 	p.Prompt("Continue?", true)
 
-	expected := "Continue? [Y/n] "
-	if writer.String() != expected {
-		t.Errorf("expected %q, got %q", expected, writer.String())
-	}
+	assert.Equal(t, "Continue? [Y/n] ", writer.String())
 }
 
 func TestPrompt_WritesPromptWithDefaultNo(t *testing.T) {
@@ -113,8 +98,5 @@ func TestPrompt_WritesPromptWithDefaultNo(t *testing.T) {
 
 	p.Prompt("Delete file?", false)
 
-	expected := "Delete file? [y/N] "
-	if writer.String() != expected {
-		t.Errorf("expected %q, got %q", expected, writer.String())
-	}
+	assert.Equal(t, "Delete file? [y/N] ", writer.String())
 }

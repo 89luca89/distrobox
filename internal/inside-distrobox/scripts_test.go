@@ -5,6 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	insidedistrobox "github.com/89luca89/distrobox/internal/inside-distrobox"
 )
 
@@ -13,14 +16,10 @@ func TestProvisionScripts_CustomDir(t *testing.T) {
 	t.Setenv("DBX_SCRIPTS_DIR", tmpDir)
 
 	scriptsDir, err := insidedistrobox.ProvisionScripts()
-	if err != nil {
-		t.Fatalf("ProvisionScripts failed: %v", err)
-	}
+	require.NoError(t, err, "ProvisionScripts failed")
 	defer os.RemoveAll(scriptsDir)
 
-	if scriptsDir != tmpDir {
-		t.Fatalf("Expected scripts directory to be %s, but got %s", tmpDir, scriptsDir)
-	}
+	require.Equal(t, tmpDir, scriptsDir)
 
 	expectedScripts := []string{
 		"distrobox-host-exec",
@@ -30,10 +29,7 @@ func TestProvisionScripts_CustomDir(t *testing.T) {
 
 	for _, scriptName := range expectedScripts {
 		scriptPath := filepath.Join(scriptsDir, scriptName)
-		_, err := os.Stat(scriptPath)
-		if err != nil {
-			t.Errorf("Expected script %s to exist, but got error: %v", scriptName, err)
-		}
+		assert.FileExists(t, scriptPath, "Expected script %s to exist", scriptName)
 	}
 }
 
@@ -42,15 +38,11 @@ func TestProvisionScripts_HomeDir(t *testing.T) {
 	t.Setenv("HOME", tmpDir)
 
 	scriptsDir, err := insidedistrobox.ProvisionScripts()
-	if err != nil {
-		t.Fatalf("ProvisionScripts failed: %v", err)
-	}
+	require.NoError(t, err, "ProvisionScripts failed")
 	defer os.RemoveAll(scriptsDir)
 
 	expected := filepath.Join(tmpDir, ".local", "share", "distrobox", "v2")
-	if scriptsDir != expected {
-		t.Fatalf("Expected scripts directory to be %s, but got %s", expected, scriptsDir)
-	}
+	require.Equal(t, expected, scriptsDir)
 
 	expectedScripts := []string{
 		"distrobox-host-exec",
@@ -60,9 +52,6 @@ func TestProvisionScripts_HomeDir(t *testing.T) {
 
 	for _, scriptName := range expectedScripts {
 		scriptPath := filepath.Join(scriptsDir, scriptName)
-		_, err := os.Stat(scriptPath)
-		if err != nil {
-			t.Errorf("Expected script %s to exist, but got error: %v", scriptName, err)
-		}
+		assert.FileExists(t, scriptPath, "Expected script %s to exist", scriptName)
 	}
 }

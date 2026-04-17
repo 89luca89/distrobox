@@ -6,6 +6,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager/providers"
@@ -38,14 +41,10 @@ func TestGenerateEntryCommand_Execute(t *testing.T) {
 	}
 
 	err := generateEntryCmd.Execute(ctx, opts)
-	if err != nil {
-		t.Errorf("GenerateEntryCommand.Execute() error = %v", err)
-	}
+	require.NoError(t, err, "GenerateEntryCommand.Execute()")
 
 	expectedEntryPath := fmt.Sprintf("%s/.local/share/applications/test-container.desktop", tempDir)
-	if _, err := os.Stat(expectedEntryPath); os.IsNotExist(err) {
-		t.Errorf("Expected desktop entry file %s does not exist, %s", expectedEntryPath, tempDir)
-	}
+	assert.FileExists(t, expectedEntryPath)
 
 	expectedContent := `[Desktop Entry]
 Name=Test-container
@@ -67,34 +66,19 @@ Exec=/usr/bin/distrobox rm test-container
 `
 
 	content, err := os.ReadFile(expectedEntryPath)
-	if err != nil {
-		t.Errorf("Failed to read desktop entry file: %v", err)
-	}
-
-	if string(content) != expectedContent {
-		t.Errorf(
-			"Desktop entry content does not match expected.\nGot:\n'%s'\nExpected:\n'%s'",
-			string(content),
-			expectedContent,
-		)
-	}
+	require.NoError(t, err, "Failed to read desktop entry file")
+	assert.Equal(t, expectedContent, string(content), "Desktop entry content mismatch")
 
 	// Delete the entry
 	opts.Delete = true
 	err = generateEntryCmd.Execute(ctx, opts)
-	if err != nil {
-		t.Errorf("GenerateEntryCommand.Execute() error on delete = %v", err)
-	}
+	require.NoError(t, err, "GenerateEntryCommand.Execute() on delete")
 
-	if _, err := os.Stat(expectedEntryPath); !os.IsNotExist(err) {
-		t.Errorf("Expected desktop entry file %s to be deleted, %s", expectedEntryPath, tempDir)
-	}
+	assert.NoFileExists(t, expectedEntryPath)
 
 	// Try deleting a non-existing entry
 	err = generateEntryCmd.Execute(ctx, opts)
-	if err != nil {
-		t.Errorf("GenerateEntryCommand.Execute() error on delete non-existing = %v", err)
-	}
+	assert.NoError(t, err, "GenerateEntryCommand.Execute() on delete non-existing")
 }
 
 func TestGenerateEntryCommand_Execute_Root(t *testing.T) {
@@ -119,14 +103,10 @@ func TestGenerateEntryCommand_Execute_Root(t *testing.T) {
 	}
 
 	err := generateEntryCmd.Execute(ctx, opts)
-	if err != nil {
-		t.Errorf("GenerateEntryCommand.Execute() error = %v", err)
-	}
+	require.NoError(t, err, "GenerateEntryCommand.Execute()")
 
 	expectedEntryPath := fmt.Sprintf("%s/.local/share/applications/test-container.desktop", tempDir)
-	if _, err := os.Stat(expectedEntryPath); os.IsNotExist(err) {
-		t.Errorf("Expected desktop entry file %s does not exist, %s", expectedEntryPath, tempDir)
-	}
+	assert.FileExists(t, expectedEntryPath)
 
 	expectedContent := `[Desktop Entry]
 Name=Test-container
@@ -148,17 +128,8 @@ Exec=/usr/bin/distrobox rm --root test-container
 `
 
 	content, err := os.ReadFile(expectedEntryPath)
-	if err != nil {
-		t.Errorf("Failed to read desktop entry file: %v", err)
-	}
-
-	if string(content) != expectedContent {
-		t.Errorf(
-			"Desktop entry content does not match expected.\nGot:\n'%s'\nExpected:\n'%s'",
-			string(content),
-			expectedContent,
-		)
-	}
+	require.NoError(t, err, "Failed to read desktop entry file")
+	assert.Equal(t, expectedContent, string(content), "Desktop entry content mismatch")
 }
 
 func TestGenerateAllEntriesCommand_Execute(t *testing.T) {
@@ -187,23 +158,16 @@ func TestGenerateAllEntriesCommand_Execute(t *testing.T) {
 		DistroboxPath:       "/usr/bin/distrobox",
 	}
 	err := genAllEntriesCmd.Execute(ctx, opts)
-
-	if err != nil {
-		t.Errorf("GenerateAllEntriesCommand.Execute() error = %v", err)
-	}
+	require.NoError(t, err, "GenerateAllEntriesCommand.Execute()")
 
 	// retrieve the list of containers to verify entries were created
 	listResult, err := listCmd.Execute(ctx)
-	if err != nil {
-		t.Errorf("ListCommand.Execute() error = %v", err)
-	}
+	require.NoError(t, err, "ListCommand.Execute()")
 
 	// verify that each container has a corresponding desktop entry
 	for _, container := range listResult.Containers {
 		expectedEntryPath := fmt.Sprintf("%s/.local/share/applications/%s.desktop", tempDir, container.Name)
-		if _, err := os.Stat(expectedEntryPath); os.IsNotExist(err) {
-			t.Errorf("Expected desktop entry file %s does not exist", expectedEntryPath)
-		}
+		assert.FileExists(t, expectedEntryPath)
 	}
 
 	//
@@ -212,16 +176,11 @@ func TestGenerateAllEntriesCommand_Execute(t *testing.T) {
 
 	opts.Delete = true
 	err = genAllEntriesCmd.Execute(ctx, opts)
-
-	if err != nil {
-		t.Errorf("GenerateAllEntriesCommand.Execute() error = %v", err)
-	}
+	require.NoError(t, err, "GenerateAllEntriesCommand.Execute() on delete")
 
 	// verify that each container's desktop entry has been deleted
 	for _, container := range listResult.Containers {
 		expectedEntryPath := fmt.Sprintf("%s/.local/share/applications/%s.desktop", tempDir, container.Name)
-		if _, err := os.Stat(expectedEntryPath); !os.IsNotExist(err) {
-			t.Errorf("Expected desktop entry file %s to be deleted", expectedEntryPath)
-		}
+		assert.NoFileExists(t, expectedEntryPath)
 	}
 }
