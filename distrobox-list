@@ -45,6 +45,7 @@ fi
 
 # Defaults
 no_color=0
+query_container=""
 # If the user runs this script as root in a login shell, set rootful=1.
 # There's no need for them to pass the --root flag option in such cases.
 [ "$(id -ru)" -eq 0 ] && rootful=1 || rootful=0
@@ -163,6 +164,16 @@ while :; do
 	esac
 done
 
+if [ "$#" -gt 1 ]; then
+	printf >&2 "ERROR: Too many arguments.\n\n"
+	show_help
+	exit 1
+fi
+
+if [ "$#" -eq 1 ]; then
+	query_container="$1"
+fi
+
 set -o errexit
 set -o nounset
 # set verbosity
@@ -244,6 +255,7 @@ if [ -t 0 ] && [ -t 1 ] && [ "${no_color}" -ne 1 ]; then
 	CLEAR='\033[0m'
 fi
 # Header of the output
+query_container_found=0
 for container in ${container_list}; do
 	# Check if the current container has a custom mount point for distrobox.
 	if [ -z "${container##*distrobox*}" ]; then
@@ -253,6 +265,14 @@ for container in ${container_list}; do
 		container_image="$(printf "%s" "${container}" | cut -d'|' -f2)"
 		container_name="$(printf "%s" "${container}" | cut -d'|' -f3)"
 		container_status="$(printf "%s" "${container}" | cut -d'|' -f4)"
+
+		# If we queried a specific container, match against it
+		if [ -n "${query_container}" ]; then
+			if [ "${container_name}" != "${query_container}" ]; then
+				continue
+			fi
+			query_container_found=1
+		fi
 
 		IFS=' '
 
@@ -274,3 +294,7 @@ for container in ${container_list}; do
 		printf "${CLEAR}\n"
 	fi
 done
+
+if [ -n "${query_container}" ] && [ "${query_container_found}" -eq 0 ]; then
+	exit 1
+fi
