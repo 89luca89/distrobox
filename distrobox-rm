@@ -351,46 +351,53 @@ delete_container()
 		--format '{{.State.Status}}' "${container_name}" || :)"
 	# Does the container exist? check if inspect reported errors
 	if [ -z "${container_status}" ]; then
-		# If not, prompt to create it first
+		# Do not exit immediately because we want to clean up exports and entries even if 
 		printf >&2 "Cannot find container %s.\n" "${container_name}"
-		return
 	fi
 
 	# Retrieve container's HOME, and check if it's different from host's one. In
 	# this case we prompt for deletion of the custom home.
-	container_home=$(${container_manager} inspect --type container --format \
-		'{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "HOME=")}}{{slice . 5}}{{end}}{{end}}' "${container_name}")
-	# Prompt for confirmation
-	if [ "${container_home}" != "${HOME}" ]; then
-		if [ "${non_interactive}" -eq 0 ] &&
-			[ "${rm_home}" -eq 1 ]; then
+	if [ -n "${container_status}" ]; then
+		container_home=$(${container_manager} inspect --type container --format \
+			'{{range .Config.Env}}{{if and (ge (len .) 5) (eq (slice . 0 5) "HOME=")}}{{slice . 5}}{{end}}{{end}}' "${container_name}")
+		# Prompt for confirmation
+		if [ "${container_home}" != "${HOME}" ]; then
+			if [ "${non_interactive}" -eq 0 ] &&
+				[ "${rm_home}" -eq 1 ]; then
 
-			printf "Do you want to remove custom home of container %s (%s)? [y/N]: " "${container_name}" "${container_home}"
-			read -r response_rm_home
-			response_rm_home="${response_rm_home:-"N"}"
+				printf "Do you want to remove custom home of container %s (%s)? [y/N]: " "${container_name}" "${container_home}"
+				read -r response_rm_home
+				response_rm_home="${response_rm_home:-"N"}"
+			fi
+		fi
+
+		# Validate home response
+		# Accept only y,Y,Yes,yes,n,N,No,no.
+		case "${response_rm_home}" in
+			y | Y | Yes | yes | YES)
+				rm_home_local=1
+				;;
+			n | N | No | no | NO)
+				rm_home_local=0
+				;;
+			*) # Default case: If no more options then break out of the loop.
+				printf >&2 "Invalid input.\n"
+				printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
+				exit 1
+				;;
+		esac
+
+		# Remove the container
+		printf "Removing container...\n"
+		# shellcheck disable=SC2086,SC2248
+		${container_manager} rm ${force_flag} --volumes "${container_name}"
+
+		# Remove custom home
+		if [ "${rm_home_local}" -eq 1 ]; then
+			rm -r "${container_home}"
+			printf "Successfully removed %s\n" "${container_home}"
 		fi
 	fi
-
-	# Validate home response
-	# Accept only y,Y,Yes,yes,n,N,No,no.
-	case "${response_rm_home}" in
-		y | Y | Yes | yes | YES)
-			rm_home_local=1
-			;;
-		n | N | No | no | NO)
-			rm_home_local=0
-			;;
-		*) # Default case: If no more options then break out of the loop.
-			printf >&2 "Invalid input.\n"
-			printf >&2 "The available choices are: y,Y,Yes,yes,YES or n,N,No,no,NO.\nExiting.\n"
-			exit 1
-			;;
-	esac
-
-	# Remove the container
-	printf "Removing container...\n"
-	# shellcheck disable=SC2086,SC2248
-	${container_manager} rm ${force_flag} --volumes "${container_name}"
 
 	# Remove exported apps and bins
 	cleanup_exports "${container_name}"
@@ -402,11 +409,6 @@ delete_container()
 	fi
 	"$(dirname "$(realpath "${0}")")/distrobox-generate-entry" "${container_name}" --delete "${verbose_arg}"
 
-	# Remove custom home
-	if [ "${rm_home_local}" -eq 1 ]; then
-		rm -r "${container_home}"
-		printf "Successfully removed %s\n" "${container_home}"
-	fi
 }
 
 # Prompt for confirmation
