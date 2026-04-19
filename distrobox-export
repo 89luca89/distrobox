@@ -564,37 +564,38 @@ export_application()
 		# Add closing quote
 		# If a TryExec is present, we have to fake it as it will not work
 		# through the container separation
+		host_desktop_file="${host_home}/.local/share/applications/${desktop_home_file}"
 		sed "s|^Exec=\(.*\)|Exec=${container_command_prefix} \1 |g" "${desktop_file}" |
 			sed "s|\(%.*\)|${extra_flags} \1|g" |
 			sed "/^TryExec=.*/d" |
 			sed "/^DBusActivatable=true/d" |
 			sed "s|Name.*|&${exported_app_label}|g" \
-				> "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+				> "/run/host${host_desktop_file}"
 		# in the end we add the final quote we've opened in the "container_command_prefix"
 
-		if ! grep -q "StartupWMClass" "/run/host${host_home}/.local/share/applications/${desktop_home_file}"; then
+		if ! grep -q "StartupWMClass" "/run/host${host_desktop_file}"; then
 			printf "StartupWMClass=%s\n" "${exported_app}" >> "\
-/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+/run/host${host_desktop_file}"
 		fi
 
 		# Add a desktop action to remove this exported launcher from host menus.
-		if grep -q "^Actions=" "/run/host${host_home}/.local/share/applications/${desktop_home_file}"; then
+		if grep -q "^Actions=" "/run/host${host_desktop_file}"; then
 			sed -i "s|^Actions=.*|&Remove;|g" \
-				"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+				"/run/host${host_desktop_file}"
 		else
-			printf "Actions=Remove;\n" >> "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+			printf "Actions=Remove;\n" >> "/run/host${host_desktop_file}"
 		fi
-		cat << EOF >> "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+		cat << EOF >> "/run/host${host_desktop_file}"
 [Desktop Action Remove]
 Name=Remove exported app shortcut
-Exec=sh -c 'if distrobox list "${container_name}"; then distrobox-enter -n "${container_name}" -- distrobox-export --app "${exported_app}" --delete; else rm -f "\$1"; fi' sh %k
+Exec=sh -c 'if distrobox list "${container_name}"; then distrobox-enter -n "${container_name}" -- distrobox-export --app "${exported_app}" --delete; else rm -f "${host_desktop_file}"; fi'
 EOF
 
 		# In case of an icon in a non canonical path, we need to replace the path
 		# in the desktop file.
 		if [ -n "${icon_file_absolute_path}" ]; then
 			sed -i "s|Icon=.*|Icon=${icon_file_absolute_path}|g" \
-				"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+				"/run/host${host_desktop_file}"
 			# we're done, go to next
 			continue
 		fi
@@ -602,9 +603,9 @@ EOF
 		# In case of an icon in a canonical path, but specified as an absolute
 		# we need to replace the path in the desktop file.
 		sed -i "s|Icon=/usr/share/|Icon=/run/host${host_home}/.local/share/|g" \
-			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+			"/run/host${host_desktop_file}"
 		sed -i "s|pixmaps|icons|g" \
-			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+			"/run/host${host_desktop_file}"
 	done
 
 	# Update the desktop files database to ensure exported applications will
