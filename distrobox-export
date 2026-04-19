@@ -22,7 +22,7 @@
 # Expected env variables:
 #	HOME
 #	USER
-#	DISTROBOX_ENTER_PATH
+#	DISTROBOX_PATH
 #	DISTROBOX_HOST_HOME
 
 # Ensure we have our env variables correctly set
@@ -288,7 +288,7 @@ if [ "${is_sudo}" -ne 0 ]; then
 fi
 
 # Prefix to add to an existing command to work through the container
-container_command_prefix="${DISTROBOX_ENTER_PATH:-"distrobox-enter"} ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} "
+container_command_prefix="${DISTROBOX_PATH:-"distrobox"}-enter ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} "
 
 if [ -n "${rootful}" ]; then
 	container_command_prefix="env SUDO_ASKPASS=\"${sudo_askpass_path}\" DBX_SUDO_PROGRAM=\"sudo --askpass\" ${container_command_prefix}"
@@ -329,7 +329,7 @@ generate_script()
 # distrobox_binary
 # name: ${container_name}
 if [ -z "\${CONTAINER_ID}" ]; then
-	exec "${DISTROBOX_ENTER_PATH:-"distrobox-enter"}" ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} ${container_command_suffix}
+	exec "${DISTROBOX_PATH:-"distrobox"}-enter" ${rootful} -n ${container_name} ${enter_flags} -- ${sudo_prefix} ${container_command_suffix}
 elif [ -n "\${CONTAINER_ID}" ] && [ "\${CONTAINER_ID}" != "${container_name}" ]; then
 	exec distrobox-host-exec '${dest_path}/$(basename "${exported_bin}")' "\$@"
 else
@@ -461,7 +461,7 @@ export_application()
 			# shellcheck disable=SC2086
 			find ${canon_dirs} -type f -print -o -type l -print | sed 's/./\\&/g' |
 				xargs -I{} grep -l -e "Exec=.*${exported_app}.*" -e "Name=.*${exported_app}.*" "{}" | sed 's/./\\&/g' |
-				xargs -I{} grep -L -e "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox.*enter"}.*" "{}" | sed 's/./\\&/g' |
+				xargs -I{} grep -L -e "Exec=.*${DISTROBOX_PATH:-"distrobox"}.*enter.*" "{}" | sed 's/./\\&/g' |
 				xargs -I{} printf "%s¤" "{}"
 		)
 	fi
@@ -588,7 +588,7 @@ export_application()
 		cat << EOF >> "/run/host${host_desktop_file}"
 [Desktop Action Remove]
 Name=Remove exported app shortcut
-Exec=sh -c 'if distrobox list "${container_name}"; then distrobox-enter -n "${container_name}" -- distrobox-export --app "${exported_app}" --delete; else rm -f "${host_desktop_file}"; fi'
+Exec=sh -c 'if ${DISTROBOX_PATH:-"distrobox"}-list "${container_name}"; then ${DISTROBOX_PATH:-"distrobox"}-enter -n "${container_name}" -- distrobox-export --app "${exported_app}" --delete; else rm -f "${host_desktop_file}"; fi'
 EOF
 
 		# In case of an icon in a non canonical path, we need to replace the path
@@ -639,11 +639,11 @@ list_exported_applications()
 {
 	# In this phase we search for applications exported.
 	# First find command will grep through all files in the canonical directories
-	# and only list files that contain the $DISTROBOX_ENTER_PATH.
+	# and only list files that contain distrobox-enter.
 	desktop_files=$(
 		# shellcheck disable=SC2086
 		find "/run/host${host_home}/.local/share/applications" -type f -print -o -type l -print 2> /dev/null | sed 's/./\\&/g' |
-			xargs -I{} grep -l -e "Exec=.*${DISTROBOX_ENTER_PATH:-"distrobox.*enter"}.*" "{}" | sed 's/./\\&/g' |
+			xargs -I{} grep -l -e "Exec=.*${DISTROBOX_PATH:-"distrobox"}.*enter.*" "{}" | sed 's/./\\&/g' |
 			xargs -I{} printf "%s¤" "{}"
 	)
 
