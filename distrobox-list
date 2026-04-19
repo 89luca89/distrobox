@@ -112,7 +112,7 @@ distrobox version: ${version}
 
 Usage:
 
-	distrobox-list
+	distrobox-list [container]
 
 Options:
 
