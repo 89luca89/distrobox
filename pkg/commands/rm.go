@@ -146,6 +146,10 @@ func (c *RmCommand) removeContainer(
 }
 
 func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string) {
+	if containerName == "" {
+		panic("Refusing to run cleanup for empty container name")
+	}
+
 	bins := findExportedBinaries(userHome, containerName)
 	desktopApps := findExportedDesktopApps(userHome, containerName)
 
