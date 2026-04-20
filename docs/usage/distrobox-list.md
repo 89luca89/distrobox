@@ -11,7 +11,7 @@ from the rest of normal containers.
 
 # SYNOPSIS
 
-**distrobox list**
+**distrobox list** [container-name]
 
 	--help/-h:		show this message
 	--no-color:		disable color formatting
@@ -24,6 +24,7 @@ from the rest of normal containers.
 # EXAMPLES
 
 	distrobox-list
+	distrobox-list my-distrobox
 
 You can also use environment variables to specify container manager
 

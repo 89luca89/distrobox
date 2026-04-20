@@ -16,9 +16,10 @@ import (
 
 func newListCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
-		Name:    "list",
-		Aliases: []string{"ls"},
-		Usage:   "List distroboxes",
+		Name:      "list",
+		Aliases:   []string{"ls"},
+		Usage:     "List distroboxes",
+		ArgsUsage: "[container-name]",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:  "no-color",
@@ -32,13 +33,18 @@ func newListCommand(cfg *config.Values) *cli.Command {
 }
 
 func listAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
+	args := cmd.Args().Slice()
+	if len(args) > 1 {
+		return fmt.Errorf("expected at most 1 container name, got %d", len(args))
+	}
+
 	containerManager, ok := ctx.Value(containerManagerKey).(containermanager.ContainerManager)
 	if !ok {
 		return errors.New("container manager not found in context")
 	}
 
 	listCmd := commands.NewListCommand(cfg, containerManager)
-	result, err := listCmd.Execute(ctx)
+	result, err := listCmd.Execute(ctx, &commands.ListOptions{ContainerName: cmd.Args().First()})
 	if err != nil {
 		return fmt.Errorf("failed to execute list command: %w", err)
 	}

@@ -39,7 +39,7 @@ func (c *StopCommand) Execute(ctx context.Context, opts *StopOptions) error {
 	var containerNames []string
 	switch {
 	case opts.All:
-		containers, err := c.listCmd.Execute(ctx)
+		containers, err := c.listCmd.Execute(ctx, nil)
 		if err != nil {
 			return fmt.Errorf("failed to list containers: %w", err)
 		}

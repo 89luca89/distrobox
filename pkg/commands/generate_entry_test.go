@@ -161,7 +161,7 @@ func TestGenerateAllEntriesCommand_Execute(t *testing.T) {
 	require.NoError(t, err, "GenerateAllEntriesCommand.Execute()")
 
 	// retrieve the list of containers to verify entries were created
-	listResult, err := listCmd.Execute(ctx)
+	listResult, err := listCmd.Execute(ctx, nil)
 	require.NoError(t, err, "ListCommand.Execute()")
 
 	// verify that each container has a corresponding desktop entry
