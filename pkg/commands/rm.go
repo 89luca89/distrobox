@@ -56,7 +56,7 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 		return nil, errors.New("prompter is required for interactive mode")
 	}
 
-	listResult, err := c.listCmd.Execute(ctx)
+	listResult, err := c.listCmd.Execute(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed while listing contaiers: %w", err)
 	}

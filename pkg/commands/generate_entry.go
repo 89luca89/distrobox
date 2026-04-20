@@ -55,7 +55,7 @@ func (c *GenerateEntryCommand) Execute(
 	switch {
 	case opts.All:
 		// Generate entries for all containers
-		listResult, err := c.listCommand.Execute(ctx)
+		listResult, err := c.listCommand.Execute(ctx, nil)
 		if err != nil {
 			return fmt.Errorf("failed to list containers: %w", err)
 		}

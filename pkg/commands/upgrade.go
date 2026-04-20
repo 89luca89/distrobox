@@ -51,7 +51,7 @@ func (c *UpgradeCommand) Execute(ctx context.Context, opts *UpgradeOptions) erro
 
 	switch {
 	case opts.All, opts.Running:
-		containers, err := c.listCmd.Execute(ctx)
+		containers, err := c.listCmd.Execute(ctx, nil)
 		if err != nil {
 			return fmt.Errorf("failed to list containers: %w", err)
 		}

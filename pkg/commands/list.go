@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -12,6 +13,12 @@ import (
 
 type ListResult struct {
 	Containers []containermanager.Container
+}
+
+var ErrListContainerNotFound = errors.New("cannot find distrobox")
+
+type ListOptions struct {
+	ContainerName string
 }
 
 type ListCommand struct {
@@ -26,17 +33,26 @@ func NewListCommand(cfg *config.Values, cm containermanager.ContainerManager) *L
 	}
 }
 
-func (c *ListCommand) Execute(ctx context.Context) (*ListResult, error) {
+func (c *ListCommand) Execute(ctx context.Context, opts *ListOptions) (*ListResult, error) {
 	containers, err := c.containerManager.ListContainers(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed while listing contaiers: %w", err)
 	}
 
+	containerName := ""
+	if opts != nil {
+		containerName = opts.ContainerName
+	}
+
 	var distroboxes []containermanager.Container
 	for _, container := range containers {
-		if container.IsDistrobox() {
+		if container.IsDistrobox() && (containerName == "" || container.Name == containerName) {
 			distroboxes = append(distroboxes, container)
 		}
+	}
+
+	if containerName != "" && len(distroboxes) == 0 {
+		return nil, fmt.Errorf("%w %q", ErrListContainerNotFound, containerName)
 	}
 
 	// Sort by container name to keep `distrobox list` output stable for downstream UIs; see https://github.com/89luca89/distrobox/issues/2071.
