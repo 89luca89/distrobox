@@ -564,23 +564,24 @@ export_application()
 		# Add closing quote
 		# If a TryExec is present, we have to fake it as it will not work
 		# through the container separation
+		host_desktop_file="${host_home}/.local/share/applications/${desktop_home_file}"
 		sed "s|^Exec=\(.*\)|Exec=${container_command_prefix}\1|g" "${desktop_file}" |
 			sed "s|\(%.*\)|${extra_flags:+${extra_flags} }\1|g" |
 			sed "/^TryExec=.*/d" |
 			sed "/^DBusActivatable=true/d" |
 			sed "s|Name.*|&${exported_app_label}|g" \
-				> "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+				> "/run/host${host_desktop_file}"
 		# in the end we add the final quote we've opened in the "container_command_prefix"
 
-		if ! grep -q "StartupWMClass" "/run/host${host_home}/.local/share/applications/${desktop_home_file}"; then
+		if ! grep -q "StartupWMClass" "/run/host${host_desktop_file}"; then
 			printf "StartupWMClass=%s\n" "${exported_app}" >> "\
-/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+/run/host${host_desktop_file}"
 		fi
 		# In case of an icon in a non canonical path, we need to replace the path
 		# in the desktop file.
 		if [ -n "${icon_file_absolute_path}" ]; then
 			sed -i "s|Icon=.*|Icon=${icon_file_absolute_path}|g" \
-				"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+				"/run/host${host_desktop_file}"
 			# we're done, go to next
 			continue
 		fi
@@ -588,9 +589,9 @@ export_application()
 		# In case of an icon in a canonical path, but specified as an absolute
 		# we need to replace the path in the desktop file.
 		sed -i "s|Icon=/usr/share/|Icon=/run/host${host_home}/.local/share/|g" \
-			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+			"/run/host${host_desktop_file}"
 		sed -i "s|pixmaps|icons|g" \
-			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+			"/run/host${host_desktop_file}"
 	done
 
 	# Update the desktop files database to ensure exported applications will
