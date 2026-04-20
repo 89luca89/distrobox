@@ -577,6 +577,19 @@ export_application()
 			printf "StartupWMClass=%s\n" "${exported_app}" >> "\
 /run/host${host_desktop_file}"
 		fi
+# Add a desktop action to remove this exported launcher from host menus.
+		if grep -q "^Actions=" "/run/host${host_desktop_file}"; then
+			sed -i "s|^Actions=.*|&Remove;|g" \
+				"/run/host${host_desktop_file}"
+		else
+			printf "Actions=Remove;\n" >> "/run/host${host_desktop_file}"
+		fi
+		cat << EOF >> "/run/host${host_desktop_file}"
+[Desktop Action Remove]
+Name=Remove exported app shortcut
+Exec=sh -c 'if ${DISTROBOX_PATH:-"distrobox"} list "${container_name}"; then ${DISTROBOX_PATH:-"distrobox"} enter -n "${container_name}" -- distrobox-export --app "${exported_app}" --delete; else rm -f "${host_desktop_file}"; fi'
+EOF
+
 		# In case of an icon in a non canonical path, we need to replace the path
 		# in the desktop file.
 		if [ -n "${icon_file_absolute_path}" ]; then
