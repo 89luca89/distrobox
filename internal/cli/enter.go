@@ -48,7 +48,7 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			&cli.BoolFlag{
 				Name:    "no-tty",
 				Aliases: []string{"T", "H"},
-				Usage:   "show more verbosity",
+				Usage:   "do not instantiate a tty",
 			},
 			&cli.BoolFlag{
 				Name:    "no-workdir",
