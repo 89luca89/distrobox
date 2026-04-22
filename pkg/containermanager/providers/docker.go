@@ -970,10 +970,10 @@ func buildCommandArgs(customCommand string, user string, noTTY bool, unshareGrou
 	// Handle unshare_groups mode - use su to trigger proper login
 	if unshareGroups {
 		unshareArgs := []string{"su"}
-		if noTTY {
+		if !noTTY {
 			unshareArgs = append(unshareArgs, "--pty")
 		}
-		unshareArgs = append(unshareArgs, user, "-s", "/bin/sh", "-c", `"$0" "$@"`, "--")
+		unshareArgs = append(unshareArgs, "-m", "-s", "/bin/sh", "-c", `"$0" "$@"`, "--", user)
 		unshareArgs = append(unshareArgs, args...)
 		return unshareArgs
 	}
