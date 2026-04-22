@@ -78,7 +78,7 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 		return nil, fmt.Errorf("failed while listing contaiers: %w", err)
 	}
 
-	explicitelyRequested := options.ContainerNames
+	explicitlyRequested := options.ContainerNames
 	distroboxesToRemove := getContainersToRemove(listResult.Containers, options.ContainerNames, options.All)
 
 	userEnv := userenv.LoadUserEnvironment(ctx)
@@ -86,7 +86,7 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 
 	var removedDistroboxes []containermanager.Container
 	for _, currentDistrobox := range distroboxesToRemove {
-		explicitelyRequested = removeValue(explicitelyRequested, currentDistrobox.Name)
+		explicitlyRequested = removeValue(explicitlyRequested, currentDistrobox.Name)
 
 		err := c.removeContainer(ctx, currentDistrobox, options.Force, options.NoTTY, userHome)
 		if err != nil {
@@ -96,9 +96,9 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 		removedDistroboxes = append(removedDistroboxes, currentDistrobox)
 	}
 
-	// Clean up exported files of all remaining explicitely requested distroboxes,
+	// Clean up exported files of all remaining explicitly requested distroboxes,
 	// even if the container doesn't exist anymore
-	for _, containerName := range explicitelyRequested {
+	for _, containerName := range explicitlyRequested {
 		c.cleanup(ctx, userHome, containerName)
 	}
 
