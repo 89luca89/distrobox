@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -63,6 +64,13 @@ func removeValue(slice []string, valueToRemove string) []string {
 func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, error) {
 	if !options.NoTTY && c.prompter == nil {
 		return nil, errors.New("prompter is required for interactive mode")
+	}
+
+	var validContainerName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`) // podman regex
+	for _, containerName := range options.ContainerNames {
+		if !validContainerName.MatchString(containerName) {
+			return nil, fmt.Errorf("invalid container name '%s'", containerName)
+		}
 	}
 
 	listResult, err := c.listCmd.Execute(ctx)
@@ -145,10 +153,6 @@ func (c *RmCommand) removeContainer(
 }
 
 func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string) {
-	if containerName == "" {
-		panic("Refusing to run cleanup for empty container name")
-	}
-
 	bins := findExportedBinaries(userHome, containerName)
 	desktopApps := findExportedDesktopApps(userHome, containerName)
 
