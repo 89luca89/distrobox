@@ -76,7 +76,6 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 	userEnv := userenv.LoadUserEnvironment(ctx)
 	userHome := userEnv.Home
 
-	// Remove containers
 	var removedDistroboxes []containermanager.Container
 	for _, currentDistrobox := range distroboxesToRemove {
 		explicitelyRequested = removeValue(explicitelyRequested, currentDistrobox.Name)
