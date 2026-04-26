@@ -65,13 +65,6 @@ Examples:
 				Aliases: []string{"Y"},
 				Usage:   "non-interactive, pull images without asking",
 			},
-			&cli.BoolFlag{
-				Name:    "root",
-				Aliases: []string{"r"},
-				Usage: `launch podman/docker/lilipod with root privileges. This is the only supported way to run with root
-privileges. Do not use "sudo distrobox". If you need to specify a different program (e.g. 'doas') for root privileges,
-use the DBX_SUDO_PROGRAM environment variable or the 'distrobox_sudo_program' config variable.`,
-			},
 			&cli.StringFlag{
 				Name:    "clone",
 				Aliases: []string{"c"},
