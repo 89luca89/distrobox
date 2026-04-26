@@ -624,16 +624,16 @@ if [ "${unshare_groups:-0}" -eq 1 ]; then
 	# (e.g. `uname -n`) is parsed as a `su` option and fails.
 	# The shell snippet '"$0" "$@"' re-executes its arguments verbatim,
 	# so `args...` become the actual command to run as the target user.
-	set      -- "${container_command_user}" "$@"
-	set      -- "--" "$@"
+	set -- "${container_command_user}" "$@"
+	set -- "--" "$@"
 	# shellcheck disable=SC2089,SC2016
-	set      -- "-c" '"$0" "$@"' "$@"
-	set      -- "-s" "/bin/sh" "$@"
-	if      [ "${headless}" -eq 0 ]; then
-		set         -- "--pty" "$@"
+	set -- "-c" '"$0" "$@"' "$@"
+	set -- "-s" "/bin/sh" "$@"
+	if [ "${headless}" -eq 0 ]; then
+		set -- "--pty" "$@"
 	fi
-	set      -- "-m" "$@"
-	set      -- "su" "$@"
+	set -- "-m" "$@"
+	set -- "su" "$@"
 fi
 
 ################################################################################
