@@ -35,11 +35,6 @@ func newGenerateEntryCommand(cfg *config.Values) *cli.Command {
 				Aliases: []string{"a"},
 				Usage:   "perform for all distroboxes",
 			},
-			&cli.BoolFlag{
-				Name:    "root",
-				Aliases: []string{"r"},
-				Usage:   "perform on rootful distroboxes",
-			},
 		},
 		ArgsUsage: "container-name",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
