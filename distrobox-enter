@@ -579,6 +579,14 @@ container_home="${HOME}"
 container_path="${PATH}"
 unshare_groups=0
 
+# Read the unshare_groups label early so the positional-parameter
+# manipulation below picks the correct branch. The full inspect
+# happens later, but this single value is needed before then.
+unshare_groups="$(${container_manager} inspect --type container \
+	--format '{{ index .Config.Labels "distrobox.unshare_groups" }}' \
+	"${container_name}" 2>/dev/null || echo 0)"
+[ -z "${unshare_groups}" ] && unshare_groups=0
+
 ################################################################################
 # In this section we will manipulate the positional parameters
 # in order to generate our long docker/podman/lilipod command to execute.
@@ -610,11 +618,15 @@ fi
 # if we're in a tty, also allocate one
 if [ "${unshare_groups:-0}" -eq 1 ]; then
         # `su` requires options BEFORE the username:
-        #     su [options] user [args...]
+        #     su [options] -- user [args...]
+        # The literal `--` is required because util-linux `su` uses GNU getopt
+        # with argument reordering: without it, any flag in the user's command
+        # (e.g. `uname -n`) is parsed as a `su` option and fails.
         # The shell snippet '"$0" "$@"' re-executes its arguments verbatim,
         # so `args...` become the actual command to run as the target user.
-        # shellcheck disable=SC2089,SC2016
         set -- "${container_command_user}" "$@"
+        set -- "--" "$@"
+        # shellcheck disable=SC2089,SC2016
         set -- "-c" '"$0" "$@"' "$@"
         set -- "-s" "/bin/sh" "$@"
         if [ "${headless}" -eq 0 ]; then
