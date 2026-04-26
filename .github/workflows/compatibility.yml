@@ -129,6 +129,17 @@ jobs:
           container_name="$(basename "${image}" | sed -E 's/[:.]/-/g')"
           # Assert that distrobox exported binary indeed works
           set -x
+          ./distrobox enter --name "${container_name}" -- id
+
+          podman exec "${container_name}" cat /etc/passwd | grep -E '(runner|default|^[^:]*:[^:]*:1001:)'
+          podman exec "${container_name}" getent passwd 1001 || echo "no UID 1001"
+
+          podman exec "${container_name}" systemctl status container-init || true
+          podman exec "${container_name}" journalctl -u container-init --no-pager || true
+
+          podman exec "${container_name}" ls -la /tmp/ | grep -i distrobox
+          podman exec "${container_name}" cat /tmp/distrobox-* 2>/dev/null || true
+
           command_output="$(./distrobox enter --name "${container_name}" -- whoami | tr -d '\r' | tr -d '^@')"
           expected_output="$(whoami)"
           if [ "$command_output" != "$expected_output" ]; then
