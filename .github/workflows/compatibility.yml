@@ -147,6 +147,8 @@ jobs:
 
           echo "USER=${USER:-<unset>}, id=$(id -un)"
 
+          grep -A 10 'unshare_groups:-0' ./distrobox-enter | head -20
+
           command_output="$(./distrobox enter --name "${container_name}" -- whoami | tr -d '\r' | tr -d '^@')"
           expected_output="$(whoami)"
           if [ "$command_output" != "$expected_output" ]; then
