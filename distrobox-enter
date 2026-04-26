@@ -609,15 +609,19 @@ fi
 # command using su $container_command_user
 # if we're in a tty, also allocate one
 if [ "${unshare_groups:-0}" -eq 1 ]; then
-	# shellcheck disable=SC2089,SC2016
-	set -- "-c" '"$0" "$@"' -- "$@"
-	set -- "${container_command_user}" "$@"
-	set -- "-s" "/bin/sh" "$@"
-	if [ "${headless}" -eq 0 ]; then
-		set -- "--pty" "$@"
-	fi
-	set -- "-m" "$@"
-	set -- "su" "$@"
+        # `su` requires options BEFORE the username:
+        #     su [options] user [args...]
+        # The shell snippet '"$0" "$@"' re-executes its arguments verbatim,
+        # so `args...` become the actual command to run as the target user.
+        # shellcheck disable=SC2089,SC2016
+        set -- "${container_command_user}" "$@"
+        set -- "-c" '"$0" "$@"' "$@"
+        set -- "-s" "/bin/sh" "$@"
+        if [ "${headless}" -eq 0 ]; then
+            set -- "--pty" "$@"
+        fi
+        set -- "-m" "$@"
+        set -- "su" "$@"
 fi
 
 ################################################################################
