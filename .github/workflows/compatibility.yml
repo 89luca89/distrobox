@@ -41,7 +41,7 @@ jobs:
           if git diff --name-only HEAD^ HEAD | grep -Ev "host-exec|generate-entry|ephemeral|upgrade" | grep -E "^distrobox|compatibility.md"; then
             echo "::set-output name=distrobox_changed::True"
           else
-            echo "::set-output name=distrobox_changed::False"
+            echo "::set-output name=distrobox_changed::True"
           fi
 
   # Prepare distros matrix
