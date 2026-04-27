@@ -529,7 +529,9 @@ func (p *Podman) Enter(
 	if err != nil || inspectResult.ContainerStatus != RunningStatus {
 		logTimestamp := timestampNow()
 
-		_ = p.startContainer(ctx, options.ContainerName, progress)
+		if err := p.startContainer(ctx, options.ContainerName, progress); err != nil {
+			return err
+		}
 
 		// Monitor logs for setup completion
 		if err := p.waitForSetup(ctx, options.ContainerName, logTimestamp, progress, printer); err != nil {
@@ -539,7 +541,9 @@ func (p *Podman) Enter(
 		progress.Finalize("Container Setup Complete!")
 	}
 
-	_, _ = p.run(ctx, append(command, commandArgs...), runOptions{Interactive: !options.NoTTY})
+	if _, err := p.run(ctx, append(command, commandArgs...), runOptions{Interactive: !options.NoTTY}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -749,7 +753,7 @@ func (p *Podman) InspectContainer(ctx context.Context, containerName string) (*c
 
 	var inspects []inspectOutput
 	if err := json.Unmarshal([]byte(output), &inspects); err != nil {
-		return nil, errors.New("error marshaling json into containerInspect")
+		return nil, fmt.Errorf("error unmarshaling json into containerInspect: %w", err)
 	}
 
 	if len(inspects) == 0 {
@@ -909,9 +913,16 @@ func (p *Podman) waitForSetup(
 	for {
 		// Check container is still running
 		inspectResult, err := p.InspectContainer(ctx, containerName)
-		if err != nil || inspectResult.ContainerStatus != RunningStatus {
+		if err != nil {
 			printer.PrintError("\nContainer Setup Failure!")
 			return fmt.Errorf("container stopped during setup: %w", err)
+		}
+		if inspectResult.ContainerStatus != RunningStatus {
+			printer.PrintError("\nContainer Setup Failure!")
+			return fmt.Errorf(
+				"container stopped during setup: status=%s",
+				inspectResult.ContainerStatus,
+			)
 		}
 
 		// Get logs

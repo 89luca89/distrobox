@@ -2,7 +2,9 @@ package providers
 
 import (
 	"bytes"
+	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -10,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/89luca89/distrobox/internal/userenv"
+	"github.com/89luca89/distrobox/pkg/containermanager"
+	"github.com/89luca89/distrobox/pkg/ui"
 )
 
 func TestPodman_makeCreateCommand(t *testing.T) {
@@ -671,4 +675,99 @@ func TestCommandExists(t *testing.T) {
 
 	// Test with a command that should not exist
 	assert.False(t, commandExists("this-command-definitely-does-not-exist-12345"), "Did not expect non-existent command to be found")
+}
+
+func TestPodmanEnterPropagatesStartError(t *testing.T) {
+	installFakePodmanRuntime(t)
+	t.Setenv("FAKE_INSPECT_STDOUT", podmanFakeInspectJSON("exited"))
+	t.Setenv("FAKE_START_EXIT", "9")
+	t.Setenv("FAKE_START_STDERR", "start failed")
+
+	err := NewPodman(false, "sudo", false).Enter(
+		t.Context(),
+		containermanager.EnterOptions{
+			ContainerName: "box",
+			NoTTY:         true,
+			NoWorkDir:     true,
+		},
+		ui.NewDevNullProgress(),
+		ui.NewPrinter(io.Discard, false),
+	)
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "failed to start container")
+}
+
+func TestPodmanEnterPropagatesExecError(t *testing.T) {
+	installFakePodmanRuntime(t)
+	t.Setenv("FAKE_INSPECT_STDOUT", podmanFakeInspectJSON("running"))
+	t.Setenv("FAKE_EXEC_EXIT", "7")
+	t.Setenv("FAKE_EXEC_STDERR", "exec failed")
+
+	err := NewPodman(false, "sudo", false).Enter(
+		t.Context(),
+		containermanager.EnterOptions{
+			ContainerName: "box",
+			NoTTY:         true,
+			NoWorkDir:     true,
+		},
+		ui.NewDevNullProgress(),
+		ui.NewPrinter(io.Discard, false),
+	)
+
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "exec failed")
+}
+
+func installFakePodmanRuntime(t *testing.T) {
+	t.Helper()
+
+	tmpDir := t.TempDir()
+	runtimePath := filepath.Join(tmpDir, "podman")
+
+	const script = `#!/bin/sh
+cmd="$1"
+shift
+case "$cmd" in
+  inspect)
+    if [ -n "$FAKE_INSPECT_STDOUT" ]; then
+      printf "%s" "$FAKE_INSPECT_STDOUT"
+    fi
+    exit "${FAKE_INSPECT_EXIT:-0}"
+    ;;
+  start)
+    if [ -n "$FAKE_START_STDERR" ]; then
+      printf "%s" "$FAKE_START_STDERR" >&2
+    fi
+    exit "${FAKE_START_EXIT:-0}"
+    ;;
+  logs)
+    if [ -n "$FAKE_LOGS_STDOUT" ]; then
+      printf "%s" "$FAKE_LOGS_STDOUT"
+    fi
+    exit "${FAKE_LOGS_EXIT:-0}"
+    ;;
+  exec)
+    if [ -n "$FAKE_EXEC_STDERR" ]; then
+      printf "%s" "$FAKE_EXEC_STDERR" >&2
+    fi
+    exit "${FAKE_EXEC_EXIT:-0}"
+    ;;
+  *)
+    exit 0
+    ;;
+esac
+`
+
+	err := os.WriteFile(runtimePath, []byte(script), 0o755)
+	require.NoError(t, err)
+
+	t.Setenv("PATH", tmpDir+":"+os.Getenv("PATH"))
+	t.Setenv("USER", "testuser")
+	t.Setenv("HOME", "/home/testuser")
+	t.Setenv("SHELL", "/bin/sh")
+}
+
+func podmanFakeInspectJSON(status string) string {
+	return `[{"Id":"container-id","State":{"Status":"` + status + `"},"Config":{"Labels":{"distrobox.unshare_groups":"0"},"Env":["HOME=/home/testuser","PATH=/usr/bin:/bin"]}}]`
 }
