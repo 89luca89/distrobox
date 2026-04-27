@@ -529,7 +529,9 @@ func (p *Podman) Enter(
 	if err != nil || inspectResult.ContainerStatus != RunningStatus {
 		logTimestamp := timestampNow()
 
-		_ = p.startContainer(ctx, options.ContainerName, progress)
+		if err := p.startContainer(ctx, options.ContainerName, progress); err != nil {
+			return err
+		}
 
 		// Monitor logs for setup completion
 		if err := p.waitForSetup(ctx, options.ContainerName, logTimestamp, progress, printer); err != nil {

@@ -534,7 +534,9 @@ func (d *Docker) Enter(
 	if err != nil || inspectResult.ContainerStatus != RunningStatus {
 		logTimestamp := timestampNow()
 
-		_ = d.startContainer(ctx, options.ContainerName, progress)
+		if err := d.startContainer(ctx, options.ContainerName, progress); err != nil {
+			return err
+		}
 
 		// Monitor logs for setup completion
 		if err := d.waitForSetup(ctx, options.ContainerName, logTimestamp, progress, printer); err != nil {
