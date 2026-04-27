@@ -673,7 +673,7 @@ func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*c
 
 	var inspects []inspectOutput
 	if err := json.Unmarshal([]byte(output), &inspects); err != nil {
-		return nil, errors.New("error marshaling json into containerInspect")
+		return nil, fmt.Errorf("error unmarshaling json into containerInspect: %w", err)
 	}
 
 	if len(inspects) == 0 {
@@ -1030,9 +1030,16 @@ func (d *Docker) waitForSetup(
 	for {
 		// Check container is still running
 		inspectResult, err := d.InspectContainer(ctx, containerName)
-		if err != nil || inspectResult.ContainerStatus != RunningStatus {
+		if err != nil {
 			printer.PrintError("\nContainer Setup Failure!")
 			return fmt.Errorf("container stopped during setup: %w", err)
+		}
+		if inspectResult.ContainerStatus != RunningStatus {
+			printer.PrintError("\nContainer Setup Failure!")
+			return fmt.Errorf(
+				"container stopped during setup: status=%s",
+				inspectResult.ContainerStatus,
+			)
 		}
 
 		// Get logs
