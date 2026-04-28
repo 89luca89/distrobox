@@ -28,12 +28,14 @@ type AssembleOptions struct {
 }
 
 type AssembleCommand struct {
-	cfg              *config.Values
-	containermanager containermanager.ContainerManager
-	createCmd        *CreateCommand
-	rmCmd            *RmCommand
-	enterCmd         *EnterCommand
-	progress         *ui.Progress
+	cfg           *config.Values
+	createCmd     *CreateCommand
+	rmCmd         *RmCommand
+	enterCmd      *EnterCommand
+	createCmdRoot *CreateCommand
+	rmCmdRoot     *RmCommand
+	enterCmdRoot  *EnterCommand
+	progress      *ui.Progress
 }
 
 func NewAssembleCommand(
@@ -43,13 +45,16 @@ func NewAssembleCommand(
 	progress *ui.Progress,
 	printer *ui.Printer,
 ) *AssembleCommand {
+	cmRoot := cm.CloneAsRoot()
 	return &AssembleCommand{
-		cfg:              cfg,
-		containermanager: cm,
-		createCmd:        NewCreateCommand(cfg, cm, ui.NewDevNullProgress(), prompter),
-		rmCmd:            NewRmCommand(cfg, cm, prompter),
-		enterCmd:         NewEnterCommand(cfg, cm, progress, printer),
-		progress:         progress,
+		cfg:           cfg,
+		createCmd:     NewCreateCommand(cfg, cm, ui.NewDevNullProgress(), prompter),
+		rmCmd:         NewRmCommand(cfg, cm, prompter),
+		enterCmd:      NewEnterCommand(cfg, cm, progress, printer),
+		createCmdRoot: NewCreateCommand(cfg, cmRoot, ui.NewDevNullProgress(), prompter),
+		rmCmdRoot:     NewRmCommand(cfg, cmRoot, prompter),
+		enterCmdRoot:  NewEnterCommand(cfg, cmRoot, progress, printer),
+		progress:      progress,
 	}
 }
 
@@ -97,7 +102,12 @@ func (ac *AssembleCommand) deleteItem(ctx context.Context, item manifest.Item, d
 		ContainerNames: []string{item.Name},
 	}
 
-	_, err := ac.rmCmd.Execute(ctx, opts)
+	rmCmd := ac.rmCmd
+	if item.Root {
+		rmCmd = ac.rmCmdRoot
+	}
+
+	_, err := rmCmd.Execute(ctx, opts)
 	if err != nil {
 		ac.progress.Fail()
 		return fmt.Errorf("failed to execute delete item '%s': %w", item.Name, err)
@@ -142,7 +152,11 @@ func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, d
 		ContainerAlwaysPull:     item.AlwaysPull,
 	}
 
-	_, err := ac.createCmd.Execute(ctx, opts)
+	createCmd := ac.createCmd
+	if item.Root {
+		createCmd = ac.createCmdRoot
+	}
+	_, err := createCmd.Execute(ctx, opts)
 	if err != nil {
 		ac.progress.Fail()
 		return err
@@ -183,8 +197,12 @@ func (ac *AssembleCommand) joinHooks(hooks []string) string {
 }
 
 func (ac *AssembleCommand) setupBox(ctx context.Context, item manifest.Item) error {
+	enterCmd := ac.enterCmd
+	if item.Root {
+		enterCmd = ac.enterCmdRoot
+	}
 	if item.StartNow {
-		_, err := ac.enterCmd.Execute(ctx, EnterOptions{
+		_, err := enterCmd.Execute(ctx, EnterOptions{
 			ContainerName: item.Name,
 			NoTTY:         true,
 			CustomCommand: []string{"true"}, // we just want to run the init hooks, so we can skip the shell
@@ -203,7 +221,7 @@ func (ac *AssembleCommand) setupBox(ctx context.Context, item manifest.Item) err
 		}
 	}
 	for _, app := range item.ExportedApps {
-		_, err := ac.enterCmd.Execute(ctx, EnterOptions{
+		_, err := enterCmd.Execute(ctx, EnterOptions{
 			ContainerName: item.Name,
 			NoTTY:         true,
 			CustomCommand: []string{"distrobox-export", "--app", app},
@@ -226,7 +244,7 @@ func (ac *AssembleCommand) setupBox(ctx context.Context, item manifest.Item) err
 		}
 	}
 	for _, bin := range item.ExportedBins {
-		_, err := ac.enterCmd.Execute(ctx, EnterOptions{
+		_, err := enterCmd.Execute(ctx, EnterOptions{
 			ContainerName: item.Name,
 			NoTTY:         true,
 			CustomCommand: []string{"distrobox-export", "--bin", bin, "--export-path", item.ExportedBinsPath},
