@@ -54,6 +54,12 @@ func NewPodmanLauncher(root bool, sudoCommand string, verbose bool) *Podman {
 	return newPodman(podmanCommandLauncher, root, sudoCommand, verbose)
 }
 
+func (p *Podman) CloneAsRoot() containermanager.ContainerManager {
+	cp := *p
+	cp.root = true
+	return &cp
+}
+
 func (p *Podman) Name() string {
 	return string(p.command)
 }

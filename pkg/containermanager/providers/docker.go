@@ -36,6 +36,12 @@ func NewDocker(root bool, sudoCommand string, verbose bool) *Docker {
 	}
 }
 
+func (d *Docker) CloneAsRoot() containermanager.ContainerManager {
+	cp := *d
+	cp.root = true
+	return &cp
+}
+
 func (d *Docker) Name() string {
 	return "docker"
 }
