@@ -190,6 +190,53 @@ func TestAssembleCommand_SetupBox_ExportedBins_Invalid(t *testing.T) {
 	}
 }
 
+func TestAssembleCommand_RoutesCreateAndSetupByItemRoot(t *testing.T) {
+	mock := &testutil.MockContainerManager{}
+	cmd := newTestAssembleCommand(mock)
+
+	require.NotNil(t, mock.RootClone, "AssembleCommand constructor should call CloneAsRoot")
+
+	err := cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items: []manifest.Item{
+			{Name: "rootless-box", Image: "ubuntu:latest", Root: false, StartNow: true},
+			{Name: "rootful-box", Image: "ubuntu:latest", Root: true, StartNow: true},
+		},
+	})
+	require.NoError(t, err)
+
+	require.Len(t, mock.Spy.Create, 1, "rootless mock should receive exactly one Create")
+	createOpts := mock.Spy.Create[0][0].(containermanager.CreateOptions)
+	assert.Equal(t, "rootless-box", createOpts.ContainerName)
+
+	require.Len(t, mock.RootClone.Spy.Create, 1, "root mock should receive exactly one Create")
+	createOptsRoot := mock.RootClone.Spy.Create[0][0].(containermanager.CreateOptions)
+	assert.Equal(t, "rootful-box", createOptsRoot.ContainerName)
+
+	require.Len(t, mock.Spy.Enter, 1, "rootless mock should receive exactly one Enter (StartNow)")
+	assert.Equal(t, "rootless-box", getEnterOptions(mock.Spy, 0).ContainerName)
+
+	require.Len(t, mock.RootClone.Spy.Enter, 1, "root mock should receive exactly one Enter (StartNow)")
+	assert.Equal(t, "rootful-box", getEnterOptions(mock.RootClone.Spy, 0).ContainerName)
+}
+
+func TestAssembleCommand_RootlessOnlyManifest_DoesNotInvokeRootMock(t *testing.T) {
+	mock := &testutil.MockContainerManager{}
+	cmd := newTestAssembleCommand(mock)
+
+	err := cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items: []manifest.Item{
+			{Name: "a", Image: "ubuntu:latest", Root: false},
+			{Name: "b", Image: "ubuntu:latest", Root: false},
+		},
+	})
+	require.NoError(t, err)
+
+	assert.Len(t, mock.Spy.Create, 2)
+	require.NotNil(t, mock.RootClone, "constructor still calls CloneAsRoot eagerly")
+	assert.Empty(t, mock.RootClone.Spy.Create, "root mock should not receive Create for rootless items")
+	assert.Empty(t, mock.RootClone.Spy.Enter, "root mock should not receive Enter for rootless items")
+}
+
 func TestAssembleCommand_SetupBox_ExportedBins_InvalidExportPath(t *testing.T) {
 	invalidPaths := []string{
 		"",

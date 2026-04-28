@@ -11,6 +11,7 @@ import (
 // Each field is a slice of call argument lists.
 type ContainerManagerSpy struct {
 	Name             [][]any
+	CloneAsRoot      [][]any
 	Enter            [][]any
 	ListContainers   [][]any
 	Create           [][]any
@@ -25,13 +26,27 @@ type ContainerManagerSpy struct {
 
 // MockContainerManager is a no-op container manager for testing.
 // All method calls are recorded in the Spy.
+//
+// CloneAsRoot returns a distinct MockContainerManager so tests can
+// distinguish calls made on the rootless vs root variant. The clone is
+// cached on RootClone after first creation.
 type MockContainerManager struct {
-	Spy ContainerManagerSpy
+	Spy       ContainerManagerSpy
+	Root      bool
+	RootClone *MockContainerManager
 }
 
 func (m *MockContainerManager) Name() string {
 	m.Spy.Name = append(m.Spy.Name, []any{})
 	return "mock"
+}
+
+func (m *MockContainerManager) CloneAsRoot() containermanager.ContainerManager {
+	m.Spy.CloneAsRoot = append(m.Spy.CloneAsRoot, []any{})
+	if m.RootClone == nil {
+		m.RootClone = &MockContainerManager{Root: true}
+	}
+	return m.RootClone
 }
 
 func (m *MockContainerManager) Enter(_ context.Context, options containermanager.EnterOptions, progress *ui.Progress, printer *ui.Printer) error {
