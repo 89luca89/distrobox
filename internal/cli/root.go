@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/urfave/cli/v3"
 
+	"github.com/89luca89/distrobox/internal/rootful"
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/containermanager/providers"
@@ -53,19 +53,6 @@ func printMissingContainerManager(p *ui.Printer) {
 func printInvalidContainerManager(p *ui.Printer, containerManagerType string) {
 	p.Println("Invalid input %s.", containerManagerType)
 	p.Println("The available choices are: 'autodetect', 'podman', 'podman-launcher', 'docker'")
-}
-
-func validateSudo(ctx context.Context) error {
-	cmd := exec.CommandContext(ctx, "sudo", "-v")
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to validate sudo: %w", err)
-	}
-
-	return nil
 }
 
 func subcommands(cfg *config.Values) []*cli.Command {
@@ -152,7 +139,7 @@ func withRoot(_ *config.Values, cmd *cli.Command) *cli.Command {
 			}
 		}
 		if c.Bool("root") {
-			if err := validateSudo(ctx); err != nil {
+			if err := rootful.Validate(ctx); err != nil {
 				return nil, fmt.Errorf("cannot run in root mode: %w", err)
 			}
 		}
