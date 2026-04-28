@@ -56,53 +56,60 @@ func printInvalidContainerManager(p *ui.Printer, containerManagerType string) {
 }
 
 func subcommands(cfg *config.Values) []*cli.Command {
-	return []*cli.Command{
-		composeCommand(
-			newListCommand,
-			withRoot,
-			withContainerManager,
-		)(cfg),
-		composeCommand(
-			newGenerateEntryCommand,
-			withRoot,
-			withContainerManager,
-		)(cfg),
-		composeCommand(
-			newCreateCommand,
-			withRoot,
-			withContainerManager,
-		)(cfg),
-		composeCommand(
-			newEnterCommand,
-			withRoot,
-			withContainerManager,
-		)(cfg),
-		composeCommand(
-			newAssembleCommand,
-			withRootSupport,
-			withContainerManager,
-		)(cfg),
-		composeCommand(
-			newRmCommand,
-			withRoot,
-			withContainerManager,
-		)(cfg),
-		composeCommand(
-			newStopCommand,
-			withRoot,
-			withContainerManager,
-		)(cfg),
-		composeCommand(
-			newEphemeralCommand,
-			withRoot,
-			withContainerManager,
-		)(cfg),
-		composeCommand(newUpgradeCommand,
-			withRoot,
-			withContainerManager,
-		)(cfg),
-	}
-}
+	cc := &CommandComposer[config.Values]{cfg: cfg}
+
+	list := cc.apply(
+		newListCommand,
+		withRoot,
+		withContainerManager,
+	)
+
+	generateEntry := cc.apply(
+		newGenerateEntryCommand,
+		withRoot,
+		withContainerManager,
+	)
+
+	create := cc.apply(
+		newCreateCommand,
+		withRoot,
+		withContainerManager,
+	)
+
+	enter := cc.apply(
+		newEnterCommand,
+		withRoot,
+		withContainerManager,
+	)
+
+	assemble := cc.apply(
+		newAssembleCommand,
+		withContainerManager,
+	)
+
+	rm := cc.apply(
+		newRmCommand,
+		withRoot,
+		withContainerManager,
+	)
+
+	stop := cc.apply(
+		newStopCommand,
+		withRoot,
+		withContainerManager,
+	)
+
+	ephemeral := cc.apply(
+		newEphemeralCommand,
+		withRoot,
+		withContainerManager,
+	)
+
+	upgrade := cc.apply(
+		newUpgradeCommand,
+		withRoot,
+		withContainerManager,
+	)
 
 	return []*cli.Command{
 		list,

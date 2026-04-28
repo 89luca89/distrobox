@@ -9,6 +9,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 
+	"github.com/89luca89/distrobox/internal/rootful"
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
@@ -96,6 +97,16 @@ func assembleAction(ctx context.Context, cmd *cli.Command, cfg *config.Values, d
 	manifest, err := manifest.Parse(ctx, manifestFilePath)
 	if err != nil {
 		return fmt.Errorf("failed to parse manifest file: %w", err)
+	}
+
+	// if at least one item in the manifest requires root, validate sudo before proceeding
+	for _, item := range manifest {
+		if item.Root {
+			if err := rootful.Validate(ctx); err != nil {
+				return fmt.Errorf("cannot run in root mode: %w", err)
+			}
+			break
+		}
 	}
 
 	opts := commands.AssembleOptions{
