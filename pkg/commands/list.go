@@ -3,6 +3,8 @@ package commands
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
@@ -36,6 +38,11 @@ func (c *ListCommand) Execute(ctx context.Context) (*ListResult, error) {
 			distroboxes = append(distroboxes, container)
 		}
 	}
+
+	// Sort by container name to keep `distrobox list` output stable for downstream UIs; see https://github.com/89luca89/distrobox/issues/2071.
+	slices.SortFunc(distroboxes, func(a, b containermanager.Container) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 
 	return &ListResult{Containers: distroboxes}, nil
 }
