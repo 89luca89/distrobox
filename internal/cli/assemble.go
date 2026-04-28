@@ -102,7 +102,7 @@ func assembleAction(ctx context.Context, cmd *cli.Command, cfg *config.Values, d
 	// if at least one item in the manifest requires root, validate sudo before proceeding
 	for _, item := range manifest {
 		if item.Root {
-			if err := rootful.Validate(ctx); err != nil {
+			if err := rootful.Validate(ctx, cmd.String("sudo-command")); err != nil {
 				return fmt.Errorf("cannot run in root mode: %w", err)
 			}
 			break
