@@ -24,11 +24,11 @@ func NewRootCommand(cfg *config.Values) *cli.Command {
 		Name:    "distrobox",
 		Version: "1.0.0",
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:   "container-manager",
-				Usage:  "",
-				Hidden: true,
-				Value:  cfg.ContainerManagerType,
+			&cli.BoolFlag{
+				Name:    "verbose",
+				Aliases: []string{"v"},
+				Usage:   "show more verbosity",
+				Value:   cfg.Verbose,
 			},
 			&cli.StringFlag{
 				Name:   "sudo-command",
@@ -36,72 +36,9 @@ func NewRootCommand(cfg *config.Values) *cli.Command {
 				Hidden: true,
 				Value:  cfg.SudoProgram,
 			},
-			&cli.BoolFlag{
-				Name: "root",
-				Usage: "launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred\n" +
-					"way over \"sudo distrobox\" (note: if using a program other than 'sudo' for root privileges is necessary,\n" +
-					"specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)",
-				Aliases: []string{"r"},
-			},
-			&cli.BoolFlag{
-				Name:    "verbose",
-				Aliases: []string{"v"},
-				Usage:   "show more verbosity",
-				Value:   cfg.Verbose,
-			},
 		},
-		Before: beforeAction,
-		Commands: []*cli.Command{
-			newListCommand(cfg),
-			newGenerateEntryCommand(cfg),
-			newCreateCommand(cfg),
-			newEnterCommand(cfg),
-			newAssembleCommand(cfg),
-			newRmCommand(cfg),
-			newStopCommand(cfg),
-			newEphemeralCommand(cfg),
-			newUpgradeCommand(cfg),
-		},
+		Commands: subcommands(cfg),
 	}
-}
-
-func beforeAction(ctx context.Context, cmd *cli.Command) (context.Context, error) {
-	root := cmd.Bool("root")
-	if root {
-		if err := validateSudo(ctx); err != nil {
-			return nil, fmt.Errorf("cannot run in root mode: %w", err)
-		}
-	}
-	sudoCommand := cmd.String("sudo-command")
-	containerManagerType := cmd.String("container-manager")
-	verbose := cmd.Bool("verbose")
-
-	errPrinter := ui.NewPrinter(os.Stderr, true)
-	var containerManager containermanager.ContainerManager
-	switch containerManagerType {
-	case "docker":
-		containerManager = providers.NewDocker(root, sudoCommand, verbose)
-	case "podman":
-		containerManager = providers.NewPodman(root, sudoCommand, verbose)
-	case "podman-launcher":
-		containerManager = providers.NewPodmanLauncher(root, sudoCommand, verbose)
-	case "autodetect", "":
-		var err error
-		containerManager, err = providers.NewAutoDetect(root, sudoCommand, verbose)
-		if err != nil {
-			if errors.Is(err, providers.ErrNoContainerManager) {
-				printMissingContainerManager(errPrinter)
-			}
-
-			return nil, fmt.Errorf("failed to auto-detect container manager: %w", err)
-		}
-	default:
-		printInvalidContainerManager(errPrinter, containerManagerType)
-
-		return nil, fmt.Errorf("invalid input %s", containerManagerType)
-	}
-
-	return context.WithValue(ctx, contextKey("containerManager"), containerManager), nil
 }
 
 func printMissingContainerManager(p *ui.Printer) {
@@ -129,4 +66,180 @@ func validateSudo(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func subcommands(cfg *config.Values) []*cli.Command {
+	return []*cli.Command{
+		composeCommand(
+			newListCommand,
+			withRoot,
+			withContainerManager,
+		)(cfg),
+		composeCommand(
+			newGenerateEntryCommand,
+			withRoot,
+			withContainerManager,
+		)(cfg),
+		composeCommand(
+			newCreateCommand,
+			withRoot,
+			withContainerManager,
+		)(cfg),
+		composeCommand(
+			newEnterCommand,
+			withRoot,
+			withContainerManager,
+		)(cfg),
+		composeCommand(
+			newAssembleCommand,
+			withRootSupport,
+			withContainerManager,
+		)(cfg),
+		composeCommand(
+			newRmCommand,
+			withRoot,
+			withContainerManager,
+		)(cfg),
+		composeCommand(
+			newStopCommand,
+			withRoot,
+			withContainerManager,
+		)(cfg),
+		composeCommand(
+			newEphemeralCommand,
+			withRoot,
+			withContainerManager,
+		)(cfg),
+		composeCommand(newUpgradeCommand,
+			withRoot,
+			withContainerManager,
+		)(cfg),
+	}
+}
+
+	return []*cli.Command{
+		list,
+		generateEntry,
+		create,
+		enter,
+		assemble,
+		rm,
+		stop,
+		ephemeral,
+		upgrade,
+	}
+}
+
+// withRoot declares the --root flag on a command and, when it is set,
+// validates that sudo is usable. The actual root-mode container manager is
+// built by withContainerManager, which reads the same flag.
+func withRoot(_ *config.Values, cmd *cli.Command) *cli.Command {
+	cmd.Flags = append(cmd.Flags, &cli.BoolFlag{
+		Name:    "root",
+		Aliases: []string{"r"},
+		Usage: "launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred\n" +
+			"way over \"sudo distrobox\" (note: if using a program other than 'sudo' for root privileges is necessary,\n" +
+			"specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)",
+	})
+
+	prev := cmd.Before
+	cmd.Before = func(ctx context.Context, c *cli.Command) (context.Context, error) {
+		if prev != nil {
+			var err error
+			ctx, err = prev(ctx, c)
+			if err != nil {
+				return nil, err
+			}
+		}
+		if c.Bool("root") {
+			if err := validateSudo(ctx); err != nil {
+				return nil, fmt.Errorf("cannot run in root mode: %w", err)
+			}
+		}
+		return ctx, nil
+	}
+	return cmd
+}
+
+// withContainerManager builds the container manager for a command and stores
+// it in the context. It reads --root from the command (zero value if the flag
+// is not declared), so commands without withRootSupport always get a rootless
+// manager.
+func withContainerManager(cfg *config.Values, cmd *cli.Command) *cli.Command {
+	cmd.Flags = append(cmd.Flags, &cli.StringFlag{
+		Name:   "container-manager",
+		Usage:  "",
+		Hidden: true,
+		Value:  cfg.ContainerManagerType,
+	})
+
+	prev := cmd.Before
+	cmd.Before = func(ctx context.Context, c *cli.Command) (context.Context, error) {
+		if prev != nil {
+			var err error
+			ctx, err = prev(ctx, c)
+			if err != nil {
+				return nil, err
+			}
+		}
+		cm, err := buildContainerManager(
+			ctx,
+			c.String("container-manager"),
+			c.String("sudo-command"),
+			c.Bool("verbose"),
+			c.Bool("root"),
+		)
+		if err != nil {
+			return nil, err
+		}
+		return context.WithValue(ctx, containerManagerKey, cm), nil
+	}
+	return cmd
+}
+
+func buildContainerManager(
+	_ context.Context,
+	containerManagerType string,
+	sudoCommand string,
+	verbose bool,
+	root bool,
+) (containermanager.ContainerManager, error) {
+	errPrinter := ui.NewPrinter(os.Stderr, true)
+
+	switch containerManagerType {
+	case "docker":
+		return providers.NewDocker(root, sudoCommand, verbose), nil
+	case "podman":
+		return providers.NewPodman(root, sudoCommand, verbose), nil
+	case "podman-launcher":
+		return providers.NewPodmanLauncher(root, sudoCommand, verbose), nil
+	case "autodetect", "":
+		cm, err := providers.NewAutoDetect(root, sudoCommand, verbose)
+		if err != nil {
+			if errors.Is(err, providers.ErrNoContainerManager) {
+				printMissingContainerManager(errPrinter)
+			}
+			return nil, fmt.Errorf("failed to auto-detect container manager: %w", err)
+		}
+		return cm, nil
+	default:
+		printInvalidContainerManager(errPrinter, containerManagerType)
+		return nil, fmt.Errorf("invalid input %s", containerManagerType)
+	}
+}
+
+// CommandComposer is a helper for building commands with options.
+// It holds the config, so that options don't need to receive it as an argument.
+type CommandComposer[CFG any] struct {
+	cfg *CFG
+}
+
+// apply builds a command factory by applying options left-to-right.
+// Order matches Before execution: the first option's work runs first.
+func (cc *CommandComposer[CFG]) apply(factory func(*CFG) *cli.Command, options ...func(*CFG, *cli.Command) *cli.Command) *cli.Command {
+	cmd := factory(cc.cfg)
+	for _, option := range options {
+		cmd = option(cc.cfg, cmd)
+	}
+	return cmd
 }
