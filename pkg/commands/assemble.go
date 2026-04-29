@@ -187,7 +187,7 @@ func (ac *AssembleCommand) setupBox(ctx context.Context, item manifest.Item) err
 		_, err := ac.enterCmd.Execute(ctx, EnterOptions{
 			ContainerName: item.Name,
 			NoTTY:         true,
-			CustomCommand: "true", // we just want to run the init hooks, so we can skip the shell
+			CustomCommand: []string{"true"}, // we just want to run the init hooks, so we can skip the shell
 			DryRun:        false,
 		})
 		if err != nil {
@@ -203,11 +203,10 @@ func (ac *AssembleCommand) setupBox(ctx context.Context, item manifest.Item) err
 		}
 	}
 	for _, app := range item.ExportedApps {
-		cmd := fmt.Sprintf("distrobox-export --app %s", app)
 		_, err := ac.enterCmd.Execute(ctx, EnterOptions{
 			ContainerName: item.Name,
 			NoTTY:         true,
-			CustomCommand: cmd,
+			CustomCommand: []string{"distrobox-export", "--app", app},
 			DryRun:        false,
 		})
 		if err != nil {
@@ -227,11 +226,10 @@ func (ac *AssembleCommand) setupBox(ctx context.Context, item manifest.Item) err
 		}
 	}
 	for _, bin := range item.ExportedBins {
-		cmd := fmt.Sprintf("distrobox-export --bin %s --export-path %s", bin, item.ExportedBinsPath)
 		_, err := ac.enterCmd.Execute(ctx, EnterOptions{
 			ContainerName: item.Name,
 			NoTTY:         true,
-			CustomCommand: cmd,
+			CustomCommand: []string{"distrobox-export", "--bin", bin, "--export-path", item.ExportedBinsPath},
 			DryRun:        false,
 		})
 		if err != nil {
