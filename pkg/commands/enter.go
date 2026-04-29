@@ -14,7 +14,7 @@ type EnterResult struct{}
 type EnterOptions struct {
 	ContainerName   string
 	AdditionalFlags string
-	CustomCommand   string
+	CustomCommand   []string
 	DryRun          bool
 	NoTTY           bool
 	Verbose         bool
