@@ -142,7 +142,7 @@ func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, d
 		ContainerAlwaysPull:     item.AlwaysPull,
 	}
 
-	err := ac.createCmd.Execute(ctx, opts)
+	_, err := ac.createCmd.Execute(ctx, opts)
 	if err != nil {
 		ac.progress.Fail()
 		return err
