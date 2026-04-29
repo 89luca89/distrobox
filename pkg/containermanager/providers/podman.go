@@ -88,7 +88,7 @@ func (p *Podman) Create(
 	}
 
 	// ensure custom home dir exists, if needed
-	if opts.ContainerUserCustomHome != "" && !pathExists(opts.ContainerUserCustomHome) {
+	if opts.ContainerUserCustomHome != "" && !containermanager.PathExists(opts.ContainerUserCustomHome) {
 		//nolint:gosec // 0755 is the same as from distrobox v1, let's keep it for compatibility
 		if err := os.MkdirAll(opts.ContainerUserCustomHome, 0755); err != nil {
 			return fmt.Errorf("failed to create custom home directory: %w", err)
@@ -202,7 +202,7 @@ func (p *Podman) makeCreateCommand(
 	options = append(
 		options,
 		"--label",
-		fmt.Sprintf("distrobox.unshare_groups=%d", btoi(unshareGroups)),
+		fmt.Sprintf("distrobox.unshare_groups=%d", containermanager.Btoi(unshareGroups)),
 	)
 	options = append(options, "--env", fmt.Sprintf("SHELL=%s", shellFilepath))
 	options = append(options, "--env", fmt.Sprintf("HOME=%s", containerUserHome))
@@ -261,7 +261,7 @@ func (p *Podman) makeCreateCommand(
 	//
 	// Ref. Podman issue 4452:
 	//    https://github.com/containers/podman/issues/4452
-	if pathExists("/sys/fs/selinux") {
+	if containermanager.PathExists("/sys/fs/selinux") {
 		options = append(options, "--volume", "/sys/fs/selinux")
 	}
 
@@ -282,7 +282,7 @@ func (p *Podman) makeCreateCommand(
 	// to /run/shm, instead of the other way around.
 	// Resolve this detecting if /dev/shm is a symlink and mount original
 	// source also in the container.
-	if isSymlink("/dev/shm") && !unshareIPC {
+	if containermanager.IsSymlink("/dev/shm") && !unshareIPC {
 		realPath, err := filepath.EvalSymlinks("/dev/shm")
 		if err == nil {
 			options = append(options, "--volume", fmt.Sprintf("%s:%s", realPath, realPath))
@@ -304,7 +304,7 @@ func (p *Podman) makeCreateCommand(
 	}
 	for _, rhelFile := range rhelSubscriptionFiles {
 		parts := strings.Split(rhelFile, ":")
-		if pathExists(parts[0]) {
+		if containermanager.PathExists(parts[0]) {
 			options = append(options, "--volume", rhelFile)
 		}
 	}
@@ -326,7 +326,7 @@ func (p *Podman) makeCreateCommand(
 	// Mount also the /var/home dir on ostree based systems
 	// do this only if $HOME was not already set to /var/home/username
 	homePath := fmt.Sprintf("/var/home/%s", containerUserName)
-	if containerUserHome != homePath && pathExists(homePath) {
+	if containerUserHome != homePath && containermanager.PathExists(homePath) {
 		options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", homePath, homePath))
 	}
 
@@ -334,7 +334,7 @@ func (p *Podman) makeCreateCommand(
 	// This is skipped in case of initful containers, so that a dedicated
 	// systemd user session can be used.
 	xdgRuntimeDir := fmt.Sprintf("/run/user/%s", containerUserUID)
-	if pathExists(xdgRuntimeDir) && !init {
+	if containermanager.PathExists(xdgRuntimeDir) && !init {
 		options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", xdgRuntimeDir, xdgRuntimeDir))
 	}
 
@@ -360,7 +360,7 @@ func (p *Podman) makeCreateCommand(
 		}
 
 		for _, netFile := range netFiles {
-			if pathExists(netFile) {
+			if containermanager.PathExists(netFile) {
 				options = append(options, "--volume", fmt.Sprintf("%s:%s:ro", netFile, netFile))
 			}
 		}
@@ -427,8 +427,8 @@ func (p *Podman) makeCreateCommand(
 		"--user", containerUserUID,
 		"--group", containerUserGID,
 		"--home", homeToUse,
-		"--init", strconv.Itoa(btoi(init)),
-		"--nvidia", strconv.Itoa(btoi(nvidia)),
+		"--init", strconv.Itoa(containermanager.Btoi(init)),
+		"--nvidia", strconv.Itoa(containermanager.Btoi(nvidia)),
 		"--pre-init-hooks", containerPreInitHook,
 		"--additional-packages", strings.Join(containerAdditionalPackages, " "),
 		"--", containerInitHook,
@@ -521,7 +521,7 @@ func (p *Podman) Enter(
 		return fmt.Errorf("err: %w", err)
 	}
 
-	commandArgs := buildCommandArgs(options.CustomCommand, user, options.NoTTY, config.UnshareGroups)
+	commandArgs := containermanager.BuildCommandArgs(options.CustomCommand, user, options.NoTTY, config.UnshareGroups)
 
 	if options.DryRun {
 		command = append(command, commandArgs...)
@@ -532,8 +532,8 @@ func (p *Podman) Enter(
 	}
 
 	inspectResult, err := p.InspectContainer(ctx, options.ContainerName)
-	if err != nil || inspectResult.ContainerStatus != RunningStatus {
-		logTimestamp := timestampNow()
+	if err != nil || inspectResult.ContainerStatus != containermanager.RunningStatus {
+		logTimestamp := containermanager.TimestampNow()
 
 		if err := p.startContainer(ctx, options.ContainerName, progress); err != nil {
 			return err
@@ -821,12 +821,12 @@ func (p *Podman) generateEnterCommand(
 
 	// TTY allocation — auto-detect headless mode like the shell version:
 	// if stdin or stdout is not a terminal, skip --tty.
-	if !noTTY && isTTY() {
+	if !noTTY && containermanager.IsTTY() {
 		cmd = append(cmd, "--tty")
 	}
 
 	// Working directory
-	workdir, err := getWorkDir(containerConfig.ContainerHome, noWorkDir)
+	workdir, err := containermanager.GetWorkDir(containerConfig.ContainerHome, noWorkDir)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -842,19 +842,19 @@ func (p *Podman) generateEnterCommand(
 	cmd = append(cmd, fmt.Sprintf("--env=CONTAINER_ID=%s", containerName))
 	cmd = append(cmd, fmt.Sprintf("--env=DISTROBOX_PATH=%s", executablePath))
 
-	for _, env := range filterEnvVars() {
+	for _, env := range containermanager.FilterEnvVars() {
 		cmd = append(cmd, fmt.Sprintf("--env=%s", env))
 	}
 	// PATH handling
-	containerPaths := buildContainerPath(cleanPath, os.Getenv("PATH"), containerConfig.ContainerPath)
+	containerPaths := containermanager.BuildContainerPath(cleanPath, os.Getenv("PATH"), containerConfig.ContainerPath)
 	cmd = append(cmd, fmt.Sprintf("--env=PATH=%s", containerPaths))
 
 	// XDG_DATA_DIRS
-	xdgDataDirs := buildXDGPaths("XDG_DATA_DIRS", []string{"/usr/local/share", "/usr/share"})
+	xdgDataDirs := containermanager.BuildXDGPaths("XDG_DATA_DIRS", []string{"/usr/local/share", "/usr/share"})
 	cmd = append(cmd, fmt.Sprintf("--env=XDG_DATA_DIRS=%s", xdgDataDirs))
 
 	// XDG_CONFIG_DIRS
-	xdgConfigDirs := buildXDGPaths("XDG_CONFIG_DIRS", []string{"/etc/xdg"})
+	xdgConfigDirs := containermanager.BuildXDGPaths("XDG_CONFIG_DIRS", []string{"/etc/xdg"})
 	cmd = append(cmd, fmt.Sprintf("--env=XDG_CONFIG_DIRS=%s", xdgConfigDirs))
 
 	// XDG home directories
@@ -883,7 +883,7 @@ func (p *Podman) startContainer(ctx context.Context, containerName string, progr
 
 	// Check if container is running after start
 	inspectResult, err := p.InspectContainer(ctx, containerName)
-	if err != nil || inspectResult.ContainerStatus != RunningStatus {
+	if err != nil || inspectResult.ContainerStatus != containermanager.RunningStatus {
 		logs, err := p.run(ctx, []string{"logs", containerName}, runOptions{})
 		if err != nil {
 			return fmt.Errorf("could not inspect container logs: %w", err)
@@ -923,7 +923,7 @@ func (p *Podman) waitForSetup(
 			printer.PrintError("\nContainer Setup Failure!")
 			return fmt.Errorf("container stopped during setup: %w", err)
 		}
-		if inspectResult.ContainerStatus != RunningStatus {
+		if inspectResult.ContainerStatus != containermanager.RunningStatus {
 			printer.PrintError("\nContainer Setup Failure!")
 			return fmt.Errorf(
 				"container stopped during setup: status=%s",
@@ -932,7 +932,7 @@ func (p *Podman) waitForSetup(
 		}
 
 		// Get logs
-		nextSince := timestampNow()
+		nextSince := containermanager.TimestampNow()
 		output, err := p.run(ctx, []string{"logs", "--since", since, containerName}, runOptions{})
 		if err != nil {
 			time.Sleep(100 * time.Millisecond) //nolint:mnd // TODO refactor sleeps
@@ -958,7 +958,7 @@ func (p *Podman) waitForSetup(
 				printer.PrintWarning(line)
 
 			case strings.HasPrefix(line, "distrobox:"):
-				parts := strings.SplitN(line, " ", Two)
+				parts := strings.SplitN(line, " ", 2)
 				if len(parts) > 1 {
 					progress.Done()
 					progress.Next("%s", parts[1])
