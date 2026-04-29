@@ -62,6 +62,31 @@ distrobox_path="$(dirname "${0}")"
 distrobox_command="${1}"
 shift
 
+# On macOS with Docker Desktop, only paths under $HOME are shared with the
+# Docker Linux VM via VirtioFS.  Scripts installed to /usr/local/bin (e.g.
+# via Homebrew) are not accessible, so Docker creates an empty directory
+# placeholder in the VM, causing "exec: /usr/bin/entrypoint: is a directory".
+#
+# Maintain a managed cache in ~/.local/share/distrobox/ (always under $HOME,
+# always VirtioFS-shared).  Copy each script only when the installed version
+# is newer than the cached copy, so upgrades are picked up automatically.
+if [ "$(uname -s)" = "Darwin" ]; then
+	_dd_data_dir="${XDG_DATA_HOME:-"${HOME}/.local/share"}/distrobox"
+	mkdir -p "${_dd_data_dir}"
+	for _dd_script in distrobox-init distrobox-export distrobox-host-exec; do
+		_dd_src="${distrobox_path}/${_dd_script}"
+		[ ! -f "${_dd_src}" ] && _dd_src="$(command -v "${_dd_script}" 2> /dev/null || true)"
+		if [ -f "${_dd_src}" ]; then
+			_dd_dst="${_dd_data_dir}/${_dd_script}"
+			if [ ! -f "${_dd_dst}" ] || [ "${_dd_src}" -nt "${_dd_dst}" ]; then
+				cp -f "${_dd_src}" "${_dd_dst}"
+				chmod +x "${_dd_dst}"
+			fi
+		fi
+	done
+	unset _dd_script _dd_src _dd_dst _dd_data_dir
+fi
+
 # Simple wrapper to the distrobox utilities.
 # We just detect the 1st argument and launch the matching distrobox utility.
 case "${distrobox_command}" in
