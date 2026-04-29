@@ -53,7 +53,7 @@ func (c *EphemeralCommand) Execute(ctx context.Context, opts EphemeralOptions) e
 	createOpts.GenerateEntry = false
 	createOpts.DryRun = opts.DryRun
 	createOpts.NonInteractive = true
-	if err := c.createCmd.Execute(ctx, createOpts); err != nil {
+	if _, err := c.createCmd.Execute(ctx, createOpts); err != nil {
 		return fmt.Errorf("failed to create ephemeral container: %w", err)
 	}
 

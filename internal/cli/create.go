@@ -213,7 +213,7 @@ func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) err
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
 	createCmd := commands.NewCreateCommand(cfg, containerManager, progress, prompter)
-	err := createCmd.Execute(ctx, opts)
+	result, err := createCmd.Execute(ctx, opts)
 
 	var containerAlreadyExistsErr *commands.ContainerAlreadyExistsError
 	if errors.As(err, &containerAlreadyExistsErr) {
@@ -230,7 +230,7 @@ func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) err
 	}
 
 	if !opts.DryRun {
-		printCreateCompleted(progress, opts.ContainerName, opts.Rootful)
+		printCreateCompleted(progress, result.ContainerName, opts.Rootful)
 	}
 
 	return nil
