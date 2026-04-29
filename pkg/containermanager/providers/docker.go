@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -19,11 +18,6 @@ import (
 	"github.com/89luca89/distrobox/internal/userenv"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
-)
-
-const (
-	RunningStatus = "running"
-	Two           = 2
 )
 
 type Docker struct {
@@ -98,7 +92,7 @@ func (d *Docker) Create(
 	}
 
 	// ensure custom home dir exists, if needed
-	if opts.ContainerUserCustomHome != "" && !pathExists(opts.ContainerUserCustomHome) {
+	if opts.ContainerUserCustomHome != "" && !containermanager.PathExists(opts.ContainerUserCustomHome) {
 		//nolint:gosec // 0755 is the same as from distrobox v1, let's keep it for compatibility
 		if err := os.MkdirAll(opts.ContainerUserCustomHome, 0755); err != nil {
 			return fmt.Errorf("failed to create custom home directory: %w", err)
@@ -212,7 +206,7 @@ func (d *Docker) makeCreateCommand(
 	options = append(
 		options,
 		"--label",
-		fmt.Sprintf("distrobox.unshare_groups=%d", btoi(unshareGroups)),
+		fmt.Sprintf("distrobox.unshare_groups=%d", containermanager.Btoi(unshareGroups)),
 	)
 	options = append(options, "--env", fmt.Sprintf("SHELL=%s", shellFilepath))
 	options = append(options, "--env", fmt.Sprintf("HOME=%s", containerUserHome))
@@ -283,7 +277,7 @@ func (d *Docker) makeCreateCommand(
 	//
 	// Ref. Podman issue 4452:
 	//    https://github.com/containers/podman/issues/4452
-	if pathExists("/sys/fs/selinux") {
+	if containermanager.PathExists("/sys/fs/selinux") {
 		options = append(options, "--volume", "/sys/fs/selinux")
 	}
 
@@ -304,7 +298,7 @@ func (d *Docker) makeCreateCommand(
 	// to /run/shm, instead of the other way around.
 	// Resolve this detecting if /dev/shm is a symlink and mount original
 	// source also in the container.
-	if isSymlink("/dev/shm") && !unshareIPC {
+	if containermanager.IsSymlink("/dev/shm") && !unshareIPC {
 		realPath, err := filepath.EvalSymlinks("/dev/shm")
 		if err == nil {
 			options = append(options, "--volume", fmt.Sprintf("%s:%s", realPath, realPath))
@@ -326,7 +320,7 @@ func (d *Docker) makeCreateCommand(
 	}
 	for _, rhelFile := range rhelSubscriptionFiles {
 		parts := strings.Split(rhelFile, ":")
-		if pathExists(parts[0]) {
+		if containermanager.PathExists(parts[0]) {
 			options = append(options, "--volume", rhelFile)
 		}
 	}
@@ -348,7 +342,7 @@ func (d *Docker) makeCreateCommand(
 	// Mount also the /var/home dir on ostree based systems
 	// do this only if $HOME was not already set to /var/home/username
 	homePath := fmt.Sprintf("/var/home/%s", containerUserName)
-	if containerUserHome != homePath && pathExists(homePath) {
+	if containerUserHome != homePath && containermanager.PathExists(homePath) {
 		options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", homePath, homePath))
 	}
 
@@ -356,7 +350,7 @@ func (d *Docker) makeCreateCommand(
 	// This is skipped in case of initful containers, so that a dedicated
 	// systemd user session can be used.
 	xdgRuntimeDir := fmt.Sprintf("/run/user/%s", containerUserUID)
-	if pathExists(xdgRuntimeDir) && !init {
+	if containermanager.PathExists(xdgRuntimeDir) && !init {
 		options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", xdgRuntimeDir, xdgRuntimeDir))
 	}
 
@@ -382,7 +376,7 @@ func (d *Docker) makeCreateCommand(
 		}
 
 		for _, netFile := range netFiles {
-			if pathExists(netFile) {
+			if containermanager.PathExists(netFile) {
 				options = append(options, "--volume", fmt.Sprintf("%s:%s:ro", netFile, netFile))
 			}
 		}
@@ -426,8 +420,8 @@ func (d *Docker) makeCreateCommand(
 		"--user", containerUserUID,
 		"--group", containerUserGID,
 		"--home", homeToUse,
-		"--init", strconv.Itoa(btoi(init)),
-		"--nvidia", strconv.Itoa(btoi(nvidia)),
+		"--init", strconv.Itoa(containermanager.Btoi(init)),
+		"--nvidia", strconv.Itoa(containermanager.Btoi(nvidia)),
 		"--pre-init-hooks", containerPreInitHook,
 		"--additional-packages", strings.Join(containerAdditionalPackages, " "),
 		"--", containerInitHook,
@@ -520,7 +514,7 @@ func (d *Docker) Enter(
 		return fmt.Errorf("err: %w", err)
 	}
 
-	commandArgs := buildCommandArgs(options.CustomCommand, user, options.NoTTY, config.UnshareGroups)
+	commandArgs := containermanager.BuildCommandArgs(options.CustomCommand, user, options.NoTTY, config.UnshareGroups)
 
 	if options.DryRun {
 		command = append(command, commandArgs...)
@@ -531,8 +525,8 @@ func (d *Docker) Enter(
 	}
 
 	inspectResult, err := d.InspectContainer(ctx, options.ContainerName)
-	if err != nil || inspectResult.ContainerStatus != RunningStatus {
-		logTimestamp := timestampNow()
+	if err != nil || inspectResult.ContainerStatus != containermanager.RunningStatus {
+		logTimestamp := containermanager.TimestampNow()
 
 		if err := d.startContainer(ctx, options.ContainerName, progress); err != nil {
 			return err
@@ -643,26 +637,6 @@ func parseLabels(labels string) map[string]string {
 	return result
 }
 
-func pathExists(path string) bool {
-	_, err := os.Stat(path)
-	return err == nil
-}
-
-func isSymlink(path string) bool {
-	info, err := os.Lstat(path)
-	if err != nil {
-		return false
-	}
-	return info.Mode()&os.ModeSymlink != 0
-}
-
-func btoi(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
-}
-
 func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*containermanager.InspectResult, error) {
 	config := containermanager.InspectResult{}
 	args := []string{"inspect", "--type", "container", "--format", "json", containerName}
@@ -731,148 +705,6 @@ func (d *Docker) PullImage(ctx context.Context, imageName string, platform strin
 	return err
 }
 
-func buildContainerPath(cleanPath bool, hostPath string, containerPath string) string {
-	standardPaths := []string{"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"}
-
-	if cleanPath {
-		return strings.Join(standardPaths, ":")
-	}
-
-	// If no host PATH, use the container's PATH if available
-	if hostPath == "" {
-		if containerPath != "" {
-			return containerPath
-		}
-		return strings.Join(standardPaths, ":")
-	}
-
-	// Add standard paths not in host PATH
-	var additionalPaths []string
-	for _, sp := range standardPaths {
-		pattern := regexp.MustCompile(`(:|^)` + regexp.QuoteMeta(sp) + `(:|$)`)
-		if !pattern.MatchString(hostPath) {
-			additionalPaths = append(additionalPaths, sp)
-		}
-	}
-
-	if len(additionalPaths) > 0 {
-		return hostPath + ":" + strings.Join(additionalPaths, ":")
-	}
-
-	return hostPath
-}
-
-func buildXDGPaths(envVar string, standardPaths []string) string {
-	containerPaths := os.Getenv(envVar)
-
-	for _, sp := range standardPaths {
-		pattern := regexp.MustCompile(`(:|^)` + regexp.QuoteMeta(sp) + `(:|$)`)
-		if containerPaths == "" {
-			containerPaths = sp
-		} else if !pattern.MatchString(containerPaths) {
-			containerPaths = containerPaths + ":" + sp
-		}
-	}
-
-	return containerPaths
-}
-
-func filterEnvVars() []string {
-	result := []string{}
-
-	// Compile regex for XDG_.*_DIRS pattern
-	xdgDirsPattern := regexp.MustCompile(`^XDG_.*_DIRS$`)
-
-	// Excluded prefixes
-	excludedPrefixes := []string{
-		"CONTAINER_ID",
-		"FPATH",
-		"HOST",
-		"HOSTNAME",
-		"HOME",
-		"PATH",
-		"PROFILEREAD",
-		"SHELL",
-		"XDG_SEAT",
-		"XDG_VTNR",
-		"_", // Variables starting with underscore
-	}
-
-	for _, env := range os.Environ() {
-		// Must contain '='
-		if !strings.Contains(env, "=") {
-			continue
-		}
-
-		// Exclude if contains ", `, or $
-		if strings.ContainsAny(env, "\"`$") {
-			continue
-		}
-
-		// Split into key and value
-		parts := strings.SplitN(env, "=", Two)
-		if len(parts) != Two {
-			continue
-		}
-
-		key := parts[0]
-
-		// Check excluded prefixes
-		excluded := false
-		for _, prefix := range excludedPrefixes {
-			if strings.HasPrefix(key, prefix) {
-				excluded = true
-				break
-			}
-		}
-
-		if excluded || xdgDirsPattern.MatchString(key) {
-			continue
-		}
-
-		result = append(result, env)
-	}
-
-	return result
-}
-
-// isTTY returns true if both stdin and stdout are terminals.
-// Mirrors the shell's: if [ ! -t 0 ] || [ ! -t 1 ]; then headless=1; fi
-func isTTY() bool {
-	if fi, err := os.Stdin.Stat(); err != nil || fi.Mode()&os.ModeCharDevice == 0 {
-		return false
-	}
-	if fi, err := os.Stdout.Stat(); err != nil || fi.Mode()&os.ModeCharDevice == 0 {
-		return false
-	}
-	return true
-}
-
-func getWorkDir(containerHome string, noWorkDir bool) (string, error) {
-	workDir, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("error getting working dir: %w", err)
-	}
-
-	if noWorkDir {
-		return containerHome, nil
-	}
-
-	if workDir == "" && containerHome == "" {
-		return "/", nil
-	}
-
-	if workDir == "" {
-		return containerHome, nil
-	}
-
-	if !strings.Contains(workDir, containerHome) {
-		return "/run/host" + workDir, nil
-	}
-
-	return workDir, nil
-}
-
 func (d *Docker) generateEnterCommand(
 	ctx context.Context,
 	containerName string,
@@ -908,12 +740,12 @@ func (d *Docker) generateEnterCommand(
 
 	// TTY allocation — auto-detect headless mode like the shell version:
 	// if stdin or stdout is not a terminal, skip --tty.
-	if !noTTY && isTTY() {
+	if !noTTY && containermanager.IsTTY() {
 		cmd = append(cmd, "--tty")
 	}
 
 	// Working directory
-	workdir, err := getWorkDir(containerConfig.ContainerHome, noWorkDir)
+	workdir, err := containermanager.GetWorkDir(containerConfig.ContainerHome, noWorkDir)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -929,19 +761,19 @@ func (d *Docker) generateEnterCommand(
 	cmd = append(cmd, fmt.Sprintf("--env=CONTAINER_ID=%s", containerName))
 	cmd = append(cmd, fmt.Sprintf("--env=DISTROBOX_PATH=%s", executablePath))
 
-	for _, env := range filterEnvVars() {
+	for _, env := range containermanager.FilterEnvVars() {
 		cmd = append(cmd, fmt.Sprintf("--env=%s", env))
 	}
 	// PATH handling
-	containerPaths := buildContainerPath(cleanPath, os.Getenv("PATH"), containerConfig.ContainerPath)
+	containerPaths := containermanager.BuildContainerPath(cleanPath, os.Getenv("PATH"), containerConfig.ContainerPath)
 	cmd = append(cmd, fmt.Sprintf("--env=PATH=%s", containerPaths))
 
 	// XDG_DATA_DIRS
-	xdgDataDirs := buildXDGPaths("XDG_DATA_DIRS", []string{"/usr/local/share", "/usr/share"})
+	xdgDataDirs := containermanager.BuildXDGPaths("XDG_DATA_DIRS", []string{"/usr/local/share", "/usr/share"})
 	cmd = append(cmd, fmt.Sprintf("--env=XDG_DATA_DIRS=%s", xdgDataDirs))
 
 	// XDG_CONFIG_DIRS
-	xdgConfigDirs := buildXDGPaths("XDG_CONFIG_DIRS", []string{"/etc/xdg"})
+	xdgConfigDirs := containermanager.BuildXDGPaths("XDG_CONFIG_DIRS", []string{"/etc/xdg"})
 	cmd = append(cmd, fmt.Sprintf("--env=XDG_CONFIG_DIRS=%s", xdgConfigDirs))
 
 	// XDG home directories
@@ -961,30 +793,6 @@ func (d *Docker) generateEnterCommand(
 	return cmd, containerConfig, nil
 }
 
-func buildCommandArgs(customCommand string, user string, noTTY bool, unshareGroups bool) []string {
-	var args []string
-
-	if len(strings.TrimSpace(customCommand)) > 0 {
-		args = strings.Fields(customCommand)
-	} else {
-		// Default: execute user's shell with login
-		args = []string{"/bin/sh", "-c", fmt.Sprintf("$(getent passwd '%s' | cut -f 7 -d :) -l", user)}
-	}
-
-	// Handle unshare_groups mode - use su to trigger proper login
-	if unshareGroups {
-		unshareArgs := []string{"su"}
-		if !noTTY {
-			unshareArgs = append(unshareArgs, "--pty")
-		}
-		unshareArgs = append(unshareArgs, "-m", "-s", "/bin/sh", "-c", `"$0" "$@"`, "--", user)
-		unshareArgs = append(unshareArgs, args...)
-		return unshareArgs
-	}
-
-	return args
-}
-
 func (d *Docker) startContainer(ctx context.Context, containerName string, progress *ui.Progress) error {
 	// Start the container
 	_, err := d.run(ctx, []string{"start", containerName}, runOptions{Interactive: true})
@@ -994,7 +802,7 @@ func (d *Docker) startContainer(ctx context.Context, containerName string, progr
 
 	// Check if container is running after start
 	inspectResult, err := d.InspectContainer(ctx, containerName)
-	if err != nil || inspectResult.ContainerStatus != RunningStatus {
+	if err != nil || inspectResult.ContainerStatus != containermanager.RunningStatus {
 		logs, err := d.run(ctx, []string{"logs", containerName}, runOptions{})
 		if err != nil {
 			return fmt.Errorf("could not inspect container logs: %w", err)
@@ -1034,7 +842,7 @@ func (d *Docker) waitForSetup(
 			printer.PrintError("\nContainer Setup Failure!")
 			return fmt.Errorf("container stopped during setup: %w", err)
 		}
-		if inspectResult.ContainerStatus != RunningStatus {
+		if inspectResult.ContainerStatus != containermanager.RunningStatus {
 			printer.PrintError("\nContainer Setup Failure!")
 			return fmt.Errorf(
 				"container stopped during setup: status=%s",
@@ -1043,7 +851,7 @@ func (d *Docker) waitForSetup(
 		}
 
 		// Get logs
-		nextSince := timestampNow()
+		nextSince := containermanager.TimestampNow()
 		output, err := d.run(ctx, []string{"logs", "--since", since, containerName}, runOptions{})
 		if err != nil {
 			time.Sleep(100 * time.Millisecond) //nolint:mnd // TODO refactor sleeps
@@ -1069,7 +877,7 @@ func (d *Docker) waitForSetup(
 				printer.PrintWarning(line)
 
 			case strings.HasPrefix(line, "distrobox:"):
-				parts := strings.SplitN(line, " ", Two)
+				parts := strings.SplitN(line, " ", 2)
 				if len(parts) > 1 {
 					progress.Done()
 					progress.Next("%s", parts[1])
@@ -1082,8 +890,4 @@ func (d *Docker) waitForSetup(
 
 		time.Sleep(500 * time.Millisecond) //nolint:mnd // TODO refactor sleeps
 	}
-}
-
-func timestampNow() string {
-	return time.Now().UTC().Format("2006-01-02T15:04:05.000000000+00:00")
 }
