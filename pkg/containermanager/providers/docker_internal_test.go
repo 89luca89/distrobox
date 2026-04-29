@@ -59,7 +59,7 @@ func TestDocker_makeCreateCommand(t *testing.T) {
 
 	// Build expected string dynamically for paths that depend on host filesystem
 	selinuxVolume := ""
-	if pathExists("/sys/fs/selinux") {
+	if containermanager.PathExists("/sys/fs/selinux") {
 		selinuxVolume = " --volume /sys/fs/selinux"
 	}
 
@@ -215,7 +215,7 @@ func TestBuildContainerPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := buildContainerPath(tt.cleanPath, tt.hostPath, tt.containerPath)
+			got := containermanager.BuildContainerPath(tt.cleanPath, tt.hostPath, tt.containerPath)
 			assert.Equal(t, tt.want, got)
 		})
 	}
@@ -224,18 +224,18 @@ func TestBuildContainerPath(t *testing.T) {
 // TestBuildContainerPathEdgeCases tests edge cases and boundary conditions
 func TestBuildContainerPathEdgeCases(t *testing.T) {
 	t.Run("hostPath with colon at start", func(t *testing.T) {
-		got := buildContainerPath(false, ":/usr/bin", "")
+		got := containermanager.BuildContainerPath(false, ":/usr/bin", "")
 		// Should treat this as hostPath not containing standard paths initially
 		assert.True(t, contains(got, "/usr/local/sbin"), "Expected standard paths to be added")
 	})
 
 	t.Run("hostPath with colon at end", func(t *testing.T) {
-		got := buildContainerPath(false, "/usr/bin:", "")
+		got := containermanager.BuildContainerPath(false, "/usr/bin:", "")
 		assert.True(t, contains(got, "/usr/local/sbin"), "Expected standard paths to be added")
 	})
 
 	t.Run("hostPath with multiple colons", func(t *testing.T) {
-		got := buildContainerPath(false, "/usr/bin::/sbin", "")
+		got := containermanager.BuildContainerPath(false, "/usr/bin::/sbin", "")
 		// Should still add missing standard paths
 		assert.True(t, contains(got, "/usr/local/sbin"), "Expected standard paths to be added")
 	})
@@ -244,7 +244,7 @@ func TestBuildContainerPathEdgeCases(t *testing.T) {
 func TestBuildCommandArgs(t *testing.T) {
 	tests := []struct {
 		name          string
-		customCommand string
+		customCommand []string
 		user          string
 		noTTY         bool
 		unshareGroups bool
@@ -252,7 +252,7 @@ func TestBuildCommandArgs(t *testing.T) {
 	}{
 		{
 			name:          "custom command without unshare",
-			customCommand: "/bin/bash",
+			customCommand: []string{"/bin/bash"},
 			user:          "testuser",
 			noTTY:         false,
 			unshareGroups: false,
@@ -260,7 +260,7 @@ func TestBuildCommandArgs(t *testing.T) {
 		},
 		{
 			name:          "custom command with unshare, no TTY",
-			customCommand: "/usr/bin/python3",
+			customCommand: []string{"/usr/bin/python3"},
 			user:          "testuser",
 			noTTY:         true,
 			unshareGroups: true,
@@ -268,7 +268,7 @@ func TestBuildCommandArgs(t *testing.T) {
 		},
 		{
 			name:          "custom command with unshare and TTY",
-			customCommand: "/bin/zsh",
+			customCommand: []string{"/bin/zsh"},
 			user:          "testuser",
 			noTTY:         false,
 			unshareGroups: true,
@@ -276,7 +276,7 @@ func TestBuildCommandArgs(t *testing.T) {
 		},
 		{
 			name:          "default shell without unshare",
-			customCommand: "",
+			customCommand: nil,
 			user:          "alice",
 			noTTY:         false,
 			unshareGroups: false,
@@ -284,7 +284,7 @@ func TestBuildCommandArgs(t *testing.T) {
 		},
 		{
 			name:          "default shell with unshare, no TTY",
-			customCommand: "",
+			customCommand: nil,
 			user:          "bob",
 			noTTY:         true,
 			unshareGroups: true,
@@ -292,7 +292,7 @@ func TestBuildCommandArgs(t *testing.T) {
 		},
 		{
 			name:          "default shell with unshare and TTY",
-			customCommand: "",
+			customCommand: nil,
 			user:          "charlie",
 			noTTY:         false,
 			unshareGroups: true,
@@ -300,31 +300,31 @@ func TestBuildCommandArgs(t *testing.T) {
 		},
 		{
 			name:          "empty custom command treated as default",
-			customCommand: "",
+			customCommand: []string{},
 			user:          "testuser",
 			noTTY:         false,
 			unshareGroups: false,
 			want:          "/bin/sh|-c|$(getent passwd 'testuser' | cut -f 7 -d :) -l",
 		},
 		{
-			name:          "custom command with spaces without unshare",
-			customCommand: "/bin/bash -c 'echo hello'",
+			name:          "multi-arg custom command preserves argv boundaries",
+			customCommand: []string{"/bin/bash", "-c", "echo hello"},
 			user:          "testuser",
 			noTTY:         false,
 			unshareGroups: false,
-			want:          "/bin/bash|-c|'echo|hello'",
+			want:          "/bin/bash|-c|echo hello",
 		},
 		{
-			name:          "custom command with spaces with unshare",
-			customCommand: "/bin/bash -c 'echo hello'",
+			name:          "multi-arg custom command preserves argv boundaries through unshare",
+			customCommand: []string{"/bin/bash", "-c", "echo hello"},
 			user:          "testuser",
 			noTTY:         true,
 			unshareGroups: true,
-			want:          `su|-m|-s|/bin/sh|-c|"$0" "$@"|--|testuser|/bin/bash|-c|'echo|hello'`,
+			want:          `su|-m|-s|/bin/sh|-c|"$0" "$@"|--|testuser|/bin/bash|-c|echo hello`,
 		},
 		{
 			name:          "user with special characters in default shell",
-			customCommand: "",
+			customCommand: nil,
 			user:          "user-name.test",
 			noTTY:         false,
 			unshareGroups: false,
@@ -332,7 +332,7 @@ func TestBuildCommandArgs(t *testing.T) {
 		},
 		{
 			name:          "root user without unshare",
-			customCommand: "",
+			customCommand: nil,
 			user:          "root",
 			noTTY:         false,
 			unshareGroups: false,
@@ -340,7 +340,7 @@ func TestBuildCommandArgs(t *testing.T) {
 		},
 		{
 			name:          "root user with unshare",
-			customCommand: "",
+			customCommand: nil,
 			user:          "root",
 			noTTY:         true,
 			unshareGroups: true,
@@ -348,33 +348,33 @@ func TestBuildCommandArgs(t *testing.T) {
 		},
 		{
 			name:          "empty user with default shell",
-			customCommand: "",
+			customCommand: nil,
 			user:          "",
 			noTTY:         false,
 			unshareGroups: false,
 			want:          "/bin/sh|-c|$(getent passwd '' | cut -f 7 -d :) -l",
 		},
 		{
-			name:          "single space as custom command treated as default",
-			customCommand: " ",
-			user:          "user",
-			noTTY:         false,
-			unshareGroups: false,
-			want:          "/bin/sh|-c|$(getent passwd 'user' | cut -f 7 -d :) -l",
-		},
-		{
-			name:          "very long custom command with unshare",
-			customCommand: "/bin/bash -c 'for i in {1..100}; do echo $i; done'",
+			name:          "complex sh -c script preserved as single arg through unshare",
+			customCommand: []string{"/bin/bash", "-c", "for i in {1..100}; do echo $i; done"},
 			user:          "user",
 			noTTY:         true,
 			unshareGroups: true,
-			want:          `su|-m|-s|/bin/sh|-c|"$0" "$@"|--|user|/bin/bash|-c|'for|i|in|{1..100};|do|echo|$i;|done'`,
+			want:          `su|-m|-s|/bin/sh|-c|"$0" "$@"|--|user|/bin/bash|-c|for i in {1..100}; do echo $i; done`,
+		},
+		{
+			name:          "single-arg shell-quoted command preserved verbatim",
+			customCommand: []string{"echo a || echo b"},
+			user:          "user",
+			noTTY:         true,
+			unshareGroups: false,
+			want:          "echo a || echo b",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := buildCommandArgs(tt.customCommand, tt.user, tt.noTTY, tt.unshareGroups)
+			got := containermanager.BuildCommandArgs(tt.customCommand, tt.user, tt.noTTY, tt.unshareGroups)
 			gotStr := strings.Join(got, "|")
 
 			assert.Equal(t, tt.want, gotStr)
@@ -386,7 +386,7 @@ func TestBuildCommandArgs(t *testing.T) {
 func TestBuildCommandArgsMatrix(t *testing.T) {
 	tests := []struct {
 		name            string
-		customCommand   string
+		customCommand   []string
 		noTTY           bool
 		unshareGroups   bool
 		wantContains    []string
@@ -394,7 +394,7 @@ func TestBuildCommandArgsMatrix(t *testing.T) {
 	}{
 		{
 			name:            "no flags with custom command",
-			customCommand:   "/custom/cmd",
+			customCommand:   []string{"/custom/cmd"},
 			noTTY:           false,
 			unshareGroups:   false,
 			wantContains:    []string{"/custom/cmd"},
@@ -402,7 +402,7 @@ func TestBuildCommandArgsMatrix(t *testing.T) {
 		},
 		{
 			name:            "unshare only with custom command",
-			customCommand:   "/custom/cmd",
+			customCommand:   []string{"/custom/cmd"},
 			noTTY:           true,
 			unshareGroups:   true,
 			wantContains:    []string{"su", "/custom/cmd"},
@@ -410,7 +410,7 @@ func TestBuildCommandArgsMatrix(t *testing.T) {
 		},
 		{
 			name:            "noTTY and unshare with custom command",
-			customCommand:   "/custom/cmd",
+			customCommand:   []string{"/custom/cmd"},
 			noTTY:           false,
 			unshareGroups:   true,
 			wantContains:    []string{"su", "--pty", "/custom/cmd"},
@@ -418,7 +418,7 @@ func TestBuildCommandArgsMatrix(t *testing.T) {
 		},
 		{
 			name:            "noTTY without unshare",
-			customCommand:   "/custom/cmd",
+			customCommand:   []string{"/custom/cmd"},
 			noTTY:           true,
 			unshareGroups:   false,
 			wantContains:    []string{"/custom/cmd"},
@@ -426,7 +426,7 @@ func TestBuildCommandArgsMatrix(t *testing.T) {
 		},
 		{
 			name:            "default shell without flags",
-			customCommand:   "",
+			customCommand:   nil,
 			noTTY:           false,
 			unshareGroups:   false,
 			wantContains:    []string{"/bin/sh", "-c", "getent passwd"},
@@ -434,7 +434,7 @@ func TestBuildCommandArgsMatrix(t *testing.T) {
 		},
 		{
 			name:            "default shell with unshare",
-			customCommand:   "",
+			customCommand:   nil,
 			noTTY:           true,
 			unshareGroups:   true,
 			wantContains:    []string{"su", "/bin/sh", "-c", "getent passwd"},
@@ -442,7 +442,7 @@ func TestBuildCommandArgsMatrix(t *testing.T) {
 		},
 		{
 			name:            "default shell with both flags",
-			customCommand:   "",
+			customCommand:   nil,
 			noTTY:           false,
 			unshareGroups:   true,
 			wantContains:    []string{"su", "--pty", "/bin/sh", "-c", "getent passwd"},
@@ -452,7 +452,7 @@ func TestBuildCommandArgsMatrix(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := buildCommandArgs(tt.customCommand, "user", tt.noTTY, tt.unshareGroups)
+			result := containermanager.BuildCommandArgs(tt.customCommand, "user", tt.noTTY, tt.unshareGroups)
 			resultStr := strings.Join(result, "|")
 
 			for _, want := range tt.wantContains {
