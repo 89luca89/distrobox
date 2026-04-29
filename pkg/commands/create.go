@@ -82,6 +82,12 @@ type CreateOptions struct {
 	NonInteractive      bool
 }
 
+type CreateResult struct {
+	ContainerName     string
+	ContainerImage    string
+	ContainerHostname string
+}
+
 func NewCreateCommand(cfg *config.Values, cm containermanager.ContainerManager, progress *ui.Progress, prompter *ui.Prompter) *CreateCommand {
 	return &CreateCommand{
 		cfg:              cfg,
@@ -92,30 +98,30 @@ func NewCreateCommand(cfg *config.Values, cm containermanager.ContainerManager, 
 	}
 }
 
-func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
+func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) (*CreateResult, error) {
 	containerImage := c.makeContainerImage(&opts)
 	containerName := c.makeContainerName(&opts, containerImage)
 	containerHostname, err := c.makeContainerHostname(&opts)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	containerUserCustomHome := c.makeContainerUserCustomHome(&opts, containerName)
 
 	if !opts.DryRun && c.containerManager.Exists(ctx, containerName) {
-		return &ContainerAlreadyExistsError{ContainerName: containerName}
+		return nil, &ContainerAlreadyExistsError{ContainerName: containerName}
 	}
 
 	if opts.ContainerClone != "" && !opts.DryRun {
 		cloneImage, err := c.clone(ctx, opts.ContainerClone)
 		if err != nil {
-			return fmt.Errorf("failed to clone container %s: %w", opts.ContainerClone, err)
+			return nil, fmt.Errorf("failed to clone container %s: %w", opts.ContainerClone, err)
 		}
 		containerImage = cloneImage
 	}
 
 	if err := c.askPullImage(ctx, containerImage, opts); err != nil {
-		return err
+		return nil, err
 	}
 
 	c.progress.Next("Creating '%s' using image %s", containerName, containerImage)
@@ -148,7 +154,7 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 
 	if err != nil {
 		c.progress.Fail()
-		return fmt.Errorf("failed to create container: %w", err)
+		return nil, fmt.Errorf("failed to create container: %w", err)
 	}
 
 	c.progress.Done()
@@ -161,11 +167,15 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) error {
 			},
 		)
 		if err != nil {
-			return fmt.Errorf("failed to generate entry for container %s: %w", containerName, err)
+			return nil, fmt.Errorf("failed to generate entry for container %s: %w", containerName, err)
 		}
 	}
 
-	return nil
+	return &CreateResult{
+		ContainerName:     containerName,
+		ContainerImage:    containerImage,
+		ContainerHostname: containerHostname,
+	}, nil
 }
 
 // Determine right containerImage to use
