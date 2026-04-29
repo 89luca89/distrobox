@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/urfave/cli/v3"
 
@@ -73,7 +72,6 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 	// Container name: --name flag takes priority, otherwise first positional arg.
 	// Everything after the container name (or after --) is the custom command.
 	containerName := cmd.String("name")
-	var customCommand string
 
 	args := cmd.Args().Slice()
 	if containerName == "" && len(args) > 0 {
@@ -81,14 +79,10 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 		args = args[1:]
 	}
 
-	if len(args) > 0 {
-		customCommand = strings.Join(args, " ")
-	}
-
 	options := commands.EnterOptions{
 		ContainerName:   containerName,
 		AdditionalFlags: cmd.String("additional-flags"),
-		CustomCommand:   customCommand,
+		CustomCommand:   args,
 		DryRun:          cmd.Bool("dry-run"),
 		NoTTY:           cmd.Bool("no-tty"),
 		CleanPath:       cmd.Bool("clean-path"),
