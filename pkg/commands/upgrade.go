@@ -11,7 +11,7 @@ import (
 )
 
 //nolint:lll // upgrade command mirrors the shell version
-const upgradeCommand = `sh -c "command -v su-exec 2>/dev/null && su-exec root /usr/bin/entrypoint --upgrade || command -v doas 2>/dev/null && doas /usr/bin/entrypoint --upgrade || sudo -S /usr/bin/entrypoint --upgrade"`
+const upgradeScript = `command -v su-exec 2>/dev/null && su-exec root /usr/bin/entrypoint --upgrade || command -v doas 2>/dev/null && doas /usr/bin/entrypoint --upgrade || sudo -S /usr/bin/entrypoint --upgrade`
 
 type UpgradeOptions struct {
 	ContainerNames []string
@@ -103,7 +103,7 @@ func (c *UpgradeCommand) Execute(ctx context.Context, opts *UpgradeOptions) erro
 func (c *UpgradeCommand) upgradeContainer(ctx context.Context, name string) error {
 	enterOpts := EnterOptions{
 		ContainerName: name,
-		CustomCommand: upgradeCommand,
+		CustomCommand: []string{"sh", "-c", upgradeScript},
 	}
 
 	if _, err := c.enterCmd.Execute(ctx, enterOpts); err != nil {

@@ -3,7 +3,6 @@ package commands_test
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"io"
 	"strings"
 	"testing"
@@ -48,7 +47,7 @@ func TestAssembleCommand_SetupBox_StartNowTrue(t *testing.T) {
 
 	opts := getEnterOptions(mock.Spy, 0)
 	assert.Equal(t, "test-box", opts.ContainerName)
-	assert.Equal(t, "true", opts.CustomCommand)
+	assert.Equal(t, []string{"true"}, opts.CustomCommand)
 }
 
 func TestAssembleCommand_SetupBox_ExportedApps_Valid(t *testing.T) {
@@ -81,7 +80,7 @@ func TestAssembleCommand_SetupBox_ExportedApps_Valid(t *testing.T) {
 			require.Len(t, mock.Spy.Enter, len(apps))
 			for i, a := range apps {
 				opts := getEnterOptions(mock.Spy, i)
-				expectedCmd := fmt.Sprintf("distrobox-export --app %s", a)
+				expectedCmd := []string{"distrobox-export", "--app", a}
 				assert.Equal(t, "test-box", opts.ContainerName, "call %d", i)
 				assert.Equal(t, expectedCmd, opts.CustomCommand, "call %d", i)
 			}
@@ -151,7 +150,7 @@ func TestAssembleCommand_SetupBox_ExportedBins_Valid(t *testing.T) {
 			require.Len(t, mock.Spy.Enter, len(bins))
 			for i, b := range bins {
 				opts := getEnterOptions(mock.Spy, i)
-				expectedCmd := fmt.Sprintf("distrobox-export --bin %s --export-path /home/user/.local/bin", b)
+				expectedCmd := []string{"distrobox-export", "--bin", b, "--export-path", "/home/user/.local/bin"}
 				assert.Equal(t, "test-box", opts.ContainerName, "call %d", i)
 				assert.Equal(t, expectedCmd, opts.CustomCommand, "call %d", i)
 			}
