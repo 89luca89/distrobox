@@ -828,7 +828,7 @@ func (p *Podman) generateEnterCommand(
 	// Working directory
 	workdir, err := containermanager.GetWorkDir(containerConfig.ContainerHome, noWorkDir)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("error getting the workdir: %w", err)
 	}
 
 	cmd = append(cmd, fmt.Sprintf("--workdir=%s", workdir))
