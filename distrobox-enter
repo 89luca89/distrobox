@@ -433,14 +433,13 @@ generate_enter_command()
 	# and export them to the container.
 	set +o xtrace
 	# disable logging for this snippet, or it will be too talkative.
-	# We filter the environment so that we do not have strange variables or
-	# multiline.
 	# We also NEED to ignore the HOME variable, as this is set at create time
 	# and needs to stay that way to use custom home dirs. or it will be too talkative.
+	# We only pass variable names to --env flag to avoid issues with special characters in variable values.
 	result_command="${result_command}
-		$(printenv | grep '=' | grep -Ev '"|`|\$' |
+		$(printenv --null | cut -z -d= -f1 | tr '\0' '\n' |
 		grep -Ev '^(CONTAINER_ID|FPATH|HOST|HOSTNAME|HOME|PATH|PROFILEREAD|PWD|SHELL|XDG_SEAT|XDG_VTNR|XDG_.*_DIRS|^_)' |
-		sed 's/ /\ /g' | sed 's/^\(.*\)$/--env=\1/g')"
+		sed 's/ /\ /g' | sed 's/^/--env=/g')"
 
 	# Start with the $PATH set in the container's config
 	container_paths="${container_path:-""}"
