@@ -112,14 +112,14 @@ func subcommands(cfg *config.Values) []*cli.Command {
 	)
 
 	return []*cli.Command{
-		list,
-		generateEntry,
+		assemble,
 		create,
 		enter,
-		assemble,
+		ephemeral,
+		generateEntry,
+		list,
 		rm,
 		stop,
-		ephemeral,
 		upgrade,
 	}
 }
