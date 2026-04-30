@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -51,16 +52,33 @@ func NewRmCommand(
 	}
 }
 
+func removeValue(slice []string, valueToRemove string) []string {
+	for i, value := range slice {
+		if value == valueToRemove {
+			return slices.Delete(slice, i, i+1)
+		}
+	}
+	return slice
+}
+
 func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, error) {
 	if !options.NoTTY && c.prompter == nil {
 		return nil, errors.New("prompter is required for interactive mode")
 	}
 
-	listResult, err := c.listCmd.Execute(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed while listing contaiers: %w", err)
+	var validContainerName = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`) // podman regex
+	for _, containerName := range options.ContainerNames {
+		if !validContainerName.MatchString(containerName) {
+			return nil, fmt.Errorf("invalid container name '%s'", containerName)
+		}
 	}
 
+	listResult, err := c.listCmd.Execute(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed while listing containers: %w", err)
+	}
+
+	explicitlyRequested := options.ContainerNames
 	distroboxesToRemove := getContainersToRemove(listResult.Containers, options.ContainerNames, options.All)
 
 	userEnv := userenv.LoadUserEnvironment(ctx)
@@ -68,12 +86,20 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 
 	var removedDistroboxes []containermanager.Container
 	for _, currentDistrobox := range distroboxesToRemove {
+		explicitlyRequested = removeValue(explicitlyRequested, currentDistrobox.Name)
+
 		err := c.removeContainer(ctx, currentDistrobox, options.Force, options.NoTTY, userHome)
 		if err != nil {
 			//nolint:forbidigo // waiting for the logger implementation
 			fmt.Printf("error deleting %s: %s", currentDistrobox.Name, err)
 		}
 		removedDistroboxes = append(removedDistroboxes, currentDistrobox)
+	}
+
+	// Clean up exported files of all remaining explicitly requested distroboxes,
+	// even if the container doesn't exist anymore
+	for _, containerName := range explicitlyRequested {
+		c.cleanup(ctx, userHome, containerName)
 	}
 
 	return &RmResult{Containers: removedDistroboxes}, nil
