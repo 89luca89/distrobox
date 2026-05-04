@@ -1,5 +1,6 @@
-GO_BUILD_ENV := CGO_ENABLED=0 GOOS=linux
-VERSION := $(shell git describe --tags --always 2>/dev/null || echo "dev")
+GOOS ?= $(shell go env GOOS)
+GO_BUILD_ENV := CGO_ENABLED=0 GOOS=$(GOOS)
+VERSION ?= $(shell git describe --tags --always 2>/dev/null || echo "dev")
 LDFLAGS := -ldflags "-X github.com/89luca89/distrobox/pkg/version.Version=$(VERSION)"
 
 .PHONY: build
