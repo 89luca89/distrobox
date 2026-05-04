@@ -15,9 +15,8 @@ import (
 
 func newGenerateEntryCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
-		Name:    "generate-entry",
-		Usage:   "Generate or delete distrobox entries",
-		Version: "1.0.0",
+		Name:  "generate-entry",
+		Usage: "Generate or delete distrobox entries",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "delete",
