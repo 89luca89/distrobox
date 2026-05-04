@@ -678,8 +678,10 @@ generate_create_command()
 	# so rslave/rshared bind propagation is not supported.
 	if [ "$(uname -s)" = "Darwin" ]; then
 		rslave=""
+		rorslave=":ro"
 	else
 		rslave=":rslave"
+		rorslave=":ro,rslave"
 	fi
 
 	# Set the container hostname the same as the container name.
@@ -751,7 +753,7 @@ generate_create_command()
 				tr ',' '\n' | grep -q "^ro$"; then
 
 				result_command="${result_command}
-				--volume ${rootdir}:/run/host${rootdir}:ro${rslave}"
+				--volume ${rootdir}:/run/host${rootdir}${rorslave}"
 				continue
 			fi
 
