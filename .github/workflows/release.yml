@@ -27,11 +27,12 @@ jobs:
 
       - name: Build
         env:
-          CGO_ENABLED: "0"
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -o distrobox-${{ matrix.goos }}-${{ matrix.goarch }} ./cmd/distrobox
+          mkdir -p ./bin
+          make build
+          mv ./bin/distrobox distrobox-${{ matrix.goos }}-${{ matrix.goarch }}
 
       - uses: actions/upload-artifact@v4
         with:
