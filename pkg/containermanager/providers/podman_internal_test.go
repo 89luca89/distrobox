@@ -716,7 +716,7 @@ func TestPodmanEnterPropagatesExecError(t *testing.T) {
 	)
 
 	require.Error(t, err)
-	assert.ErrorContains(t, err, "exec failed")
+	assert.ErrorContains(t, err, "exit status 7")
 }
 
 func installFakePodmanRuntime(t *testing.T) {
