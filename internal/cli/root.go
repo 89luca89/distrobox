@@ -23,6 +23,7 @@ const containerManagerKey contextKey = "containerManager"
 func NewRootCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
 		Name:    "distrobox",
+		Usage:   "Use any Linux distribution inside your terminal",
 		Version: version.Version,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
