@@ -553,7 +553,7 @@ func (p *Podman) Enter(
 		progress.Finalize("Container Setup Complete!")
 	}
 
-	if _, err := p.run(ctx, append(command, commandArgs...), runOptions{Interactive: !options.NoTTY}); err != nil {
+	if _, err := p.run(ctx, append(command, commandArgs...), runOptions{Interactive: true}); err != nil {
 		return err
 	}
 
