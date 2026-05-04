@@ -13,6 +13,7 @@ import (
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/containermanager/providers"
 	"github.com/89luca89/distrobox/pkg/ui"
+	"github.com/89luca89/distrobox/pkg/version"
 )
 
 type contextKey string
@@ -22,7 +23,7 @@ const containerManagerKey contextKey = "containerManager"
 func NewRootCommand(cfg *config.Values) *cli.Command {
 	return &cli.Command{
 		Name:    "distrobox",
-		Version: "1.0.0",
+		Version: version.Version,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "verbose",
