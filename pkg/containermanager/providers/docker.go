@@ -546,7 +546,7 @@ func (d *Docker) Enter(
 		progress.Finalize("Container Setup Complete!")
 	}
 
-	if _, err := d.run(ctx, append(command, commandArgs...), runOptions{Interactive: !options.NoTTY}); err != nil {
+	if _, err := d.run(ctx, append(command, commandArgs...), runOptions{Interactive: true}); err != nil {
 		return err
 	}
 
