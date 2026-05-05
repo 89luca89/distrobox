@@ -923,6 +923,10 @@ func (p *Podman) waitForSetup(
 	printer *ui.Printer,
 ) error {
 	for {
+		if err := ctx.Err(); err != nil {
+			return fmt.Errorf("podman: %w", err)
+		}
+
 		// Check container is still running
 		inspectResult, err := p.InspectContainer(ctx, containerName)
 		if err != nil {
