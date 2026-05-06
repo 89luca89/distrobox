@@ -256,6 +256,78 @@ func TestParse_FromUrlServerError(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestParse_TrimsSectionNameWhitespace(t *testing.T) {
+	rawManifest := `
+[ leading]
+image=ubuntu:24.04
+
+[trailing ]
+image=ubuntu:24.04
+
+[ both ]
+image=ubuntu:24.04
+
+[none]
+image=ubuntu:24.04
+`
+
+	manifestPath := t.TempDir() + "/manifest.ini"
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
+	require.NoError(t, err)
+
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
+	require.NoError(t, err)
+	require.Len(t, parsed, 4)
+
+	assert.Equal(t, "leading", parsed[0].Name)
+	assert.Equal(t, "trailing", parsed[1].Name)
+	assert.Equal(t, "both", parsed[2].Name)
+	assert.Equal(t, "none", parsed[3].Name)
+}
+
+func TestParse_ExampleManifest(t *testing.T) {
+	parsed, err := manifest.Parse(t.Context(), "../../extras/distrobox-example-manifest.ini")
+	require.NoError(t, err)
+	require.Len(t, parsed, 5)
+
+	names := make([]string, len(parsed))
+	for i, item := range parsed {
+		names[i] = item.Name
+	}
+	assert.Equal(t,
+		[]string{"generic1", "generic2", "generic3", "arch", "tumbleweed_distrobox"},
+		names,
+	)
+
+	generic1 := parsed[0]
+	assert.True(t, generic1.UnshareNetns)
+	assert.True(t, generic1.UnshareIPC)
+	assert.Empty(t, generic1.Image)
+
+	generic2 := parsed[1]
+	assert.True(t, generic2.Nvidia)
+	assert.Equal(t, []string{"git", "vim", "tmux"}, generic2.AdditionalPackages)
+
+	generic3 := parsed[2]
+	assert.Equal(t, "/tmp/home", generic3.Home)
+	assert.Equal(t, []string{"git", "vim", "tmux"}, generic3.AdditionalPackages)
+
+	arch := parsed[3]
+	assert.Equal(t, "archlinux:latest", arch.Image)
+	assert.True(t, arch.AlwaysPull)
+	assert.True(t, arch.StartNow)
+	assert.True(t, arch.UnshareNetns)
+	assert.Equal(t, "/tmp/home", arch.Home)
+	assert.Equal(t, []string{"touch /pre-init"}, arch.PreInitHooks)
+	assert.Equal(t, []string{"touch /init-normal"}, arch.InitHooks)
+
+	tw := parsed[4]
+	assert.Equal(t, "registry.opensuse.org/opensuse/distrobox", tw.Image)
+	assert.True(t, tw.AlwaysPull)
+	assert.Equal(t, []string{"htop"}, tw.ExportedApps)
+	assert.Equal(t, []string{"/usr/bin/htop", "/usr/bin/git"}, tw.ExportedBins)
+}
+
 func TestParse_FailCircularInclude(t *testing.T) {
 	rawManifest := `
 [a]

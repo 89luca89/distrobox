@@ -142,7 +142,7 @@ func resolveIncludes(cfg *ini.File, section *ini.Section, processing, processed 
 
 // sectionToItem converts an ini.Section to an Item struct.
 func sectionToItem(section *ini.Section, env *userenv.UserEnvironment) Item { //nolint:funlen // Function length is acceptable here.
-	item := Item{Name: section.Name()}
+	item := Item{Name: strings.TrimSpace(section.Name())}
 
 	// default, to be overridden by manifest value if provided
 	item.ExportedBinsPath = env.Home + "/.local/bin"
