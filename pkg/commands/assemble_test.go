@@ -237,6 +237,60 @@ func TestAssembleCommand_RootlessOnlyManifest_DoesNotInvokeRootMock(t *testing.T
 	assert.Empty(t, mock.RootClone.Spy.Enter, "root mock should not receive Enter for rootless items")
 }
 
+func TestAssembleCommand_CreateUsesItemNameWhenImageEmpty(t *testing.T) {
+	mock := &testutil.MockContainerManager{}
+	cfg := &config.Values{
+		DefaultContainerName:  "my-distrobox",
+		DefaultContainerImage: "registry.fedoraproject.org/fedora-toolbox:latest",
+	}
+	progress := ui.NewDevNullProgress()
+	prompter := ui.NewPrompter(*bufio.NewReader(strings.NewReader("")), io.Discard)
+	printer := ui.NewPrinter(io.Discard, false)
+	cmd := commands.NewAssembleCommand(cfg, mock, prompter, progress, printer)
+
+	err := cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items: []manifest.Item{
+			{Name: "generic1"},
+		},
+	})
+	require.NoError(t, err)
+
+	require.Len(t, mock.Spy.Create, 1)
+	createOpts := mock.Spy.Create[0][0].(containermanager.CreateOptions)
+	assert.Equal(t, "generic1", createOpts.ContainerName)
+}
+
+func TestAssembleCommand_ExampleManifest(t *testing.T) {
+	items, err := manifest.Parse(context.Background(), "../../extras/distrobox-example-manifest.ini")
+	require.NoError(t, err)
+
+	mock := &testutil.MockContainerManager{}
+	cfg := &config.Values{
+		DefaultContainerName:  "my-distrobox",
+		DefaultContainerImage: "registry.fedoraproject.org/fedora-toolbox:latest",
+	}
+	progress := ui.NewDevNullProgress()
+	prompter := ui.NewPrompter(*bufio.NewReader(strings.NewReader("")), io.Discard)
+	printer := ui.NewPrinter(io.Discard, false)
+	cmd := commands.NewAssembleCommand(cfg, mock, prompter, progress, printer)
+
+	err = cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items:  items,
+		DryRun: true,
+	})
+	require.NoError(t, err)
+
+	require.Len(t, mock.Spy.Create, len(items))
+	got := make([]string, len(mock.Spy.Create))
+	for i, call := range mock.Spy.Create {
+		got[i] = call[0].(containermanager.CreateOptions).ContainerName
+	}
+	assert.Equal(t,
+		[]string{"generic1", "generic2", "generic3", "arch", "tumbleweed_distrobox"},
+		got,
+	)
+}
+
 func TestAssembleCommand_SetupBox_ExportedBins_InvalidExportPath(t *testing.T) {
 	invalidPaths := []string{
 		"",
