@@ -121,6 +121,7 @@ func (p *Podman) Create(
 		opts.UnshareIPC,
 		opts.UnshareNetNS,
 		opts.UnshareProcess,
+		opts.DryRun,
 		userEnv,
 		filepath.Join(scriptsDir, "distrobox-init"),
 		filepath.Join(scriptsDir, "distrobox-export"),
@@ -136,7 +137,7 @@ func (p *Podman) Create(
 
 // makeCreateCommand builds the podman create command with all necessary options.
 //
-//nolint:gocognit,funlen // ignore cognitive complexity here, the function is mostly imperative option appending
+//nolint:gocognit,funlen,gocyclo,cyclop // ignore cognitive complexity here, the function is mostly imperative option appending
 func (p *Podman) makeCreateCommand(
 	ctx context.Context,
 	containerName string,
@@ -157,6 +158,7 @@ func (p *Podman) makeCreateCommand(
 	unshareIPC bool,
 	unshareNetNS bool,
 	unshareProcess bool,
+	dryRun bool,
 	userEnv *userenv.UserEnvironment,
 	distroboxInitPath string,
 	distroboxExportPath string,
@@ -234,7 +236,7 @@ func (p *Podman) makeCreateCommand(
 	//
 	// This happens ONLY with podman+runc, docker and lilipod are unaffected,
 	// so let's do this only if we have podman AND runc.
-	if p.usesRunc(ctx) {
+	if !dryRun && p.usesRunc(ctx) {
 		options = append(options, hostRootMountsForRunc(ctx)...)
 	} else {
 		options = append(options, "--volume", "/:/run/host/:rslave")
@@ -401,7 +403,7 @@ func (p *Podman) makeCreateCommand(
 
 	// Use keep-id only if going rootless.
 	if !p.root {
-		if p.supportsKeepIDSize(ctx, containerImage) {
+		if dryRun || p.supportsKeepIDSize(ctx, containerImage) {
 			options = append(options, "--userns", "keep-id:size=65536")
 		} else {
 			options = append(options, "--userns", "keep-id")
@@ -579,14 +581,14 @@ func (p *Podman) ImageExists(ctx context.Context, imageName string) bool {
 	return true
 }
 
-func (p *Podman) PullImage(ctx context.Context, imageName string, platform string) error {
+func (p *Podman) PullImage(ctx context.Context, imageName string, platform string, dryRun bool) error {
 	var args []string
 	if platform != "" {
 		args = []string{"pull", "--platform", platform, imageName}
 	} else {
 		args = []string{"pull", imageName}
 	}
-	_, err := p.run(ctx, args, runOptions{TailLogs: true})
+	_, err := p.run(ctx, args, runOptions{DryRun: dryRun, TailLogs: true})
 	return err
 }
 
