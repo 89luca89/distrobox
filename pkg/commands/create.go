@@ -216,7 +216,7 @@ func (c *CreateCommand) makeContainerImage(opts *CreateOptions) string {
 //	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
 func (c *CreateCommand) makeContainerName(opts *CreateOptions, containerImage string) string {
 	containerName := opts.ContainerName
-	if opts.ContainerImage == "" {
+	if containerName == "" && opts.ContainerImage == "" {
 		containerName = c.cfg.DefaultContainerName
 	}
 	if containerName == "" {
