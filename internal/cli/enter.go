@@ -79,6 +79,10 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 		args = args[1:]
 	}
 
+	if containerName == "" {
+		containerName = cfg.DefaultContainerName
+	}
+
 	options := commands.EnterOptions{
 		ContainerName:   containerName,
 		AdditionalFlags: cmd.String("additional-flags"),
