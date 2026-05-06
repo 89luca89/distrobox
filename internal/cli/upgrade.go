@@ -81,6 +81,12 @@ func upgradeAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) er
 		return nil
 	}
 
+	if errors.Is(err, commands.ErrUpgradeNoContainerSpecified) {
+		errPrinter.Println("Please specify the name of the container.")
+		//nolint:wrapcheck // sentinel returned as-is so caller exits non-zero
+		return err
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to upgrade containers: %w", err)
 	}

@@ -29,6 +29,7 @@ type UpgradeCommand struct {
 }
 
 var ErrUpgradeAbortedByUser = errors.New("upgrade operation aborted by user")
+var ErrUpgradeNoContainerSpecified = errors.New("please specify the name of the container")
 
 func NewUpgradeCommand(
 	cfg *config.Values,
@@ -75,7 +76,7 @@ func (c *UpgradeCommand) Execute(ctx context.Context, opts *UpgradeOptions) erro
 	case len(opts.ContainerNames) > 0:
 		containerNames = opts.ContainerNames
 	default:
-		containerNames = []string{c.cfg.DefaultContainerName}
+		return ErrUpgradeNoContainerSpecified
 	}
 
 	proceed := opts.NonInteractive || c.canProceed(containerNames)
