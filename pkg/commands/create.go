@@ -287,7 +287,7 @@ func (c *CreateCommand) clone(ctx context.Context, containerName string) (string
 
 func (c *CreateCommand) askPullImage(ctx context.Context, containerImage string, opts CreateOptions) error {
 	if opts.ContainerAlwaysPull || !c.containerManager.ImageExists(ctx, containerImage) {
-		skipConfirm := opts.NonInteractive || opts.ContainerAlwaysPull
+		skipConfirm := opts.NonInteractive || opts.ContainerAlwaysPull || opts.DryRun
 		if !skipConfirm {
 			msg := fmt.Sprintf("Image '%s' not found.\n. Do you want to pull the image now?", containerImage)
 			answer := c.prompter.Prompt(msg, true)
@@ -296,7 +296,7 @@ func (c *CreateCommand) askPullImage(ctx context.Context, containerImage string,
 			}
 		}
 
-		err := c.containerManager.PullImage(ctx, containerImage, opts.ContainerPlatform)
+		err := c.containerManager.PullImage(ctx, containerImage, opts.ContainerPlatform, opts.DryRun)
 		if err != nil {
 			return fmt.Errorf("failed to pull image '%s': %w", containerImage, err)
 		}
