@@ -6,12 +6,15 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/manifest"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
+
+const assembleCleanupTimeout = 30 * time.Second
 
 type AssembleOptions struct {
 	Items []manifest.Item
@@ -36,6 +39,7 @@ type AssembleCommand struct {
 	rmCmdRoot     *RmCommand
 	enterCmdRoot  *EnterCommand
 	progress      *ui.Progress
+	printer       *ui.Printer
 }
 
 func NewAssembleCommand(
@@ -55,6 +59,7 @@ func NewAssembleCommand(
 		rmCmdRoot:     NewRmCommand(cfg, cmRoot, prompter),
 		enterCmdRoot:  NewEnterCommand(cfg, cmRoot, progress, printer),
 		progress:      progress,
+		printer:       printer,
 	}
 }
 
@@ -162,6 +167,26 @@ func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, d
 		return err
 	}
 
+	success := false
+	defer func() {
+		if success || dryRun {
+			return
+		}
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), assembleCleanupTimeout)
+		defer cancel()
+		rmCmd := ac.rmCmd
+		if item.Root {
+			rmCmd = ac.rmCmdRoot
+		}
+		if _, rmErr := rmCmd.Execute(cleanupCtx, RmOptions{
+			NoTTY:          true,
+			Force:          true,
+			ContainerNames: []string{item.Name},
+		}); rmErr != nil {
+			ac.printer.PrintWarningln("warning: %s: %s", item.Name, rmErr)
+		}
+	}()
+
 	if !dryRun {
 		err = ac.setupBox(ctx, item)
 		if err != nil {
@@ -171,6 +196,7 @@ func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, d
 	}
 
 	ac.progress.Done()
+	success = true
 	return nil
 }
 
