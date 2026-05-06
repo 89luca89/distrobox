@@ -700,14 +700,14 @@ func (d *Docker) ImageExists(ctx context.Context, imageName string) bool {
 	return true
 }
 
-func (d *Docker) PullImage(ctx context.Context, imageName string, platform string) error {
+func (d *Docker) PullImage(ctx context.Context, imageName string, platform string, dryRun bool) error {
 	var args []string
 	if platform != "" {
 		args = []string{"pull", "--platform", platform, imageName}
 	} else {
 		args = []string{"pull", imageName}
 	}
-	_, err := d.run(ctx, args, runOptions{TailLogs: true})
+	_, err := d.run(ctx, args, runOptions{DryRun: dryRun, TailLogs: true})
 	return err
 }
 

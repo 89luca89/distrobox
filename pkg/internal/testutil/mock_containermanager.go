@@ -94,7 +94,7 @@ func (m *MockContainerManager) ImageExists(_ context.Context, imageName string) 
 	return false
 }
 
-func (m *MockContainerManager) PullImage(_ context.Context, imageName string, platform string) error {
-	m.Spy.PullImage = append(m.Spy.PullImage, []any{imageName, platform})
+func (m *MockContainerManager) PullImage(_ context.Context, imageName string, platform string, dryRun bool) error {
+	m.Spy.PullImage = append(m.Spy.PullImage, []any{imageName, platform, dryRun})
 	return nil
 }
