@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"math/rand/v2"
+	"time"
 
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/ui"
 )
+
+const ephemeralCleanupTimeout = 30 * time.Second
 
 type EphemeralOptions struct {
 	CreateOptions
@@ -22,6 +25,7 @@ type EphemeralCommand struct {
 	createCmd        *CreateCommand
 	enterCmd         *EnterCommand
 	rmCmd            *RmCommand
+	printer          *ui.Printer
 }
 
 func NewEphemeralCommand(
@@ -37,6 +41,7 @@ func NewEphemeralCommand(
 		createCmd:        NewCreateCommand(cfg, cm, progress, prompter),
 		enterCmd:         NewEnterCommand(cfg, cm, progress, printer),
 		rmCmd:            NewRmCommand(cfg, cm, prompter),
+		printer:          printer,
 	}
 }
 
@@ -53,9 +58,22 @@ func (c *EphemeralCommand) Execute(ctx context.Context, opts EphemeralOptions) e
 	createOpts.GenerateEntry = false
 	createOpts.DryRun = opts.DryRun
 	createOpts.NonInteractive = true
-	if _, err := c.createCmd.Execute(ctx, createOpts); err != nil {
-		return fmt.Errorf("failed to create ephemeral container: %w", err)
+	if _, createErr := c.createCmd.Execute(ctx, createOpts); createErr != nil {
+		return fmt.Errorf("ephemeral: %w", createErr)
 	}
+
+	defer func() {
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), ephemeralCleanupTimeout)
+		defer cancel()
+		rmOpts := RmOptions{
+			ContainerNames: []string{name},
+			Force:          true,
+			NoTTY:          true,
+		}
+		if _, rmErr := c.rmCmd.Execute(cleanupCtx, rmOpts); rmErr != nil {
+			c.printer.PrintWarningln("warning: %s: %s", name, rmErr)
+		}
+	}()
 
 	// enter into it
 	enterOpts := EnterOptions{
@@ -63,19 +81,8 @@ func (c *EphemeralCommand) Execute(ctx context.Context, opts EphemeralOptions) e
 		DryRun:        opts.DryRun,
 		// TODO: handle enter command
 	}
-	if _, err := c.enterCmd.Execute(ctx, enterOpts); err != nil {
-		return fmt.Errorf("failed to enter ephemeral container: %w", err)
-	}
-
-	// remove it
-	rmOpts := RmOptions{
-		ContainerNames: []string{name},
-		Force:          true,
-		NoTTY:          true,
-		All:            false,
-	}
-	if _, err := c.rmCmd.Execute(ctx, rmOpts); err != nil {
-		return fmt.Errorf("failed to remove ephemeral container: %w", err)
+	if _, enterErr := c.enterCmd.Execute(ctx, enterOpts); enterErr != nil {
+		return fmt.Errorf("ephemeral: %w", enterErr)
 	}
 
 	return nil

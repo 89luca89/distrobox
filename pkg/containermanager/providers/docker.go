@@ -842,6 +842,10 @@ func (d *Docker) waitForSetup(
 	printer *ui.Printer,
 ) error {
 	for {
+		if err := ctx.Err(); err != nil {
+			return fmt.Errorf("docker: %w", err)
+		}
+
 		// Check container is still running
 		inspectResult, err := d.InspectContainer(ctx, containerName)
 		if err != nil {
