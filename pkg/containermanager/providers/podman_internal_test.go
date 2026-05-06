@@ -53,6 +53,7 @@ func TestPodman_makeCreateCommand(t *testing.T) {
 		false,                         // unshareIPC
 		false,                         // unshareNetNS
 		false,                         // unshareProcess
+		false,                         // dryRun
 		userEnv,                       // userEnv
 		"/path/to/distrobox-init",     // distroboxInitPath
 		"/path/to/distrobox-export",   // distroboxExportPath
@@ -131,6 +132,7 @@ func TestPodman_makeCreateCommandRootful(t *testing.T) {
 		false,
 		false,
 		false,
+		false, // dryRun
 		userEnv,
 		"/path/to/distrobox-init",
 		"/path/to/distrobox-export",
@@ -179,6 +181,7 @@ func TestPodman_makeCreateCommandNoInit(t *testing.T) {
 		false,
 		false,
 		false,
+		false, // dryRun
 		userEnv,
 		"/path/to/distrobox-init",
 		"/path/to/distrobox-export",
@@ -228,6 +231,7 @@ func TestPodman_makeCreateCommandWithCrun(t *testing.T) {
 		false,
 		false,
 		false,
+		false, // dryRun
 		userEnv,
 		"/path/to/distrobox-init",
 		"/path/to/distrobox-export",
@@ -275,6 +279,7 @@ func TestPodman_makeCreateCommandWithPlatform(t *testing.T) {
 		false,
 		false,
 		false,
+		false, // dryRun
 		userEnv,
 		"/path/to/distrobox-init",
 		"/path/to/distrobox-export",
@@ -317,6 +322,7 @@ func TestPodman_makeCreateCommandWithCustomHome(t *testing.T) {
 		false,
 		false,
 		false,
+		false, // dryRun
 		userEnv,
 		"/path/to/distrobox-init",
 		"/path/to/distrobox-export",
@@ -374,6 +380,7 @@ func TestPodman_makeCreateCommandWithAdditionalFlags(t *testing.T) {
 		false,
 		false,
 		false,
+		false, // dryRun
 		userEnv,
 		"/path/to/distrobox-init",
 		"/path/to/distrobox-export",
@@ -423,6 +430,7 @@ func TestPodman_makeCreateCommandWithAdditionalPackages(t *testing.T) {
 		false,
 		false,
 		false,
+		false, // dryRun
 		userEnv,
 		"/path/to/distrobox-init",
 		"/path/to/distrobox-export",
@@ -523,6 +531,7 @@ func TestPodman_makeCreateCommandUnshareOptions(t *testing.T) {
 				tt.unshareIPC,
 				tt.unshareNetNS,
 				tt.unshareProcess,
+				false, // dryRun
 				userEnv,
 				"/path/to/distrobox-init",
 				"/path/to/distrobox-export",
