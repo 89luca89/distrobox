@@ -351,7 +351,7 @@ Alternatively, it is possible to specify preferences using ENV variables:
 Distrobox is packaged in the following distributions, if your distribution is
 on this list, you can refer to your repos for installation:
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/distrobox.svg)](https://repology.org/project/distrobox/versions)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/distrobox.svg?columns=5)](https://repology.org/project/distrobox/versions)
 
 Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30),
 [alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli),
