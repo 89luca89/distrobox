@@ -21,7 +21,7 @@ jobs:
       distrobox_changed: ${{ steps.check_file_changed.outputs.distrobox_changed }}
     steps:
 
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # Checkout as many commits as needed for the diff
           repository: 89luca89/distrobox
@@ -47,7 +47,7 @@ jobs:
       contents: write
     steps:
 
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           token: ${{ secrets.PAT }}
 
@@ -67,7 +67,7 @@ jobs:
 
           man/gen-man
 
-      - uses: stefanzweifel/git-auto-commit-action@v7
+      - uses: stefanzweifel/git-auto-commit-action@04702edda442b2e678b25b537cec683a1493fcb9 # v7.1.0
         with:
           branch: main
           commit_message: Automatic Man Page Update
