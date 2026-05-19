@@ -291,6 +291,106 @@ func TestAssembleCommand_ExampleManifest(t *testing.T) {
 	)
 }
 
+func TestAssembleCommand_Create_NoFlagsLeavesAllUnshareFalse(t *testing.T) {
+	mock := &testutil.MockContainerManager{}
+	cmd := newTestAssembleCommand(mock)
+
+	err := cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items:  []manifest.Item{{Name: "test-box", Image: "ubuntu:latest"}},
+		DryRun: true,
+	})
+	require.NoError(t, err)
+
+	require.Len(t, mock.Spy.Create, 1)
+	opts := mock.Spy.Create[0][0].(containermanager.CreateOptions)
+	assert.False(t, opts.Init)
+	assert.False(t, opts.UnshareNetNS)
+	assert.False(t, opts.UnshareDevsys)
+	assert.False(t, opts.UnshareGroups)
+	assert.False(t, opts.UnshareIPC)
+	assert.False(t, opts.UnshareProcess)
+}
+
+func TestAssembleCommand_Create_InitImpliesUnshareProcessAndGroups(t *testing.T) {
+	mock := &testutil.MockContainerManager{}
+	cmd := newTestAssembleCommand(mock)
+
+	err := cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items:  []manifest.Item{{Name: "test-box", Image: "ubuntu:latest", Init: true}},
+		DryRun: true,
+	})
+	require.NoError(t, err)
+
+	require.Len(t, mock.Spy.Create, 1)
+	opts := mock.Spy.Create[0][0].(containermanager.CreateOptions)
+	assert.True(t, opts.Init)
+	assert.True(t, opts.UnshareProcess, "init must imply unshare_process")
+	assert.True(t, opts.UnshareGroups, "init must imply unshare_groups")
+	assert.False(t, opts.UnshareNetNS)
+	assert.False(t, opts.UnshareDevsys)
+	assert.False(t, opts.UnshareIPC)
+}
+
+func TestAssembleCommand_Create_UnshareAllImpliesEveryUnshareFlag(t *testing.T) {
+	mock := &testutil.MockContainerManager{}
+	cmd := newTestAssembleCommand(mock)
+
+	err := cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items:  []manifest.Item{{Name: "test-box", Image: "ubuntu:latest", UnshareAll: true}},
+		DryRun: true,
+	})
+	require.NoError(t, err)
+
+	require.Len(t, mock.Spy.Create, 1)
+	opts := mock.Spy.Create[0][0].(containermanager.CreateOptions)
+	assert.False(t, opts.Init)
+	assert.True(t, opts.UnshareNetNS)
+	assert.True(t, opts.UnshareDevsys)
+	assert.True(t, opts.UnshareGroups)
+	assert.True(t, opts.UnshareIPC)
+	assert.True(t, opts.UnshareProcess)
+}
+
+func TestAssembleCommand_Create_InitCombinedWithExplicitUnshareNetnsUnionsBoth(t *testing.T) {
+	mock := &testutil.MockContainerManager{}
+	cmd := newTestAssembleCommand(mock)
+
+	err := cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items:  []manifest.Item{{Name: "test-box", Image: "ubuntu:latest", Init: true, UnshareNetns: true}},
+		DryRun: true,
+	})
+	require.NoError(t, err)
+
+	require.Len(t, mock.Spy.Create, 1)
+	opts := mock.Spy.Create[0][0].(containermanager.CreateOptions)
+	assert.True(t, opts.Init)
+	assert.True(t, opts.UnshareNetNS)
+	assert.True(t, opts.UnshareGroups)
+	assert.True(t, opts.UnshareProcess)
+	assert.False(t, opts.UnshareDevsys)
+	assert.False(t, opts.UnshareIPC)
+}
+
+func TestAssembleCommand_Create_IndividualUnshareDevsysPassesThroughAlone(t *testing.T) {
+	mock := &testutil.MockContainerManager{}
+	cmd := newTestAssembleCommand(mock)
+
+	err := cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items:  []manifest.Item{{Name: "test-box", Image: "ubuntu:latest", UnshareDevsys: true}},
+		DryRun: true,
+	})
+	require.NoError(t, err)
+
+	require.Len(t, mock.Spy.Create, 1)
+	opts := mock.Spy.Create[0][0].(containermanager.CreateOptions)
+	assert.False(t, opts.Init)
+	assert.True(t, opts.UnshareDevsys)
+	assert.False(t, opts.UnshareNetNS)
+	assert.False(t, opts.UnshareGroups)
+	assert.False(t, opts.UnshareIPC)
+	assert.False(t, opts.UnshareProcess)
+}
+
 func TestAssembleCommand_SetupBox_ExportedBins_InvalidExportPath(t *testing.T) {
 	invalidPaths := []string{
 		"",
