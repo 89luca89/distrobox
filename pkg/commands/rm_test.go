@@ -66,7 +66,7 @@ func TestRmCommand_Execute_CleanupRemovesExportedDesktopApp(t *testing.T) {
 	assert.NoFileExists(t, desktopFile, "cleanup should remove the exported desktop file")
 }
 
-func TestRmCommand_Execute_VerbosePropagatesThroughCleanup(t *testing.T) {
+func TestRmCommand_Execute_CleanupSucceedsWithVerbose(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
 
@@ -87,8 +87,12 @@ func TestRmCommand_Execute_VerbosePropagatesThroughCleanup(t *testing.T) {
 	}
 	cmd := newTestRmCommand(mock)
 
-	// With Verbose: true the cleanup path (including GenerateEntry delete)
-	// should still complete without error and remove exported artifacts.
+	// Smoke test for the Verbose=true cleanup path: the value is plumbed
+	// into GenerateEntryOptions.Verbose where it is currently a no-op in
+	// the delete branch, so it is not directly observable from outside.
+	// This test guards against regressions that would break the wiring
+	// (e.g., reverting to a hard-coded false or wiring it to the wrong
+	// option).
 	_, err := cmd.Execute(context.Background(), commands.RmOptions{
 		ContainerNames: []string{containerName},
 		Force:          true,
