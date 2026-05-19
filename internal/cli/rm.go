@@ -63,6 +63,7 @@ func rmAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 		Force:          cmd.Bool("force"),
 		All:            cmd.Bool("all"),
 		RemoveHome:     cmd.Bool("rm-home"),
+		Verbose:        cmd.Bool("verbose"),
 		ContainerNames: names,
 	}
 
