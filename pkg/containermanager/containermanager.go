@@ -2,6 +2,7 @@ package containermanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -14,6 +15,13 @@ import (
 const (
 	RunningStatus = "running"
 )
+
+// ErrContainerNotFound is returned by ContainerManager implementations when an
+// operation targets a container that does not exist (for example, an inspect
+// against a name that has not been created yet). Callers can use
+// [errors.Is] to detect this condition and produce a friendlier error message,
+// for example by suggesting `distrobox create` to the user.
+var ErrContainerNotFound = errors.New("container not found")
 
 type Container struct {
 	ID     string

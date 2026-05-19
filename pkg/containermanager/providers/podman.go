@@ -762,6 +762,9 @@ func (p *Podman) InspectContainer(ctx context.Context, containerName string) (*c
 	args := []string{"inspect", "--type", "container", "--format", "json", containerName}
 	output, err := p.run(ctx, args, runOptions{})
 	if err != nil {
+		if isContainerNotFoundError(err) {
+			return nil, fmt.Errorf("%w: %q", containermanager.ErrContainerNotFound, containerName)
+		}
 		return nil, err
 	}
 
@@ -771,7 +774,7 @@ func (p *Podman) InspectContainer(ctx context.Context, containerName string) (*c
 	}
 
 	if len(inspects) == 0 {
-		return nil, errors.New("container not found")
+		return nil, fmt.Errorf("%w: %q", containermanager.ErrContainerNotFound, containerName)
 	}
 
 	inspect := inspects[0]
@@ -815,7 +818,12 @@ func (p *Podman) generateEnterCommand(
 
 	containerConfig, err := p.InspectContainer(ctx, containerName)
 	if err != nil {
-		// TODO handle missing container
+		if errors.Is(err, containermanager.ErrContainerNotFound) {
+			return nil, nil, fmt.Errorf(
+				"container %q does not exist; create it first with: distrobox create --name %s",
+				containerName, containerName,
+			)
+		}
 		return nil, nil, err
 	}
 	// User selection

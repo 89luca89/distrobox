@@ -546,6 +546,9 @@ case "$cmd" in
     if [ -n "$FAKE_INSPECT_STDOUT" ]; then
       printf "%s" "$FAKE_INSPECT_STDOUT"
     fi
+    if [ -n "$FAKE_INSPECT_STDERR" ]; then
+      printf "%s" "$FAKE_INSPECT_STDERR" >&2
+    fi
     exit "${FAKE_INSPECT_EXIT:-0}"
     ;;
   start)
@@ -583,4 +586,60 @@ esac
 
 func dockerFakeInspectJSON(status string) string {
 	return `[{"Id":"container-id","State":{"Status":"` + status + `"},"Config":{"Labels":{"distrobox.unshare_groups":"0"},"Env":["HOME=/home/testuser","PATH=/usr/bin:/bin"]}}]`
+}
+
+func TestDocker_InspectContainer_ReturnsErrContainerNotFound_OnMissingContainer(t *testing.T) {
+	installFakeDockerRuntime(t)
+	t.Setenv("FAKE_INSPECT_EXIT", "1")
+	t.Setenv("FAKE_INSPECT_STDERR", "Error: No such object: missingbox")
+
+	_, err := NewDocker(false, "sudo", false).InspectContainer(t.Context(), "missingbox")
+
+	require.ErrorIs(t, err, containermanager.ErrContainerNotFound)
+	assert.Contains(t, err.Error(), "missingbox")
+}
+
+func TestDocker_InspectContainer_ReturnsErrContainerNotFound_OnEmptyInspectOutput(t *testing.T) {
+	installFakeDockerRuntime(t)
+	// Some docker daemons may exit 0 with an empty JSON array for unknown
+	// containers; that case must still map to ErrContainerNotFound.
+	t.Setenv("FAKE_INSPECT_STDOUT", "[]")
+
+	_, err := NewDocker(false, "sudo", false).InspectContainer(t.Context(), "missingbox")
+
+	require.Error(t, err)
+	assert.ErrorIs(t, err, containermanager.ErrContainerNotFound)
+}
+
+func TestDocker_InspectContainer_ReturnsRawError_OnDaemonDown(t *testing.T) {
+	installFakeDockerRuntime(t)
+	t.Setenv("FAKE_INSPECT_EXIT", "1")
+	t.Setenv("FAKE_INSPECT_STDERR", "Cannot connect to the Docker daemon at unix:///var/run/docker.sock")
+
+	_, err := NewDocker(false, "sudo", false).InspectContainer(t.Context(), "box")
+
+	require.Error(t, err)
+	require.NotErrorIs(t, err, containermanager.ErrContainerNotFound)
+	assert.Contains(t, err.Error(), "Cannot connect to the Docker daemon")
+}
+
+func TestDocker_Enter_SuggestsCreate_WhenContainerMissing(t *testing.T) {
+	installFakeDockerRuntime(t)
+	t.Setenv("FAKE_INSPECT_EXIT", "1")
+	t.Setenv("FAKE_INSPECT_STDERR", "Error: No such object: missingbox")
+
+	err := NewDocker(false, "sudo", false).Enter(
+		t.Context(),
+		containermanager.EnterOptions{
+			ContainerName: "missingbox",
+			NoTTY:         true,
+			NoWorkDir:     true,
+		},
+		ui.NewDevNullProgress(),
+		ui.NewPrinter(io.Discard, false),
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "does not exist")
+	assert.Contains(t, err.Error(), "distrobox create --name missingbox")
 }

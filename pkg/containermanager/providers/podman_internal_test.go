@@ -742,6 +742,9 @@ case "$cmd" in
     if [ -n "$FAKE_INSPECT_STDOUT" ]; then
       printf "%s" "$FAKE_INSPECT_STDOUT"
     fi
+    if [ -n "$FAKE_INSPECT_STDERR" ]; then
+      printf "%s" "$FAKE_INSPECT_STDERR" >&2
+    fi
     exit "${FAKE_INSPECT_EXIT:-0}"
     ;;
   start)
@@ -779,4 +782,60 @@ esac
 
 func podmanFakeInspectJSON(status string) string {
 	return `[{"Id":"container-id","State":{"Status":"` + status + `"},"Config":{"Labels":{"distrobox.unshare_groups":"0"},"Env":["HOME=/home/testuser","PATH=/usr/bin:/bin"]}}]`
+}
+
+func TestPodman_InspectContainer_ReturnsErrContainerNotFound_OnMissingContainer(t *testing.T) {
+	installFakePodmanRuntime(t)
+	t.Setenv("FAKE_INSPECT_EXIT", "125")
+	t.Setenv("FAKE_INSPECT_STDERR", `Error: inspecting object: no such container "missingbox"`)
+
+	_, err := NewPodman(false, "sudo", false).InspectContainer(t.Context(), "missingbox")
+
+	require.ErrorIs(t, err, containermanager.ErrContainerNotFound)
+	assert.Contains(t, err.Error(), "missingbox")
+}
+
+func TestPodman_InspectContainer_ReturnsErrContainerNotFound_OnEmptyInspectOutput(t *testing.T) {
+	installFakePodmanRuntime(t)
+	// Some podman versions may exit 0 with an empty JSON array for unknown
+	// containers; that case must still map to ErrContainerNotFound.
+	t.Setenv("FAKE_INSPECT_STDOUT", "[]")
+
+	_, err := NewPodman(false, "sudo", false).InspectContainer(t.Context(), "missingbox")
+
+	require.Error(t, err)
+	assert.ErrorIs(t, err, containermanager.ErrContainerNotFound)
+}
+
+func TestPodman_InspectContainer_ReturnsRawError_OnDaemonDown(t *testing.T) {
+	installFakePodmanRuntime(t)
+	t.Setenv("FAKE_INSPECT_EXIT", "125")
+	t.Setenv("FAKE_INSPECT_STDERR", "Error: unable to connect to Podman socket: Get \"http://d/v4.0.0/libpod/_ping\": dial unix /run/podman/podman.sock: connect: no such file or directory")
+
+	_, err := NewPodman(false, "sudo", false).InspectContainer(t.Context(), "box")
+
+	require.Error(t, err)
+	require.NotErrorIs(t, err, containermanager.ErrContainerNotFound)
+	assert.Contains(t, err.Error(), "unable to connect to Podman socket")
+}
+
+func TestPodman_Enter_SuggestsCreate_WhenContainerMissing(t *testing.T) {
+	installFakePodmanRuntime(t)
+	t.Setenv("FAKE_INSPECT_EXIT", "125")
+	t.Setenv("FAKE_INSPECT_STDERR", `Error: inspecting object: no such container "missingbox"`)
+
+	err := NewPodman(false, "sudo", false).Enter(
+		t.Context(),
+		containermanager.EnterOptions{
+			ContainerName: "missingbox",
+			NoTTY:         true,
+			NoWorkDir:     true,
+		},
+		ui.NewDevNullProgress(),
+		ui.NewPrinter(io.Discard, false),
+	)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "does not exist")
+	assert.Contains(t, err.Error(), "distrobox create --name missingbox")
 }
