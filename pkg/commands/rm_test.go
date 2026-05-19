@@ -25,7 +25,9 @@ func newTestRmCommand(mock *testutil.MockContainerManager) *commands.RmCommand {
 }
 
 // writeExportedDesktopApp writes a minimal desktop file that
-// findExportedDesktopApps will match for the given containerName.
+// findExportedDesktopApps will match for the given containerName (i.e.
+// the per-app desktop entries created by distrobox-export, not the
+// one created by `distrobox generate-entry`).
 func writeExportedDesktopApp(t *testing.T, userHome, containerName string) string {
 	t.Helper()
 	appsDir := filepath.Join(userHome, ".local", "share", "applications")
@@ -36,12 +38,25 @@ func writeExportedDesktopApp(t *testing.T, userHome, containerName string) strin
 	return desktopFile
 }
 
+// writeGenerateEntryDesktop writes the desktop file produced by
+// `distrobox generate-entry <name>` so the generate-entry delete
+// branch (invoked from RmCommand.cleanup) can be observed.
+func writeGenerateEntryDesktop(t *testing.T, userHome, containerName string) string {
+	t.Helper()
+	appsDir := filepath.Join(userHome, ".local", "share", "applications")
+	require.NoError(t, os.MkdirAll(appsDir, 0o755))
+	entryFile := filepath.Join(appsDir, containerName+".desktop")
+	require.NoError(t, os.WriteFile(entryFile, []byte("[Desktop Entry]\nName="+containerName+"\n"), 0o644))
+	return entryFile
+}
+
 func TestRmCommand_Execute_CleanupRemovesExportedDesktopApp(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("XDG_DATA_HOME", filepath.Join(tempHome, ".local", "share"))
 
 	containerName := "test-rm-cleanup"
-	desktopFile := writeExportedDesktopApp(t, tempHome, containerName)
+	exportedDesktopFile := writeExportedDesktopApp(t, tempHome, containerName)
 
 	mock := &testutil.MockContainerManager{
 		ListContainersResult: []containermanager.Container{
@@ -63,15 +78,16 @@ func TestRmCommand_Execute_CleanupRemovesExportedDesktopApp(t *testing.T) {
 		NoTTY:          true,
 	})
 	require.NoError(t, err)
-	assert.NoFileExists(t, desktopFile, "cleanup should remove the exported desktop file")
+	assert.NoFileExists(t, exportedDesktopFile, "cleanup should remove the per-app exported desktop file")
 }
 
-func TestRmCommand_Execute_CleanupSucceedsWithVerbose(t *testing.T) {
+func TestRmCommand_Execute_CleanupRemovesGenerateEntryDesktop(t *testing.T) {
 	tempHome := t.TempDir()
 	t.Setenv("HOME", tempHome)
+	t.Setenv("XDG_DATA_HOME", filepath.Join(tempHome, ".local", "share"))
 
-	containerName := "test-rm-verbose"
-	desktopFile := writeExportedDesktopApp(t, tempHome, containerName)
+	containerName := "test-rm-genentry"
+	generateEntryFile := writeGenerateEntryDesktop(t, tempHome, containerName)
 
 	mock := &testutil.MockContainerManager{
 		ListContainersResult: []containermanager.Container{
@@ -87,18 +103,11 @@ func TestRmCommand_Execute_CleanupSucceedsWithVerbose(t *testing.T) {
 	}
 	cmd := newTestRmCommand(mock)
 
-	// Smoke test for the Verbose=true cleanup path: the value is plumbed
-	// into GenerateEntryOptions.Verbose where it is currently a no-op in
-	// the delete branch, so it is not directly observable from outside.
-	// This test guards against regressions that would break the wiring
-	// (e.g., reverting to a hard-coded false or wiring it to the wrong
-	// option).
 	_, err := cmd.Execute(context.Background(), commands.RmOptions{
 		ContainerNames: []string{containerName},
 		Force:          true,
 		NoTTY:          true,
-		Verbose:        true,
 	})
 	require.NoError(t, err)
-	assert.NoFileExists(t, desktopFile, "cleanup should remove the exported desktop file when verbose is true")
+	assert.NoFileExists(t, generateEntryFile, "cleanup should invoke GenerateEntry delete to remove the <name>.desktop file")
 }
