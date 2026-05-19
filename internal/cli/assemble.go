@@ -36,12 +36,15 @@ func newAssembleCommand(cfg *config.Values) *cli.Command {
 	distrobox assemble create
 	distrobox assemble rm
 	distrobox assemble create --file /path/to/file.ini
+	distrobox assemble create /path/to/file.ini
 	distrobox assemble rm --file /path/to/file.ini
+	distrobox assemble rm /path/to/file.ini
 	distrobox assemble create --replace --file /path/to/file.ini
 
 Options:
 
 	--file:			path or URL to the distrobox manifest/ini file
+				(may also be supplied as a positional argument; --file takes precedence)
 	--name/-n:		run against a single entry in the manifest/ini file
 	--replace/-R:		replace already existing distroboxes with matching names
 	--dry-run/-d:		only print the container manager command generated
@@ -50,7 +53,8 @@ Options:
 `,
 		Commands: []*cli.Command{
 			{
-				Name: "create",
+				Name:      "create",
+				ArgsUsage: "[manifest-file]",
 				Flags: []cli.Flag{
 					fileFlag,
 					nameFlag,
@@ -66,7 +70,8 @@ Options:
 				},
 			},
 			{
-				Name: "rm",
+				Name:      "rm",
+				ArgsUsage: "[manifest-file]",
 				Flags: []cli.Flag{
 					fileFlag,
 					nameFlag,
@@ -80,19 +85,36 @@ Options:
 	}
 }
 
+// defaultManifestPath is the path used when neither --file nor a positional
+// argument is provided to `distrobox assemble`.
+const defaultManifestPath = "./distrobox.ini"
+
+// resolveManifestPath returns the manifest file path to use for an assemble
+// invocation. Precedence is:
+//  1. the value of the --file flag, if non-empty;
+//  2. the first positional argument, if any;
+//  3. the default manifest path ("./distrobox.ini").
+//
+// This mirrors the behavior of the original Bash `distrobox-assemble` script
+// while keeping the explicit `--file` flag dominant over the implicit
+// positional argument.
+func resolveManifestPath(flagValue string, positional []string) string {
+	if flagValue != "" {
+		return flagValue
+	}
+	if len(positional) > 0 && positional[0] != "" {
+		return positional[0]
+	}
+	return defaultManifestPath
+}
+
 func assembleAction(ctx context.Context, cmd *cli.Command, cfg *config.Values, deleteFlag bool) error {
 	containerManager, ok := ctx.Value(containerManagerKey).(containermanager.ContainerManager)
 	if !ok {
 		return errors.New("container manager not found in context")
 	}
 
-	// TODO: handle file name as a positional argument
-	// https://github.com/89luca89/distrobox-next/blob/07b3abf2015effafc5596b9dc7f02c35a17eb8a7/distrobox-assemble#L205
-
-	manifestFilePath := cmd.String("file")
-	if manifestFilePath == "" {
-		manifestFilePath = "./distrobox.ini"
-	}
+	manifestFilePath := resolveManifestPath(cmd.String("file"), cmd.Args().Slice())
 
 	manifest, err := manifest.Parse(ctx, manifestFilePath)
 	if err != nil {
