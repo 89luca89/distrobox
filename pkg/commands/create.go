@@ -141,7 +141,7 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) (*Creat
 			UnshareIPC:              opts.UnshareIpc,
 			UnshareNetNS:            opts.UnshareNetNs,
 			UnshareProcess:          opts.UnshareProcess,
-			AdditionalFlags:         opts.AdditionalFlags,
+			AdditionalFlags:         splitFields(opts.AdditionalFlags),
 			AdditionalVolumes:       opts.AdditionalVolumes,
 			AdditionalPackages:      opts.AdditionalPackages,
 			ContainerPreInitHook:    opts.ContainerPreInitHook,
@@ -283,6 +283,18 @@ func (c *CreateCommand) clone(ctx context.Context, containerName string) (string
 	}
 
 	return commitTag, nil
+}
+
+// splitFields word-splits each entry of in on whitespace. A single CLI
+// invocation like --additional-flags "--label=a=1 --label=b=2" arrives here as
+// one slice element with embedded spaces; podman would parse that as a single
+// flag value. Splitting matches the manifest parser's behavior.
+func splitFields(in []string) []string {
+	out := make([]string, 0, len(in))
+	for _, v := range in {
+		out = append(out, strings.Fields(v)...)
+	}
+	return out
 }
 
 func (c *CreateCommand) askPullImage(ctx context.Context, containerImage string, opts CreateOptions) error {
