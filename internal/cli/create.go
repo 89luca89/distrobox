@@ -170,7 +170,7 @@ may require additional packages depending on the container image: https://github
 
 func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 	if cmd.Bool("compatibility") {
-		err := showCompatibility()
+		err := showCompatibility(ctx)
 		if err != nil {
 			return fmt.Errorf("compatibility check failed: %w", err)
 		}
@@ -233,12 +233,6 @@ func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) err
 		printCreateCompleted(progress, result.ContainerName, opts.Rootful)
 	}
 
-	return nil
-}
-
-func showCompatibility() error {
-	// TODO: fetch compatibility
-	// https://github.com/89luca89/distrobox/blob/main/distrobox-create#L254
 	return nil
 }
 
