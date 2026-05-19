@@ -25,6 +25,7 @@ type UpgradeCommand struct {
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
 	enterCmd         *EnterCommand
+	printer          *ui.Printer
 	prompter         *ui.Prompter
 }
 
@@ -38,11 +39,15 @@ func NewUpgradeCommand(
 	printer *ui.Printer,
 	prompter *ui.Prompter,
 ) *UpgradeCommand {
+	if printer == nil {
+		printer = ui.NewDevNullPrinter()
+	}
 	return &UpgradeCommand{
 		cfg:              cfg,
 		containerManager: cm,
 		listCmd:          NewListCommand(cfg, cm),
 		enterCmd:         NewEnterCommand(cfg, cm, progress, printer),
+		printer:          printer,
 		prompter:         prompter,
 	}
 }
@@ -89,8 +94,7 @@ func (c *UpgradeCommand) Execute(ctx context.Context, opts *UpgradeOptions) erro
 
 	for _, name := range containerNames {
 		if err := c.upgradeContainer(ctx, name); err != nil {
-			//nolint:forbidigo // FIXME: waiting for the logger implementation
-			fmt.Printf("error upgrading %s: %s\n", name, err)
+			c.printer.PrintErrorln("error upgrading %s: %s", name, err)
 
 			lastErr = err
 

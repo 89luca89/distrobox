@@ -24,6 +24,7 @@ type RmCommand struct {
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
 	generateEntryCmd *GenerateEntryCommand
+	printer          *ui.Printer
 	prompter         *ui.Prompter
 }
 
@@ -38,8 +39,12 @@ type RmOptions struct {
 func NewRmCommand(
 	cfg *config.Values,
 	cm containermanager.ContainerManager,
+	printer *ui.Printer,
 	prompter *ui.Prompter,
 ) *RmCommand {
+	if printer == nil {
+		printer = ui.NewDevNullPrinter()
+	}
 	listCmd := NewListCommand(cfg, cm)
 	generateEntryCmd := NewGenerateEntryCommand(cfg, listCmd)
 	return &RmCommand{
@@ -47,6 +52,7 @@ func NewRmCommand(
 		containerManager: cm,
 		listCmd:          listCmd,
 		generateEntryCmd: generateEntryCmd,
+		printer:          printer,
 		prompter:         prompter,
 	}
 }
@@ -70,8 +76,7 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 	for _, currentDistrobox := range distroboxesToRemove {
 		err := c.removeContainer(ctx, currentDistrobox, options.Force, options.NoTTY, userHome)
 		if err != nil {
-			//nolint:forbidigo // waiting for the logger implementation
-			fmt.Printf("error deleting %s: %s", currentDistrobox.Name, err)
+			c.printer.PrintErrorln("error deleting %s: %s", currentDistrobox.Name, err)
 		}
 		removedDistroboxes = append(removedDistroboxes, currentDistrobox)
 	}
@@ -128,14 +133,13 @@ func (c *RmCommand) removeContainer(
 
 func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string) {
 	bins := findExportedBinaries(userHome, containerName)
-	desktopApps := findExportedDesktopApps(userHome, containerName)
+	desktopApps := c.findExportedDesktopApps(userHome, containerName)
 
 	toDelete := slices.Concat(bins, desktopApps)
 
 	for _, path := range toDelete {
 		if err := os.Remove(path); err != nil {
-			//nolint:forbidigo // FIXME: use logger instead of fmt.Printf when available
-			fmt.Printf("warning: failed to remove file '%s': %s\n", path, err)
+			c.printer.PrintWarningln("warning: failed to remove file '%s': %s", path, err)
 		}
 	}
 
@@ -149,8 +153,7 @@ func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string)
 		},
 	)
 	if err != nil {
-		//nolint:forbidigo // FIXME: use logger instead of fmt.Printf when available
-		fmt.Printf("warning: failed to remove desktop entry for container '%s': %s\n", containerName, err)
+		c.printer.PrintWarningln("warning: failed to remove desktop entry for container '%s': %s", containerName, err)
 	}
 }
 
@@ -212,13 +215,12 @@ func findExportedBinaries(userHome, containerName string) []string {
 	return files
 }
 
-func findExportedDesktopApps(userHome, containerName string) []string {
+func (c *RmCommand) findExportedDesktopApps(userHome, containerName string) []string {
 	appsPattern := filepath.Join(userHome, ".local", "share", "applications", containerName+"*")
 
 	matches, err := filepath.Glob(appsPattern)
 	if err != nil {
-		//nolint:forbidigo // FIXME: use logger instead of fmt.Printf when available
-		fmt.Printf("warning: failed to glob desktop apps: %s\n", err)
+		c.printer.PrintWarningln("warning: failed to glob desktop apps: %s", err)
 		return []string{}
 	}
 

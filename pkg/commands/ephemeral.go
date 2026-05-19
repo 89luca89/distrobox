@@ -40,7 +40,7 @@ func NewEphemeralCommand(
 		containerManager: cm,
 		createCmd:        NewCreateCommand(cfg, cm, progress, prompter),
 		enterCmd:         NewEnterCommand(cfg, cm, progress, printer),
-		rmCmd:            NewRmCommand(cfg, cm, prompter),
+		rmCmd:            NewRmCommand(cfg, cm, printer, prompter),
 		printer:          printer,
 	}
 }

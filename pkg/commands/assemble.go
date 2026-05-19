@@ -53,10 +53,10 @@ func NewAssembleCommand(
 	return &AssembleCommand{
 		cfg:           cfg,
 		createCmd:     NewCreateCommand(cfg, cm, ui.NewDevNullProgress(), prompter),
-		rmCmd:         NewRmCommand(cfg, cm, prompter),
+		rmCmd:         NewRmCommand(cfg, cm, printer, prompter),
 		enterCmd:      NewEnterCommand(cfg, cm, progress, printer),
 		createCmdRoot: NewCreateCommand(cfg, cmRoot, ui.NewDevNullProgress(), prompter),
-		rmCmdRoot:     NewRmCommand(cfg, cmRoot, prompter),
+		rmCmdRoot:     NewRmCommand(cfg, cmRoot, printer, prompter),
 		enterCmdRoot:  NewEnterCommand(cfg, cmRoot, progress, printer),
 		progress:      progress,
 		printer:       printer,

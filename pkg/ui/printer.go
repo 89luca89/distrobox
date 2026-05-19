@@ -17,6 +17,15 @@ func NewPrinter(writer io.Writer, colorful bool) *Printer {
 	}
 }
 
+// NewDevNullPrinter returns a printer that discards all output. Useful as a
+// safe default when a caller does not need to surface printed messages.
+func NewDevNullPrinter() *Printer {
+	return &Printer{
+		writer:   io.Discard,
+		colorful: false,
+	}
+}
+
 func (p *Printer) Print(msg string, a ...any) {
 	fmt.Fprintf(p.writer, msg, a...)
 }

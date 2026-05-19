@@ -66,9 +66,10 @@ func rmAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 		ContainerNames: names,
 	}
 
+	printer := ui.NewPrinter(os.Stdout, true)
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	rmCmd := commands.NewRmCommand(cfg, containerManager, prompter)
+	rmCmd := commands.NewRmCommand(cfg, containerManager, printer, prompter)
 	_, err := rmCmd.Execute(ctx, options)
 	if err != nil {
 		return fmt.Errorf("failed to execute rm command: %w", err)
