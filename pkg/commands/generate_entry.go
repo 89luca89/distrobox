@@ -47,31 +47,14 @@ func NewGenerateEntryCommand(cfg *pkgconfig.Values, listCommand *ListCommand) *G
 func (c *GenerateEntryCommand) Execute(
 	ctx context.Context,
 	opts *GenerateEntryOptions) error {
-	// Determine whether is a single or all entries generation
-	// If all is set, fetch the list of all containers
-	// If not, use the provided container name or the default one
-	var containerNames []string
-	var icon string
-	switch {
-	case opts.All:
-		// Generate entries for all containers
-		listResult, err := c.listCommand.Execute(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to list containers: %w", err)
-		}
-
-		containerNames = make([]string, 0, len(listResult.Containers))
-		for _, container := range listResult.Containers {
-			containerNames = append(containerNames, container.Name)
-		}
-		// Set icon to auto for all entries
-		icon = "auto"
-	case opts.ContainerName != "":
-		containerNames = []string{opts.ContainerName}
-		icon = opts.Icon
-	default:
-		containerNames = []string{defaultContainerName}
-		icon = opts.Icon
+	// containerImages maps a container name to its image; it is consulted
+	// when icon == "auto" to pick the matching distro logo. The map may be
+	// missing entries when the container manager can't be reached (e.g. in
+	// tests), in which case the container name itself is used as the
+	// distro hint.
+	containerNames, containerImages, icon, err := c.resolveTargets(ctx, opts)
+	if err != nil {
+		return err
 	}
 
 	// Determine the desktop entry base dir
@@ -104,12 +87,49 @@ func (c *GenerateEntryCommand) Execute(
 
 	// Create the desktop entries for all the containers
 	for _, containerName := range containerNames {
-		if err := c.createEntry(containerName, icon, desktopEntryBaseDir, distroboxPath, opts.Root); err != nil {
+		// Prefer the container's image as the distro hint when known;
+		// fall back to the container name so auto-detection still has
+		// something to match against.
+		distroHint := containerName
+		if image, ok := containerImages[containerName]; ok && image != "" {
+			distroHint = image
+		}
+		if err := c.createEntry(containerName, icon, distroHint, desktopEntryBaseDir, distroboxPath, opts.Root); err != nil {
 			return fmt.Errorf("failed to create desktop entry for container %s: %w", containerName, err)
 		}
 	}
 
 	return nil
+}
+
+// resolveTargets determines which containers need entries written, which
+// images back them (if known), and which icon string to use.
+//
+// When All is set the container manager is queried so the resulting images
+// can later feed distro auto-detection. For single-container modes the icon
+// comes from the user.
+func (c *GenerateEntryCommand) resolveTargets(
+	ctx context.Context,
+	opts *GenerateEntryOptions,
+) ([]string, map[string]string, string, error) {
+	switch {
+	case opts.All:
+		listResult, err := c.listCommand.Execute(ctx)
+		if err != nil {
+			return nil, nil, "", fmt.Errorf("failed to list containers: %w", err)
+		}
+		names := make([]string, 0, len(listResult.Containers))
+		images := make(map[string]string, len(listResult.Containers))
+		for _, container := range listResult.Containers {
+			names = append(names, container.Name)
+			images[container.Name] = container.Image
+		}
+		return names, images, "auto", nil
+	case opts.ContainerName != "":
+		return []string{opts.ContainerName}, nil, opts.Icon, nil
+	default:
+		return []string{defaultContainerName}, nil, opts.Icon, nil
+	}
 }
 
 func (c *GenerateEntryCommand) deleteEntry(containerName string, desktopEntryBaseDir string) error {
@@ -127,6 +147,7 @@ func (c *GenerateEntryCommand) deleteEntry(containerName string, desktopEntryBas
 func (c *GenerateEntryCommand) createEntry(
 	containerName string,
 	icon string,
+	distroHint string,
 	desktopEntryBaseDir string,
 	distroboxPath string,
 	root bool,
@@ -137,7 +158,7 @@ func (c *GenerateEntryCommand) createEntry(
 	}
 
 	entryFilePath := c.getEntryFilePath(desktopEntryAppsDir, containerName)
-	data := c.composeDesktopEntryData(containerName, icon, distroboxPath, root)
+	data := c.composeDesktopEntryData(containerName, icon, distroHint, distroboxPath, root)
 	if err := c.writeDesktopEntryFile(entryFilePath, data); err != nil {
 		return fmt.Errorf("failed to write desktop entry file for container %s: %w", containerName, err)
 	}
@@ -158,10 +179,14 @@ func (c *GenerateEntryCommand) ensureDesktopEntryDirExists(desktopEntryBaseDir s
 	return desktopEntryAppsDir, desktopEntryIconsDir, nil
 }
 
-// composeDesktopEntry generates the desktop entry for a single container
+// composeDesktopEntry generates the desktop entry for a single container.
+// distroHint is consulted only when icon == "auto" to pick a distro-specific
+// logo; pass the container's image name when available, otherwise the
+// container name itself.
 func (c *GenerateEntryCommand) composeDesktopEntryData(
 	containerName string,
 	icon string,
+	distroHint string,
 	distroboxPath string,
 	root bool,
 ) map[string]string {
@@ -174,7 +199,7 @@ func (c *GenerateEntryCommand) composeDesktopEntryData(
 		"entry_name":     getEntryName(containerName),
 		"container_name": containerName,
 		"distrobox_path": distroboxPath,
-		"icon":           c.getDesktopIcon(icon),
+		"icon":           c.getDesktopIcon(icon, distroHint),
 		"extra_flags":    extraFlags,
 	}
 }
@@ -219,13 +244,19 @@ func (c *GenerateEntryCommand) getEntryFilePath(desktopEntryDir, containerName s
 	return filepath.Join(desktopEntryDir, containerName+".desktop")
 }
 
-func (c *GenerateEntryCommand) getDesktopIcon(
-	icon string,
-) string {
-	if icon == "auto" {
-		// TODO: detect the icon for the current container's distro
-		return defaultEntryIcon
+// getDesktopIcon resolves the icon URL written to the desktop entry.
+//
+// When the caller passes a concrete icon it is returned unchanged. When the
+// special value "auto" is used, distroHint (typically the container's image
+// name, falling back to its name) is matched against the known distro icon
+// map. The generic terminal icon is returned if no distro can be detected.
+func (c *GenerateEntryCommand) getDesktopIcon(icon, distroHint string) string {
+	if icon != "auto" {
+		return icon
 	}
 
-	return icon
+	if url := lookupDistroIcon(distroHint); url != "" {
+		return url
+	}
+	return defaultEntryIcon
 }
