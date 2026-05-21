@@ -16,7 +16,11 @@ const ephemeralCleanupTimeout = 30 * time.Second
 type EphemeralOptions struct {
 	CreateOptions
 
-	DryRun bool
+	// CustomCommand is the command (and its arguments) to execute inside the
+	// ephemeral container instead of the default login shell. It is forwarded
+	// to the underlying enter command.
+	CustomCommand []string
+	DryRun        bool
 }
 
 type EphemeralCommand struct {
@@ -78,8 +82,8 @@ func (c *EphemeralCommand) Execute(ctx context.Context, opts EphemeralOptions) e
 	// enter into it
 	enterOpts := EnterOptions{
 		ContainerName: name,
+		CustomCommand: opts.CustomCommand,
 		DryRun:        opts.DryRun,
-		// TODO: handle enter command
 	}
 	if _, enterErr := c.enterCmd.Execute(ctx, enterOpts); enterErr != nil {
 		return fmt.Errorf("ephemeral: %w", enterErr)
