@@ -30,10 +30,15 @@ type ContainerManagerSpy struct {
 // CloneAsRoot returns a distinct MockContainerManager so tests can
 // distinguish calls made on the rootless vs root variant. The clone is
 // cached on RootClone after first creation.
+//
+// ExistsFn, when non-nil, overrides the default Exists behavior (which
+// always returns false). Tests can use it to simulate name collisions
+// or other lookup scenarios.
 type MockContainerManager struct {
 	Spy       ContainerManagerSpy
 	Root      bool
 	RootClone *MockContainerManager
+	ExistsFn  func(containerName string) bool
 }
 
 func (m *MockContainerManager) Name() string {
@@ -44,7 +49,12 @@ func (m *MockContainerManager) Name() string {
 func (m *MockContainerManager) CloneAsRoot() containermanager.ContainerManager {
 	m.Spy.CloneAsRoot = append(m.Spy.CloneAsRoot, []any{})
 	if m.RootClone == nil {
-		m.RootClone = &MockContainerManager{Root: true}
+		// Propagate behavior hooks (e.g. ExistsFn) to the clone so tests
+		// see consistent results between the rootless and root variants.
+		m.RootClone = &MockContainerManager{
+			Root:     true,
+			ExistsFn: m.ExistsFn,
+		}
 	}
 	return m.RootClone
 }
@@ -71,6 +81,9 @@ func (m *MockContainerManager) Remove(_ context.Context, containerName string, o
 
 func (m *MockContainerManager) Exists(_ context.Context, containerName string) bool {
 	m.Spy.Exists = append(m.Spy.Exists, []any{containerName})
+	if m.ExistsFn != nil {
+		return m.ExistsFn(containerName)
+	}
 	return false
 }
 
