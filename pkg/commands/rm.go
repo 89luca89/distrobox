@@ -32,6 +32,7 @@ type RmOptions struct {
 	Force          bool
 	All            bool
 	RemoveHome     bool
+	Verbose        bool
 	ContainerNames []string
 }
 
@@ -68,7 +69,7 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 
 	var removedDistroboxes []containermanager.Container
 	for _, currentDistrobox := range distroboxesToRemove {
-		err := c.removeContainer(ctx, currentDistrobox, options.Force, options.NoTTY, userHome)
+		err := c.removeContainer(ctx, currentDistrobox, options.Force, options.NoTTY, options.Verbose, userHome)
 		if err != nil {
 			//nolint:forbidigo // waiting for the logger implementation
 			fmt.Printf("error deleting %s: %s", currentDistrobox.Name, err)
@@ -84,6 +85,7 @@ func (c *RmCommand) removeContainer(
 	container containermanager.Container,
 	force bool,
 	noTTY bool,
+	verbose bool,
 	userHome string,
 ) error {
 	forceRemove := force
@@ -121,12 +123,12 @@ func (c *RmCommand) removeContainer(
 		return fmt.Errorf("failed to remove container: %w", err)
 	}
 
-	c.cleanup(ctx, userHome, container.Name)
+	c.cleanup(ctx, userHome, container.Name, verbose)
 
 	return nil
 }
 
-func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string) {
+func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string, verbose bool) {
 	bins := findExportedBinaries(userHome, containerName)
 	desktopApps := findExportedDesktopApps(userHome, containerName)
 
@@ -144,8 +146,7 @@ func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string)
 		&GenerateEntryOptions{
 			ContainerName: containerName,
 			Delete:        true,
-			// TODO: handle verbose
-			Verbose: false,
+			Verbose:       verbose,
 		},
 	)
 	if err != nil {
