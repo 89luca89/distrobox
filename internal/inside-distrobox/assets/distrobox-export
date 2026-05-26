@@ -572,10 +572,9 @@ export_application()
 				> "/run/host${host_home}/.local/share/applications/${desktop_home_file}"
 		# in the end we add the final quote we've opened in the "container_command_prefix"
 
-		if ! grep -q "StartupWMClass" "/run/host${host_home}/.local/share/applications/${desktop_home_file}"; then
-			printf "StartupWMClass=%s\n" "${exported_app}" >> "\
-/run/host${host_home}/.local/share/applications/${desktop_home_file}"
-		fi
+		sed -i -e '/StartupWMClass=/d' -e "/\[Desktop Entry\]/a\StartupWMClass=${desktop_original_file%.desktop}" \
+			"/run/host${host_home}/.local/share/applications/${desktop_home_file}"
+
 		# In case of an icon in a non canonical path, we need to replace the path
 		# in the desktop file.
 		if [ -n "${icon_file_absolute_path}" ]; then
