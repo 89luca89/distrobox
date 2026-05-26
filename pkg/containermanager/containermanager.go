@@ -72,8 +72,18 @@ type RmOptions struct {
 	ContainerHome string
 }
 
+// IsDistrobox returns true if any label key or value contains "distrobox".
+// We can't just check manager=distrobox because users can override it with
+// --additional-flags --label=manager=foo (apx does this). The
+// distrobox.unshare_groups label is always set on creation, so the
+// substring match catches those containers too.
 func (c Container) IsDistrobox() bool {
-	return c.Labels["manager"] == "distrobox"
+	for key, value := range c.Labels {
+		if strings.Contains(key, "distrobox") || strings.Contains(value, "distrobox") {
+			return true
+		}
+	}
+	return false
 }
 
 func (c Container) IsRunning() bool {
