@@ -705,6 +705,45 @@ if [ "${container_status}" != "running" ]; then
 	# Here, we save the timestamp before launching the start command, so we can
 	# be sure we're working with this very same session of logs later.
 	log_timestamp="$(date -u +%FT%T).000000000+00:00"
+	# On macOS with Docker Desktop + VirtioFS, only paths under $HOME and a
+	# few system directories (/private, /Volumes) are shared with the Docker
+	# VM.  If distrobox-init lives outside those paths (e.g. /usr/local/bin
+	# from Homebrew), Docker cannot find the bind-mount source in the VM and
+	# creates an empty directory placeholder instead, causing the container
+	# to fail with "exec: /usr/bin/entrypoint: is a directory".
+	#
+	# Detect this by reading the stored bind-mount source from
+	# .HostConfig.Binds (the container config, not .Mounts which is empty
+	# for stopped containers) and checking whether it is accessible as a
+	# file.  If it is not, copy the current distrobox-init to
+	# ~/.local/share/distrobox/ (always under $HOME, always shared) and
+	# write it to the stored source path so the bind-mount resolves to a
+	# file when the container starts.
+	entrypoint_source="$(${container_manager} inspect --type container \
+		--format '{{range .HostConfig.Binds}}{{printf "%s\n" .}}{{end}}' \
+		"${container_name}" 2> /dev/null |
+		grep ':/usr/bin/entrypoint' | cut -d: -f1)"
+	# On macOS with Docker Desktop, .HostConfig.Binds may store paths with a
+	# /host_mnt prefix (Docker Desktop's VirtioFS mount prefix in the Linux VM).
+	# Strip the prefix to get the actual macOS path for the file-existence check.
+	entrypoint_source_check="${entrypoint_source}"
+	if [ "$(uname -s)" = "Darwin" ]; then
+		entrypoint_source_check="${entrypoint_source_check#/host_mnt}"
+	fi
+	if [ -n "${entrypoint_source}" ] && [ ! -f "${entrypoint_source_check}" ]; then
+		distrobox_entrypoint_path="$(cd "$(dirname "${0}")" && pwd)/distrobox-init"
+		[ ! -f "${distrobox_entrypoint_path}" ] &&
+			distrobox_entrypoint_path="$(command -v distrobox-init 2> /dev/null)"
+		if [ -f "${distrobox_entrypoint_path}" ]; then
+			# Remove Docker's empty-directory placeholder (if present) and
+			# replace it with the actual script so the bind-mount works.
+			[ -d "${entrypoint_source}" ] && rmdir "${entrypoint_source}" 2> /dev/null
+			mkdir -p "$(dirname "${entrypoint_source}")"
+			cp "${distrobox_entrypoint_path}" "${entrypoint_source}"
+			chmod +x "${entrypoint_source}"
+		fi
+	fi
+	unset entrypoint_source entrypoint_source_check
 	${container_manager} start "${container_name}" > /dev/null
 	#
 	# Check if the container is going in error status earlier than the
