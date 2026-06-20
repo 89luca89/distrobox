@@ -142,7 +142,7 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) (*Creat
 			UnshareNetNS:            opts.UnshareNetNs,
 			UnshareProcess:          opts.UnshareProcess,
 			AdditionalFlags:         splitFields(opts.AdditionalFlags),
-			AdditionalVolumes:       opts.AdditionalVolumes,
+			AdditionalVolumes:       splitFields(opts.AdditionalVolumes),
 			AdditionalPackages:      opts.AdditionalPackages,
 			ContainerPreInitHook:    opts.ContainerPreInitHook,
 			ContainerInitHook:       opts.ContainerInitHook,
