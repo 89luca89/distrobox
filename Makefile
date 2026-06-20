@@ -42,3 +42,15 @@ lint:
 .PHONY: lint-fix
 lint-fix:
 	$(GO_BUILD_ENV) golangci-lint run --fix
+
+.PHONY: bench
+bench: build
+	./bench/run.sh ./bin/distrobox
+
+.PHONY: bench-test
+bench-test:
+	./bench/test.sh
+
+.PHONY: bench-compare
+bench-compare:
+	@echo "Usage: ./bench/compare.sh <result-dir-A> <result-dir-B>"

@@ -29,3 +29,7 @@ go.work.sum
 tags
 *.vim
 TODO.txt
+
+# Benchmark results
+bench/results/*
+!bench/results/.gitkeep
