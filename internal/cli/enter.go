@@ -137,7 +137,7 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 	options := commands.EnterOptions{
 		ContainerName:   containerName,
 		AdditionalFlags: cmd.String("additional-flags"),
-		CustomCommand:   args,
+		CustomCommand:   customCommand,
 		DryRun:          dryRun,
 		NoTTY:           cmd.Bool("no-tty"),
 		CleanPath:       cmd.Bool("clean-path"),
