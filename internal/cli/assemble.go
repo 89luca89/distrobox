@@ -121,9 +121,10 @@ func assembleAction(ctx context.Context, cmd *cli.Command, cfg *config.Values, d
 		return fmt.Errorf("failed to parse manifest file: %w", err)
 	}
 
-	// if at least one item in the manifest requires root, validate sudo before proceeding
+	// if at least one item in the manifest requires root, validate sudo before
+	// proceeding — unless we are already uid 0, which needs no elevation.
 	for _, item := range manifest {
-		if item.Root {
+		if item.Root && os.Getuid() != 0 {
 			if err := rootful.Validate(ctx, cmd.String("sudo-command")); err != nil {
 				return fmt.Errorf("cannot run in root mode: %w", err)
 			}

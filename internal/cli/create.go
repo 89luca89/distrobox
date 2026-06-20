@@ -40,6 +40,7 @@ Examples:
 			&cli.StringFlag{
 				Name:    "image",
 				Aliases: []string{"i"},
+				Sources: cli.EnvVars("DBX_CONTAINER_IMAGE"),
 				Usage: fmt.Sprintf(
 					"image to use for the container (default: %s)",
 					cfg.DefaultContainerImage,
@@ -49,20 +50,24 @@ Examples:
 			&cli.StringFlag{
 				Name:    "name",
 				Aliases: []string{"n"},
+				Sources: cli.EnvVars("DBX_CONTAINER_NAME"),
 				Usage:   fmt.Sprintf("name for the distrobox (default: %s)", cfg.DefaultContainerName),
 			},
 			&cli.StringFlag{
-				Name:  "hostname",
-				Usage: "hostname for the distrobox",
+				Name:    "hostname",
+				Sources: cli.EnvVars("DBX_CONTAINER_HOSTNAME"),
+				Usage:   "hostname for the distrobox",
 			},
 			&cli.BoolFlag{
 				Name:    "pull",
 				Aliases: []string{"p"},
+				Sources: cli.EnvVars("DBX_CONTAINER_ALWAYS_PULL"),
 				Usage:   "pull the image even if it exists locally (implies --yes)",
 			},
 			&cli.BoolFlag{
 				Name:    "yes",
 				Aliases: []string{"Y"},
+				Sources: cli.EnvVars("DBX_NON_INTERACTIVE"),
 				Usage:   "non-interactive, pull images without asking",
 			},
 			&cli.StringFlag{
@@ -75,6 +80,7 @@ of the same environment.`,
 			&cli.StringFlag{
 				Name:    "home",
 				Aliases: []string{"H"},
+				Sources: cli.EnvVars("DBX_CONTAINER_CUSTOM_HOME"),
 				Usage:   "select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.",
 			},
 			&cli.StringSliceFlag{
@@ -182,10 +188,18 @@ func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) err
 		return errors.New("container manager not found in context")
 	}
 
+	// DBX_CONTAINER_GENERATE_ENTRY=0 disables entry generation (shell parity);
+	// DBX_CONTAINER_HOME_PREFIX seeds a per-box custom home when no --home is set.
+	generateEntry := !cmd.Bool("no-entry")
+	if v := os.Getenv("DBX_CONTAINER_GENERATE_ENTRY"); v == "0" || v == "false" {
+		generateEntry = false
+	}
+
 	opts := commands.CreateOptions{
 		ContainerImage:          cmd.String("image"),
 		ContainerName:           cmd.String("name"),
 		ContainerHostname:       cmd.String("hostname"),
+		ContainerHomePrefix:     os.Getenv("DBX_CONTAINER_HOME_PREFIX"),
 		ContainerClone:          cmd.String("clone"),
 		UnshareNetNs:            cmd.Bool("unshare-netns") || cmd.Bool("unshare-all"),
 		UnshareDevsys:           cmd.Bool("unshare-devsys") || cmd.Bool("unshare-all"),
@@ -203,7 +217,7 @@ func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) err
 		ContainerPreInitHook:    cmd.String("pre-init-hooks"),
 		ContainerPlatform:       cmd.String("platform"),
 		DryRun:                  cmd.Bool("dry-run"),
-		GenerateEntry:           !cmd.Bool("no-entry"),
+		GenerateEntry:           generateEntry,
 		Rootful:                 cmd.Bool("root"),
 		ContainerAlwaysPull:     cmd.Bool("pull"),
 		NonInteractive:          cmd.Bool("yes"),

@@ -147,7 +147,9 @@ func withRoot(_ *config.Values, cmd *cli.Command) *cli.Command {
 				return nil, err
 			}
 		}
-		if c.Bool("root") {
+		// Running as uid 0 (a logged-in root shell) implies rootful without
+		// --root and needs no sudo elevation, so skip validation in that case.
+		if c.Bool("root") && os.Getuid() != 0 {
 			if err := rootful.Validate(ctx, c.String("sudo-command")); err != nil {
 				return nil, fmt.Errorf("cannot run in root mode: %w", err)
 			}
@@ -183,7 +185,7 @@ func withContainerManager(cfg *config.Values, cmd *cli.Command) *cli.Command {
 			c.String("container-manager"),
 			c.String("sudo-command"),
 			c.Bool("verbose"),
-			c.Bool("root"),
+			c.Bool("root") || os.Getuid() == 0,
 		)
 		if err != nil {
 			return nil, err

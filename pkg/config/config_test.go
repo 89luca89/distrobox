@@ -11,7 +11,7 @@ import (
 func TestDefaultConfigValues(t *testing.T) {
 	cfg := config.DefaultValues()
 
-	assert.Equal(t, "podman", cfg.ContainerManagerType)
+	assert.Equal(t, "autodetect", cfg.ContainerManagerType)
 	assert.Equal(t, "sudo", cfg.SudoProgram)
 	assert.False(t, cfg.Verbose)
 	assert.Equal(t, "registry.fedoraproject.org/fedora-toolbox:latest", cfg.DefaultContainerImage)

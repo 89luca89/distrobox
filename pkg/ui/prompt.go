@@ -23,24 +23,31 @@ func NewPrompter(reader bufio.Reader, writer io.Writer) *Prompter {
 func (p *Prompter) Prompt(label string, defaultChoice bool) bool {
 	choices := getChoices(defaultChoice)
 
-	var s string
+	yes := []string{"y", "yes"}
+	no := []string{"n", "no"}
 
-	fmt.Fprintf(p.writer, "%s [%s] ", label, choices)
-	s, _ = p.reader.ReadString('\n')
-	s = strings.TrimSpace(s)
-	s = strings.ToLower(s)
+	for {
+		fmt.Fprintf(p.writer, "%s [%s] ", label, choices)
+		s, err := p.reader.ReadString('\n')
+		s = strings.ToLower(strings.TrimSpace(s))
 
-	yes := []string{"y", "yes", "Y", "YES"}
-	no := []string{"n", "no", "N", "NO"}
+		switch {
+		case s == "":
+			return defaultChoice
+		case slices.Contains(yes, s):
+			return true
+		case slices.Contains(no, s):
+			return false
+		}
 
-	if slices.Contains(yes, s) {
-		return true
+		// Unrecognized answer: re-prompt instead of silently taking the
+		// default (the shell rejects invalid input). Give up on a closed/EOF
+		// stream to avoid an infinite loop in non-interactive contexts.
+		if err != nil {
+			return defaultChoice
+		}
+		fmt.Fprintln(p.writer, "Invalid input. Please answer yes or no.")
 	}
-	if slices.Contains(no, s) {
-		return false
-	}
-
-	return defaultChoice
 }
 
 func getChoices(defaultChoice bool) string {
