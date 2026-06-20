@@ -146,11 +146,16 @@ func (c *GenerateEntryCommand) resolveTargets(
 		// can't be reached — we fall back to the name in Execute.
 		images := map[string]string{}
 		if listResult, err := c.listCommand.Execute(ctx); err == nil {
+			found := false
 			for _, container := range listResult.Containers {
 				if container.Name == opts.ContainerName {
 					images[opts.ContainerName] = container.Image
+					found = true
 					break
 				}
+			}
+			if !found && !opts.Delete {
+				return nil, nil, "", fmt.Errorf("cannot find container %s, please create it first", opts.ContainerName)
 			}
 		}
 		return []string{opts.ContainerName}, images, opts.Icon, nil
