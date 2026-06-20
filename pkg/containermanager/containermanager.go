@@ -155,11 +155,44 @@ func BuildContainerPath(cleanPath bool, hostPath string, containerPath string) s
 		}
 	}
 
+	merged := hostPath
 	if len(additionalPaths) > 0 {
-		return hostPath + ":" + strings.Join(additionalPaths, ":")
+		merged = hostPath + ":" + strings.Join(additionalPaths, ":")
 	}
 
-	return hostPath
+	return reorderFHSPath(merged)
+}
+
+// reorderFHSPath ensures /usr/local/bin precedes /usr/bin and /usr/local/sbin
+// precedes /usr/sbin, so distrobox wrappers in /usr/local/* win — mirroring the
+// reference shell (distrobox-enter:478-512).
+func reorderFHSPath(path string) string {
+	var reordered []string
+	for _, p := range strings.Split(path, ":") {
+		switch p {
+		case "/usr/local/bin", "/usr/local/sbin":
+			// Skip here; re-inserted right before its /usr counterpart.
+		case "/usr/bin":
+			reordered = append(reordered, "/usr/local/bin", "/usr/bin")
+		case "/usr/sbin":
+			reordered = append(reordered, "/usr/local/sbin", "/usr/sbin")
+		default:
+			reordered = append(reordered, p)
+		}
+	}
+
+	result := strings.Join(reordered, ":")
+
+	// If /usr/bin or /usr/sbin were absent, their local counterparts were
+	// skipped above; re-add any that went missing (prepended, like the shell).
+	for _, lp := range []string{"/usr/local/bin", "/usr/local/sbin"} {
+		pattern := regexp.MustCompile(`(:|^)` + regexp.QuoteMeta(lp) + `(:|$)`)
+		if !pattern.MatchString(result) {
+			result = lp + ":" + result
+		}
+	}
+
+	return result
 }
 
 func BuildXDGPaths(envVar string, standardPaths []string) string {
