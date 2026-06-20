@@ -100,8 +100,15 @@ func (ac *AssembleCommand) Execute(ctx context.Context, opts AssembleOptions) er
 
 func (ac *AssembleCommand) deleteItem(ctx context.Context, item manifest.Item, dryRun bool) error {
 	ac.progress.Next("Deleting %s...", item.Name)
+	// Shell skips the rm step entirely in dry-run (distrobox-assemble:316-319):
+	// `assemble rm --dry-run` and `assemble create --replace --dry-run` must not
+	// actually delete the container.
+	if dryRun {
+		ac.progress.Done()
+		return nil
+	}
 	opts := RmOptions{
-		NoTTY:          dryRun,
+		NoTTY:          true, // assemble is non-interactive
 		Force:          true,
 		All:            false,
 		RemoveHome:     false,
