@@ -408,9 +408,11 @@ func (p *Podman) makeCreateCommand(
 		options = append(options, "--systemd=always")
 	}
 
-	// Use keep-id only if going rootless.
+	// Use keep-id only if going rootless. DBX_USERNS_NOLIMIT (set to a non-zero
+	// value) drops the :size cap, matching the shell (distrobox-create:962-977).
 	if !p.root {
-		if dryRun || p.supportsKeepIDSize(ctx, containerImage) {
+		usernsNoLimit := usernsNoLimitEnabled()
+		if !usernsNoLimit && (dryRun || p.supportsKeepIDSize(ctx, containerImage)) {
 			options = append(options, "--userns", "keep-id:size=65536")
 		} else {
 			options = append(options, "--userns", "keep-id")
@@ -678,6 +680,14 @@ func parsePodmanContainerList(output string) ([]containermanager.Container, erro
 func commandExists(cmd string) bool {
 	_, err := exec.LookPath(cmd)
 	return err == nil
+}
+
+// usernsNoLimitEnabled reports whether DBX_USERNS_NOLIMIT requests dropping the
+// keep-id:size cap (any non-empty, non-"0" value), mirroring the shell's
+// userns_nolimit (distrobox-create:159,962-977).
+func usernsNoLimitEnabled() bool {
+	v := os.Getenv("DBX_USERNS_NOLIMIT")
+	return v != "" && v != "0" && v != "false"
 }
 
 // supportsKeepIDSize tests whether podman supports the keep-id:size= userns option
