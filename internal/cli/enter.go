@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -117,11 +118,26 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 		containerName = cfg.DefaultContainerName
 	}
 
+	dryRun := cmd.Bool("dry-run")
+
+	// If the container is missing, offer to create it (auto-create when
+	// non-interactive), mirroring the shell (distrobox-enter:660-699). Skipped in
+	// dry-run, which builds the command from host state without the container.
+	if !dryRun && !containerManager.Exists(ctx, containerName) {
+		created, err := offerCreateMissing(ctx, cfg, containerManager, containerName, cmd.Bool("yes"))
+		if err != nil {
+			return err
+		}
+		if !created {
+			return nil // user declined; guidance already printed
+		}
+	}
+
 	options := commands.EnterOptions{
 		ContainerName:   containerName,
 		AdditionalFlags: cmd.String("additional-flags"),
-		CustomCommand:   customCommand,
-		DryRun:          cmd.Bool("dry-run"),
+		CustomCommand:   args,
+		DryRun:          dryRun,
 		NoTTY:           cmd.Bool("no-tty"),
 		CleanPath:       cmd.Bool("clean-path"),
 		Verbose:         cmd.Bool("verbose"),
@@ -137,4 +153,44 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 	}
 
 	return nil
+}
+
+// offerCreateMissing implements the shell's "Create it now, out of image …?"
+// flow (distrobox-enter:660-699). It returns true when the container was
+// created (so the caller proceeds to enter), false when the user declined.
+func offerCreateMissing(
+	ctx context.Context,
+	cfg *config.Values,
+	cm containermanager.ContainerManager,
+	containerName string,
+	nonInteractive bool,
+) (bool, error) {
+	image := cfg.DefaultContainerImage
+	errPrinter := ui.NewPrinter(os.Stderr, true)
+
+	if !nonInteractive {
+		prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stderr)
+		if !prompter.Prompt(fmt.Sprintf("Create it now, out of image %s?", image), true) {
+			errPrinter.Println("Ok. For creating it, run this command:")
+			errPrinter.Println("\tdistrobox create <name-of-container> --image <remote>/<docker>:<tag>")
+			return false, nil
+		}
+	}
+
+	errPrinter.Println("Creating the container %s", containerName)
+
+	progress := ui.NewProgress(os.Stderr)
+	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
+	createCmd := commands.NewCreateCommand(cfg, cm, progress, prompter)
+	_, err := createCmd.Execute(ctx, commands.CreateOptions{
+		ContainerName:  containerName,
+		ContainerImage: image,
+		GenerateEntry:  true,
+		NonInteractive: true,
+	})
+	if err != nil {
+		return false, fmt.Errorf("failed to create container %s: %w", containerName, err)
+	}
+
+	return true, nil
 }
