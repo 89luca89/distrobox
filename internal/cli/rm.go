@@ -72,6 +72,10 @@ func rmAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 
 	rmCmd := commands.NewRmCommand(cfg, containerManager, prompter)
 	_, err := rmCmd.Execute(ctx, options)
+	if errors.Is(err, commands.ErrRmAbortedByUser) {
+		ui.NewPrinter(os.Stdout, true).Println("Aborted.")
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("failed to execute rm command: %w", err)
 	}

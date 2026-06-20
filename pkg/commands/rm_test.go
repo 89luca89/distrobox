@@ -53,12 +53,15 @@ func TestRmCommand_RmHome_NotRequested_NeverPrompts(t *testing.T) {
 		},
 		InspectContainerResult: &containermanager.InspectResult{ContainerHome: "/custom/home/dir"},
 	}
-	// Seed a "y" — if the prompt were (wrongly) shown, the home would be removed.
+	// Seed a "y" — if the home prompt were (wrongly) shown, it would be consumed
+	// and the home removed. Force bypasses the top-level deletion confirmation so
+	// the only prompt that could fire is the home one.
 	cmd := newTestRmCommandWithInput(mock, "y\n")
 
 	_, err := cmd.Execute(context.Background(), commands.RmOptions{
 		ContainerNames: []string{containerName},
 		RemoveHome:     false,
+		Force:          true,
 	})
 	require.NoError(t, err)
 	assert.False(t, lastRemoveOptions(t, mock).RemoveHome,
@@ -76,11 +79,14 @@ func TestRmCommand_RmHome_Requested_ConfirmedRemoves(t *testing.T) {
 		},
 		InspectContainerResult: &containermanager.InspectResult{ContainerHome: "/custom/home/dir"},
 	}
+	// Force bypasses the top-level deletion confirmation; the seeded "y" answers
+	// the home-removal prompt.
 	cmd := newTestRmCommandWithInput(mock, "y\n")
 
 	_, err := cmd.Execute(context.Background(), commands.RmOptions{
 		ContainerNames: []string{containerName},
 		RemoveHome:     true,
+		Force:          true,
 	})
 	require.NoError(t, err)
 	assert.True(t, lastRemoveOptions(t, mock).RemoveHome,
@@ -109,6 +115,36 @@ func TestRmCommand_RmHome_Requested_NonInteractiveKeepsHome(t *testing.T) {
 	require.NoError(t, err)
 	assert.False(t, lastRemoveOptions(t, mock).RemoveHome,
 		"non-interactive rm must not remove the home even with --rm-home")
+}
+
+func TestRmCommand_TopLevelConfirmation_DeclineAborts(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	mock := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{
+			{Name: "boxa", Status: "Exited", Labels: map[string]string{"manager": "distrobox"}},
+		},
+		InspectContainerResult: &containermanager.InspectResult{ContainerHome: "/home/x"},
+	}
+	cmd := newTestRmCommandWithInput(mock, "n\n")
+
+	_, err := cmd.Execute(context.Background(), commands.RmOptions{ContainerNames: []string{"boxa"}})
+	require.ErrorIs(t, err, commands.ErrRmAbortedByUser)
+	assert.Empty(t, mock.Spy.Remove, "declining the confirmation must remove nothing")
+}
+
+func TestRmCommand_TopLevelConfirmation_DefaultYesProceeds(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	mock := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{
+			{Name: "boxa", Status: "Exited", Labels: map[string]string{"manager": "distrobox"}},
+		},
+		InspectContainerResult: &containermanager.InspectResult{ContainerHome: "/home/x"},
+	}
+	cmd := newTestRmCommandWithInput(mock, "\n")
+
+	_, err := cmd.Execute(context.Background(), commands.RmOptions{ContainerNames: []string{"boxa"}})
+	require.NoError(t, err)
+	assert.Len(t, mock.Spy.Remove, 1, "a bare Enter (default yes) must proceed with deletion")
 }
 
 // writeExportedDesktopApp writes a minimal desktop file that
