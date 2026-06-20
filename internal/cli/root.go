@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/urfave/cli/v3"
 
@@ -62,53 +63,62 @@ func subcommands(cfg *config.Values) []*cli.Command {
 
 	list := cc.apply(
 		newListCommand,
+		withSudoGuard,
 		withRoot,
 		withContainerManager,
 	)
 
 	generateEntry := cc.apply(
 		newGenerateEntryCommand,
+		withSudoGuard,
 		withRoot,
 		withContainerManager,
 	)
 
 	create := cc.apply(
 		newCreateCommand,
+		withSudoGuard,
 		withRoot,
 		withContainerManager,
 	)
 
 	enter := cc.apply(
 		newEnterCommand,
+		withSudoGuard,
 		withRoot,
 		withContainerManager,
 	)
 
 	assemble := cc.apply(
 		newAssembleCommand,
+		withAssembleSudoGuard,
 		withContainerManager,
 	)
 
 	rm := cc.apply(
 		newRmCommand,
+		withSudoGuard,
 		withRoot,
 		withContainerManager,
 	)
 
 	stop := cc.apply(
 		newStopCommand,
+		withSudoGuard,
 		withRoot,
 		withContainerManager,
 	)
 
 	ephemeral := cc.apply(
 		newEphemeralCommand,
+		withSudoGuard,
 		withRoot,
 		withContainerManager,
 	)
 
 	upgrade := cc.apply(
 		newUpgradeCommand,
+		withSudoGuard,
 		withRoot,
 		withContainerManager,
 	)
@@ -124,6 +134,78 @@ func subcommands(cfg *config.Values) []*cli.Command {
 		stop,
 		upgrade,
 	}
+}
+
+// withSudoGuard refuses to run a command invoked through sudo/doas as root,
+// mirroring the reference shell (e.g. distrobox-create:45-51). A genuine root
+// login shell (uid 0 without SUDO_USER/DOAS_USER) is still allowed and becomes
+// rootful via withContainerManager.
+func withSudoGuard(_ *config.Values, cmd *cli.Command) *cli.Command {
+	return guardSudo(cmd, false)
+}
+
+// withAssembleSudoGuard is the assemble variant: it refuses whenever sudo/doas
+// is detected, regardless of uid, and points at the manifest's root=true key
+// (distrobox-assemble:77-81).
+func withAssembleSudoGuard(_ *config.Values, cmd *cli.Command) *cli.Command {
+	return guardSudo(cmd, true)
+}
+
+func guardSudo(cmd *cli.Command, assembleMode bool) *cli.Command {
+	prev := cmd.Before
+	cmd.Before = func(ctx context.Context, c *cli.Command) (context.Context, error) {
+		if err := refuseSudo(c.Name, assembleMode); err != nil {
+			return nil, err
+		}
+		if prev != nil {
+			return prev(ctx, c)
+		}
+		return ctx, nil
+	}
+	return cmd
+}
+
+// refuseSudo implements the SUDO/DOAS guard. Standard commands refuse only when
+// the real uid is 0 (sudo/doas elevation); a real root login shell is allowed.
+// assemble refuses on any sudo/doas invocation.
+func refuseSudo(commandName string, assembleMode bool) error {
+	viaSudo := os.Getenv("SUDO_USER") != "" || os.Getenv("DOAS_USER") != ""
+	if !viaSudo {
+		return nil
+	}
+	if !assembleMode && os.Getuid() != 0 {
+		return nil
+	}
+
+	p := ui.NewPrinter(os.Stderr, false)
+	if assembleMode {
+		p.Println("Running distrobox %s via SUDO/DOAS is not supported.", commandName)
+		p.Println("Instead, please try using root=true property in the distrobox.ini file.")
+	} else {
+		p.Println("Running distrobox %s via SUDO/DOAS is not supported. Instead, please try running:", commandName)
+		p.Println("  %s", sudoRootSuggestion(commandName))
+	}
+
+	return errors.New("running via SUDO/DOAS is not supported")
+}
+
+// sudoRootSuggestion rebuilds the invocation with --root inserted after the
+// sub-command, mirroring the shell's `<name> --root <args>` hint.
+func sudoRootSuggestion(commandName string) string {
+	parts := []string{"distrobox"}
+	inserted := false
+	for _, arg := range os.Args[1:] {
+		parts = append(parts, arg)
+		if !inserted && arg == commandName {
+			parts = append(parts, "--root")
+			inserted = true
+		}
+	}
+	if !inserted {
+		parts = append(parts, "--root")
+	}
+
+	return strings.Join(parts, " ")
 }
 
 // withRoot declares the --root flag on a command and, when it is set,
