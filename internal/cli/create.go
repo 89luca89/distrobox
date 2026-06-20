@@ -59,7 +59,7 @@ Examples:
 			&cli.StringFlag{
 				Name:    "hostname",
 				Sources: cli.EnvVars("DBX_CONTAINER_HOSTNAME"),
-				Usage:   "hostname for the distrobox",
+				Usage:   fmt.Sprintf("hostname for the distrobox (default: %s)", defaultHostname()),
 			},
 			&cli.BoolFlag{
 				Name:    "pull",
@@ -269,6 +269,16 @@ func printCreateCompleted(progress *ui.Progress, containerName string, rootful b
 	msg := "Distrobox '%s' successfully created.\nTo enter, run:\n\ndistrobox enter %s%s\n\n"
 
 	progress.Finalize(msg, containerName, rootFlag, containerName)
+}
+
+// defaultHostname mirrors the shell's `default: $(uname -n)` hint shown in
+// distrobox-create's --hostname help line. Evaluated once at command-build
+// time; an unreachable hostname call falls back to a literal hint.
+func defaultHostname() string {
+	if h, err := os.Hostname(); err == nil && h != "" {
+		return h
+	}
+	return "$(uname -n)"
 }
 
 func printContainerAlreadyExists(progress *ui.Progress, containerName string, rootful bool) {
