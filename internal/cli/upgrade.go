@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -40,7 +39,7 @@ Examples:
 			&cli.BoolFlag{
 				Name:    "yes",
 				Aliases: []string{"Y"},
-				Usage:   "non-interactive, upgrade without asking",
+				Usage:   "accepted for compatibility; upgrades never prompt (matches the shell)",
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -59,22 +58,15 @@ func upgradeAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) er
 		ContainerNames: cmd.Args().Slice(),
 		All:            cmd.Bool("all"),
 		Running:        cmd.Bool("running"),
-		NonInteractive: cmd.Bool("yes"),
 	}
 
 	printer := ui.NewPrinter(os.Stdout, true)
 	errPrinter := ui.NewPrinter(os.Stderr, true)
 	progress := ui.NewProgress(os.Stderr)
-	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
-	upgradeCmd := commands.NewUpgradeCommand(cfg, containerManager, progress, printer, prompter)
+	upgradeCmd := commands.NewUpgradeCommand(cfg, containerManager, progress, printer)
 
 	err := upgradeCmd.Execute(ctx, options)
-
-	if errors.Is(err, commands.ErrUpgradeAbortedByUser) {
-		printer.Println("Aborted.")
-		return nil
-	}
 
 	if errors.Is(err, commands.ErrEmptyContainerList) {
 		errPrinter.Println("No containers found.")
