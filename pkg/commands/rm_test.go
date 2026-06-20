@@ -24,6 +24,93 @@ func newTestRmCommand(mock *testutil.MockContainerManager) *commands.RmCommand {
 	return commands.NewRmCommand(&config.Values{}, mock, prompter)
 }
 
+func newTestRmCommandWithInput(mock *testutil.MockContainerManager, input string) *commands.RmCommand {
+	prompter := ui.NewPrompter(*bufio.NewReader(strings.NewReader(input)), io.Discard)
+	return commands.NewRmCommand(&config.Values{}, mock, prompter)
+}
+
+// lastRemoveOptions returns the RmOptions passed to the most recent
+// containerManager.Remove call recorded by the mock.
+func lastRemoveOptions(t *testing.T, mock *testutil.MockContainerManager) containermanager.RmOptions {
+	t.Helper()
+	require.NotEmpty(t, mock.Spy.Remove, "expected containerManager.Remove to be called")
+	last := mock.Spy.Remove[len(mock.Spy.Remove)-1]
+	opts, ok := last[1].(containermanager.RmOptions)
+	require.True(t, ok, "second Remove arg should be containermanager.RmOptions")
+	return opts
+}
+
+// `rm` without --rm-home must never remove the custom home, even
+// interactively with a custom home and a "yes" waiting on stdin (the shell only
+// ever prompts/removes when --rm-home is set, distrobox-rm:364-371).
+func TestRmCommand_RmHome_NotRequested_NeverPrompts(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+
+	containerName := "test-rm-no-flag"
+	mock := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{
+			{Name: containerName, Status: "Exited", Labels: map[string]string{"manager": "distrobox"}},
+		},
+		InspectContainerResult: &containermanager.InspectResult{ContainerHome: "/custom/home/dir"},
+	}
+	// Seed a "y" — if the prompt were (wrongly) shown, the home would be removed.
+	cmd := newTestRmCommandWithInput(mock, "y\n")
+
+	_, err := cmd.Execute(context.Background(), commands.RmOptions{
+		ContainerNames: []string{containerName},
+		RemoveHome:     false,
+	})
+	require.NoError(t, err)
+	assert.False(t, lastRemoveOptions(t, mock).RemoveHome,
+		"home must not be removed without --rm-home")
+}
+
+// `rm --rm-home` interactively prompts; an explicit "yes" removes the home.
+func TestRmCommand_RmHome_Requested_ConfirmedRemoves(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+
+	containerName := "test-rm-flag-yes"
+	mock := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{
+			{Name: containerName, Status: "Exited", Labels: map[string]string{"manager": "distrobox"}},
+		},
+		InspectContainerResult: &containermanager.InspectResult{ContainerHome: "/custom/home/dir"},
+	}
+	cmd := newTestRmCommandWithInput(mock, "y\n")
+
+	_, err := cmd.Execute(context.Background(), commands.RmOptions{
+		ContainerNames: []string{containerName},
+		RemoveHome:     true,
+	})
+	require.NoError(t, err)
+	assert.True(t, lastRemoveOptions(t, mock).RemoveHome,
+		"home should be removed with --rm-home and a confirmed prompt")
+}
+
+// `rm --rm-home --yes` (non-interactive) never removes the home, matching
+// the shell which skips the prompt and defaults to "no" (distrobox-rm:365-366).
+func TestRmCommand_RmHome_Requested_NonInteractiveKeepsHome(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+
+	containerName := "test-rm-flag-yes-noninteractive"
+	mock := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{
+			{Name: containerName, Status: "Exited", Labels: map[string]string{"manager": "distrobox"}},
+		},
+		InspectContainerResult: &containermanager.InspectResult{ContainerHome: "/custom/home/dir"},
+	}
+	cmd := newTestRmCommand(mock)
+
+	_, err := cmd.Execute(context.Background(), commands.RmOptions{
+		ContainerNames: []string{containerName},
+		RemoveHome:     true,
+		NoTTY:          true,
+	})
+	require.NoError(t, err)
+	assert.False(t, lastRemoveOptions(t, mock).RemoveHome,
+		"non-interactive rm must not remove the home even with --rm-home")
+}
+
 // writeExportedDesktopApp writes a minimal desktop file that
 // findExportedDesktopApps will match for the given containerName (i.e.
 // the per-app desktop entries created by distrobox-export, not the
