@@ -22,6 +22,7 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			&cli.StringFlag{
 				Name:    "name",
 				Aliases: []string{"n"},
+				Sources: cli.EnvVars("DBX_CONTAINER_NAME"),
 				Usage:   "name for the distrobox",
 			},
 			&cli.BoolFlag{
@@ -38,7 +39,9 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			},
 			&cli.BoolFlag{
 				Name:    "clean-path",
-				Usage:   "only print the container manager command generated",
+				Aliases: []string{"c"},
+				Sources: cli.EnvVars("DBX_CONTAINER_CLEAN_PATH"),
+				Usage:   "reset PATH inside the container to FHS standard",
 			},
 			&cli.StringFlag{
 				Name:    "additional-flags",
@@ -48,7 +51,8 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			&cli.BoolFlag{
 				Name:    "yes",
 				Aliases: []string{"y"},
-				Usage:   "only print the container manager command generated",
+				Sources: cli.EnvVars("DBX_NON_INTERACTIVE"),
+				Usage:   "non-interactive, do not ask questions",
 			},
 			&cli.BoolFlag{
 				Name:    "no-tty",
