@@ -221,14 +221,14 @@ func (p *Podman) makeCreateCommand(
 		"TERMINFO_DIRS=/usr/share/terminfo:/run/host/usr/share/terminfo",
 	)
 	options = append(options, "--env", fmt.Sprintf("CONTAINER_ID=%s", containerName))
-	options = append(options, "--volume", "/tmp:/tmp:rslave")
+	options = append(options, "--volume", "/tmp:/tmp"+containermanager.BindPropagation())
 	options = append(options, "--volume", fmt.Sprintf("%s:%s", distroboxExportPath, "/usr/bin/distrobox-export:ro"))
 	options = append(
 		options,
 		"--volume",
 		fmt.Sprintf("%s:%s", distroboxHostexecPath, "/usr/bin/distrobox-host-exec:ro"),
 	)
-	options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", containerUserHome, containerUserHome))
+	options = append(options, "--volume", fmt.Sprintf("%s:%s%s", containerUserHome, containerUserHome, containermanager.BindPropagation()))
 
 	// Due to breaking change in https://github.com/opencontainers/runc/commit/d4b670fca6d0ac606777376440ffe49686ce15f4
 	// now we cannot mount /:/run/host as before, as it will try to mount RO partitions as RW thus breaking things.
@@ -239,12 +239,12 @@ func (p *Podman) makeCreateCommand(
 	if !dryRun && p.usesRunc(ctx) {
 		options = append(options, hostRootMountsForRunc(ctx)...)
 	} else {
-		options = append(options, "--volume", "/:/run/host/:rslave")
+		options = append(options, "--volume", "/:/run/host/"+containermanager.BindPropagation())
 	}
 
 	if !unshareDevsys {
-		options = append(options, "--volume", "/dev:/dev:rslave")
-		options = append(options, "--volume", "/sys:/sys:rslave")
+		options = append(options, "--volume", "/dev:/dev"+containermanager.BindPropagation())
+		options = append(options, "--volume", "/sys:/sys"+containermanager.BindPropagation())
 	}
 
 	// This fix is needed so that the container can have a separate devpts instance
@@ -327,7 +327,7 @@ func (p *Podman) makeCreateCommand(
 		options = append(
 			options,
 			"--volume",
-			fmt.Sprintf("%s:%s:rslave", containerUserCustomHome, containerUserCustomHome),
+			fmt.Sprintf("%s:%s%s", containerUserCustomHome, containerUserCustomHome, containermanager.BindPropagation()),
 		)
 	}
 
@@ -335,7 +335,7 @@ func (p *Podman) makeCreateCommand(
 	// do this only if $HOME was not already set to /var/home/username
 	homePath := fmt.Sprintf("/var/home/%s", containerUserName)
 	if containerUserHome != homePath && containermanager.PathExists(homePath) {
-		options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", homePath, homePath))
+		options = append(options, "--volume", fmt.Sprintf("%s:%s%s", homePath, homePath, containermanager.BindPropagation()))
 	}
 
 	// Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
@@ -343,7 +343,7 @@ func (p *Podman) makeCreateCommand(
 	// systemd user session can be used.
 	xdgRuntimeDir := fmt.Sprintf("/run/user/%s", containerUserUID)
 	if containermanager.PathExists(xdgRuntimeDir) && !init {
-		options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", xdgRuntimeDir, xdgRuntimeDir))
+		options = append(options, "--volume", fmt.Sprintf("%s:%s%s", xdgRuntimeDir, xdgRuntimeDir, containermanager.BindPropagation()))
 	}
 
 	// These are dynamic configs needed by the container to function properly
@@ -729,9 +729,9 @@ func hostRootMountsForRunc(ctx context.Context) []string {
 
 		target := fmt.Sprintf("%s:/run/host%s", rootdir, rootdir)
 		if isMountReadOnly(ctx, rootdir) {
-			mounts = append(mounts, "--volume", target+":ro,rslave")
+			mounts = append(mounts, "--volume", target+containermanager.ReadOnlyBindPropagation())
 		} else {
-			mounts = append(mounts, "--volume", target+":rslave")
+			mounts = append(mounts, "--volume", target+containermanager.BindPropagation())
 		}
 	}
 
