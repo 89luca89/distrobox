@@ -109,7 +109,7 @@ func (c *RmCommand) removeContainer(
 	userHome string,
 ) error {
 	forceRemove := force
-	if !forceRemove && !noTTY && strings.Contains(container.Status, "Up") {
+	if !forceRemove && !noTTY && container.IsRunning() {
 		// Shell defaults this prompt to "yes" (distrobox-rm:424-426).
 		if c.prompter.Prompt("Container is running, do you want to force delete it?", true) {
 			forceRemove = true
