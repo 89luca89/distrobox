@@ -100,6 +100,7 @@ func TestDocker_makeCreateCommand(t *testing.T) {
  --volume /var/log/journal
  --volume /etc/hosts:/etc/hosts:ro
  --volume /etc/resolv.conf:/etc/resolv.conf:ro
+ --volume /dev/null:/run/.distrobox.rootless:ro
  --volume /path/to/my-volume:/var/local/my-volume:ro
  --volume /path/to/distrobox-init:/usr/bin/entrypoint:ro
  --entrypoint /usr/bin/entrypoint
