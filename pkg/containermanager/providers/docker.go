@@ -522,6 +522,7 @@ func (d *Docker) Enter(
 		options.NoWorkDir,
 		options.CleanPath,
 		options.Verbose,
+		options.DryRun,
 	)
 	if err != nil {
 		return fmt.Errorf("err: %w", err)
@@ -726,6 +727,7 @@ func (d *Docker) generateEnterCommand(
 	noWorkDir bool,
 	cleanPath bool,
 	verbose bool,
+	dryRun bool,
 ) ([]string, *containermanager.InspectResult, error) {
 	cmd := []string{}
 
@@ -739,8 +741,14 @@ func (d *Docker) generateEnterCommand(
 
 	containerConfig, err := d.InspectContainer(ctx, containerName)
 	if err != nil {
-		// TODO handle missing container
-		return nil, nil, err
+		if !dryRun {
+			return nil, nil, err
+		}
+		// Dry-run without a live container: build the command from host state,
+		// matching the shell (distrobox-enter:578-588).
+		containerConfig = &containermanager.InspectResult{
+			ContainerHome: userenv.LoadUserEnvironment(ctx).Home,
+		}
 	}
 	// User selection
 	if containerConfig.UnshareGroups {
