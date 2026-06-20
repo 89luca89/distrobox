@@ -223,6 +223,13 @@ func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) err
 		NonInteractive:          cmd.Bool("yes"),
 	}
 
+	// Positional container_name overrides --name, matching the shell
+	// (distrobox-create:453-461) so `distrobox create --image alpine my-box`
+	// names the box `my-box`.
+	if positional := cmd.Args().First(); positional != "" {
+		opts.ContainerName = positional
+	}
+
 	progress := ui.NewProgress(os.Stderr)
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
 
