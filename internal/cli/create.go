@@ -45,7 +45,10 @@ Examples:
 					"image to use for the container (default: %s)",
 					cfg.DefaultContainerImage,
 				),
-				Value: cfg.DefaultContainerImage,
+				// No Value default: leaving it empty lets makeContainerImage's
+				// "no clone & no image" branch select cfg.DefaultContainerImage,
+				// which is what triggers the default-name fallback. Setting
+				// Value here would defeat that check (shell parity).
 			},
 			&cli.StringFlag{
 				Name:    "name",
