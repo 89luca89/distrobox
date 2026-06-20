@@ -680,9 +680,10 @@ test_parse_peak_rss() {
 }
 
 test_parse_user_seconds() {
+    # jq normalises JSON numbers: 0.00 → 0
     local got
     got=$(time_parse_v "$FIXTURE" | jq -r '.user_seconds')
-    assert_eq "0.00" "$got" "user_seconds"
+    assert_eq "0" "$got" "user_seconds"
 }
 
 test_parse_wall_seconds_from_mm_ss() {
