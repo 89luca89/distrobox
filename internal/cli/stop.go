@@ -55,6 +55,14 @@ func stopAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error
 	nonInteractive := cmd.Bool("yes")
 	containerNames := cmd.Args().Slice()
 
+	// Shell distrobox-stop seeds container_name from DBX_CONTAINER_NAME
+	// (distrobox-stop:90, 200-202) when no positional and not --all.
+	if !all && len(containerNames) == 0 {
+		if envName := os.Getenv("DBX_CONTAINER_NAME"); envName != "" {
+			containerNames = []string{envName}
+		}
+	}
+
 	options := &commands.StopOptions{
 		ContainerNames: containerNames,
 		NonInteractive: nonInteractive,
