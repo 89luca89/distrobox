@@ -216,7 +216,9 @@ func (c *CreateCommand) makeContainerImage(opts *CreateOptions) string {
 //	ghcr.io/void-linux/void-linux:latest-full-x86_64 -> void-linux-latest-full-x86_64
 func (c *CreateCommand) makeContainerName(opts *CreateOptions, containerImage string) string {
 	containerName := opts.ContainerName
-	if containerName == "" && opts.ContainerImage == "" {
+	// Mirror the shell: when no name is given and the effective image is the
+	// default image, use the default name (distinguishable from toolbx).
+	if containerName == "" && opts.ContainerClone == "" && containerImage == c.cfg.DefaultContainerImage {
 		containerName = c.cfg.DefaultContainerName
 	}
 	if containerName == "" {
