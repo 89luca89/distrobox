@@ -69,7 +69,7 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 
 	var removedDistroboxes []containermanager.Container
 	for _, currentDistrobox := range distroboxesToRemove {
-		err := c.removeContainer(ctx, currentDistrobox, options.Force, options.NoTTY, options.Verbose, userHome)
+		err := c.removeContainer(ctx, currentDistrobox, options.Force, options.NoTTY, options.RemoveHome, options.Verbose, userHome)
 		if err != nil {
 			//nolint:forbidigo // waiting for the logger implementation
 			fmt.Printf("error deleting %s: %s", currentDistrobox.Name, err)
@@ -85,6 +85,7 @@ func (c *RmCommand) removeContainer(
 	container containermanager.Container,
 	force bool,
 	noTTY bool,
+	removeHomeRequested bool,
 	verbose bool,
 	userHome string,
 ) error {
@@ -103,14 +104,13 @@ func (c *RmCommand) removeContainer(
 	}
 
 	removeHome := false
-	if !noTTY && inspectOutput.ContainerHome != userHome {
+	if removeHomeRequested && !noTTY && inspectOutput.ContainerHome != userHome {
 		question := fmt.Sprintf(
 			"Do you really want to remove custom home of container %s (%s)?",
 			container.Name,
 			inspectOutput.ContainerHome,
 		)
-		answer := c.prompter.Prompt(question, false)
-		removeHome = answer
+		removeHome = c.prompter.Prompt(question, false)
 	}
 
 	cmOptions := containermanager.RmOptions{
