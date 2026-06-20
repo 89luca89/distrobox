@@ -5,11 +5,36 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/89luca89/distrobox/pkg/ui"
 )
+
+// bindGOOS is the OS used to decide bind-mount propagation. It is a package
+// variable so tests can exercise the macOS branch without running on darwin.
+var bindGOOS = runtime.GOOS
+
+// BindPropagation returns the propagation suffix for shared bind mounts.
+//
+// macOS (Docker Desktop / Colima) runs containers inside a Linux VM that mounts
+// host paths as private, so rslave/rshared propagation is unsupported and must
+// be dropped there — mirroring the reference shell (distrobox-create:677-685).
+func BindPropagation() string {
+	if bindGOOS == "darwin" {
+		return ""
+	}
+	return ":rslave"
+}
+
+// ReadOnlyBindPropagation is BindPropagation for read-only mounts.
+func ReadOnlyBindPropagation() string {
+	if bindGOOS == "darwin" {
+		return ":ro"
+	}
+	return ":ro,rslave"
+}
 
 const (
 	RunningStatus = "running"

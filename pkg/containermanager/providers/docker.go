@@ -223,19 +223,19 @@ func (d *Docker) makeCreateCommand(
 		"TERMINFO_DIRS=/usr/share/terminfo:/run/host/usr/share/terminfo",
 	)
 	options = append(options, "--env", fmt.Sprintf("CONTAINER_ID=%s", containerName))
-	options = append(options, "--volume", "/tmp:/tmp:rslave")
+	options = append(options, "--volume", "/tmp:/tmp"+containermanager.BindPropagation())
 	options = append(options, "--volume", fmt.Sprintf("%s:%s", distroboxExportPath, "/usr/bin/distrobox-export:ro"))
 	options = append(
 		options,
 		"--volume",
 		fmt.Sprintf("%s:%s", distroboxHostexecPath, "/usr/bin/distrobox-host-exec:ro"),
 	)
-	options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", containerUserHome, containerUserHome))
-	options = append(options, "--volume", "/:/run/host/:rslave")
+	options = append(options, "--volume", fmt.Sprintf("%s:%s%s", containerUserHome, containerUserHome, containermanager.BindPropagation()))
+	options = append(options, "--volume", "/:/run/host/"+containermanager.BindPropagation())
 
 	if !unshareDevsys {
-		options = append(options, "--volume", "/dev:/dev:rslave")
-		options = append(options, "--volume", "/sys:/sys:rslave")
+		options = append(options, "--volume", "/dev:/dev"+containermanager.BindPropagation())
+		options = append(options, "--volume", "/sys:/sys"+containermanager.BindPropagation())
 	}
 
 	// In case of initful containers, we implement a series of mountpoint in order
@@ -341,7 +341,7 @@ func (d *Docker) makeCreateCommand(
 		options = append(
 			options,
 			"--volume",
-			fmt.Sprintf("%s:%s:rslave", containerUserCustomHome, containerUserCustomHome),
+			fmt.Sprintf("%s:%s%s", containerUserCustomHome, containerUserCustomHome, containermanager.BindPropagation()),
 		)
 	}
 
@@ -349,7 +349,7 @@ func (d *Docker) makeCreateCommand(
 	// do this only if $HOME was not already set to /var/home/username
 	homePath := fmt.Sprintf("/var/home/%s", containerUserName)
 	if containerUserHome != homePath && containermanager.PathExists(homePath) {
-		options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", homePath, homePath))
+		options = append(options, "--volume", fmt.Sprintf("%s:%s%s", homePath, homePath, containermanager.BindPropagation()))
 	}
 
 	// Mount also the XDG_RUNTIME_DIR to ensure functionality of the apps.
@@ -357,7 +357,7 @@ func (d *Docker) makeCreateCommand(
 	// systemd user session can be used.
 	xdgRuntimeDir := fmt.Sprintf("/run/user/%s", containerUserUID)
 	if containermanager.PathExists(xdgRuntimeDir) && !init {
-		options = append(options, "--volume", fmt.Sprintf("%s:%s:rslave", xdgRuntimeDir, xdgRuntimeDir))
+		options = append(options, "--volume", fmt.Sprintf("%s:%s%s", xdgRuntimeDir, xdgRuntimeDir, containermanager.BindPropagation()))
 	}
 
 	// These are dynamic configs needed by the container to function properly
