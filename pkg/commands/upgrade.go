@@ -17,7 +17,6 @@ type UpgradeOptions struct {
 	ContainerNames []string
 	All            bool
 	Running        bool
-	NonInteractive bool
 }
 
 type UpgradeCommand struct {
@@ -25,10 +24,8 @@ type UpgradeCommand struct {
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
 	enterCmd         *EnterCommand
-	prompter         *ui.Prompter
 }
 
-var ErrUpgradeAbortedByUser = errors.New("upgrade operation aborted by user")
 var ErrUpgradeNoContainerSpecified = errors.New("please specify the name of the container")
 
 func NewUpgradeCommand(
@@ -36,14 +33,12 @@ func NewUpgradeCommand(
 	cm containermanager.ContainerManager,
 	progress *ui.Progress,
 	printer *ui.Printer,
-	prompter *ui.Prompter,
 ) *UpgradeCommand {
 	return &UpgradeCommand{
 		cfg:              cfg,
 		containerManager: cm,
 		listCmd:          NewListCommand(cfg, cm),
 		enterCmd:         NewEnterCommand(cfg, cm, progress, printer),
-		prompter:         prompter,
 	}
 }
 
@@ -79,12 +74,9 @@ func (c *UpgradeCommand) Execute(ctx context.Context, opts *UpgradeOptions) erro
 		return ErrUpgradeNoContainerSpecified
 	}
 
-	proceed := opts.NonInteractive || c.canProceed(containerNames)
-
-	if !proceed {
-		return ErrUpgradeAbortedByUser
-	}
-
+	// The reference shell upgrades immediately with no confirmation
+	// (distrobox-upgrade:266-272), so scripted/non-interactive upgrades never
+	// block. We match that: no prompt.
 	var lastErr error
 
 	for _, name := range containerNames {
@@ -112,11 +104,4 @@ func (c *UpgradeCommand) upgradeContainer(ctx context.Context, name string) erro
 	}
 
 	return nil
-}
-
-func (c *UpgradeCommand) canProceed(containerNames []string) bool {
-	return c.prompter.Prompt(
-		fmt.Sprintf("Do you really want to upgrade %s?", containerNames),
-		true,
-	)
 }
