@@ -24,6 +24,7 @@ type UpgradeCommand struct {
 	containerManager containermanager.ContainerManager
 	listCmd          *ListCommand
 	enterCmd         *EnterCommand
+	printer          *ui.Printer
 }
 
 var ErrUpgradeNoContainerSpecified = errors.New("please specify the name of the container")
@@ -39,6 +40,7 @@ func NewUpgradeCommand(
 		containerManager: cm,
 		listCmd:          NewListCommand(cfg, cm),
 		enterCmd:         NewEnterCommand(cfg, cm, progress, printer),
+		printer:          printer,
 	}
 }
 
@@ -80,6 +82,8 @@ func (c *UpgradeCommand) Execute(ctx context.Context, opts *UpgradeOptions) erro
 	var lastErr error
 
 	for _, name := range containerNames {
+		// Per-container banner, matching the shell (distrobox-upgrade:267).
+		c.printer.Println("Upgrading %s...", name)
 		if err := c.upgradeContainer(ctx, name); err != nil {
 			//nolint:forbidigo // FIXME: waiting for the logger implementation
 			fmt.Printf("error upgrading %s: %s\n", name, err)
