@@ -5,9 +5,13 @@ import (
 	_ "embed"
 	"fmt"
 	"html/template"
+	"io"
+	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/89luca89/distrobox/internal/userenv"
 	pkgconfig "github.com/89luca89/distrobox/pkg/config"
@@ -18,8 +22,14 @@ var desktopEntryTmpl string
 
 const (
 	defaultContainerName = "my-distrobox"
-	defaultEntryIcon     = "https://raw.githubusercontent.com/89luca89/distrobox/main/icons/terminal-distrobox-icon.svg"
+	// fallbackIconName is a freedesktop theme icon installed by distrobox
+	// (icons/hicolor/**/terminal-distrobox-icon). Used when no distro is
+	// detected or its logo can't be downloaded.
+	fallbackIconName = "terminal-distrobox-icon"
 )
+
+// iconDownloadTimeout bounds the per-icon HTTP download.
+const iconDownloadTimeout = 10 * time.Second
 
 type GenerateEntryOptions struct {
 	Verbose             bool
@@ -35,12 +45,16 @@ type GenerateEntryOptions struct {
 type GenerateEntryCommand struct {
 	cfg         *pkgconfig.Values
 	listCommand *ListCommand
+	// fetchIcon downloads url into destPath. It is a field so tests can inject
+	// a fake that writes bytes without touching the network.
+	fetchIcon func(ctx context.Context, url, destPath string) error
 }
 
 func NewGenerateEntryCommand(cfg *pkgconfig.Values, listCommand *ListCommand) *GenerateEntryCommand {
 	return &GenerateEntryCommand{
 		cfg:         cfg,
 		listCommand: listCommand,
+		fetchIcon:   downloadIconFile,
 	}
 }
 
@@ -94,7 +108,7 @@ func (c *GenerateEntryCommand) Execute(
 		if image, ok := containerImages[containerName]; ok && image != "" {
 			distroHint = image
 		}
-		if err := c.createEntry(containerName, icon, distroHint, desktopEntryBaseDir, distroboxPath, opts.Root); err != nil {
+		if err := c.createEntry(ctx, containerName, icon, distroHint, desktopEntryBaseDir, distroboxPath, opts.Root); err != nil {
 			return fmt.Errorf("failed to create desktop entry for container %s: %w", containerName, err)
 		}
 	}
@@ -158,6 +172,7 @@ func (c *GenerateEntryCommand) deleteEntry(containerName string, desktopEntryBas
 }
 
 func (c *GenerateEntryCommand) createEntry(
+	ctx context.Context,
 	containerName string,
 	icon string,
 	distroHint string,
@@ -165,13 +180,13 @@ func (c *GenerateEntryCommand) createEntry(
 	distroboxPath string,
 	root bool,
 ) error {
-	desktopEntryAppsDir, _, err := c.ensureDesktopEntryDirExists(desktopEntryBaseDir)
+	desktopEntryAppsDir, desktopEntryIconsDir, err := c.ensureDesktopEntryDirExists(desktopEntryBaseDir)
 	if err != nil {
 		return fmt.Errorf("failed to ensure desktop entry directories exist: %w", err)
 	}
 
 	entryFilePath := c.getEntryFilePath(desktopEntryAppsDir, containerName)
-	data := c.composeDesktopEntryData(containerName, icon, distroHint, distroboxPath, root)
+	data := c.composeDesktopEntryData(ctx, containerName, icon, distroHint, distroboxPath, desktopEntryIconsDir, root)
 	if err := c.writeDesktopEntryFile(entryFilePath, data); err != nil {
 		return fmt.Errorf("failed to write desktop entry file for container %s: %w", containerName, err)
 	}
@@ -197,10 +212,12 @@ func (c *GenerateEntryCommand) ensureDesktopEntryDirExists(desktopEntryBaseDir s
 // logo; pass the container's image name when available, otherwise the
 // container name itself.
 func (c *GenerateEntryCommand) composeDesktopEntryData(
+	ctx context.Context,
 	containerName string,
 	icon string,
 	distroHint string,
 	distroboxPath string,
+	iconsDir string,
 	root bool,
 ) map[string]string {
 	extraFlags := ""
@@ -212,7 +229,7 @@ func (c *GenerateEntryCommand) composeDesktopEntryData(
 		"entry_name":     getEntryName(containerName),
 		"container_name": containerName,
 		"distrobox_path": distroboxPath,
-		"icon":           c.getDesktopIcon(icon, distroHint),
+		"icon":           c.resolveIcon(ctx, icon, distroHint, iconsDir),
 		"extra_flags":    extraFlags,
 	}
 }
@@ -257,19 +274,78 @@ func (c *GenerateEntryCommand) getEntryFilePath(desktopEntryDir, containerName s
 	return filepath.Join(desktopEntryDir, containerName+".desktop")
 }
 
-// getDesktopIcon resolves the icon URL written to the desktop entry.
+// resolveIcon resolves the Icon= value written to the desktop entry.
 //
-// When the caller passes a concrete icon it is returned unchanged. When the
-// special value "auto" is used, distroHint (typically the container's image
-// name, falling back to its name) is matched against the known distro icon
-// map. The generic terminal icon is returned if no distro can be detected.
-func (c *GenerateEntryCommand) getDesktopIcon(icon, distroHint string) string {
-	if icon != "auto" {
+// An explicit icon (anything other than ""/"auto") is returned unchanged. For
+// "auto", the distro is detected from distroHint and its bundled logo is cached
+// under <iconsDir>/distrobox and downloaded only once: a non-empty cache file is
+// reused, a miss is fetched, and a fetch failure falls back to the generic
+// terminal theme icon WITHOUT clobbering any existing cache file.
+func (c *GenerateEntryCommand) resolveIcon(ctx context.Context, icon, distroHint, iconsDir string) string {
+	if icon != "" && icon != "auto" {
 		return icon
 	}
 
-	if url := lookupDistroIcon(distroHint); url != "" {
-		return url
+	url := lookupDistroIcon(distroHint)
+	if url == "" {
+		return fallbackIconName
 	}
-	return defaultEntryIcon
+
+	localPath := filepath.Join(iconsDir, "distrobox", path.Base(url))
+
+	// Cache hit: reuse a previously downloaded icon, so we neither re-download
+	// nor risk truncating it (works offline once cached).
+	if info, err := os.Stat(localPath); err == nil && info.Size() > 0 {
+		return localPath
+	}
+
+	if err := c.fetchIcon(ctx, url, localPath); err != nil {
+		return fallbackIconName
+	}
+	return localPath
+}
+
+// downloadIconFile downloads url into destPath, creating the parent directory.
+// It writes to a temp file and renames atomically, so a partial or failed
+// download never leaves a truncated icon in place.
+func downloadIconFile(ctx context.Context, url, destPath string) error {
+	if err := os.MkdirAll(filepath.Dir(destPath), 0o750); err != nil {
+		return fmt.Errorf("failed to create icon directory: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, iconDownloadTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to build icon request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to download icon: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download icon: status %d", resp.StatusCode)
+	}
+
+	tmp, err := os.CreateTemp(filepath.Dir(destPath), ".icon-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp icon file: %w", err)
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName) // no-op once renamed
+
+	if _, err := io.Copy(tmp, resp.Body); err != nil {
+		tmp.Close()
+		return fmt.Errorf("failed to write icon: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("failed to close icon file: %w", err)
+	}
+
+	if err := os.Rename(tmpName, destPath); err != nil {
+		return fmt.Errorf("failed to finalize icon: %w", err)
+	}
+	return nil
 }
