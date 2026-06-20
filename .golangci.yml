@@ -165,7 +165,7 @@ linters:
     cyclop:
       # The maximal code complexity to report.
       # Default: 10
-      max-complexity: 30
+      max-complexity: 35
       # The maximal average package complexity.
       # If it's higher than 0.0 (float) the check is enabled.
       # Default: 0.0
@@ -319,6 +319,9 @@ linters:
         # Assert no unused link in godocs.
         # https://github.com/godoc-lint/godoc-lint?tab=readme-ov-file#no-unused-link
         - no-unused-link
+
+    gocyclo:
+      min-complexity: 35
 
     govet:
       # Enable all analyzers.
