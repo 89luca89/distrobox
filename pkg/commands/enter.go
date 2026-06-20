@@ -19,6 +19,7 @@ type EnterOptions struct {
 	NoTTY           bool
 	Verbose         bool
 	CleanPath       bool
+	NoWorkDir       bool
 }
 
 type EnterCommand struct {
@@ -51,6 +52,7 @@ func (c *EnterCommand) Execute(ctx context.Context, opts EnterOptions) (*EnterRe
 		NoTTY:           opts.NoTTY,
 		Verbose:         opts.Verbose,
 		CleanPath:       opts.CleanPath,
+		NoWorkDir:       opts.NoWorkDir,
 	}
 
 	err := c.containerManager.Enter(ctx, cmdOpts, c.progress, c.printer)
