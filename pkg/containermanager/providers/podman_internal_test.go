@@ -16,6 +16,40 @@ import (
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
+// DBX_USERNS_NOLIMIT (non-zero) drops the keep-id:size cap.
+func TestUsernsNoLimitEnabled(t *testing.T) {
+	cases := map[string]bool{"": false, "0": false, "false": false, "1": true, "true": true, "yes": true}
+	for v, want := range cases {
+		t.Setenv("DBX_USERNS_NOLIMIT", v)
+		if got := usernsNoLimitEnabled(); got != want {
+			t.Errorf("DBX_USERNS_NOLIMIT=%q: got %v, want %v", v, got, want)
+		}
+	}
+}
+
+// with DBX_USERNS_NOLIMIT set, rootless create uses plain keep-id (no :size).
+func TestPodman_makeCreateCommandUsernsNoLimit(t *testing.T) {
+	t.Setenv("DBX_USERNS_NOLIMIT", "1")
+	podman := NewPodman(false, "sudo", false)
+	userEnv := &userenv.UserEnvironment{User: "user", UserID: "1000", GroupID: "1000", Home: "/home/user", Shell: "/bin/sh"}
+
+	cmd := podman.makeCreateCommand(
+		t.Context(),
+		"my-container", "my-image",
+		[]string{}, "my-hostname", []string{}, []string{},
+		"", "",
+		false, false, "", "",
+		false, false, false, false, false, false,
+		false, // dryRun
+		userEnv,
+		"/path/to/distrobox-init", "/path/to/distrobox-export", "/path/to/distrobox-hostexec",
+	)
+	cmdStr := strings.Join(cmd, " ")
+
+	assert.Contains(t, cmdStr, "--userns keep-id")
+	assert.NotContains(t, cmdStr, "keep-id:size")
+}
+
 func TestPodman_makeCreateCommand(t *testing.T) {
 	podman := NewPodman(false, "sudo", false)
 
