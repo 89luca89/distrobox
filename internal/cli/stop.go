@@ -35,6 +35,7 @@ Examples:
 			&cli.BoolFlag{
 				Name:    "yes",
 				Aliases: []string{"Y"},
+				Sources: cli.EnvVars("DBX_NON_INTERACTIVE"),
 				Usage:   "non-interactive, stop without asking",
 			},
 		},

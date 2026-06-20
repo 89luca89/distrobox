@@ -33,6 +33,7 @@ func newRmCommand(cfg *config.Values) *cli.Command {
 			&cli.BoolFlag{
 				Name:    "yes",
 				Aliases: []string{"Y"},
+				Sources: cli.EnvVars("DBX_NON_INTERACTIVE"),
 				Usage:   "non-interactive mode",
 			},
 			&cli.BoolFlag{

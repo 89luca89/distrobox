@@ -18,7 +18,7 @@ type Values struct {
 
 func defaultsMap() map[string]string {
 	return map[string]string{
-		"container_manager": "podman",
+		"container_manager": "autodetect",
 		"sudo_program":      "sudo",
 		"verbose":           "false",
 		// container_image Fedora toolbox is a sensitive default
@@ -128,6 +128,15 @@ func readConfigFile(filePath string) (map[string]string, error) {
 	config := make(map[string]string)
 	for _, key := range cfg.Section("").Keys() {
 		config[key.Name()] = key.String()
+	}
+
+	// The reference shell uses the config key `distrobox_sudo_program`; map it
+	// onto our `sudo_program` slot so .conf/.distroboxrc files keep working.
+	// Note: .distroboxrc is parsed as INI here, not sourced as shell.
+	if v, ok := config["distrobox_sudo_program"]; ok {
+		if _, has := config["sudo_program"]; !has {
+			config["sudo_program"] = v
+		}
 	}
 
 	return config, nil
