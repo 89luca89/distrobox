@@ -19,6 +19,10 @@ type RmResult struct {
 	Containers []containermanager.Container
 }
 
+// ErrRmAbortedByUser is returned when the user declines the top-level deletion
+// confirmation, so the CLI can print "Aborted." and exit cleanly.
+var ErrRmAbortedByUser = errors.New("rm operation aborted by user")
+
 type RmCommand struct {
 	cfg              *config.Values
 	containerManager containermanager.ContainerManager
@@ -64,6 +68,21 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 
 	distroboxesToRemove := getContainersToRemove(listResult.Containers, options.ContainerNames, options.All)
 
+	// Single top-level confirmation, matching the shell (distrobox-rm:413-419):
+	// default "yes", skipped under --force/--yes; a bare Enter proceeds.
+	if !options.Force && !options.NoTTY && len(distroboxesToRemove) > 0 {
+		names := make([]string, 0, len(distroboxesToRemove))
+		for _, d := range distroboxesToRemove {
+			names = append(names, d.Name)
+		}
+		if !c.prompter.Prompt(
+			fmt.Sprintf("Do you really want to delete containers: %s?", strings.Join(names, " ")),
+			true,
+		) {
+			return nil, ErrRmAbortedByUser
+		}
+	}
+
 	userEnv := userenv.LoadUserEnvironment(ctx)
 	userHome := userEnv.Home
 
@@ -91,7 +110,8 @@ func (c *RmCommand) removeContainer(
 ) error {
 	forceRemove := force
 	if !forceRemove && !noTTY && strings.Contains(container.Status, "Up") {
-		if c.prompter.Prompt("Container is running, do you want to force delete it?", false) {
+		// Shell defaults this prompt to "yes" (distrobox-rm:424-426).
+		if c.prompter.Prompt("Container is running, do you want to force delete it?", true) {
 			forceRemove = true
 		} else {
 			return nil
