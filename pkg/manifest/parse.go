@@ -209,8 +209,13 @@ func sectionToItem(section *ini.Section, env *userenv.UserEnvironment) Item { //
 			item.InitHooks = append(item.InitHooks, vals...)
 		case "pre_init_hooks":
 			item.PreInitHooks = append(item.PreInitHooks, vals...)
-		case "volumes":
-			item.Volumes = append(item.Volumes, vals...)
+		case "volume", "volumes":
+			// `volume` is the reference shell key (distrobox-assemble:63,451);
+			// `volumes` is also accepted. Values are whitespace-split so a single
+			// `volume="/a:/b /c:/d"` yields separate mounts, matching the shell.
+			for _, v := range vals {
+				item.Volumes = append(item.Volumes, strings.Fields(v)...)
+			}
 		}
 	}
 
