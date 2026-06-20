@@ -29,7 +29,7 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			&cli.BoolFlag{
 				Name:    "exec",
 				Aliases: []string{"e"},
-				Usage:   "end arguments: execute the rest as command to execute at login\n" +
+				Usage: "end arguments: execute the rest as command to execute at login\n" +
 					"(equivalent to the bare `--` separator; the custom command is\n" +
 					"always taken from the positional args after the container name)",
 			},
