@@ -26,7 +26,11 @@ perf_stat_metric() {
     awk -F',' -v ev="$event" '
         # skip comment/header lines starting with #
         /^#/ { next }
-        $3 == ev { print $1; found=1; exit }
+        {
+            e = $3
+            sub(/:[ukh]+$/, "", e)
+            if (e == ev) { print $1; found=1; exit }
+        }
         END { if (!found) print "null" }
     ' "$csv"
 }
