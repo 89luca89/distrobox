@@ -63,6 +63,7 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			&cli.BoolFlag{
 				Name:    "no-workdir",
 				Aliases: []string{"nw"},
+				Sources: cli.EnvVars("DBX_SKIP_WORKDIR"),
 				Usage:   "always start the container from container's home directory",
 			},
 		},
@@ -141,6 +142,7 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 		NoTTY:           cmd.Bool("no-tty"),
 		CleanPath:       cmd.Bool("clean-path"),
 		Verbose:         cmd.Bool("verbose"),
+		NoWorkDir:       cmd.Bool("no-workdir"),
 	}
 
 	progress := ui.NewProgress(os.Stderr)
