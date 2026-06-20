@@ -164,6 +164,9 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) (*Creat
 			ctx,
 			&GenerateEntryOptions{
 				ContainerName: containerName,
+				// "auto" triggers distro icon detection; without it the entry
+				// would get an empty Icon=.
+				Icon: "auto",
 			},
 		)
 		if err != nil {
