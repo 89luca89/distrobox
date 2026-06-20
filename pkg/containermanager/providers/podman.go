@@ -531,6 +531,7 @@ func (p *Podman) Enter(
 		options.NoWorkDir,
 		options.CleanPath,
 		options.Verbose,
+		options.DryRun,
 	)
 	if err != nil {
 		return fmt.Errorf("err: %w", err)
@@ -809,6 +810,7 @@ func (p *Podman) generateEnterCommand(
 	noWorkDir bool,
 	cleanPath bool,
 	verbose bool,
+	dryRun bool,
 ) ([]string, *containermanager.InspectResult, error) {
 	cmd := []string{}
 
@@ -822,8 +824,14 @@ func (p *Podman) generateEnterCommand(
 
 	containerConfig, err := p.InspectContainer(ctx, containerName)
 	if err != nil {
-		// TODO handle missing container
-		return nil, nil, err
+		if !dryRun {
+			return nil, nil, err
+		}
+		// Dry-run without a live container: build the command from host state,
+		// matching the shell (distrobox-enter:578-588).
+		containerConfig = &containermanager.InspectResult{
+			ContainerHome: userenv.LoadUserEnvironment(ctx).Home,
+		}
 	}
 	// User selection
 	if containerConfig.UnshareGroups {
