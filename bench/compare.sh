@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "${SCRIPT_DIR}/lib/common.sh"
+. "${SCRIPT_DIR}/lib/perf.sh"
 
 # Source-only mode for tests
 : "${COMPARE_SOURCE_ONLY:=0}"
@@ -55,8 +56,8 @@ EOF
     [ -n "$dir_a" ] && [ -n "$dir_b" ] || die "two result dirs required"
 
     local meta_a="${dir_a}/meta.json" meta_b="${dir_b}/meta.json"
-    assert_meta() { [ -e "$1" ] || die "meta.json missing: $1"; }
-    assert_meta "$meta_a"; assert_meta "$meta_b"
+    [ -e "$meta_a" ] || die "meta.json missing: $meta_a"
+    [ -e "$meta_b" ] || die "meta.json missing: $meta_b"
 
     local label_a label_b podman_a podman_b
     label_a=$(jq -r .label "$meta_a")
@@ -112,10 +113,10 @@ EOF
             rss_b=$([ -e "$tb" ] && jq -r .peak_rss_kb "$tb" || echo "n/a")
 
             if [ -e "$pa" ]; then
-                instr_a=$(awk -F, '/^#/{next} {e=$3; sub(/:[ukh]+$/,"",e); if(e=="instructions"){print $1; exit}}' "$pa" 2>/dev/null || echo "n/a")
+                instr_a=$(perf_stat_metric "$pa" instructions)
             else instr_a="n/a"; fi
             if [ -e "$pb" ]; then
-                instr_b=$(awk -F, '/^#/{next} {e=$3; sub(/:[ukh]+$/,"",e); if(e=="instructions"){print $1; exit}}' "$pb" 2>/dev/null || echo "n/a")
+                instr_b=$(perf_stat_metric "$pb" instructions)
             else instr_b="n/a"; fi
 
             printf '| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n' \
