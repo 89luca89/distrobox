@@ -33,16 +33,18 @@ func (s *spyContainerManager) Enter(_ context.Context, opts containermanager.Ent
 
 // The remaining methods are stubs to satisfy containermanager.ContainerManager.
 // enterAction never reaches them.
-func (s *spyContainerManager) Name() string                                                     { return "spy" }
-func (s *spyContainerManager) CloneAsRoot() containermanager.ContainerManager                   { return s }
-func (s *spyContainerManager) Create(_ context.Context, _ containermanager.CreateOptions) error { return nil }
+func (s *spyContainerManager) Name() string                                   { return "spy" }
+func (s *spyContainerManager) CloneAsRoot() containermanager.ContainerManager { return s }
+func (s *spyContainerManager) Create(_ context.Context, _ containermanager.CreateOptions) error {
+	return nil
+}
 func (s *spyContainerManager) ListContainers(_ context.Context) ([]containermanager.Container, error) {
 	return nil, nil
 }
 func (s *spyContainerManager) Remove(_ context.Context, _ string, _ containermanager.RmOptions) error {
 	return nil
 }
-func (s *spyContainerManager) Exists(_ context.Context, _ string) bool { return false }
+func (s *spyContainerManager) Exists(_ context.Context, _ string) bool  { return false }
 func (s *spyContainerManager) Stop(_ context.Context, _ []string) error { return nil }
 func (s *spyContainerManager) InspectContainer(_ context.Context, _ string) (*containermanager.InspectResult, error) {
 	return &containermanager.InspectResult{}, nil
