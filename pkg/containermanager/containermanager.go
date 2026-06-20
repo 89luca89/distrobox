@@ -225,6 +225,7 @@ func FilterEnvVars() []string {
 		"HOME",
 		"PATH",
 		"PROFILEREAD",
+		"PWD", // host PWD is replaced by --env=PWD=<workdir>
 		"SHELL",
 		"XDG_SEAT",
 		"XDG_VTNR",
