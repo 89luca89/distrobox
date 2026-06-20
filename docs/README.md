@@ -330,6 +330,21 @@ skip_workdir="0"
 PATH="$PATH:/path/to/custom/podman"
 ```
 
+> **Note — configuration files are parsed as INI, not sourced as shell.**
+> The original shell distrobox *sourced* `distrobox.conf` and `${HOME}/.distroboxrc`,
+> so they could contain arbitrary shell (variable expansion, command substitution,
+> conditionals, `export`, etc.). The new Go implementation instead reads them as plain
+> `key=value` (INI) files. As a consequence:
+>
+> - Values are taken **literally**: `container_user_custom_home="$HOME/..."` and
+>   `PATH="$PATH:..."` are *not* expanded — use absolute paths. The `$HOME`/`$PATH`
+>   entries in the example above illustrate the old sourcing behavior and will not
+>   be expanded here.
+> - Arbitrary shell logic in `.distroboxrc` is **not executed**; only recognized
+>   `key=value` settings take effect.
+> - The reference key `distrobox_sudo_program` is accepted (mapped onto
+>   `sudo_program`).
+
 Alternatively, it is possible to specify preferences using ENV variables:
 
 - DBX_CONTAINER_ALWAYS_PULL
