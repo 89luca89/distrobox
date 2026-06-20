@@ -112,10 +112,10 @@ EOF
             rss_b=$([ -e "$tb" ] && jq -r .peak_rss_kb "$tb" || echo "n/a")
 
             if [ -e "$pa" ]; then
-                instr_a=$(awk -F, '/^#/{next} $3=="instructions"{print $1; exit}' "$pa" 2>/dev/null || echo "n/a")
+                instr_a=$(awk -F, '/^#/{next} {e=$3; sub(/:[ukh]+$/,"",e); if(e=="instructions"){print $1; exit}}' "$pa" 2>/dev/null || echo "n/a")
             else instr_a="n/a"; fi
             if [ -e "$pb" ]; then
-                instr_b=$(awk -F, '/^#/{next} $3=="instructions"{print $1; exit}' "$pb" 2>/dev/null || echo "n/a")
+                instr_b=$(awk -F, '/^#/{next} {e=$3; sub(/:[ukh]+$/,"",e); if(e=="instructions"){print $1; exit}}' "$pb" 2>/dev/null || echo "n/a")
             else instr_b="n/a"; fi
 
             printf '| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n' \
