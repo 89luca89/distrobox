@@ -25,13 +25,19 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 				Usage:   "name for the distrobox",
 			},
 			&cli.BoolFlag{
+				Name:    "exec",
+				Aliases: []string{"e"},
+				Usage:   "end arguments: execute the rest as command to execute at login\n" +
+					"(equivalent to the bare `--` separator; the custom command is\n" +
+					"always taken from the positional args after the container name)",
+			},
+			&cli.BoolFlag{
 				Name:    "dry-run",
 				Aliases: []string{"d"},
 				Usage:   "only print the container manager command generated",
 			},
 			&cli.BoolFlag{
 				Name:    "clean-path",
-				Aliases: []string{"c"},
 				Usage:   "only print the container manager command generated",
 			},
 			&cli.StringFlag{
@@ -55,7 +61,8 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 				Usage:   "always start the container from container's home directory",
 			},
 		},
-		UseShortOptionHandling: true,
+		UseShortOptionHandling: false,
+		StopOnNthArg:           ptr(1),
 		SkipFlagParsing:        false,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			return enterAction(ctx, cmd, cfg)
@@ -71,12 +78,35 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 
 	// Container name: --name flag takes priority, otherwise first positional arg.
 	// Everything after the container name (or after --) is the custom command.
+	//
+	// The CLI is configured with StopOnNthArg: 1, so urfave/cli stops flag
+	// parsing as soon as the first positional arg is seen. The trailing
+	// positional args (which include the custom command and any -e/--exec
+	// marker that came after the container name) are returned verbatim.
 	containerName := cmd.String("name")
 
 	args := cmd.Args().Slice()
-	if containerName == "" && len(args) > 0 {
+
+	// If the user placed -e/--exec AFTER the container name, it lands in
+	// the positional tail. In that case the first positional arg is still
+	// the container name and the custom command starts right after the
+	// marker. When the marker is consumed as a flag (i.e. it appeared
+	// before the container name) the tail is just the custom command.
+	markerIndex := findExecMarkerIndex(args)
+
+	var customCommand []string
+	switch {
+	case markerIndex >= 0:
+		// -e/--exec was placed after the container name.
+		if containerName == "" {
+			containerName = args[0]
+		}
+		customCommand = args[markerIndex+1:]
+	case containerName == "" && len(args) > 0:
 		containerName = args[0]
-		args = args[1:]
+		customCommand = args[1:]
+	default:
+		customCommand = args
 	}
 
 	if containerName == "" {
@@ -86,7 +116,7 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 	options := commands.EnterOptions{
 		ContainerName:   containerName,
 		AdditionalFlags: cmd.String("additional-flags"),
-		CustomCommand:   args,
+		CustomCommand:   customCommand,
 		DryRun:          cmd.Bool("dry-run"),
 		NoTTY:           cmd.Bool("no-tty"),
 		CleanPath:       cmd.Bool("clean-path"),
