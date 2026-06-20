@@ -68,6 +68,22 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 
 	distroboxesToRemove := getContainersToRemove(listResult.Containers, options.ContainerNames, options.All)
 
+	// Mirror shell distrobox-rm:353-356: for each explicit name the user
+	// typed that we couldn't resolve, print a "Cannot find container X." so
+	// typos surface instead of silently no-op'ing.
+	if !options.All && len(options.ContainerNames) > 0 {
+		found := make(map[string]bool, len(distroboxesToRemove))
+		for _, d := range distroboxesToRemove {
+			found[d.Name] = true
+		}
+		for _, name := range options.ContainerNames {
+			if !found[name] {
+				//nolint:forbidigo // waiting for the logger implementation
+				fmt.Fprintf(os.Stderr, "Cannot find container %s.\n", name)
+			}
+		}
+	}
+
 	// Single top-level confirmation, matching the shell (distrobox-rm:413-419):
 	// default "yes", skipped under --force/--yes; a bare Enter proceeds.
 	if !options.Force && !options.NoTTY && len(distroboxesToRemove) > 0 {
