@@ -206,6 +206,12 @@ func TestGenerateEntryCommand_SingleModeUsesImageHint(t *testing.T) {
 	listCmd := commands.NewListCommand(&config.Values{}, mock)
 	cmd := commands.NewGenerateEntryCommand(&config.Values{}, listCmd)
 
+	// Pre-seed the icon cache so resolution reuses it (no network) while still
+	// proving the distro was detected from the image, not the box name.
+	iconPath := filepath.Join(tempDir, "icons", "distrobox", "ubuntu-distrobox.png")
+	require.NoError(t, os.MkdirAll(filepath.Dir(iconPath), 0o750))
+	require.NoError(t, os.WriteFile(iconPath, []byte("png"), 0o644))
+
 	err := cmd.Execute(context.Background(), &commands.GenerateEntryOptions{
 		ContainerName:       "dev",
 		Icon:                "auto",
@@ -217,5 +223,5 @@ func TestGenerateEntryCommand_SingleModeUsesImageHint(t *testing.T) {
 	content, err := os.ReadFile(filepath.Join(tempDir, "applications", "dev.desktop"))
 	require.NoError(t, err)
 	assert.Contains(t, string(content), "ubuntu-distrobox.png",
-		"single-mode must key auto-detection off the image, not the box name 'dev'")
+		"single-mode must key auto-detection off the image (cached icon path), not the box name 'dev'")
 }
