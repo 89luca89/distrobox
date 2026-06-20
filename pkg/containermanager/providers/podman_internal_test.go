@@ -68,6 +68,7 @@ func TestPodman_makeCreateCommand(t *testing.T) {
 		"--ulimit host",
 		"--systemd=always",
 		"--userns keep-id",
+		"--volume /dev/null:/run/.distrobox.rootless:ro",
 	}
 
 	for _, flag := range requiredFlags {
@@ -141,8 +142,9 @@ func TestPodman_makeCreateCommandRootful(t *testing.T) {
 
 	cmdStr := strings.Join(cmd, " ")
 
-	// Rootful mode should NOT have --userns keep-id
+	// Rootful mode should NOT have --userns keep-id, nor the rootless marker
 	assert.NotContains(t, cmdStr, "--userns keep-id")
+	assert.NotContains(t, cmdStr, "/run/.distrobox.rootless")
 
 	// Should still have other Podman-specific flags
 	assert.Contains(t, cmdStr, "--annotation run.oci.keep_original_groups=1")

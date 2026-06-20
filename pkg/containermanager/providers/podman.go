@@ -379,6 +379,13 @@ func (p *Podman) makeCreateCommand(
 		options = append(options, "--volume", "/dev/null:/run/.nopasswd:ro")
 	}
 
+	// Signal rootless mode explicitly so distrobox-init does not rely solely on
+	// the /etc/shadow heuristic, which gives false positives on Docker Desktop /
+	// macOS where the container always has root over the VM filesystem.
+	if !p.root {
+		options = append(options, "--volume", "/dev/null:/run/.distrobox.rootless:ro")
+	}
+
 	// Add additional flags
 	options = append(options, containerAdditionalFlags...)
 
