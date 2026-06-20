@@ -263,7 +263,7 @@ func (c *CreateCommand) makeContainerUserCustomHome(
 	opts *CreateOptions,
 	containerName string,
 ) string {
-	containerUserCustomHome := opts.ContainerUserCustomHome
+	containerUserCustomHome := strings.TrimRight(opts.ContainerUserCustomHome, "/")
 	if opts.ContainerHomePrefix != "" && containerUserCustomHome == "" {
 		containerUserCustomHome = filepath.Join(opts.ContainerHomePrefix, containerName)
 	}
