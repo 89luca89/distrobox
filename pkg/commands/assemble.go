@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"slices"
@@ -163,6 +164,12 @@ func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, d
 	}
 	_, err := createCmd.Execute(ctx, opts)
 	if err != nil {
+		var alreadyExists *ContainerAlreadyExistsError
+		if errors.As(err, &alreadyExists) {
+			ac.progress.Done()
+			ac.printer.Println("%s already exists", item.Name)
+			return nil
+		}
 		ac.progress.Fail()
 		return err
 	}

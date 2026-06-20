@@ -29,6 +29,19 @@ func getEnterOptions(spy testutil.ContainerManagerSpy, index int) containermanag
 	return spy.Enter[index][0].(containermanager.EnterOptions)
 }
 
+func TestAssembleCommand_CreateSkipsExistingBox(t *testing.T) {
+	mock := &testutil.MockContainerManager{
+		ExistsFn: func(string) bool { return true },
+	}
+	cmd := newTestAssembleCommand(mock)
+
+	err := cmd.Execute(context.Background(), commands.AssembleOptions{
+		Items: []manifest.Item{{Name: "existing", Image: "alpine:3.21"}},
+	})
+	require.NoError(t, err, "an already-existing box must be skipped, not an error")
+	assert.Empty(t, mock.Spy.Remove, "skipping an existing box must not trigger cleanup")
+}
+
 func TestAssembleCommand_SetupBox_StartNowTrue(t *testing.T) {
 	mock := &testutil.MockContainerManager{}
 	cmd := newTestAssembleCommand(mock)
