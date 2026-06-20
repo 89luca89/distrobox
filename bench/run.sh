@@ -142,7 +142,7 @@ skipped_csv=""
 started="$(date -u +%FT%TZ)"
 
 # ── Per-scenario loop ──────────────────────────────────────────────────────
-while IFS= read -r scenario; do
+while IFS= read -r scenario <&3; do
     [ -n "$scenario" ] || continue
     log_info "scenario: $scenario"
 
@@ -193,9 +193,7 @@ while IFS= read -r scenario; do
     unset -f scenario_setup scenario_command scenario_cleanup scenario_supported 2>/dev/null || true
 
     ran_csv="${ran_csv}${scenario},"
-done <<EOF
-$scenarios
-EOF
+done 3< <(printf '%s' "$scenarios"; echo)
 
 finished="$(date -u +%FT%TZ)"
 
