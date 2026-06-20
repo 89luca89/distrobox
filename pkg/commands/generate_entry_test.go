@@ -225,3 +225,44 @@ func TestGenerateEntryCommand_SingleModeUsesImageHint(t *testing.T) {
 	assert.Contains(t, string(content), "ubuntu-distrobox.png",
 		"single-mode must key auto-detection off the image (cached icon path), not the box name 'dev'")
 }
+
+// generate-entry refuses to write an entry for a container that does not
+// exist (matches the shell, distrobox-generate-entry:285-288).
+func TestGenerateEntryCommand_RefusesNonExistentContainer(t *testing.T) {
+	tempDir := t.TempDir()
+	mock := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{
+			{Name: "other", Image: "alpine", Status: "Exited", Labels: map[string]string{"manager": "distrobox"}},
+		},
+	}
+	listCmd := commands.NewListCommand(&config.Values{}, mock)
+	cmd := commands.NewGenerateEntryCommand(&config.Values{}, listCmd)
+
+	err := cmd.Execute(context.Background(), &commands.GenerateEntryOptions{
+		ContainerName:       "ghost",
+		DesktopEntryBaseDir: tempDir,
+		DistroboxPath:       "/usr/bin/distrobox",
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot find container ghost")
+	assert.NoFileExists(t, filepath.Join(tempDir, "applications", "ghost.desktop"))
+}
+
+// --delete must NOT require the container to exist (its box may already
+// be gone when rm cleans up the entry).
+func TestGenerateEntryCommand_DeleteNonExistentNoError(t *testing.T) {
+	tempDir := t.TempDir()
+	mock := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{},
+	}
+	listCmd := commands.NewListCommand(&config.Values{}, mock)
+	cmd := commands.NewGenerateEntryCommand(&config.Values{}, listCmd)
+
+	err := cmd.Execute(context.Background(), &commands.GenerateEntryOptions{
+		ContainerName:       "ghost",
+		Delete:              true,
+		DesktopEntryBaseDir: tempDir,
+		DistroboxPath:       "/usr/bin/distrobox",
+	})
+	require.NoError(t, err)
+}
