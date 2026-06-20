@@ -18,10 +18,15 @@ import (
 // spyContainerManager records every Enter call so the test can assert on
 // the EnterOptions the enter subcommand built from its argv. All other
 // methods are no-ops — enterAction only ever calls Enter.
+//
+// existsResult controls what Exists returns. The enter command takes a
+// detour into the create flow when Exists==false, so tests that only want
+// to exercise argv parsing set it to true; tests that rely on a unique
+// generated name (ephemeral) leave it false.
 type spyContainerManager struct {
-	mu     sync.Mutex
-	calls  []containermanager.EnterOptions
-	failOn bool
+	mu           sync.Mutex
+	calls        []containermanager.EnterOptions
+	existsResult bool
 }
 
 func (s *spyContainerManager) Enter(_ context.Context, opts containermanager.EnterOptions, _ *ui.Progress, _ *ui.Printer) error {
@@ -44,7 +49,7 @@ func (s *spyContainerManager) ListContainers(_ context.Context) ([]containermana
 func (s *spyContainerManager) Remove(_ context.Context, _ string, _ containermanager.RmOptions) error {
 	return nil
 }
-func (s *spyContainerManager) Exists(_ context.Context, _ string) bool  { return false }
+func (s *spyContainerManager) Exists(_ context.Context, _ string) bool  { return s.existsResult }
 func (s *spyContainerManager) Stop(_ context.Context, _ []string) error { return nil }
 func (s *spyContainerManager) InspectContainer(_ context.Context, _ string) (*containermanager.InspectResult, error) {
 	return &containermanager.InspectResult{}, nil
@@ -61,7 +66,10 @@ func (s *spyContainerManager) PullImage(_ context.Context, _, _ string, _ bool) 
 func runEnter(t *testing.T, argv ...string) containermanager.EnterOptions {
 	t.Helper()
 
-	spy := &spyContainerManager{}
+	// enterAction offers to create the container when Exists==false, which
+	// would drag this argv-parsing test into the create flow. Pretend the
+	// container is already there so we go straight to Enter.
+	spy := &spyContainerManager{existsResult: true}
 	cmd := newEnterCommand(config.DefaultValues())
 
 	// The production Before hook (installed by withContainerManager in
