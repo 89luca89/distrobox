@@ -126,7 +126,20 @@ func (c *GenerateEntryCommand) resolveTargets(
 		}
 		return names, images, "auto", nil
 	case opts.ContainerName != "":
-		return []string{opts.ContainerName}, nil, opts.Icon, nil
+		// Look up the container's image so auto-detection keys off the distro
+		// (image) rather than the box name: a box named "dev" running
+		// Ubuntu should still get the Ubuntu icon. Non-fatal if the manager
+		// can't be reached — we fall back to the name in Execute.
+		images := map[string]string{}
+		if listResult, err := c.listCommand.Execute(ctx); err == nil {
+			for _, container := range listResult.Containers {
+				if container.Name == opts.ContainerName {
+					images[opts.ContainerName] = container.Image
+					break
+				}
+			}
+		}
+		return []string{opts.ContainerName}, images, opts.Icon, nil
 	default:
 		return []string{defaultContainerName}, nil, opts.Icon, nil
 	}

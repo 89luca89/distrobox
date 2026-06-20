@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,7 +12,9 @@ import (
 
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/config"
+	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/containermanager/providers"
+	"github.com/89luca89/distrobox/pkg/internal/testutil"
 )
 
 func TestGenerateEntryCommand_Execute(t *testing.T) {
@@ -183,4 +186,36 @@ func TestGenerateAllEntriesCommand_Execute(t *testing.T) {
 		expectedEntryPath := fmt.Sprintf("%s/.local/share/applications/%s.desktop", tempDir, container.Name)
 		assert.NoFileExists(t, expectedEntryPath)
 	}
+}
+
+// single-container generate-entry detects the distro from the container's
+// image, not its name. A box named "dev" running Ubuntu gets the Ubuntu icon.
+func TestGenerateEntryCommand_SingleModeUsesImageHint(t *testing.T) {
+	tempDir := t.TempDir()
+
+	mock := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{
+			{
+				Name:   "dev",
+				Image:  "docker.io/library/ubuntu:22.04",
+				Status: "Exited",
+				Labels: map[string]string{"manager": "distrobox"},
+			},
+		},
+	}
+	listCmd := commands.NewListCommand(&config.Values{}, mock)
+	cmd := commands.NewGenerateEntryCommand(&config.Values{}, listCmd)
+
+	err := cmd.Execute(context.Background(), &commands.GenerateEntryOptions{
+		ContainerName:       "dev",
+		Icon:                "auto",
+		DesktopEntryBaseDir: tempDir,
+		DistroboxPath:       "/usr/bin/distrobox",
+	})
+	require.NoError(t, err)
+
+	content, err := os.ReadFile(filepath.Join(tempDir, "applications", "dev.desktop"))
+	require.NoError(t, err)
+	assert.Contains(t, string(content), "ubuntu-distrobox.png",
+		"single-mode must key auto-detection off the image, not the box name 'dev'")
 }
