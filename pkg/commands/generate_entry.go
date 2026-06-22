@@ -342,7 +342,7 @@ func downloadIconFile(ctx context.Context, url, destPath string) error {
 	defer os.Remove(tmpName) // no-op once renamed
 
 	if _, err := io.Copy(tmp, resp.Body); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return fmt.Errorf("failed to write icon: %w", err)
 	}
 	if err := tmp.Close(); err != nil {

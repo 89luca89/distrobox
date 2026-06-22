@@ -137,7 +137,7 @@ func (p *Podman) Create(
 
 // makeCreateCommand builds the podman create command with all necessary options.
 //
-//nolint:gocognit,funlen,gocyclo,cyclop // ignore cognitive complexity here, the function is mostly imperative option appending
+//nolint:gocognit,funlen // ignore complexity here, the function is mostly imperative option appending
 func (p *Podman) makeCreateCommand(
 	ctx context.Context,
 	containerName string,
