@@ -12,8 +12,13 @@ import (
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
+// darwinGOOS is the runtime.GOOS value reported on macOS.
+const darwinGOOS = "darwin"
+
 // bindGOOS is the OS used to decide bind-mount propagation. It is a package
 // variable so tests can exercise the macOS branch without running on darwin.
+//
+//nolint:gochecknoglobals // deliberate test seam for the macOS bind-propagation branch
 var bindGOOS = runtime.GOOS
 
 // BindPropagation returns the propagation suffix for shared bind mounts.
@@ -22,7 +27,7 @@ var bindGOOS = runtime.GOOS
 // host paths as private, so rslave/rshared propagation is unsupported and must
 // be dropped there — mirroring the reference shell (distrobox-create:677-685).
 func BindPropagation() string {
-	if bindGOOS == "darwin" {
+	if bindGOOS == darwinGOOS {
 		return ""
 	}
 	return ":rslave"
@@ -30,7 +35,7 @@ func BindPropagation() string {
 
 // ReadOnlyBindPropagation is BindPropagation for read-only mounts.
 func ReadOnlyBindPropagation() string {
-	if bindGOOS == "darwin" {
+	if bindGOOS == darwinGOOS {
 		return ":ro"
 	}
 	return ":ro,rslave"
