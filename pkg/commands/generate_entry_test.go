@@ -23,8 +23,15 @@ func TestGenerateEntryCommand_Execute(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
 
-	// create the list command
-	containerManager := providers.NewDocker(false, "sudo", false)
+	// A mock manager that lists the target box, so single-mode resolveTargets
+	// finds it: generate-entry refuses to create an entry for a missing box.
+	containerManager := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{{
+			Name:   "test-container",
+			Image:  "registry.fedoraproject.org/fedora-toolbox:latest",
+			Labels: map[string]string{"manager": "distrobox"},
+		}},
+	}
 	listCmd := commands.NewListCommand(&config.Values{}, containerManager)
 
 	//
@@ -90,7 +97,13 @@ func TestGenerateEntryCommand_Execute_Root(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
 
-	containerManager := providers.NewDocker(false, "sudo", false)
+	containerManager := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{{
+			Name:   "test-container",
+			Image:  "registry.fedoraproject.org/fedora-toolbox:latest",
+			Labels: map[string]string{"manager": "distrobox"},
+		}},
+	}
 	listCmd := commands.NewListCommand(&config.Values{}, containerManager)
 
 	generateEntryCmd := commands.NewGenerateEntryCommand(&config.Values{}, listCmd)
