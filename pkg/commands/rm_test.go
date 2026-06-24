@@ -21,12 +21,14 @@ import (
 
 func newTestRmCommand(mock *testutil.MockContainerManager) *commands.RmCommand {
 	prompter := ui.NewPrompter(*bufio.NewReader(strings.NewReader("")), io.Discard)
-	return commands.NewRmCommand(&config.Values{}, mock, prompter)
+	printer := ui.NewPrinter(io.Discard, false)
+	return commands.NewRmCommand(&config.Values{}, mock, prompter, printer)
 }
 
 func newTestRmCommandWithInput(mock *testutil.MockContainerManager, input string) *commands.RmCommand {
 	prompter := ui.NewPrompter(*bufio.NewReader(strings.NewReader(input)), io.Discard)
-	return commands.NewRmCommand(&config.Values{}, mock, prompter)
+	printer := ui.NewPrinter(io.Discard, false)
+	return commands.NewRmCommand(&config.Values{}, mock, prompter, printer)
 }
 
 // lastRemoveOptions returns the RmOptions passed to the most recent
