@@ -268,6 +268,7 @@ func withContainerManager(cfg *config.Values, cmd *cli.Command) *cli.Command {
 			c.String("sudo-command"),
 			c.Bool("verbose"),
 			c.Bool("root") || os.Getuid() == 0,
+			cfg.UsernsNoLimit,
 		)
 		if err != nil {
 			return nil, err
@@ -283,6 +284,7 @@ func buildContainerManager(
 	sudoCommand string,
 	verbose bool,
 	root bool,
+	usernsNoLimit bool,
 ) (containermanager.ContainerManager, error) {
 	errPrinter := ui.NewPrinter(os.Stderr, true)
 
@@ -290,11 +292,11 @@ func buildContainerManager(
 	case "docker":
 		return providers.NewDocker(root, sudoCommand, verbose), nil
 	case "podman":
-		return providers.NewPodman(root, sudoCommand, verbose), nil
+		return providers.NewPodman(root, sudoCommand, verbose, usernsNoLimit), nil
 	case "podman-launcher":
-		return providers.NewPodmanLauncher(root, sudoCommand, verbose), nil
+		return providers.NewPodmanLauncher(root, sudoCommand, verbose, usernsNoLimit), nil
 	case "autodetect", "":
-		cm, err := providers.NewAutoDetect(root, sudoCommand, verbose)
+		cm, err := providers.NewAutoDetect(root, sudoCommand, verbose, usernsNoLimit)
 		if err != nil {
 			if errors.Is(err, providers.ErrNoContainerManager) {
 				printMissingContainerManager(errPrinter)

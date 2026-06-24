@@ -17,6 +17,19 @@ import (
 
 //nolint:funlen // function length is acceptable for CLI command definition
 func newCreateCommand(cfg *config.Values) *cli.Command {
+	imageDefault := cfg.DefaultContainerImage
+	if cfg.ContainerImage != "" {
+		imageDefault = cfg.ContainerImage
+	}
+	nameDefault := cfg.DefaultContainerName
+	if cfg.ContainerName != "" {
+		nameDefault = cfg.ContainerName
+	}
+	hostnameDefault := cfg.ContainerHostname
+	if hostnameDefault == "" {
+		hostnameDefault = defaultHostname()
+	}
+
 	return &cli.Command{
 
 		Name:  "create",
@@ -40,37 +53,30 @@ Examples:
 			&cli.StringFlag{
 				Name:    "image",
 				Aliases: []string{"i"},
-				Sources: cli.EnvVars("DBX_CONTAINER_IMAGE"),
-				Usage: fmt.Sprintf(
-					"image to use for the container (default: %s)",
-					cfg.DefaultContainerImage,
-				),
-				// No Value default: leaving it empty lets makeContainerImage's
-				// "no clone & no image" branch select cfg.DefaultContainerImage,
-				// which is what triggers the default-name fallback. Setting
-				// Value here would defeat that check (shell parity).
+				Value:   cfg.ContainerImage,
+				Usage:   fmt.Sprintf("image to use for the container (default: %s)", imageDefault),
 			},
 			&cli.StringFlag{
 				Name:    "name",
 				Aliases: []string{"n"},
-				Sources: cli.EnvVars("DBX_CONTAINER_NAME"),
-				Usage:   fmt.Sprintf("name for the distrobox (default: %s)", cfg.DefaultContainerName),
+				Value:   cfg.ContainerName,
+				Usage:   fmt.Sprintf("name for the distrobox (default: %s)", nameDefault),
 			},
 			&cli.StringFlag{
-				Name:    "hostname",
-				Sources: cli.EnvVars("DBX_CONTAINER_HOSTNAME"),
-				Usage:   fmt.Sprintf("hostname for the distrobox (default: %s)", defaultHostname()),
+				Name:  "hostname",
+				Value: cfg.ContainerHostname,
+				Usage: fmt.Sprintf("hostname for the distrobox (default: %s)", hostnameDefault),
 			},
 			&cli.BoolFlag{
 				Name:    "pull",
 				Aliases: []string{"p"},
-				Sources: cli.EnvVars("DBX_CONTAINER_ALWAYS_PULL"),
+				Value:   cfg.ContainerAlwaysPull,
 				Usage:   "pull the image even if it exists locally (implies --yes)",
 			},
 			&cli.BoolFlag{
 				Name:    "yes",
 				Aliases: []string{"Y"},
-				Sources: cli.EnvVars("DBX_NON_INTERACTIVE"),
+				Value:   cfg.NonInteractive,
 				Usage:   "non-interactive, pull images without asking",
 			},
 			&cli.StringFlag{
@@ -83,7 +89,7 @@ of the same environment.`,
 			&cli.StringFlag{
 				Name:    "home",
 				Aliases: []string{"H"},
-				Sources: cli.EnvVars("DBX_CONTAINER_CUSTOM_HOME"),
+				Value:   cfg.ContainerCustomHome,
 				Usage:   "select a custom HOME directory for the container. Useful to avoid host's home littering with temp files.",
 			},
 			&cli.StringSliceFlag{
@@ -191,18 +197,13 @@ func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) err
 		return errors.New("container manager not found in context")
 	}
 
-	// DBX_CONTAINER_GENERATE_ENTRY=0 disables entry generation (shell parity);
-	// DBX_CONTAINER_HOME_PREFIX seeds a per-box custom home when no --home is set.
-	generateEntry := !cmd.Bool("no-entry")
-	if v := os.Getenv("DBX_CONTAINER_GENERATE_ENTRY"); v == "0" || v == "false" {
-		generateEntry = false
-	}
+	generateEntry := cfg.GenerateEntry && !cmd.Bool("no-entry")
 
 	opts := commands.CreateOptions{
 		ContainerImage:          cmd.String("image"),
 		ContainerName:           cmd.String("name"),
 		ContainerHostname:       cmd.String("hostname"),
-		ContainerHomePrefix:     os.Getenv("DBX_CONTAINER_HOME_PREFIX"),
+		ContainerHomePrefix:     cfg.ContainerHomePrefix,
 		ContainerClone:          cmd.String("clone"),
 		UnshareNetNs:            cmd.Bool("unshare-netns") || cmd.Bool("unshare-all"),
 		UnshareDevsys:           cmd.Bool("unshare-devsys") || cmd.Bool("unshare-all"),

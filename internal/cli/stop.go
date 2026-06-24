@@ -35,7 +35,7 @@ Examples:
 			&cli.BoolFlag{
 				Name:    "yes",
 				Aliases: []string{"Y"},
-				Sources: cli.EnvVars("DBX_NON_INTERACTIVE"),
+				Value:   cfg.NonInteractive,
 				Usage:   "non-interactive, stop without asking",
 			},
 		},
@@ -55,12 +55,13 @@ func stopAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error
 	nonInteractive := cmd.Bool("yes")
 	containerNames := cmd.Args().Slice()
 
-	// Shell distrobox-stop seeds container_name from DBX_CONTAINER_NAME
-	// (distrobox-stop:90, 200-202) when no positional and not --all.
-	if !all && len(containerNames) == 0 {
-		if envName := os.Getenv("DBX_CONTAINER_NAME"); envName != "" {
-			containerNames = []string{envName}
-		}
+	// Mirror shell distrobox-stop:90,200-202: when no positional and not --all,
+	// fall back to the env-set container name. The env value comes from
+	// cfg.ContainerName (resolved by pkg/config from DBX_CONTAINER_NAME); we
+	// only consult it here, never read the env directly. An unset env leaves
+	// containerNames empty so StopCommand applies its default-name fallback.
+	if !all && len(containerNames) == 0 && cfg.ContainerName != "" {
+		containerNames = []string{cfg.ContainerName}
 	}
 
 	options := &commands.StopOptions{
