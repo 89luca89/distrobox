@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/ini.v1"
 )
@@ -14,6 +15,22 @@ type Values struct {
 	Verbose               bool
 	DefaultContainerImage string
 	DefaultContainerName  string
+
+	// Env-set values; empty when the corresponding DBX_* var is not exported.
+	// Consumers prefer these over the Default* counterparts when non-empty,
+	// matching the shell's `[ -n "$DBX_X" ] && var=$DBX_X` pattern.
+	ContainerImage      string
+	ContainerName       string
+	ContainerHostname   string
+	ContainerCustomHome string
+	ContainerHomePrefix string
+	ContainerAlwaysPull bool
+	NonInteractive      bool
+	GenerateEntry       bool
+	CleanPath           bool
+	SkipWorkDir         bool
+	UsernsNoLimit       bool
+	RmCustomHome        bool
 }
 
 func defaultsMap() map[string]string {
@@ -22,8 +39,15 @@ func defaultsMap() map[string]string {
 		"sudo_program":      "sudo",
 		"verbose":           "false",
 		// container_image Fedora toolbox is a sensitive default
-		"container_image": "registry.fedoraproject.org/fedora-toolbox:latest",
-		"container_name":  "my-distrobox",
+		"container_image":          "registry.fedoraproject.org/fedora-toolbox:latest",
+		"container_name":           "my-distrobox",
+		"container_always_pull":    "false",
+		"non_interactive":          "false",
+		"container_generate_entry": "true",
+		"container_clean_path":     "false",
+		"container_skip_workdir":   "false",
+		"userns_nolimit":           "false",
+		"rm_home":                  "false",
 	}
 }
 
@@ -60,11 +84,32 @@ func toStruct(configMap map[string]string) *Values {
 		Verbose:               toBool(configMap["verbose"]),
 		DefaultContainerImage: configMap["container_image"],
 		DefaultContainerName:  configMap["container_name"],
+		ContainerImage:        configMap["container_image_env"],
+		ContainerName:         configMap["container_name_env"],
+		ContainerHostname:     configMap["container_hostname"],
+		ContainerCustomHome:   configMap["container_user_custom_home"],
+		ContainerHomePrefix:   configMap["container_home_prefix"],
+		ContainerAlwaysPull:   toBool(configMap["container_always_pull"]),
+		NonInteractive:        toBool(configMap["non_interactive"]),
+		GenerateEntry:         toBool(configMap["container_generate_entry"]),
+		CleanPath:             toBool(configMap["container_clean_path"]),
+		SkipWorkDir:           toBool(configMap["container_skip_workdir"]),
+		UsernsNoLimit:         toBool(configMap["userns_nolimit"]),
+		RmCustomHome:          toBool(configMap["rm_home"]),
 	}
 }
 
+// toBool recognizes the values the shell distrobox treats as truthy
+// (`1`, `true`, `yes`, `on`, case-insensitive). Anything else, including the
+// empty string, is false. The previous narrower `value == "true"` silently
+// ignored `DBX_VERBOSE=1` and similar — this fixes it.
 func toBool(value string) bool {
-	return value == "true"
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "true", "1", "yes", "on":
+		return true
+	default:
+		return false
+	}
 }
 
 // getConfigFilePaths returns a list of configuration file paths in order of priority.
@@ -156,6 +201,42 @@ func readEnv() map[string]string {
 	}
 	if value, exists := os.LookupEnv("DBX_VERBOSE"); exists {
 		envConfig["verbose"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_CONTAINER_IMAGE"); exists {
+		envConfig["container_image_env"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_CONTAINER_NAME"); exists {
+		envConfig["container_name_env"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_CONTAINER_HOSTNAME"); exists {
+		envConfig["container_hostname"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_CONTAINER_CUSTOM_HOME"); exists {
+		envConfig["container_user_custom_home"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_CONTAINER_HOME_PREFIX"); exists {
+		envConfig["container_home_prefix"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_CONTAINER_ALWAYS_PULL"); exists {
+		envConfig["container_always_pull"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_NON_INTERACTIVE"); exists {
+		envConfig["non_interactive"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_CONTAINER_GENERATE_ENTRY"); exists {
+		envConfig["container_generate_entry"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_CONTAINER_CLEAN_PATH"); exists {
+		envConfig["container_clean_path"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_SKIP_WORKDIR"); exists {
+		envConfig["container_skip_workdir"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_USERNS_NOLIMIT"); exists {
+		envConfig["userns_nolimit"] = value
+	}
+	if value, exists := os.LookupEnv("DBX_CONTAINER_RM_CUSTOM_HOME"); exists {
+		envConfig["rm_home"] = value
 	}
 
 	return envConfig

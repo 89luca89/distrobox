@@ -16,21 +16,11 @@ import (
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
-// DBX_USERNS_NOLIMIT (non-zero) drops the keep-id:size cap.
-func TestUsernsNoLimitEnabled(t *testing.T) {
-	cases := map[string]bool{"": false, "0": false, "false": false, "1": true, "true": true, "yes": true}
-	for v, want := range cases {
-		t.Setenv("DBX_USERNS_NOLIMIT", v)
-		if got := usernsNoLimitEnabled(); got != want {
-			t.Errorf("DBX_USERNS_NOLIMIT=%q: got %v, want %v", v, got, want)
-		}
-	}
-}
-
-// with DBX_USERNS_NOLIMIT set, rootless create uses plain keep-id (no :size).
+// with usernsNoLimit set, rootless create uses plain keep-id (no :size).
+// The env var (DBX_USERNS_NOLIMIT) is resolved by pkg/config and surfaces
+// here only as the constructor argument.
 func TestPodman_makeCreateCommandUsernsNoLimit(t *testing.T) {
-	t.Setenv("DBX_USERNS_NOLIMIT", "1")
-	podman := NewPodman(false, "sudo", false)
+	podman := NewPodman(false, "sudo", false, true)
 	userEnv := &userenv.UserEnvironment{User: "user", UserID: "1000", GroupID: "1000", Home: "/home/user", Shell: "/bin/sh"}
 
 	cmd := podman.makeCreateCommand(
@@ -51,7 +41,7 @@ func TestPodman_makeCreateCommandUsernsNoLimit(t *testing.T) {
 }
 
 func TestPodman_makeCreateCommand(t *testing.T) {
-	podman := NewPodman(false, "sudo", false)
+	podman := NewPodman(false, "sudo", false, false)
 
 	userEnv := &userenv.UserEnvironment{
 		User:    "user",
@@ -137,7 +127,7 @@ func TestPodman_makeCreateCommand(t *testing.T) {
 
 func TestPodman_makeCreateCommandRootful(t *testing.T) {
 	// Test rootful mode - should NOT have --userns keep-id
-	podman := NewPodman(true, "sudo", false)
+	podman := NewPodman(true, "sudo", false, false)
 
 	userEnv := &userenv.UserEnvironment{
 		User:    "user",
@@ -187,7 +177,7 @@ func TestPodman_makeCreateCommandRootful(t *testing.T) {
 
 func TestPodman_makeCreateCommandNoInit(t *testing.T) {
 	// Test without init - should NOT have --systemd=always
-	podman := NewPodman(false, "sudo", false)
+	podman := NewPodman(false, "sudo", false, false)
 
 	userEnv := &userenv.UserEnvironment{
 		User:    "user",
@@ -237,7 +227,7 @@ func TestPodman_makeCreateCommandWithCrun(t *testing.T) {
 	// This test checks that if crun exists, --runtime=crun is added
 	// Note: This test will pass or fail depending on whether crun is installed
 	// on the test system. In a real scenario, you might want to mock commandExists()
-	podman := NewPodman(false, "sudo", false)
+	podman := NewPodman(false, "sudo", false, false)
 
 	userEnv := &userenv.UserEnvironment{
 		User:    "user",
@@ -285,7 +275,7 @@ func TestPodman_makeCreateCommandWithCrun(t *testing.T) {
 }
 
 func TestPodman_makeCreateCommandWithPlatform(t *testing.T) {
-	podman := NewPodman(false, "sudo", false)
+	podman := NewPodman(false, "sudo", false, false)
 
 	userEnv := &userenv.UserEnvironment{
 		User:    "user",
@@ -328,7 +318,7 @@ func TestPodman_makeCreateCommandWithPlatform(t *testing.T) {
 }
 
 func TestPodman_makeCreateCommandWithCustomHome(t *testing.T) {
-	podman := NewPodman(false, "sudo", false)
+	podman := NewPodman(false, "sudo", false, false)
 
 	userEnv := &userenv.UserEnvironment{
 		User:    "user",
@@ -381,7 +371,7 @@ func TestPodman_makeCreateCommandWithCustomHome(t *testing.T) {
 }
 
 func TestPodman_makeCreateCommandWithAdditionalFlags(t *testing.T) {
-	podman := NewPodman(false, "sudo", false)
+	podman := NewPodman(false, "sudo", false, false)
 
 	userEnv := &userenv.UserEnvironment{
 		User:    "user",
@@ -430,7 +420,7 @@ func TestPodman_makeCreateCommandWithAdditionalFlags(t *testing.T) {
 }
 
 func TestPodman_makeCreateCommandWithAdditionalPackages(t *testing.T) {
-	podman := NewPodman(false, "sudo", false)
+	podman := NewPodman(false, "sudo", false, false)
 
 	userEnv := &userenv.UserEnvironment{
 		User:    "user",
@@ -537,7 +527,7 @@ func TestPodman_makeCreateCommandUnshareOptions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			podman := NewPodman(false, "sudo", false)
+			podman := NewPodman(false, "sudo", false, false)
 
 			userEnv := &userenv.UserEnvironment{
 				User:    "user",
@@ -598,10 +588,10 @@ func TestPodman_makeCreateCommandUnshareOptions(t *testing.T) {
 }
 
 func TestPodman_Name(t *testing.T) {
-	podman := NewPodman(false, "sudo", false)
+	podman := NewPodman(false, "sudo", false, false)
 	assert.Equal(t, "podman", podman.Name())
 
-	launcher := NewPodmanLauncher(false, "sudo", false)
+	launcher := NewPodmanLauncher(false, "sudo", false, false)
 	assert.Equal(t, "podman-launcher", launcher.Name())
 }
 
@@ -678,12 +668,12 @@ func TestPodman_runUsesCorrectBinary(t *testing.T) {
 	}{
 		{
 			name:           "NewPodman uses podman binary",
-			constructor:    func() *Podman { return NewPodman(false, "sudo", false) },
+			constructor:    func() *Podman { return NewPodman(false, "sudo", false, false) },
 			expectedPrefix: "podman ",
 		},
 		{
 			name:           "NewPodmanLauncher uses podman-launcher binary",
-			constructor:    func() *Podman { return NewPodmanLauncher(false, "sudo", false) },
+			constructor:    func() *Podman { return NewPodmanLauncher(false, "sudo", false, false) },
 			expectedPrefix: "podman-launcher ",
 		},
 	}
@@ -728,7 +718,7 @@ func TestPodmanEnterPropagatesStartError(t *testing.T) {
 	t.Setenv("FAKE_START_EXIT", "9")
 	t.Setenv("FAKE_START_STDERR", "start failed")
 
-	err := NewPodman(false, "sudo", false).Enter(
+	err := NewPodman(false, "sudo", false, false).Enter(
 		t.Context(),
 		containermanager.EnterOptions{
 			ContainerName: "box",
@@ -749,7 +739,7 @@ func TestPodmanEnterPropagatesExecError(t *testing.T) {
 	t.Setenv("FAKE_EXEC_EXIT", "7")
 	t.Setenv("FAKE_EXEC_STDERR", "exec failed")
 
-	err := NewPodman(false, "sudo", false).Enter(
+	err := NewPodman(false, "sudo", false, false).Enter(
 		t.Context(),
 		containermanager.EnterOptions{
 			ContainerName: "box",

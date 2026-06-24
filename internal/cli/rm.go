@@ -33,13 +33,13 @@ func newRmCommand(cfg *config.Values) *cli.Command {
 			&cli.BoolFlag{
 				Name:    "yes",
 				Aliases: []string{"Y"},
-				Sources: cli.EnvVars("DBX_NON_INTERACTIVE"),
+				Value:   cfg.NonInteractive,
 				Usage:   "non-interactive mode",
 			},
 			&cli.BoolFlag{
-				Name:    "rm-home",
-				Sources: cli.EnvVars("DBX_CONTAINER_RM_CUSTOM_HOME"),
-				Usage:   "Remove container's home directory",
+				Name:  "rm-home",
+				Value: cfg.RmCustomHome,
+				Usage: "Remove container's home directory",
 			},
 		},
 

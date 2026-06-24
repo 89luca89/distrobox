@@ -23,7 +23,7 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			&cli.StringFlag{
 				Name:    "name",
 				Aliases: []string{"n"},
-				Sources: cli.EnvVars("DBX_CONTAINER_NAME"),
+				Value:   cfg.ContainerName,
 				Usage:   "name for the distrobox",
 			},
 			&cli.BoolFlag{
@@ -41,7 +41,7 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			&cli.BoolFlag{
 				Name:    "clean-path",
 				Aliases: []string{"c"},
-				Sources: cli.EnvVars("DBX_CONTAINER_CLEAN_PATH"),
+				Value:   cfg.CleanPath,
 				Usage:   "reset PATH inside the container to FHS standard",
 			},
 			&cli.StringFlag{
@@ -52,7 +52,7 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			&cli.BoolFlag{
 				Name:    "yes",
 				Aliases: []string{"y"},
-				Sources: cli.EnvVars("DBX_NON_INTERACTIVE"),
+				Value:   cfg.NonInteractive,
 				Usage:   "non-interactive, do not ask questions",
 			},
 			&cli.BoolFlag{
@@ -63,7 +63,7 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			&cli.BoolFlag{
 				Name:    "no-workdir",
 				Aliases: []string{"nw"},
-				Sources: cli.EnvVars("DBX_SKIP_WORKDIR"),
+				Value:   cfg.SkipWorkDir,
 				Usage:   "always start the container from container's home directory",
 			},
 		},

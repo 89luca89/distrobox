@@ -8,7 +8,7 @@ import (
 )
 
 func TestPodman_CloneAsRoot_PreservesFieldsAndFlipsRoot(t *testing.T) {
-	original := newPodman(podmanCommandPodman, false, "doas", true)
+	original := newPodman(podmanCommandPodman, false, "doas", true, true)
 
 	cloned := original.CloneAsRoot()
 
@@ -21,12 +21,13 @@ func TestPodman_CloneAsRoot_PreservesFieldsAndFlipsRoot(t *testing.T) {
 	assert.Equal(t, original.command, clone.command)
 	assert.Equal(t, original.sudoCommand, clone.sudoCommand)
 	assert.Equal(t, original.verbose, clone.verbose)
+	assert.Equal(t, original.usernsNoLimit, clone.usernsNoLimit, "CloneAsRoot must preserve usernsNoLimit")
 
 	assert.False(t, original.root, "original should remain non-root")
 }
 
 func TestPodman_CloneAsRoot_AlreadyRootStillReturnsCopy(t *testing.T) {
-	original := newPodman(podmanCommandLauncher, true, "sudo", false)
+	original := newPodman(podmanCommandLauncher, true, "sudo", false, false)
 
 	cloned := original.CloneAsRoot()
 

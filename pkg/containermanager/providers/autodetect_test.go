@@ -54,7 +54,7 @@ func TestNewAutoDetect(t *testing.T) {
 			}
 			t.Setenv("PATH", dir)
 
-			cm, err := providers.NewAutoDetect(false, "sudo", false)
+			cm, err := providers.NewAutoDetect(false, "sudo", false, false)
 			if tt.expectError {
 				require.Error(t, err)
 				assert.Nil(t, cm)
