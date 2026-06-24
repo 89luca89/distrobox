@@ -53,18 +53,18 @@ Examples:
 			&cli.StringFlag{
 				Name:    "image",
 				Aliases: []string{"i"},
-				Value:   cfg.ContainerImage,
+				Value:   imageDefault,
 				Usage:   fmt.Sprintf("image to use for the container (default: %s)", imageDefault),
 			},
 			&cli.StringFlag{
 				Name:    "name",
 				Aliases: []string{"n"},
-				Value:   cfg.ContainerName,
+				Value:   nameDefault,
 				Usage:   fmt.Sprintf("name for the distrobox (default: %s)", nameDefault),
 			},
 			&cli.StringFlag{
 				Name:  "hostname",
-				Value: cfg.ContainerHostname,
+				Value: hostnameDefault,
 				Usage: fmt.Sprintf("hostname for the distrobox (default: %s)", hostnameDefault),
 			},
 			&cli.BoolFlag{
@@ -225,6 +225,20 @@ func createAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) err
 		Rootful:                 cmd.Bool("root"),
 		ContainerAlwaysPull:     cmd.Bool("pull"),
 		NonInteractive:          cmd.Bool("yes"),
+	}
+
+	// Setting Value: to the resolved default (so --help is honest) means
+	// cmd.String("name"/"hostname") returns that default even when the user
+	// passed nothing on the CLI. Two shell branches rely on the option being
+	// empty to fire — basename(image) in makeContainerName
+	// (distrobox-create:495-497) and the `<name>.<host>` prefix under
+	// --unshare-netns in makeContainerHostname (lines 503-505). When neither
+	// the flag nor the env var was supplied, restore "" so they still fire.
+	if !cmd.IsSet("name") && cfg.ContainerName == "" {
+		opts.ContainerName = ""
+	}
+	if !cmd.IsSet("hostname") && cfg.ContainerHostname == "" {
+		opts.ContainerHostname = ""
 	}
 
 	// Positional container_name overrides --name, matching the shell
