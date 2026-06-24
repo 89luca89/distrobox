@@ -70,8 +70,9 @@ func rmAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) error {
 	}
 
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
+	printer := ui.NewPrinter(os.Stdout, true)
 
-	rmCmd := commands.NewRmCommand(cfg, containerManager, prompter)
+	rmCmd := commands.NewRmCommand(cfg, containerManager, prompter, printer)
 	_, err := rmCmd.Execute(ctx, options)
 	if errors.Is(err, commands.ErrRmAbortedByUser) {
 		ui.NewPrinter(os.Stdout, true).Println("Aborted.")

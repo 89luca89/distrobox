@@ -29,6 +29,7 @@ type RmCommand struct {
 	listCmd          *ListCommand
 	generateEntryCmd *GenerateEntryCommand
 	prompter         *ui.Prompter
+	printer          *ui.Printer
 }
 
 type RmOptions struct {
@@ -44,6 +45,7 @@ func NewRmCommand(
 	cfg *config.Values,
 	cm containermanager.ContainerManager,
 	prompter *ui.Prompter,
+	printer *ui.Printer,
 ) *RmCommand {
 	listCmd := NewListCommand(cfg, cm)
 	generateEntryCmd := NewGenerateEntryCommand(cfg, listCmd)
@@ -53,6 +55,7 @@ func NewRmCommand(
 		listCmd:          listCmd,
 		generateEntryCmd: generateEntryCmd,
 		prompter:         prompter,
+		printer:          printer,
 	}
 }
 
@@ -71,7 +74,7 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 	// Mirror shell distrobox-rm:353-356: surface typos in explicit names
 	// instead of silently no-op'ing.
 	if !options.All && len(options.ContainerNames) > 0 {
-		warnUnknownContainers(options.ContainerNames, distroboxesToRemove)
+		c.warnUnknownContainers(options.ContainerNames, distroboxesToRemove)
 	}
 
 	// Single top-level confirmation, matching the shell (distrobox-rm:413-419):
@@ -96,8 +99,7 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 	for _, currentDistrobox := range distroboxesToRemove {
 		err := c.removeContainer(ctx, currentDistrobox, options.Force, options.NoTTY, options.RemoveHome, options.Verbose, userHome)
 		if err != nil {
-			//nolint:forbidigo // waiting for the logger implementation
-			fmt.Printf("error deleting %s: %s", currentDistrobox.Name, err)
+			c.printer.PrintErrorln("error deleting %s: %s", currentDistrobox.Name, err)
 		}
 		removedDistroboxes = append(removedDistroboxes, currentDistrobox)
 	}
@@ -108,14 +110,14 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 // warnUnknownContainers prints "Cannot find container X." for each explicitly
 // requested name that didn't resolve to a distrobox, mirroring the shell
 // (distrobox-rm:353-356) so typos surface instead of silently no-op'ing.
-func warnUnknownContainers(requested []string, resolved []containermanager.Container) {
+func (c *RmCommand) warnUnknownContainers(requested []string, resolved []containermanager.Container) {
 	found := make(map[string]bool, len(resolved))
 	for _, d := range resolved {
 		found[d.Name] = true
 	}
 	for _, name := range requested {
 		if !found[name] {
-			fmt.Fprintf(os.Stderr, "Cannot find container %s.\n", name)
+			c.printer.PrintWarningln("Cannot find container %s.", name)
 		}
 	}
 }
@@ -171,14 +173,13 @@ func (c *RmCommand) removeContainer(
 
 func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string, verbose bool) {
 	bins := findExportedBinaries(userHome, containerName)
-	desktopApps := findExportedDesktopApps(userHome, containerName)
+	desktopApps := c.findExportedDesktopApps(userHome, containerName)
 
 	toDelete := slices.Concat(bins, desktopApps)
 
 	for _, path := range toDelete {
 		if err := os.Remove(path); err != nil {
-			//nolint:forbidigo // FIXME: use logger instead of fmt.Printf when available
-			fmt.Printf("warning: failed to remove file '%s': %s\n", path, err)
+			c.printer.PrintWarningln("warning: failed to remove file '%s': %s", path, err)
 		}
 	}
 
@@ -191,8 +192,7 @@ func (c *RmCommand) cleanup(ctx context.Context, userHome, containerName string,
 		},
 	)
 	if err != nil {
-		//nolint:forbidigo // FIXME: use logger instead of fmt.Printf when available
-		fmt.Printf("warning: failed to remove desktop entry for container '%s': %s\n", containerName, err)
+		c.printer.PrintWarningln("warning: failed to remove desktop entry for container '%s': %s", containerName, err)
 	}
 }
 
@@ -254,13 +254,12 @@ func findExportedBinaries(userHome, containerName string) []string {
 	return files
 }
 
-func findExportedDesktopApps(userHome, containerName string) []string {
+func (c *RmCommand) findExportedDesktopApps(userHome, containerName string) []string {
 	appsPattern := filepath.Join(userHome, ".local", "share", "applications", containerName+"*")
 
 	matches, err := filepath.Glob(appsPattern)
 	if err != nil {
-		//nolint:forbidigo // FIXME: use logger instead of fmt.Printf when available
-		fmt.Printf("warning: failed to glob desktop apps: %s\n", err)
+		c.printer.PrintWarningln("warning: failed to glob desktop apps: %s", err)
 		return []string{}
 	}
 
