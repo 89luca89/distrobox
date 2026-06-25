@@ -2,11 +2,10 @@
 # NAME
 
 	distrobox assemble
-	distrobox-assemble
 
 # DESCRIPTION
 
-distrobox-assemble takes care of creating or destroying containers in batches,
+`distrobox assemble` takes care of creating or destroying containers in batches,
 based on a manifest file.
 The manifest file by default is `./distrobox.ini`, but can be specified using the
 `--file` flag.
@@ -65,7 +64,7 @@ You can specify a custom path for the file using
 
 Or even specify a remote file, by using an URL:
 
-	distrobox-assemble create --file https://raw.githubusercontent.com/89luca89/dotfiles/master/distrobox.ini
+	distrobox assemble create --file https://raw.githubusercontent.com/89luca89/dotfiles/master/distrobox.ini
 
 **Replace**
 

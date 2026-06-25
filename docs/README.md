@@ -153,30 +153,28 @@ the Wayland and X11 sockets, networking, removable devices (like USB sticks),
 systemd journal, SSH agent, D-Bus,
 ulimits, /dev and the udev database, etc...
 
-It implements the same concepts introduced by <https://github.com/containers/toolbox>
-but in a simplified way, using POSIX sh and aiming at broader compatibility.
+It implements the same concepts introduced by <https://github.com/containers/toolbox>,
+keeping integration and broad host compatibility as primary goals.
 
 All the props go to them as they had the great idea to implement this stuff.
 
-It is divided into 12 commands:
+`distrobox` is shipped as a single binary providing the following subcommands:
 
-- `distrobox-assemble` – create and destroy containers based on a config file
-- `distrobox-create` – create a container
-- `distrobox-enter`  – enter a container
-- `distrobox-ephemeral`  – create a temporal container, destroy it when exiting the shell
-- `distrobox-list` – list containers created with distrobox
-- `distrobox-rm` – delete a container created with distrobox
-- `distrobox-stop` – stop a running container created with distrobox
-- `distrobox-upgrade` – upgrade one or more running containers created with distrobox at once
-- `distrobox-generate-entry` – create an entry of a created container in the applications list
-- `distrobox-init`   – entry point of the container (not meant to be used manually)
-- `distrobox-export` – use inside the container,
-  export apps and services from the container to the host
-- `distrobox-host-exec` – run commands/programs from the host, while inside
- of the container
+- `distrobox assemble` – create and destroy containers based on a config file
+- `distrobox create` – create a container
+- `distrobox enter` – enter a container
+- `distrobox ephemeral` – create a temporary container, destroy it when exiting the shell
+- `distrobox list` (alias: `ls`) – list containers created with distrobox
+- `distrobox rm` – delete a container created with distrobox
+- `distrobox stop` – stop a running container created with distrobox
+- `distrobox upgrade` – upgrade one or more containers created with distrobox at once
+- `distrobox generate-entry` – create an entry of a created container in the applications list
 
-It also includes a little wrapper to launch commands with `distrobox COMMAND`
-instead of calling the single files.
+Plus three helpers that run inside the container:
+
+- `distrobox-init` – container entrypoint (not meant to be invoked manually)
+- `distrobox-export` – export apps and services from the container to the host
+- `distrobox-host-exec` – run commands/programs from the host while inside the container
 
 Please check [the usage docs](usage/usage.md) and [see some handy tips on how to use it](useful_tips.md).
 
@@ -208,8 +206,8 @@ Refer to the compatibility list for an overview of the supported host distros
 
 This project aims to bring **any distro userland to any other distro**
 supporting `podman`, `docker`, or `lilipod`.
-It has been written in POSIX shell to be as portable as possible and it does not have
-problems with dependencies and `glibc` version's compatibility.
+It is implemented as a single statically-linked Go binary, while the in-container
+helpers remain POSIX shell so they keep working on any distro the binary can run.
 
 Refer [HERE](compatibility.md#supported-container-managers) for a list of
 supported container managers and minimum supported versions.
@@ -217,7 +215,7 @@ supported container managers and minimum supported versions.
 It also aims to enter the container **as fast as possible**, every millisecond
 adds up if you use the container as your default environment for your terminal:
 
-These are some sample results of `distrobox-enter` on the same container on my
+These are some sample results of `distrobox enter` on the same container on my
 weak laptop:
 
 ```console
@@ -293,9 +291,9 @@ and check a [comprehensive list of useful tips HERE](useful_tips.md).
 # Assemble Distrobox
 
 Manifest files can be used to declare a set of distroboxes and use
-`distrobox-assemble` to create/destroy them in batch.
+`distrobox assemble` to create/destroy them in batch.
 
-Head over the [usage docs of distrobox-assemble](usage/distrobox-assemble.md)
+Head over the [usage docs of distrobox assemble](usage/distrobox-assemble.md)
 for a more detailed guide.
 
 # Configure Distrobox

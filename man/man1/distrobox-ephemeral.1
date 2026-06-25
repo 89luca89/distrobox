@@ -1,45 +1,49 @@
 .\
 .\"
-.TH "DISTROBOX\-EPHEMERAL" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EPHEMERAL" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox ephemeral
-distrobox\-ephemeral
 .EE
 .SH DESCRIPTION
-distrobox\-ephemeral creates a temporary distrobox that is automatically
-destroyed when the command is terminated.
+\f[CR]distrobox ephemeral\f[R] creates a temporary distrobox that is
+automatically destroyed when the command is terminated.
+.PP
+It accepts the same flags as \f[CR]distrobox create\f[R] (except
+\f[CR]\-\-no\-entry\f[R] and \f[CR]\-\-compatibility\f[R], which are not
+relevant for a throwaway container), plus
+\f[CR]\-e\f[R]/\f[CR]\-\-exec\f[R] to mark the start of the command to
+run inside the container (the bare \f[CR]\-\-\f[R] separator works too).
 .SH SYNOPSIS
 \f[B]distrobox ephemeral\f[R]
 .IP
 .EX
+\-\-/\-e/\-\-exec:       end arguments execute the rest as command to execute at login   default: default ${USER}\(aqs shell
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-verbose/\-v:       show more verbosity
 \-\-help/\-h:      show this message
-\-\-/\-e:          end arguments execute the rest as command to execute at login   default: default ${USER}\[aq]s shell
 \-\-version/\-V:       show version
 .EE
+.PP
+All other flags are inherited from distrobox\-create.
 .SH EXAMPLES
 .IP
 .EX
-distrobox\-ephemeral \-\-image alpine:latest \-\- cat /etc/os\-release
-distrobox\-ephemeral \-\-root \-\-verbose \-\-image alpine:latest \-\-volume /opt:/opt
+distrobox ephemeral \-\-image alpine:latest \-\- cat /etc/os\-release
+distrobox ephemeral \-\-root \-\-verbose \-\-image alpine:latest \-\-volume /opt:/opt
 .EE
-.PP
-You can also use flags from \f[B]distrobox\-create\f[R] to customize the
-ephemeral container to run.
 .SH SEE ALSO
 .IP
 .EX
-distrobox\-create \-\-help
+distrobox create \-\-help
 man distrobox\-create
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP
 .EX
-distrobox\-ephemeral calls distrobox\-create, SEE ALSO distrobox\-create(1) for
-a list of supported environment variables to use.
+distrobox ephemeral reuses distrobox create\(aqs options; see
+distrobox\-create(1) for the list of supported environment variables.
 .EE

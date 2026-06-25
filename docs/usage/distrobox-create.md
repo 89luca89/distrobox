@@ -2,11 +2,10 @@
 # NAME
 
 	distrobox create
-	distrobox-create
 
 # DESCRIPTION
 
-distrobox-create takes care of creating the container with input name and image.
+`distrobox create` takes care of creating the container with input name and image.
 The created container will be tightly integrated with the host, allowing sharing of
 the HOME directory of the user, external storage, external usb devices and
 graphical apps (X11/Wayland), and audio.
@@ -123,7 +122,7 @@ Create a more isolated container, with it's own init system, this will act very 
 
 Use environment variables to specify container name, image and container manager:
 
-	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox-create
+	DBX_CONTAINER_MANAGER="docker" DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test-alpine DBX_CONTAINER_IMAGE=alpine distrobox create
 
 # ENVIRONMENT VARIABLES
 

@@ -1,16 +1,15 @@
 '\" t
 .\
 .\"
-.TH "DISTROBOX\-ASSEMBLE" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ASSEMBLE" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox assemble
-distrobox\-assemble
 .EE
 .SH DESCRIPTION
-distrobox\-assemble takes care of creating or destroying containers in
-batches, based on a manifest file.
+\f[CR]distrobox assemble\f[R] takes care of creating or destroying
+containers in batches, based on a manifest file.
 The manifest file by default is \f[CR]./distrobox.ini\f[R], but can be
 specified using the \f[CR]\-\-file\f[R] flag.
 .SH SYNOPSIS
@@ -29,7 +28,7 @@ This is an example manifest file to create two containers:
 .IP
 .EX
 [ubuntu]
-additional_packages=\[dq]git vim tmux nodejs\[dq]
+additional_packages=\(dqgit vim tmux nodejs\(dq
 image=ubuntu:latest
 init=false
 nvidia=false
@@ -40,18 +39,18 @@ start_now=false
 
 # You can add comments using this #
 [arch] # also inline comments are supported
-additional_packages=\[dq]git vim tmux nodejs\[dq]
+additional_packages=\(dqgit vim tmux nodejs\(dq
 home=/tmp/home
 image=archlinux:latest
 init=false
 start_now=true
-init_hooks=\[dq]touch /init\-normal\[dq]
+init_hooks=\(dqtouch /init\-normal\(dq
 nvidia=true
-pre_init_hooks=\[dq]touch /pre\-init\[dq]
+pre_init_hooks=\(dqtouch /pre\-init\(dq
 pull=true
 root=false
 replace=false
-volume=\[dq]/tmp/test:/run/a /tmp/test:/run/b\[dq]
+volume=\(dq/tmp/test:/run/a /tmp/test:/run/b\(dq
 .EE
 .PP
 \f[B]Create\f[R]
@@ -63,7 +62,7 @@ distrobox assemble create
 .EE
 .PP
 If the file is called \f[CR]distrobox.ini\f[R] and is in the same
-directory you\[cq]re launching the command, no further arguments are
+directory you\(cqre launching the command, no further arguments are
 needed.
 You can specify a custom path for the file using
 .IP
@@ -74,7 +73,7 @@ distrobox assemble create \-\-file /my/custom/path.ini
 Or even specify a remote file, by using an URL:
 .IP
 .EX
-distrobox\-assemble create \-\-file https://raw.githubusercontent.com/89luca89/dotfiles/master/distrobox.ini
+distrobox assemble create \-\-file https://raw.githubusercontent.com/89luca89/dotfiles/master/distrobox.ini
 .EE
 .PP
 \f[B]Replace\f[R]
@@ -126,14 +125,14 @@ process can proceed.
 This is a list of available options with the corresponding type:
 .PP
 Types legend:
-.IP \[bu] 2
+.IP \(bu 2
 bool: true or false
-.IP \[bu] 2
+.IP \(bu 2
 string: a single string, for example
-\f[CR]home=\[dq]/home/luca\-linux/dbox\[dq]\f[R]
-.IP \[bu] 2
+\f[CR]home=\(dq/home/luca\-linux/dbox\(dq\f[R]
+.IP \(bu 2
 string_list: multiple strings, for example
-\f[CR]additional_packages=\[dq]htop vim git\[dq]\f[R].
+\f[CR]additional_packages=\(dqhtop vim git\(dq\f[R].
 Note that \f[CR]string_list\f[R] can be declared multiple times to be
 compounded:
 .RS 2
@@ -141,9 +140,9 @@ compounded:
 .EX
 \f[B][ubuntu]\f[R]
 image=ubuntu:latest
-additional_packages=\[dq]git vim tmux nodejs\[dq]
-additional_packages=\[dq]htop iftop iotop\[dq]
-additional_packages=\[dq]zsh fish\[dq]
+additional_packages=\(dqgit vim tmux nodejs\(dq
+additional_packages=\(dqhtop iftop iotop\(dq
+additional_packages=\(dqzsh fish\(dq
 .EE
 .RE
 .PP
@@ -360,18 +359,18 @@ the \f[CR]create\f[R] flags.
 [tumbleweed_distrobox]
 image=registry.opensuse.org/opensuse/distrobox
 pull=true
-additional_packages=\[dq]acpi bash\-completion findutils iproute iputils sensors inotify\-tools unzip\[dq]
-additional_packages=\[dq]net\-tools nmap openssl procps psmisc rsync man tig tmux tree vim htop xclip yt\-dlp\[dq]
-additional_packages=\[dq]git git\-credential\-libsecret\[dq]
-additional_packages=\[dq]patterns\-devel\-base\-devel_basis\[dq]
-additional_packages=\[dq]ShellCheck ansible\-lint clang clang\-tools codespell ctags desktop\-file\-utils gcc golang jq python3\[dq]
-additional_packages=\[dq]python3\-bashate python3\-flake8 python3\-mypy python3\-pipx python3\-pycodestyle python3\-pyflakes python3\-pylint python3\-python\-lsp\-server python3\-rstcheck python3\-yapf python3\-yamllint rustup shfmt\[dq]
-additional_packages=\[dq]kubernetes\-client helm\[dq]
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install github.com/golangci/golangci\-lint/cmd/golangci\-lint\[at]latest;
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo\[at]latest;
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports\[at]latest;
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install golang.org/x/tools/gopls\[at]latest;
-init_hooks=GOPATH=\[dq]${HOME}/.local/share/system\-go\[dq] GOBIN=/usr/local/bin go install sigs.k8s.io/kind\[at]latest;
+additional_packages=\(dqacpi bash\-completion findutils iproute iputils sensors inotify\-tools unzip\(dq
+additional_packages=\(dqnet\-tools nmap openssl procps psmisc rsync man tig tmux tree vim htop xclip yt\-dlp\(dq
+additional_packages=\(dqgit git\-credential\-libsecret\(dq
+additional_packages=\(dqpatterns\-devel\-base\-devel_basis\(dq
+additional_packages=\(dqShellCheck ansible\-lint clang clang\-tools codespell ctags desktop\-file\-utils gcc golang jq python3\(dq
+additional_packages=\(dqpython3\-bashate python3\-flake8 python3\-mypy python3\-pipx python3\-pycodestyle python3\-pyflakes python3\-pylint python3\-python\-lsp\-server python3\-rstcheck python3\-yapf python3\-yamllint rustup shfmt\(dq
+additional_packages=\(dqkubernetes\-client helm\(dq
+init_hooks=GOPATH=\(dq${HOME}/.local/share/system\-go\(dq GOBIN=/usr/local/bin go install github.com/golangci/golangci\-lint/cmd/golangci\-lint\(atlatest;
+init_hooks=GOPATH=\(dq${HOME}/.local/share/system\-go\(dq GOBIN=/usr/local/bin go install github.com/onsi/ginkgo/v2/ginkgo\(atlatest;
+init_hooks=GOPATH=\(dq${HOME}/.local/share/system\-go\(dq GOBIN=/usr/local/bin go install golang.org/x/tools/cmd/goimports\(atlatest;
+init_hooks=GOPATH=\(dq${HOME}/.local/share/system\-go\(dq GOBIN=/usr/local/bin go install golang.org/x/tools/gopls\(atlatest;
+init_hooks=GOPATH=\(dq${HOME}/.local/share/system\-go\(dq GOBIN=/usr/local/bin go install sigs.k8s.io/kind\(atlatest;
 init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/conmon;
 init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/crun;
 init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/docker;
@@ -379,16 +378,16 @@ init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/docker\-compose
 init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/flatpak;
 init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/podman;
 init_hooks=ln \-sf /usr/bin/distrobox\-host\-exec /usr/local/bin/xdg\-open;
-exported_apps=\[dq]htop\[dq]
-exported_bins=\[dq]/usr/bin/htop /usr/bin/git\[dq]
-exported_bins_path=\[dq]\[ti]/.local/bin\[dq]
+exported_apps=\(dqhtop\(dq
+exported_bins=\(dq/usr/bin/htop /usr/bin/git\(dq
+exported_bins_path=\(dq\(ti/.local/bin\(dq
 .EE
 .PP
 \f[B]Clone example\f[R]
 .IP
 .EX
 [ubuntu]
-additional_packages=\[dq]git vim tmux\[dq]
+additional_packages=\(dqgit vim tmux\(dq
 image=ubuntu:latest
 init=false
 nvidia=false
@@ -423,7 +422,7 @@ pre_init_hooks=curl \-fsSL https://bun.sh/install | bash;
 .EX
 [ubuntu]
 image=ubuntu:latest
-pre_init_hooks=\[dq]export SHELL=/bin/bash;\[dq]
+pre_init_hooks=\(dqexport SHELL=/bin/bash;\(dq
 .EE
 .PP
 \f[B]Include example (inherit fields from another distrobox)\f[R]
@@ -431,9 +430,9 @@ pre_init_hooks=\[dq]export SHELL=/bin/bash;\[dq]
 .EX
 [ubuntu]
 image=ubuntu:latest
-additional_packages=\[dq]git vim tmux nodejs\[dq]
-additional_packages=\[dq]htop iftop iotop\[dq]
-additional_packages=\[dq]zsh fish\[dq]
+additional_packages=\(dqgit vim tmux nodejs\(dq
+additional_packages=\(dqhtop iftop iotop\(dq
+additional_packages=\(dqzsh fish\(dq
 
 [ubuntu\-nvidia]
 include=ubuntu
@@ -442,7 +441,7 @@ nvidia=true
 '\" t
 .\
 .\"
-.TH "DISTROBOX" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH COMPATIBILITY
 This project \f[B]does not need a dedicated image\f[R].
 It can use any OCI images from docker\-hub, quay.io, or any registry of
@@ -473,23 +472,23 @@ It depends either on \f[CR]podman\f[R] configured in
 THESE instructions
 .UE \c
 )
-.IP \[bu] 2
+.IP \(bu 2
 Minimum podman version: \f[B]2.1.0\f[R]
-.IP \[bu] 2
+.IP \(bu 2
 Minimum docker client version: \f[B]19.03.15\f[R]
-.IP \[bu] 2
+.IP \(bu 2
 Minimum lilipod version: \f[B]v0.0.1\f[R]
 .PP
 Follow the official installation guide here:
-.IP \[bu] 2
+.IP \(bu 2
 \c
 .UR https://podman.io/getting-started/installation
 .UE \c
-.IP \[bu] 2
+.IP \(bu 2
 \c
 .UR https://docs.docker.com/engine/install
 .UE \c
-.IP \[bu] 2
+.IP \(bu 2
 \c
 .UR https://docs.docker.com/engine/install/linux-postinstall/
 .UE \c
@@ -881,8 +880,8 @@ toolbx\-images/images
 , so they are more indicated for desktop use, and first setup will take
 less time.
 Note however that if you use a non\-toolbox preconfigured image, the
-\f[B]first\f[R] \f[CR]distrobox\-enter\f[R] you\[cq]ll perform can take
-a while as it will download and install the missing dependencies.
+\f[B]first\f[R] \f[CR]distrobox enter\f[R] you\(cqll perform can take a
+while as it will download and install the missing dependencies.
 .PP
 A small time tax to pay for the ability to use any type of image.
 This will \f[B]not\f[R] occur after the first time, \f[B]subsequent
@@ -926,19 +925,18 @@ For NVidia, you can use the \f[CR]\-\-nvidia\f[R] flag during create,
 see distrobox\-create documentation to discover how to use it.
 .PP
 Alternatively, you can use the nvidia\-container\-toolkit utility to set
-up the integration independently from the distrobox\[cq]s own flag.
+up the integration independently from the distrobox\(cqs own flag.
 .\
 .\"
-.TH "DISTROBOX\-CREATE" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-CREATE" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox create
-distrobox\-create
 .EE
 .SH DESCRIPTION
-distrobox\-create takes care of creating the container with input name
-and image.
+\f[CR]distrobox create\f[R] takes care of creating the container with
+input name and image.
 The created container will be tightly integrated with the host, allowing
 sharing of the HOME directory of the user, external storage, external
 usb devices and graphical apps (X11/Wayland), and audio.
@@ -952,24 +950,24 @@ usb devices and graphical apps (X11/Wayland), and audio.
 \-\-pull/\-p:      pull the image even if it exists locally (implies \-\-yes)
 \-\-yes/\-Y:       non\-interactive, pull images without asking
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-clone/\-c:     name of the distrobox container to use as base for a new container
             this will be useful to either rename an existing distrobox or have multiple copies
             of the same environment.
-\-\-home/\-H:      select a custom HOME directory for the container. Useful to avoid host\[aq]s home littering with temp files.
+\-\-home/\-H:      select a custom HOME directory for the container. Useful to avoid host\(aqs home littering with temp files.
 \-\-volume:       additional volumes to add to the container
 \-\-additional\-flags/\-a:  additional flags to pass to the container manager command
 \-\-additional\-packages/\-ap:  additional packages to install during initial container setup
 \-\-init\-hooks:       additional commands to execute at the end of container initialization
 \-\-pre\-init\-hooks:   additional commands to execute at the start of container initialization
 \-\-init/\-I:      use init system (like systemd) inside the container.
-            this will make host\[aq]s processes not visible from within the container. (assumes \-\-unshare\-process)
+            this will make host\(aqs processes not visible from within the container. (assumes \-\-unshare\-process)
             may require additional packages depending on the container image: https://github.com/89luca89/distrobox/blob/main/docs/useful_tips.md#using\-init\-system\-inside\-a\-distrobox
-\-\-nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
+\-\-nvidia:       try to integrate host\(aqs nVidia drivers in the guest
 \-\-platform:     specify which platform to use, eg: linux/arm64
 \-\-unshare\-devsys:          do not share host devices and sysfs dirs from host
-\-\-unshare\-groups:          do not forward user\[aq]s additional groups into the container
+\-\-unshare\-groups:          do not forward user\(aqs additional groups into the container
 \-\-unshare\-ipc:          do not share ipc namespace with host
 \-\-unshare\-netns:        do not share the net namespace with host
 \-\-unshare\-process:          do not share process namespace with host
@@ -1013,72 +1011,72 @@ distrobox create \-\-clone fedora\-35 \-\-name fedora\-35\-copy
 Always pull for the new image when creating a distrobox
 .IP
 .EX
-distrobox create \-\-pull \-\-image centos:stream9 \-\-home \[ti]/distrobox/centos9
+distrobox create \-\-pull \-\-image centos:stream9 \-\-home \(ti/distrobox/centos9
 .EE
 .PP
 Add additional environment variables to the container
 .IP
 .EX
-distrobox create \-\-image fedora:35 \-\-name test \-\-additional\-flags \[dq]\-\-env MY_VAR=value\[dq]
+distrobox create \-\-image fedora:35 \-\-name test \-\-additional\-flags \(dq\-\-env MY_VAR=value\(dq
 .EE
 .PP
 Add additional volumes to the container
 .IP
 .EX
-distrobox create \-\-image fedora:35 \-\-name test \-\-volume /opt/my\-dir:/usr/local/my\-dir:rw \-\-additional\-flags \[dq]\-\-pids\-limit \-1\[dq]
+distrobox create \-\-image fedora:35 \-\-name test \-\-volume /opt/my\-dir:/usr/local/my\-dir:rw \-\-additional\-flags \(dq\-\-pids\-limit \-1\(dq
 .EE
 .PP
 Add additional packages to the container
 .IP
 .EX
-distrobox create \-\-image alpine:latest \-\-name test2 \-\-additional\-packages \[dq]git tmux vim\[dq]
+distrobox create \-\-image alpine:latest \-\-name test2 \-\-additional\-packages \(dqgit tmux vim\(dq
 .EE
 .PP
 Use init\-hooks to perform an action during container startup
 .IP
 .EX
-distrobox create \-\-image alpine:latest \-\-name test \-\-init\-hooks \[dq]touch /var/tmp/test1 && touch /var/tmp/test2\[dq]
+distrobox create \-\-image alpine:latest \-\-name test \-\-init\-hooks \(dqtouch /var/tmp/test1 && touch /var/tmp/test2\(dq
 .EE
 .PP
 Use pre\-init\-hooks to perform an action at the beginning of the
 container startup (before any package manager starts)
 .IP
 .EX
-distrobox create \-i docker.io/almalinux/8\-init \-\-init \-\-name test \-\-pre\-init\-hooks \[dq]dnf config\-manager \-\-enable powertools && dnf \-y install epel\-release\[dq]
+distrobox create \-i docker.io/almalinux/8\-init \-\-init \-\-name test \-\-pre\-init\-hooks \(dqdnf config\-manager \-\-enable powertools && dnf \-y install epel\-release\(dq
 .EE
 .PP
 Use init to create a Systemd container (acts similar to an LXC):
 .IP
 .EX
-distrobox create \-i ubuntu:latest \-\-name test \-\-additional\-packages \[dq]systemd libpam\-systemd pipewire\-audio\-client\-libraries\[dq] \-\-init
+distrobox create \-i ubuntu:latest \-\-name test \-\-additional\-packages \(dqsystemd libpam\-systemd pipewire\-audio\-client\-libraries\(dq \-\-init
 .EE
 .PP
 Use init to create a OpenRC container (acts similar to an LXC):
 .IP
 .EX
-distrobox create \-i alpine:latest \-\-name test \-\-additional\-packages \[dq]openrc\[dq] \-\-init
+distrobox create \-i alpine:latest \-\-name test \-\-additional\-packages \(dqopenrc\(dq \-\-init
 .EE
 .PP
-Use host\[cq]s NVidia drivers integration
+Use host\(cqs NVidia drivers integration
 .IP
 .EX
 distrobox create \-\-image ubuntu:22.04 \-\-name ubuntu\-nvidia \-\-nvidia
 .EE
 .PP
-Do not use host\[cq]s IP inside the container:
+Do not use host\(cqs IP inside the container:
 .IP
 .EX
 distrobox create \-\-image ubuntu:latest \-\-name test \-\-unshare\-netns
 .EE
 .PP
 Create a more isolated container, where only the $HOME, basic sockets
-and host\[cq]s FS (in /run/host) is shared:
+and host\(cqs FS (in /run/host) is shared:
 .IP
 .EX
 distrobox create \-\-name unshared\-test \-\-unshare\-all
 .EE
 .PP
-Create a more isolated container, with it\[cq]s own init system, this
+Create a more isolated container, with it\(cqs own init system, this
 will act very similar to a full LXC container:
 .IP
 .EX
@@ -1089,7 +1087,7 @@ Use environment variables to specify container name, image and container
 manager:
 .IP
 .EX
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test\-alpine DBX_CONTAINER_IMAGE=alpine distrobox\-create
+DBX_CONTAINER_MANAGER=\(dqdocker\(dq DBX_NON_INTERACTIVE=1 DBX_CONTAINER_NAME=test\-alpine DBX_CONTAINER_IMAGE=alpine distrobox create
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP
@@ -1105,10 +1103,10 @@ DBX_NON_INTERACTIVE
 DBX_SUDO_PROGRAM
 .EE
 .PP
-DBX_CONTAINER_HOME_PREFIX defines where containers\[cq] home directories
+DBX_CONTAINER_HOME_PREFIX defines where containers\(cq home directories
 will be located.
-If you define it as \[ti]/dbx then all future containers\[cq] home
-directories will be \[ti]/dbx/$container_name
+If you define it as \(ti/dbx then all future containers\(cq home
+directories will be \(ti/dbx/$container_name
 .SH EXTRA
 The \f[CR]\-\-additional\-flags\f[R] or \f[CR]\-a\f[R] is useful to
 modify defaults in the container creations.
@@ -1117,13 +1115,13 @@ For example:
 .EX
 distrobox create \-i docker.io/library/archlinux \-n dev\-arch
 
-podman container inspect dev\-arch | jq \[aq].[0].HostConfig.PidsLimit\[aq]
+podman container inspect dev\-arch | jq \(aq.[0].HostConfig.PidsLimit\(aq
 2048
 
 distrobox rm \-f dev\-arch
-distrobox create \-i docker.io/library/archlinux \-n dev\-arch \-\-volume $CBL_TC:/tc \-\-additional\-flags \[dq]\-\-pids\-limit \-1\[dq]
+distrobox create \-i docker.io/library/archlinux \-n dev\-arch \-\-volume $CBL_TC:/tc \-\-additional\-flags \(dq\-\-pids\-limit \-1\(dq
 
-podman container inspect dev\-arch | jq \[aq].[0].HostConfig,.PidsLimit\[aq]
+podman container inspect dev\-arch | jq \(aq.[0].HostConfig,.PidsLimit\(aq
 0
 .EE
 .PP
@@ -1142,7 +1140,7 @@ additional\-flags) some environment variables that will persist in the
 container and be independent from your environment:
 .IP
 .EX
-distrobox create \-\-image fedora:35 \-\-name test \-\-additional\-flags \[dq]\-\-env MY_VAR=value\[dq]
+distrobox create \-\-image fedora:35 \-\-name test \-\-additional\-flags \(dq\-\-env MY_VAR=value\(dq
 .EE
 .PP
 The \f[CR]\-\-init\-hooks\f[R] is useful to add commands to the
@@ -1151,7 +1149,7 @@ This could be useful to create containers with a set of programs already
 installed, add users, groups.
 .IP
 .EX
-distrobox create  \-\-image fedora:35 \-\-name test \-\-init\-hooks \[dq]dnf groupinstall \-y \[rs]\[dq]C Development Tools and Libraries\[rs]\[dq]\[dq]
+distrobox create  \-\-image fedora:35 \-\-name test \-\-init\-hooks \(dqdnf groupinstall \-y \(rs\(dqC Development Tools and Libraries\(rs\(dq\(dq
 .EE
 .PP
 The \f[CR]\-\-init\f[R] is useful to create a container that will use
@@ -1160,15 +1158,15 @@ For example using:
 .IP
 .EX
 distrobox create \-i docker.io/almalinux/8\-init \-\-init \-\-name test
-distrobox create \-i docker.io/library/debian \-\-additional\-packages \[dq]systemd\[dq] \-\-init \-\-name test\-debian
+distrobox create \-i docker.io/library/debian \-\-additional\-packages \(dqsystemd\(dq \-\-init \-\-name test\-debian
 .EE
 .PP
 Inside the container we will be able to use normal systemd units:
 .IP
 .EX
-\[ti]$ distrobox enter test
-user\[at]test:\[ti]$ sudo systemctl enable \-\-now sshd
-user\[at]test:\[ti]$ sudo systemctl status sshd
+\(ti$ distrobox enter test
+user\(attest:\(ti$ sudo systemctl enable \-\-now sshd
+user\(attest:\(ti$ sudo systemctl status sshd
     ● sshd.service \- OpenSSH server daemon
        Loaded: loaded (/usr/lib/systemd/system/sshd.service; enabled; vendor preset: enabled)
        Active: active (running) since Fri 2022\-01\-28 22:54:50 CET; 17s ago
@@ -1177,33 +1175,32 @@ user\[at]test:\[ti]$ sudo systemctl status sshd
      Main PID: 291 (sshd)
 .EE
 .PP
-Note that enabling \f[CR]\-\-init\f[R] \f[B]will disable host\[cq]s
+Note that enabling \f[CR]\-\-init\f[R] \f[B]will disable host\(cqs
 process integration\f[R].
 From within the container you will not be able to see and manage
-host\[cq]s processes.
+host\(cqs processes.
 This is needed because \f[CR]/sbin/init\f[R] must be pid 1.
 .PP
-If you want to use a non\-pre\-create image, you\[cq]ll need to add the
+If you want to use a non\-pre\-create image, you\(cqll need to add the
 additional package:
 .IP
 .EX
-distrobox create \-i alpine:latest \-\-init \-\-additional\-packages \[dq]openrc\[dq] \-n test
-distrobox create \-i debian:stable \-\-init \-\-additional\-packages \[dq]systemd libpam\-systemd pipewire\-audio\-client\-libraries\[dq] \-n test
-distrobox create \-i ubuntu:22.04 \-\-init \-\-additional\-packages \[dq]systemd libpam\-systemd pipewire\-audio\-client\-libraries\[dq] \-n test
-distrobox create \-i archlinux:latest \-\-init \-\-additional\-packages \[dq]systemd\[dq] \-n test
-distrobox create \-i registry.opensuse.org/opensuse/tumbleweed:latest \-\-init \-\-additional\-packages \[dq]systemd\[dq] \-n test
-distrobox create \-i registry.fedoraproject.org/fedora:39 \-\-init \-\-additional\-packages \[dq]systemd\[dq] \-n test
+distrobox create \-i alpine:latest \-\-init \-\-additional\-packages \(dqopenrc\(dq \-n test
+distrobox create \-i debian:stable \-\-init \-\-additional\-packages \(dqsystemd libpam\-systemd pipewire\-audio\-client\-libraries\(dq \-n test
+distrobox create \-i ubuntu:22.04 \-\-init \-\-additional\-packages \(dqsystemd libpam\-systemd pipewire\-audio\-client\-libraries\(dq \-n test
+distrobox create \-i archlinux:latest \-\-init \-\-additional\-packages \(dqsystemd\(dq \-n test
+distrobox create \-i registry.opensuse.org/opensuse/tumbleweed:latest \-\-init \-\-additional\-packages \(dqsystemd\(dq \-n test
+distrobox create \-i registry.fedoraproject.org/fedora:39 \-\-init \-\-additional\-packages \(dqsystemd\(dq \-n test
 .EE
 .PP
 The \f[CR]\-\-init\f[R] flag is useful to create system containers,
 where the container acts more similar to a full VM than an
 application\-container.
-Inside you\[cq]ll have a separate init, user\-session, daemons and so
-on.
+Inside you\(cqll have a separate init, user\-session, daemons and so on.
 .PP
-The \f[CR]\-\-home\f[R] flag let\[cq]s you specify a custom HOME for the
+The \f[CR]\-\-home\f[R] flag let\(cqs you specify a custom HOME for the
 container.
-Note that this will NOT prevent the mount of the host\[cq]s home
+Note that this will NOT prevent the mount of the host\(cqs home
 directory, but will ensure that configs and dotfiles will not litter it.
 .PP
 The \f[CR]\-\-root\f[R] flag will let you create a container with real
@@ -1232,91 +1229,93 @@ Be aware that \f[B]this is not compatible with non\-glibc systems\f[R]
 and \f[B]needs somewhat newer distributions to work\f[R].
 .PP
 This feature was tested working on:
-.IP \[bu] 2
+.IP \(bu 2
 Almalinux
-.IP \[bu] 2
+.IP \(bu 2
 Archlinux
-.IP \[bu] 2
+.IP \(bu 2
 Centos 7 and newer
-.IP \[bu] 2
+.IP \(bu 2
 Clearlinux
-.IP \[bu] 2
+.IP \(bu 2
 Debian 10 and newer
-.IP \[bu] 2
+.IP \(bu 2
 OpenSUSE Leap
-.IP \[bu] 2
+.IP \(bu 2
 OpenSUSE Tumbleweed
-.IP \[bu] 2
+.IP \(bu 2
 Rockylinux
-.IP \[bu] 2
+.IP \(bu 2
 Ubuntu 18.04 and newer
-.IP \[bu] 2
+.IP \(bu 2
 Void Linux (glibc)
 .\
 .\"
-.TH "DISTROBOX\-ENTER" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ENTER" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox enter
-distrobox\-enter
 .EE
 .SH DESCRIPTION
-distrobox\-enter takes care of entering the container with the name
-specified.
+\f[CR]distrobox enter\f[R] takes care of entering the container with the
+name specified.
 Default command executed is your SHELL, but you can specify different
 shells or entire commands to execute.
 If using it inside a script, an application, or a service, you can
-specify the \[en]headless mode to disable tty and interactivity.
+specify the \f[CR]\-\-no\-tty\f[R] mode to disable tty and
+interactivity.
 .SH SYNOPSIS
 \f[B]distrobox enter\f[R]
 .IP
 .EX
 \-\-name/\-n:      name for the distrobox                      default: my\-distrobox
-\-\-/\-e:          end arguments execute the rest as command to execute at login   default: default ${USER}\[aq]s shell
-\-\-no\-tty/\-T:        do not instantiate a tty
-\-\-no\-workdir/\-nw:   always start the container from container\[aq]s home directory
+\-\-/\-e:          end arguments execute the rest as command to execute at login   default: default ${USER}\(aqs shell
+\-\-no\-tty/\-T:        do not instantiate a tty (alias: \-H)
+\-\-no\-workdir/\-nw:   always start the container from container\(aqs home directory
+\-\-clean\-path/\-c:    reset PATH inside the container to FHS standard
 \-\-additional\-flags/\-a:  additional flags to pass to the container manager command
+\-\-yes/\-y:       non\-interactive, auto\-create the container if it does not exist
 \-\-help/\-h:      show this message
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-dry\-run/\-d:       only print the container manager command generated
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
 .EE
 .SH EXAMPLES
-Enter a distrobox named \[lq]example\[rq]
+Enter a distrobox named \(lqexample\(rq
 .IP
 .EX
-distrobox\-enter example
+distrobox enter example
 .EE
 .PP
 Enter a distrobox specifying a command
 .IP
 .EX
-distrobox\-enter \-\-name fedora\-toolbox\-35 \-\- bash \-l
-distrobox\-enter my\-alpine\-container \-\- sh \-l
+distrobox enter \-\-name fedora\-toolbox\-35 \-\- bash \-l
+distrobox enter my\-alpine\-container \-\- sh \-l
 .EE
 .PP
 Use additional podman/docker/lilipod flags while entering a distrobox
 .IP
 .EX
-distrobox\-enter \-\-additional\-flags \[dq]\-\-preserve\-fds\[dq] \-\-name test \-\- bash \-l
+distrobox enter \-\-additional\-flags \(dq\-\-preserve\-fds\(dq \-\-name test \-\- bash \-l
 .EE
 .PP
 Specify additional environment variables while entering a distrobox
 .IP
 .EX
-distrobox\-enter \-\-additional\-flags \[dq]\-\-env MY_VAR=value\[dq] \-\-name test \-\- bash \-l
-MY_VAR=value distrobox\-enter \-\-additional\-flags \[dq]\-\-preserve\-fds\[dq] \-\-name test \-\- bash \-l
+distrobox enter \-\-additional\-flags \(dq\-\-env MY_VAR=value\(dq \-\-name test \-\- bash \-l
+MY_VAR=value distrobox enter \-\-additional\-flags \(dq\-\-preserve\-fds\(dq \-\-name test \-\- bash \-l
 .EE
 .PP
 You can also use environment variables to specify container manager and
 container name:
 .IP
 .EX
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test\-alpine distrobox\-enter
+DBX_CONTAINER_MANAGER=\(dqdocker\(dq DBX_CONTAINER_NAME=test\-alpine distrobox enter
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP
@@ -1336,7 +1335,7 @@ modify default command when executing in the container.
 For example:
 .IP
 .EX
-distrobox enter \-n dev\-arch \-\-additional\-flags \[dq]\-\-env my_var=test\[dq] \-\- printenv &| grep my_var
+distrobox enter \-n dev\-arch \-\-additional\-flags \(dq\-\-env my_var=test\(dq \-\- printenv &| grep my_var
 my_var=test
 .EE
 .PP
@@ -1347,68 +1346,72 @@ my_var=test distrobox enter \-n dev\-arch \-\-additional\-flags \-\- printenv &|
 my_var=test
 .EE
 .PP
-If you\[cq]d like to enter a rootful container having distrobox use a
+If you\(cqd like to enter a rootful container having distrobox use a
 program other than `sudo' to run podman/docker/lilipod as root, such as
 `pkexec' or `doas', you may specify it with the
 \f[CR]DBX_SUDO_PROGRAM\f[R] environment variable.
 For example, to use `doas' to enter a rootful container:
 .IP
 .EX
-DBX_SUDO_PROGRAM=\[dq]doas\[dq] distrobox enter \-n container \-\-root
+DBX_SUDO_PROGRAM=\(dqdoas\(dq distrobox enter \-n container \-\-root
 .EE
 .PP
 Additionally, in one of the config file paths that distrobox supports,
-such as \f[CR]\[ti]/.distroboxrc\f[R], you can also append the line
-\f[CR]distrobox_sudo_program=\[dq]doas\[dq]\f[R] (for example) to always
+such as \f[CR]\(ti/.distroboxrc\f[R], you can also append the line
+\f[CR]distrobox_sudo_program=\(dqdoas\(dq\f[R] (for example) to always
 run distrobox commands involving rootful containers using `doas'.
 .\
 .\"
-.TH "DISTROBOX\-EPHEMERAL" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EPHEMERAL" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox ephemeral
-distrobox\-ephemeral
 .EE
 .SH DESCRIPTION
-distrobox\-ephemeral creates a temporary distrobox that is automatically
-destroyed when the command is terminated.
+\f[CR]distrobox ephemeral\f[R] creates a temporary distrobox that is
+automatically destroyed when the command is terminated.
+.PP
+It accepts the same flags as \f[CR]distrobox create\f[R] (except
+\f[CR]\-\-no\-entry\f[R] and \f[CR]\-\-compatibility\f[R], which are not
+relevant for a throwaway container), plus
+\f[CR]\-e\f[R]/\f[CR]\-\-exec\f[R] to mark the start of the command to
+run inside the container (the bare \f[CR]\-\-\f[R] separator works too).
 .SH SYNOPSIS
 \f[B]distrobox ephemeral\f[R]
 .IP
 .EX
+\-\-/\-e/\-\-exec:       end arguments execute the rest as command to execute at login   default: default ${USER}\(aqs shell
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-verbose/\-v:       show more verbosity
 \-\-help/\-h:      show this message
-\-\-/\-e:          end arguments execute the rest as command to execute at login   default: default ${USER}\[aq]s shell
 \-\-version/\-V:       show version
 .EE
+.PP
+All other flags are inherited from distrobox\-create.
 .SH EXAMPLES
 .IP
 .EX
-distrobox\-ephemeral \-\-image alpine:latest \-\- cat /etc/os\-release
-distrobox\-ephemeral \-\-root \-\-verbose \-\-image alpine:latest \-\-volume /opt:/opt
+distrobox ephemeral \-\-image alpine:latest \-\- cat /etc/os\-release
+distrobox ephemeral \-\-root \-\-verbose \-\-image alpine:latest \-\-volume /opt:/opt
 .EE
-.PP
-You can also use flags from \f[B]distrobox\-create\f[R] to customize the
-ephemeral container to run.
 .SH SEE ALSO
 .IP
 .EX
-distrobox\-create \-\-help
+distrobox create \-\-help
 man distrobox\-create
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP
 .EX
-distrobox\-ephemeral calls distrobox\-create, SEE ALSO distrobox\-create(1) for
-a list of supported environment variables to use.
+distrobox ephemeral reuses distrobox create\(aqs options; see
+distrobox\-create(1) for the list of supported environment variables.
 .EE
 .\
 .\"
-.TH "DISTROBOX\-EXPORT" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EXPORT" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1432,11 +1435,11 @@ will automatically be launched from the container it is exported from.
 \-\-list\-binaries     list binaries exported from this container, use \-ep to specify custom paths to search
 \-\-delete/\-d:        delete exported application or binary
 \-\-export\-label/\-el: label to add to exported application name.
-            Use \[dq]none\[dq] to disable.
-            Defaults to (on \[rs]$container_name)
+            Use \(dqnone\(dq to disable.
+            Defaults to (on \(rs$container_name)
 \-\-export\-path/\-ep:  path where to export the binary
 \-\-extra\-flags/\-ef:  extra flags to add to the command
-\-\-enter\-flags/\-nf:  flags to add to distrobox\-enter
+\-\-enter\-flags/\-nf:  flags to add to \(gadistrobox enter\(ga
 \-\-sudo/\-S:      specify if the exported item should be run as sudo
 \-\-help/\-h:      show this message
 \-\-verbose/\-v:       show more verbosity
@@ -1450,8 +1453,8 @@ will let you use them from the host itself.
 .SH EXAMPLES
 .IP
 .EX
-distrobox\-export \-\-app mpv [\-\-extra\-flags \[dq]flags\[dq]] [\-\-delete] [\-\-sudo]
-distrobox\-export \-\-bin /path/to/bin [\-\-export\-path \[ti]/.local/bin] [\-\-extra\-flags \[dq]flags\[dq]] [\-\-delete] [\-\-sudo]
+distrobox\-export \-\-app mpv [\-\-extra\-flags \(dqflags\(dq] [\-\-delete] [\-\-sudo]
+distrobox\-export \-\-bin /path/to/bin [\-\-export\-path \(ti/.local/bin] [\-\-extra\-flags \(dqflags\(dq] [\-\-delete] [\-\-sudo]
 .EE
 .PP
 \f[B]App export example\f[R]
@@ -1462,7 +1465,7 @@ distrobox\-export \-\-app abiword
 .PP
 This tool will simply copy the original \f[CR].desktop\f[R] files along
 with needed icons, add the prefix
-\f[CR]/usr/local/bin/distrobox\-enter \-n distrobox_name \-e ...\f[R] to
+\f[CR]/usr/local/bin/distrobox enter \-n distrobox_name \-e ...\f[R] to
 the commands to run, and save them in your home to be used directly from
 the host as a normal app.
 .IP
@@ -1476,29 +1479,29 @@ just use the provided file path.
 \f[B]Binary export example\f[R]
 .IP
 .EX
-distrobox\-export \-\-bin /usr/bin/code \-\-extra\-flags \[dq]\-\-foreground\[dq] \-\-export\-path $HOME/.local/bin
+distrobox\-export \-\-bin /usr/bin/code \-\-extra\-flags \(dq\-\-foreground\(dq \-\-export\-path $HOME/.local/bin
 .EE
 .PP
 In the case of exporting binaries, you will have to specify
 \f[B]where\f[R] to export it (\f[CR]\-\-export\-path\f[R]) and the tool
 will create a little wrapper script that will
-\f[CR]distrobox\-enter \-e\f[R] from the host, the desired binary.
+\f[CR]distrobox enter \-e\f[R] from the host, the desired binary.
 This can be handy with the use of \f[CR]direnv\f[R] to have different
 versions of the same binary based on your \f[CR]env\f[R] or project.
 .PP
-The exported binaries will be exported in the
-\[lq]\[en]export\-path\[rq] of choice as a wrapper script that acts
-naturally both on the host and in the container.
+The exported binaries will be exported in the \(lq\(enexport\-path\(rq
+of choice as a wrapper script that acts naturally both on the host and
+in the container.
 .PP
 \f[B]Additional flags\f[R]
 .PP
 You can specify additional flags to add to the command, for example if
 you want to export an electron app, you could add the
-\[lq]\[en]foreground\[rq] flag to the command:
+\(lq\(enforeground\(rq flag to the command:
 .IP
 .EX
-distrobox\-export \-\-app atom \-\-extra\-flags \[dq]\-\-foreground\[dq]
-distrobox\-export \-\-bin /usr/bin/vim \-\-export\-path \[ti]/.local/bin \-\-extra\-flags \[dq]\-p\[dq]
+distrobox\-export \-\-app atom \-\-extra\-flags \(dq\-\-foreground\(dq
+distrobox\-export \-\-bin /usr/bin/vim \-\-export\-path \(ti/.local/bin \-\-extra\-flags \(dq\-p\(dq
 .EE
 .PP
 This works for binaries and apps.
@@ -1507,21 +1510,21 @@ the host, using them inside the container will not include them.
 .PP
 \f[B]Unexport\f[R]
 .PP
-The option \[lq]\[en]delete\[rq] will un\-export an app or binary
+The option \(lq\(endelete\(rq will un\-export an app or binary
 .IP
 .EX
 distrobox\-export \-\-app atom \-\-delete
-distrobox\-export \-\-bin /usr/bin/vim \-\-export\-path \[ti]/.local/bin \-\-delete
+distrobox\-export \-\-bin /usr/bin/vim \-\-export\-path \(ti/.local/bin \-\-delete
 .EE
 .PP
 \f[B]Run as root in the container\f[R]
 .PP
-The option \[lq]\[en]sudo\[rq] will launch the exported item as root
-inside the distrobox.
+The option \(lq\(ensudo\(rq will launch the exported item as root inside
+the distrobox.
 .PP
 \f[B]Notes\f[R]
 .PP
-Note you can use \[en]app OR \[en]bin but not together.
+Note you can use \(enapp OR \(enbin but not together.
 [IMAGE: \c
 .UR https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png
 app\-export
@@ -1533,18 +1536,18 @@ NOTE: some electron apps such as vscode and atom need additional flags
 to work from inside the container, use the \f[CR]\-\-extra\-flags\f[R]
 option to provide a series of flags, for example:
 .PP
-\f[CR]distrobox\-export \-\-app atom \-\-extra\-flags \[dq]\-\-foreground\[dq]\f[R]
+\f[CR]distrobox\-export \-\-app atom \-\-extra\-flags \(dq\-\-foreground\(dq\f[R]
 .\
 .\"
-.TH "DISTROBOX\-GENERATE\-ENTRY" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-GENERATE\-ENTRY" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox generate\-entry
 .EE
 .SH DESCRIPTION
-distrobox\-generate\-entry will create a desktop icon for one of the
-available distroboxes.
+\f[CR]distrobox generate\-entry\f[R] will create a desktop icon for one
+of the available distroboxes.
 This will be then deleted when you remove the matching distrobox.
 .SH SYNOPSIS
 \f[B]distrobox generate\-entry\f[R]
@@ -1584,7 +1587,7 @@ distrobox generate\-entry container\-name \-\-delete
 .EE
 .\
 .\"
-.TH "DISTROBOX\-HOST\-EXEC" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-HOST\-EXEC" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1598,7 +1601,7 @@ Under the hood, distrobox\-host\-exec uses \f[CR]host\-spawn\f[R] a
 project that lets us execute commands back on the host.
 If the tool is not found the user will be prompted to install it.
 .SH SYNOPSIS
-Just pass to \[lq]distrobox\-host\-exec\[rq] any command and all its
+Just pass to \(lqdistrobox\-host\-exec\(rq any command and all its
 arguments, if any.
 .IP
 .EX
@@ -1611,7 +1614,7 @@ arguments, if any.
                             This behaviour is default when running in a non\-interactive shell.
 .EE
 .PP
-If no command is provided, it will execute \[lq]$SHELL\[rq].
+If no command is provided, it will execute \(lq$SHELL\(rq.
 .PP
 Alternatively, you can symlink a command name to
 \f[CR]distrobox\-host\-exec\f[R] and then call that command by its name
@@ -1628,8 +1631,8 @@ distrobox\-host\-exec podman ps \-a
 .SS Drop into host shell
 .IP
 .EX
-\[ti]$: distrobox\-host\-exec # No command, executes \[dq]$SHELL\[dq] on the host
-\[ti]$: distrobox\-host\-exec # This command now runs on the host
+\(ti$: distrobox\-host\-exec # No command, executes \(dq$SHELL\(dq on the host
+\(ti$: distrobox\-host\-exec # This command now runs on the host
 You must run  distrobox\-host\-exec inside a container!
 .EE
 .SS Symlinking host commands
@@ -1638,25 +1641,25 @@ Use the host command name to create a symlink to
 You can then call the host command from within the container.
 .IP
 .EX
-\[ti]$: git # We do not have git in the container
+\(ti$: git # We do not have git in the container
 bash: git: command not found
-\[ti]$: sudo ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/git
-\[ti]$: git version
+\(ti$: sudo ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/git
+\(ti$: git version
 git version 2.51.1
 .EE
 .PP
 You can control podman on the host from within the container as follows:
 .IP
 .EX
-\[ti]$: ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/podman
-\[ti]$: ls \-l /usr/local/bin/podman
+\(ti$: ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/podman
+\(ti$: ls \-l /usr/local/bin/podman
 lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman \-> /usr/bin/distrobox\-host\-exec
-\[ti]$: podman version
+\(ti$: podman version
 \&...this is executed on host...
 .EE
 .\
 .\"
-.TH "DISTROBOX\-INIT" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-INIT" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1670,7 +1673,8 @@ Note that this HAS to run from inside a distrobox, will not work if you
 run it from your host.
 .PP
 \f[B]This is not intended to be used manually, but instead used by
-distrobox\-create to set up the container\[cq]s entrypoint.\f[R]
+\f[CB]distrobox create\f[B] to set up the container\(cqs
+entrypoint.\f[R]
 .PP
 distrobox\-init will take care of installing missing dependencies (eg.
 sudo), set up the user and groups, mount directories from the host to
@@ -1687,7 +1691,7 @@ ensure the tight integration.
 \-\-additional\-packages:  packages to install in addition
 \-\-init/\-I:      whether to use or not init
 \-\-pre\-init\-hooks:   commands to execute prior to init
-\-\-nvidia:       try to integrate host\[aq]s nVidia drivers in the guest
+\-\-nvidia:       try to integrate host\(aqs nVidia drivers in the guest
 \-\-upgrade/\-U:       run init in upgrade mode
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
@@ -1701,39 +1705,39 @@ distrobox\-init \-\-upgrade
 .EE
 .\
 .\"
-.TH "DISTROBOX\-LIST" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-LIST" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox list
-distrobox\-list
 .EE
 .SH DESCRIPTION
-distrobox\-list lists available distroboxes.
+\f[CR]distrobox list\f[R] lists available distroboxes.
 It detects them and lists them separately from the rest of normal
 containers.
+The \f[CR]ls\f[R] alias works too.
 .SH SYNOPSIS
-\f[B]distrobox list\f[R]
+\f[B]distrobox list\f[R] (alias: \f[B]distrobox ls\f[R])
 .IP
 .EX
 \-\-help/\-h:      show this message
 \-\-no\-color:     disable color formatting
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
 .EE
 .SH EXAMPLES
 .IP
 .EX
-distrobox\-list
+distrobox list
 .EE
 .PP
 You can also use environment variables to specify container manager
 .IP
 .EX
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] distrobox\-list
+DBX_CONTAINER_MANAGER=\(dqdocker\(dq distrobox list
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP
@@ -1749,25 +1753,25 @@ image
 image
 .\
 .\"
-.TH "DISTROBOX\-RM" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-RM" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox rm
-distrobox\-rm
 .EE
 .SH DESCRIPTION
-distrobox\-rm delete one of the available distroboxes.
+\f[CR]distrobox rm\f[R] deletes one of the available distroboxes.
 .SH SYNOPSIS
 \f[B]distrobox rm\f[R]
 .IP
 .EX
 \-\-all/\-a:       delete all distroboxes
 \-\-force/\-f:     force deletion
-\-\-rm\-home:      remove the mounted home if it differs from the host user\[aq]s one
+\-\-yes/\-Y:       non\-interactive, skip the deletion confirmation prompt
+\-\-rm\-home:      remove the mounted home if it differs from the host user\(aqs one
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-help/\-h:      show this message
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
@@ -1775,14 +1779,14 @@ distrobox\-rm delete one of the available distroboxes.
 .SH EXAMPLES
 .IP
 .EX
-distrobox\-rm container\-name [\-\-force] [\-\-all]
+distrobox rm container\-name [\-\-force] [\-\-all]
 .EE
 .PP
 You can also use environment variables to specify container manager and
 name:
 .IP
 .EX
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test\-alpine distrobox\-rm
+DBX_CONTAINER_MANAGER=\(dqdocker\(dq DBX_CONTAINER_NAME=test\-alpine distrobox rm
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP
@@ -1794,15 +1798,14 @@ DBX_SUDO_PROGRAM
 .EE
 .\
 .\"
-.TH "DISTROBOX\-STOP" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-STOP" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox stop
-distrobox\-stop
 .EE
 .SH DESCRIPTION
-distrobox\-stop stop a running distrobox.
+\f[CR]distrobox stop\f[R] stops a running distrobox.
 .PP
 Distroboxes are left running, even after exiting out of them, so that
 subsequent enters are really quick.
@@ -1815,24 +1818,24 @@ This is how they can be stopped.
 \-\-yes/\-Y:       non\-interactive, stop without asking
 \-\-help/\-h:      show this message
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
 .EE
 .SH EXAMPLES
 .IP
 .EX
-distrobox\-stop container\-name1 container\-name2
-distrobox\-stop container\-name
-distrobox\-stop \-\-all
+distrobox stop container\-name1 container\-name2
+distrobox stop container\-name
+distrobox stop \-\-all
 .EE
 .PP
 You can also use environment variables to specify container manager and
 name:
 .IP
 .EX
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test\-alpine distrobox\-stop
+DBX_CONTAINER_MANAGER=\(dqdocker\(dq DBX_CONTAINER_NAME=test\-alpine distrobox stop
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP
@@ -1844,25 +1847,26 @@ DBX_SUDO_PROGRAM
 .EE
 .\
 .\"
-.TH "DISTROBOX\-UPGRADE" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-UPGRADE" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
-distrobox\-upgrade
+distrobox upgrade
 .EE
 .SH DESCRIPTION
-distrobox\-upgrade will enter the specified list of containers and will
-perform an upgrade using the container\[cq]s package manager.
+\f[CR]distrobox upgrade\f[R] will enter the specified list of containers
+and will perform an upgrade using the container\(cqs package manager.
 .SH SYNOPSIS
 \f[B]distrobox upgrade\f[R]
 .IP
 .EX
 \-\-help/\-h:      show this message
 \-\-all/\-a:       perform for all distroboxes
-\-\-running:      perform only for running distroboxes
+\-\-running:      perform only for running distroboxes (requires \-\-all)
+\-\-yes/\-Y:       accepted for compatibility; upgrades never prompt
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
 .EE
@@ -1870,33 +1874,33 @@ perform an upgrade using the container\[cq]s package manager.
 Upgrade all distroboxes
 .IP
 .EX
-distrobox\-upgrade \-\-all
+distrobox upgrade \-\-all
 .EE
 .PP
 Upgrade all running distroboxes
 .IP
 .EX
-distrobox\-upgrade \-\-all \-\-running
+distrobox upgrade \-\-all \-\-running
 .EE
 .PP
 Upgrade a specific distrobox
 .IP
 .EX
-distrobox\-upgrade alpine\-linux 
+distrobox upgrade alpine\-linux
 .EE
 .PP
 Upgrade a list of distroboxes
 .IP
 .EX
-distrobox\-upgrade alpine\-linux ubuntu22 my\-distrobox123
+distrobox upgrade alpine\-linux ubuntu22 my\-distrobox123
 .EE
 .PP
 \f[B]Automatically update all distro\f[R]
 .PP
-You can create a systemd service to perform distrobox\-upgrade
-automatically, this example shows how to run it daily:
+You can create a systemd service to run \f[CR]distrobox upgrade\f[R]
+automatically; this example shows how to run it daily:
 .PP
-\[ti]/.config/systemd/user/distrobox\-upgrade.service
+\(ti/.config/systemd/user/distrobox\-upgrade.service
 .IP
 .EX
 [Unit]
@@ -1904,11 +1908,11 @@ Description=distrobox\-upgrade Automatic Update
 
 [Service]
 Type=simple
-ExecStart=distrobox\-upgrade \-\-all
+ExecStart=distrobox upgrade \-\-all
 StandardOutput=null
 .EE
 .PP
-\[ti]/.config/systemd/user/distrobox\-upgrade.timer
+\(ti/.config/systemd/user/distrobox\-upgrade.timer
 .IP
 .EX
 [Unit]

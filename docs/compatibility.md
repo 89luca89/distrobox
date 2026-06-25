@@ -83,7 +83,7 @@ Note also that in some distributions, root filesystem is **not** mounted as a sh
 this will give an error like:
 
 ```sh
-$ distrobox-enter
+$ distrobox enter
 Error response from daemon: path /sys is mounted on /sys but it is not a shared or slave mount
 Error: failed to start containers: ...
 ```
@@ -203,7 +203,7 @@ Distrobox guests tested successfully with the following container images:
 Images marked with **Toolbox** are tailored images made by the community efforts in [toolbx-images/images](https://github.com/toolbx-images/images),
 so they are more indicated for desktop use, and first setup will take less time.
 Note however that if you use a non-toolbox preconfigured image,
-the **first** `distrobox-enter` you'll perform
+the **first** `distrobox enter` you'll perform
 can take a while as it will download and install the missing dependencies.
 
 A small time tax to pay for the ability to use any type of image.

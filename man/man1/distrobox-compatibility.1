@@ -1,7 +1,7 @@
 '\" t
 .\
 .\"
-.TH "DISTROBOX" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH COMPATIBILITY
 This project \f[B]does not need a dedicated image\f[R].
 It can use any OCI images from docker\-hub, quay.io, or any registry of
@@ -32,23 +32,23 @@ It depends either on \f[CR]podman\f[R] configured in
 THESE instructions
 .UE \c
 )
-.IP \[bu] 2
+.IP \(bu 2
 Minimum podman version: \f[B]2.1.0\f[R]
-.IP \[bu] 2
+.IP \(bu 2
 Minimum docker client version: \f[B]19.03.15\f[R]
-.IP \[bu] 2
+.IP \(bu 2
 Minimum lilipod version: \f[B]v0.0.1\f[R]
 .PP
 Follow the official installation guide here:
-.IP \[bu] 2
+.IP \(bu 2
 \c
 .UR https://podman.io/getting-started/installation
 .UE \c
-.IP \[bu] 2
+.IP \(bu 2
 \c
 .UR https://docs.docker.com/engine/install
 .UE \c
-.IP \[bu] 2
+.IP \(bu 2
 \c
 .UR https://docs.docker.com/engine/install/linux-postinstall/
 .UE \c
@@ -440,8 +440,8 @@ toolbx\-images/images
 , so they are more indicated for desktop use, and first setup will take
 less time.
 Note however that if you use a non\-toolbox preconfigured image, the
-\f[B]first\f[R] \f[CR]distrobox\-enter\f[R] you\[cq]ll perform can take
-a while as it will download and install the missing dependencies.
+\f[B]first\f[R] \f[CR]distrobox enter\f[R] you\(cqll perform can take a
+while as it will download and install the missing dependencies.
 .PP
 A small time tax to pay for the ability to use any type of image.
 This will \f[B]not\f[R] occur after the first time, \f[B]subsequent
@@ -485,4 +485,4 @@ For NVidia, you can use the \f[CR]\-\-nvidia\f[R] flag during create,
 see distrobox\-create documentation to discover how to use it.
 .PP
 Alternatively, you can use the nvidia\-container\-toolkit utility to set
-up the integration independently from the distrobox\[cq]s own flag.
+up the integration independently from the distrobox\(cqs own flag.

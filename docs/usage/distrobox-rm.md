@@ -2,11 +2,10 @@
 # NAME
 
 	distrobox rm
-	distrobox-rm
 
 # DESCRIPTION
 
-distrobox-rm delete one of the available distroboxes.
+`distrobox rm` deletes one of the available distroboxes.
 
 # SYNOPSIS
 
@@ -14,6 +13,7 @@ distrobox-rm delete one of the available distroboxes.
 
 	--all/-a:		delete all distroboxes
 	--force/-f:		force deletion
+	--yes/-Y:		non-interactive, skip the deletion confirmation prompt
 	--rm-home:		remove the mounted home if it differs from the host user's one
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
@@ -24,11 +24,11 @@ distrobox-rm delete one of the available distroboxes.
 
 # EXAMPLES
 
-	distrobox-rm container-name [--force] [--all]
+	distrobox rm container-name [--force] [--all]
 
 You can also use environment variables to specify container manager and name:
 
-	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-rm
+	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox rm
 
 # ENVIRONMENT VARIABLES
 

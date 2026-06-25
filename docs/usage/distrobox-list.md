@@ -2,16 +2,15 @@
 # NAME
 
 	distrobox list
-	distrobox-list
 
 # DESCRIPTION
 
-distrobox-list lists available distroboxes. It detects them and lists them separately
-from the rest of normal containers.
+`distrobox list` lists available distroboxes. It detects them and lists them
+separately from the rest of normal containers. The `ls` alias works too.
 
 # SYNOPSIS
 
-**distrobox list**
+**distrobox list** (alias: **distrobox ls**)
 
 	--help/-h:		show this message
 	--no-color:		disable color formatting
@@ -23,11 +22,11 @@ from the rest of normal containers.
 
 # EXAMPLES
 
-	distrobox-list
+	distrobox list
 
 You can also use environment variables to specify container manager
 
-	DBX_CONTAINER_MANAGER="docker" distrobox-list
+	DBX_CONTAINER_MANAGER="docker" distrobox list
 
 # ENVIRONMENT VARIABLES
 
