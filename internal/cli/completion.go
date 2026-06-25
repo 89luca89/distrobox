@@ -21,9 +21,9 @@ func flagCompleter(_ context.Context, c *cli.Command) {
 	// VisibleCommands skips help and any Hidden subcommands, matching
 	// what the user would see in `--help` output.
 	for _, sub := range c.VisibleCommands() {
-		fmt.Println(sub.Name)
+		fmt.Println(sub.Name) //nolint:forbidigo // completion output by design
 		for _, alias := range sub.Aliases {
-			fmt.Println(alias)
+			fmt.Println(alias) //nolint:forbidigo // completion output by design
 		}
 	}
 	// VisibleFlags skips Hidden flags (e.g. --container-manager,
@@ -38,7 +38,7 @@ func flagCompleter(_ context.Context, c *cli.Command) {
 				continue
 			}
 			seen[name] = struct{}{}
-			fmt.Println("--" + name)
+			fmt.Println("--" + name) //nolint:forbidigo // completion output by design
 		}
 	}
 }
