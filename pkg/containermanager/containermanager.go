@@ -59,6 +59,32 @@ type InspectResult struct {
 	ContainerHome   string
 	ContainerPath   string
 	UnshareGroups   bool
+
+	// ContainerImage is the image name used to create the container
+	ContainerImage string
+	// Mounts are the bind mounts applied to the container
+	Mounts []MountInfo
+	// NetworkMode is the container's network mode (e.g., "host")
+	NetworkMode string
+	// IpcMode is the container's IPC mode (e.g., "host")
+	IpcMode string
+	// PidMode is the container's PID mode (e.g., "host")
+	PidMode string
+	// Cmd is the command (and args) the entrypoint was called with,
+	// i.e., the distrobox-init arguments for the container.
+	Cmd []string
+	// Env is the full list of environment variables set on the container
+	// (e.g., "HOME=/home/user", "HOSTNAME=...").
+	Env []string
+}
+
+// MountInfo represents a single bind mount of a container.
+// Source is the host path, Destination is the in-container path,
+// Options is a comma-separated list of mount options.
+type MountInfo struct {
+	Source      string
+	Destination string
+	Options     string
 }
 
 type CreateOptions struct {

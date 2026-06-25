@@ -69,7 +69,21 @@ type inspectOutput struct {
 	Config struct {
 		Labels map[string]string `json:"Labels"`
 		Env    []string          `json:"Env"`
+		Cmd    []string          `json:"Cmd"`
 	} `json:"Config"`
+	ImageName string   `json:"ImageName"`
+	Args      []string `json:"Args"`
+	Mounts    []struct {
+		Source      string   `json:"Source"`
+		Destination string   `json:"Destination"`
+		Type        string   `json:"Type"`
+		Options     []string `json:"Options"`
+	} `json:"Mounts"`
+	HostConfig struct {
+		NetworkMode string `json:"NetworkMode"`
+		IpcMode     string `json:"IpcMode"`
+		PidMode     string `json:"PidMode"`
+	} `json:"HostConfig"`
 }
 
 type InspectImageOutput struct {
@@ -671,6 +685,30 @@ func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*c
 	inspect := inspects[0]
 	config.ContainerID = inspect.ID
 	config.ContainerStatus = inspect.State.Status
+	config.ContainerImage = inspect.ImageName
+	config.NetworkMode = inspect.HostConfig.NetworkMode
+	config.IpcMode = inspect.HostConfig.IpcMode
+	config.PidMode = inspect.HostConfig.PidMode
+	config.Env = inspect.Config.Env
+
+	// Docker exposes the entrypoint command (distrobox-init args) as Config.Cmd,
+	// not top-level Args (which is the parsed entrypoint path array). Prefer
+	// top-level Args if present (podman compatibility), else use Config.Cmd.
+	if len(inspect.Args) > 0 {
+		config.Cmd = inspect.Args
+	} else {
+		config.Cmd = inspect.Config.Cmd
+	}
+
+	// Populate mount info
+	config.Mounts = make([]containermanager.MountInfo, 0, len(inspect.Mounts))
+	for _, m := range inspect.Mounts {
+		config.Mounts = append(config.Mounts, containermanager.MountInfo{
+			Source:      m.Source,
+			Destination: m.Destination,
+			Options:     strings.Join(m.Options, ","),
+		})
+	}
 
 	// Check for unshare_groups label
 	if v, ok := inspect.Config.Labels["distrobox.unshare_groups"]; ok && v == "1" {
