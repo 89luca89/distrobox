@@ -1,0 +1,115 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# This file is part of the distrobox project: https://github.com/89luca89/distrobox
+#
+# Copyright (C) 2021 distrobox contributors
+#
+# distrobox is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 3
+# as published by the Free Software Foundation.
+#
+# distrobox is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with distrobox; if not, see <http://www.gnu.org/licenses/>.
+
+# POSIX
+# uninstall.sh — remove distrobox (v2) plus any leftover v1 split-script
+# artefacts from the given prefix. The prefix must match the one used at
+# install time (default: /usr/local for root, ~/.local otherwise).
+
+prefix=""
+no_color=0
+verbose=0
+
+show_help()
+{
+	cat << EOF
+uninstall --prefix /usr/local
+
+Options:
+	--prefix/-P:	base path where distrobox was installed
+			(default: /usr/local if root, ~/.local otherwise)
+	--no-color:	disable color formatting
+	--help/-h:	show this message
+	-v/--verbose:	show more verbosity
+EOF
+}
+
+while [ $# -gt 0 ]; do
+	case $1 in
+		-h | --help)
+			show_help
+			exit 0
+			;;
+		-v | --verbose)
+			verbose=1
+			shift
+			;;
+		--no-color)
+			no_color=1
+			shift
+			;;
+		-P | --prefix)
+			if [ -n "${2:-}" ]; then
+				prefix="$2"
+				shift 2
+			else
+				show_help
+				exit 1
+			fi
+			;;
+		*)
+			printf >&2 "Error: unknown argument %s\n" "$1"
+			show_help
+			exit 1
+			;;
+	esac
+done
+
+set -o errexit
+set -o nounset
+
+BOLD_GREEN=""
+CLEAR=""
+if [ -t 0 ] && [ -t 1 ] && [ "${no_color}" -ne 1 ]; then
+	BOLD_GREEN='\033[1;32m'
+	CLEAR='\033[0m'
+fi
+if [ "${verbose}" -ne 0 ]; then
+	set -o xtrace
+fi
+
+if [ -z "${prefix}" ]; then
+	prefix="/usr/local"
+	if [ "$(id -u)" -ne 0 ]; then
+		prefix="${HOME}/.local"
+	fi
+fi
+
+bindir="${prefix}/bin"
+mandir="${prefix}/share/man/man1"
+bashdir="${prefix}/share/bash-completion/completions"
+zshdir="${prefix}/share/zsh/site-functions"
+icondir="${prefix}/share/icons/hicolor"
+
+icon_sizes="16 22 24 32 36 48 64 72 96 128 256"
+
+rm -f "${bindir}/distrobox"
+# v1 installed split shell scripts (distrobox-create, distrobox-enter, …,
+# plus the in-container distrobox-init/export/host-exec) at ${bindir}.
+# v2 ships none of those at ${bindir}, so this glob only catches v1 leftovers.
+rm -f "${bindir}"/distrobox-*
+rm -f "${mandir}/distrobox.1" "${mandir}"/distrobox-*.1
+rm -f "${bashdir}/distrobox"
+rm -f "${zshdir}/_distrobox"
+rm -f "${icondir}/scalable/apps/terminal-distrobox-icon.svg"
+for sz in ${icon_sizes}; do
+	rm -f "${icondir}/${sz}x${sz}/apps/terminal-distrobox-icon.png"
+done
+
+printf >&2 "%b Uninstalled distrobox from %s%b\n" "${BOLD_GREEN}" "${prefix}" "${CLEAR}"
