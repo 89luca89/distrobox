@@ -260,18 +260,21 @@ func (c *MigrateCommand) recoverCreateOptions(
 		}
 	}
 
-	// Recover unshare flags from HostConfig modes
-	opts.UnshareNetNS = inspect.NetworkMode != "" && inspect.NetworkMode != "host"
-	opts.UnshareIPC = inspect.IpcMode != "" && inspect.IpcMode != "host"
-	opts.UnshareProcess = inspect.PidMode != "" && inspect.PidMode != "host"
+	// Recover unshare flags from HostConfig modes. A mode of "host"
+	// means the namespace is shared; anything else means it is unshared.
+	const hostMode = "host"
+	opts.UnshareNetNS = inspect.NetworkMode != "" && inspect.NetworkMode != hostMode
+	opts.UnshareIPC = inspect.IpcMode != "" && inspect.IpcMode != hostMode
+	opts.UnshareProcess = inspect.PidMode != "" && inspect.PidMode != hostMode
 
 	// Recover unshare_groups from inspect (already parsed label)
 	opts.UnshareGroups = inspect.UnshareGroups
 
 	// Recover UnshareDevsys: check if /dev:/dev mount is present
+	const devPath = "/dev"
 	opts.UnshareDevsys = true
 	for _, mount := range inspect.Mounts {
-		if mount.Source == "/dev" && mount.Destination == "/dev" {
+		if mount.Source == devPath && mount.Destination == devPath {
 			opts.UnshareDevsys = false
 			break
 		}
