@@ -28,7 +28,7 @@ automatically be launched from the container it is exported from.
 				Defaults to (on \$container_name)
 	--export-path/-ep:	path where to export the binary
 	--extra-flags/-ef:	extra flags to add to the command
-	--enter-flags/-nf:	flags to add to distrobox-enter
+	--enter-flags/-nf:	flags to add to `distrobox enter`
 	--sudo/-S:		specify if the exported item should be run as sudo
 	--help/-h:		show this message
 	--verbose/-v:		show more verbosity
@@ -47,7 +47,7 @@ Using `distrobox-export` from **inside** the container will let you use them fro
 	distrobox-export --app abiword
 
 This tool will simply copy the original `.desktop` files along with needed icons,
-add the prefix `/usr/local/bin/distrobox-enter -n distrobox_name -e ...` to the commands to run, and
+add the prefix `/usr/local/bin/distrobox enter -n distrobox_name -e ...` to the commands to run, and
 save them in your home to be used directly from the host as a normal app.
 
 	distrobox-export --app /opt/application/my-app.desktop
@@ -60,7 +60,7 @@ This will skip searching for the desktopfile in canonical paths, and just use th
 
 In the case of exporting binaries, you will have to specify **where** to export it
 (`--export-path`) and the tool will create a little wrapper script that will
-`distrobox-enter -e` from the host, the desired binary.
+`distrobox enter -e` from the host, the desired binary.
 This can be handy with the use of `direnv` to have different versions of the same binary based on
 your `env` or project.
 

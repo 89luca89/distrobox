@@ -1,11 +1,11 @@
 <!-- markdownlint-disable MD010 MD036 -->
 # NAME
 
-	distrobox-upgrade
+	distrobox upgrade
 
 # DESCRIPTION
 
-distrobox-upgrade will enter the specified list of containers and will perform
+`distrobox upgrade` will enter the specified list of containers and will perform
 an upgrade using the container's package manager.
 
 # SYNOPSIS
@@ -14,7 +14,8 @@ an upgrade using the container's package manager.
 
 	--help/-h:		show this message
 	--all/-a:		perform for all distroboxes
-	--running:		perform only for running distroboxes
+	--running:		perform only for running distroboxes (requires --all)
+	--yes/-Y:		accepted for compatibility; upgrades never prompt
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
 				specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)
@@ -25,23 +26,23 @@ an upgrade using the container's package manager.
 
 Upgrade all distroboxes
 
-	distrobox-upgrade --all
+	distrobox upgrade --all
 
 Upgrade all running distroboxes
 
-	distrobox-upgrade --all --running
+	distrobox upgrade --all --running
 
 Upgrade a specific distrobox
 
-	distrobox-upgrade alpine-linux 
+	distrobox upgrade alpine-linux
 
 Upgrade a list of distroboxes
 
-	distrobox-upgrade alpine-linux ubuntu22 my-distrobox123
+	distrobox upgrade alpine-linux ubuntu22 my-distrobox123
 
 **Automatically update all distro**
 
-You can create a systemd service to perform distrobox-upgrade automatically,
+You can create a systemd service to run `distrobox upgrade` automatically;
 this example shows how to run it daily:
 
 ~/.config/systemd/user/distrobox-upgrade.service
@@ -51,7 +52,7 @@ this example shows how to run it daily:
 
 	[Service]
 	Type=simple
-	ExecStart=distrobox-upgrade --all
+	ExecStart=distrobox upgrade --all
 	StandardOutput=null
 
 ~/.config/systemd/user/distrobox-upgrade.timer

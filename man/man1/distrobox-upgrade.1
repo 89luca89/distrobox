@@ -1,24 +1,25 @@
 .\
 .\"
-.TH "DISTROBOX\-UPGRADE" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-UPGRADE" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
-distrobox\-upgrade
+distrobox upgrade
 .EE
 .SH DESCRIPTION
-distrobox\-upgrade will enter the specified list of containers and will
-perform an upgrade using the container\[cq]s package manager.
+\f[CR]distrobox upgrade\f[R] will enter the specified list of containers
+and will perform an upgrade using the container\(cqs package manager.
 .SH SYNOPSIS
 \f[B]distrobox upgrade\f[R]
 .IP
 .EX
 \-\-help/\-h:      show this message
 \-\-all/\-a:       perform for all distroboxes
-\-\-running:      perform only for running distroboxes
+\-\-running:      perform only for running distroboxes (requires \-\-all)
+\-\-yes/\-Y:       accepted for compatibility; upgrades never prompt
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
 .EE
@@ -26,33 +27,33 @@ perform an upgrade using the container\[cq]s package manager.
 Upgrade all distroboxes
 .IP
 .EX
-distrobox\-upgrade \-\-all
+distrobox upgrade \-\-all
 .EE
 .PP
 Upgrade all running distroboxes
 .IP
 .EX
-distrobox\-upgrade \-\-all \-\-running
+distrobox upgrade \-\-all \-\-running
 .EE
 .PP
 Upgrade a specific distrobox
 .IP
 .EX
-distrobox\-upgrade alpine\-linux 
+distrobox upgrade alpine\-linux
 .EE
 .PP
 Upgrade a list of distroboxes
 .IP
 .EX
-distrobox\-upgrade alpine\-linux ubuntu22 my\-distrobox123
+distrobox upgrade alpine\-linux ubuntu22 my\-distrobox123
 .EE
 .PP
 \f[B]Automatically update all distro\f[R]
 .PP
-You can create a systemd service to perform distrobox\-upgrade
-automatically, this example shows how to run it daily:
+You can create a systemd service to run \f[CR]distrobox upgrade\f[R]
+automatically; this example shows how to run it daily:
 .PP
-\[ti]/.config/systemd/user/distrobox\-upgrade.service
+\(ti/.config/systemd/user/distrobox\-upgrade.service
 .IP
 .EX
 [Unit]
@@ -60,11 +61,11 @@ Description=distrobox\-upgrade Automatic Update
 
 [Service]
 Type=simple
-ExecStart=distrobox\-upgrade \-\-all
+ExecStart=distrobox upgrade \-\-all
 StandardOutput=null
 .EE
 .PP
-\[ti]/.config/systemd/user/distrobox\-upgrade.timer
+\(ti/.config/systemd/user/distrobox\-upgrade.timer
 .IP
 .EX
 [Unit]

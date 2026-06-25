@@ -1,68 +1,70 @@
 .\
 .\"
-.TH "DISTROBOX\-ENTER" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ENTER" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox enter
-distrobox\-enter
 .EE
 .SH DESCRIPTION
-distrobox\-enter takes care of entering the container with the name
-specified.
+\f[CR]distrobox enter\f[R] takes care of entering the container with the
+name specified.
 Default command executed is your SHELL, but you can specify different
 shells or entire commands to execute.
 If using it inside a script, an application, or a service, you can
-specify the \[en]headless mode to disable tty and interactivity.
+specify the \f[CR]\-\-no\-tty\f[R] mode to disable tty and
+interactivity.
 .SH SYNOPSIS
 \f[B]distrobox enter\f[R]
 .IP
 .EX
 \-\-name/\-n:      name for the distrobox                      default: my\-distrobox
-\-\-/\-e:          end arguments execute the rest as command to execute at login   default: default ${USER}\[aq]s shell
-\-\-no\-tty/\-T:        do not instantiate a tty
-\-\-no\-workdir/\-nw:   always start the container from container\[aq]s home directory
+\-\-/\-e:          end arguments execute the rest as command to execute at login   default: default ${USER}\(aqs shell
+\-\-no\-tty/\-T:        do not instantiate a tty (alias: \-H)
+\-\-no\-workdir/\-nw:   always start the container from container\(aqs home directory
+\-\-clean\-path/\-c:    reset PATH inside the container to FHS standard
 \-\-additional\-flags/\-a:  additional flags to pass to the container manager command
+\-\-yes/\-y:       non\-interactive, auto\-create the container if it does not exist
 \-\-help/\-h:      show this message
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-dry\-run/\-d:       only print the container manager command generated
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
 .EE
 .SH EXAMPLES
-Enter a distrobox named \[lq]example\[rq]
+Enter a distrobox named \(lqexample\(rq
 .IP
 .EX
-distrobox\-enter example
+distrobox enter example
 .EE
 .PP
 Enter a distrobox specifying a command
 .IP
 .EX
-distrobox\-enter \-\-name fedora\-toolbox\-35 \-\- bash \-l
-distrobox\-enter my\-alpine\-container \-\- sh \-l
+distrobox enter \-\-name fedora\-toolbox\-35 \-\- bash \-l
+distrobox enter my\-alpine\-container \-\- sh \-l
 .EE
 .PP
 Use additional podman/docker/lilipod flags while entering a distrobox
 .IP
 .EX
-distrobox\-enter \-\-additional\-flags \[dq]\-\-preserve\-fds\[dq] \-\-name test \-\- bash \-l
+distrobox enter \-\-additional\-flags \(dq\-\-preserve\-fds\(dq \-\-name test \-\- bash \-l
 .EE
 .PP
 Specify additional environment variables while entering a distrobox
 .IP
 .EX
-distrobox\-enter \-\-additional\-flags \[dq]\-\-env MY_VAR=value\[dq] \-\-name test \-\- bash \-l
-MY_VAR=value distrobox\-enter \-\-additional\-flags \[dq]\-\-preserve\-fds\[dq] \-\-name test \-\- bash \-l
+distrobox enter \-\-additional\-flags \(dq\-\-env MY_VAR=value\(dq \-\-name test \-\- bash \-l
+MY_VAR=value distrobox enter \-\-additional\-flags \(dq\-\-preserve\-fds\(dq \-\-name test \-\- bash \-l
 .EE
 .PP
 You can also use environment variables to specify container manager and
 container name:
 .IP
 .EX
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test\-alpine distrobox\-enter
+DBX_CONTAINER_MANAGER=\(dqdocker\(dq DBX_CONTAINER_NAME=test\-alpine distrobox enter
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP
@@ -82,7 +84,7 @@ modify default command when executing in the container.
 For example:
 .IP
 .EX
-distrobox enter \-n dev\-arch \-\-additional\-flags \[dq]\-\-env my_var=test\[dq] \-\- printenv &| grep my_var
+distrobox enter \-n dev\-arch \-\-additional\-flags \(dq\-\-env my_var=test\(dq \-\- printenv &| grep my_var
 my_var=test
 .EE
 .PP
@@ -93,17 +95,17 @@ my_var=test distrobox enter \-n dev\-arch \-\-additional\-flags \-\- printenv &|
 my_var=test
 .EE
 .PP
-If you\[cq]d like to enter a rootful container having distrobox use a
+If you\(cqd like to enter a rootful container having distrobox use a
 program other than `sudo' to run podman/docker/lilipod as root, such as
 `pkexec' or `doas', you may specify it with the
 \f[CR]DBX_SUDO_PROGRAM\f[R] environment variable.
 For example, to use `doas' to enter a rootful container:
 .IP
 .EX
-DBX_SUDO_PROGRAM=\[dq]doas\[dq] distrobox enter \-n container \-\-root
+DBX_SUDO_PROGRAM=\(dqdoas\(dq distrobox enter \-n container \-\-root
 .EE
 .PP
 Additionally, in one of the config file paths that distrobox supports,
-such as \f[CR]\[ti]/.distroboxrc\f[R], you can also append the line
-\f[CR]distrobox_sudo_program=\[dq]doas\[dq]\f[R] (for example) to always
+such as \f[CR]\(ti/.distroboxrc\f[R], you can also append the line
+\f[CR]distrobox_sudo_program=\(dqdoas\(dq\f[R] (for example) to always
 run distrobox commands involving rootful containers using `doas'.

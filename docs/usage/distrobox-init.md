@@ -11,7 +11,7 @@ distrobox-init is the entrypoint of a created distrobox.
 Note that this HAS to run from inside a distrobox, will not work if you run it
 from your host.
 
-**This is not intended to be used manually, but instead used by distrobox-create
+**This is not intended to be used manually, but instead used by `distrobox create`
 to set up the container's entrypoint.**
 
 distrobox-init will take care of installing missing dependencies (eg. sudo), set

@@ -1,6 +1,6 @@
 .\
 .\"
-.TH "DISTROBOX\-EXPORT" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EXPORT" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -24,11 +24,11 @@ will automatically be launched from the container it is exported from.
 \-\-list\-binaries     list binaries exported from this container, use \-ep to specify custom paths to search
 \-\-delete/\-d:        delete exported application or binary
 \-\-export\-label/\-el: label to add to exported application name.
-            Use \[dq]none\[dq] to disable.
-            Defaults to (on \[rs]$container_name)
+            Use \(dqnone\(dq to disable.
+            Defaults to (on \(rs$container_name)
 \-\-export\-path/\-ep:  path where to export the binary
 \-\-extra\-flags/\-ef:  extra flags to add to the command
-\-\-enter\-flags/\-nf:  flags to add to distrobox\-enter
+\-\-enter\-flags/\-nf:  flags to add to \(gadistrobox enter\(ga
 \-\-sudo/\-S:      specify if the exported item should be run as sudo
 \-\-help/\-h:      show this message
 \-\-verbose/\-v:       show more verbosity
@@ -42,8 +42,8 @@ will let you use them from the host itself.
 .SH EXAMPLES
 .IP
 .EX
-distrobox\-export \-\-app mpv [\-\-extra\-flags \[dq]flags\[dq]] [\-\-delete] [\-\-sudo]
-distrobox\-export \-\-bin /path/to/bin [\-\-export\-path \[ti]/.local/bin] [\-\-extra\-flags \[dq]flags\[dq]] [\-\-delete] [\-\-sudo]
+distrobox\-export \-\-app mpv [\-\-extra\-flags \(dqflags\(dq] [\-\-delete] [\-\-sudo]
+distrobox\-export \-\-bin /path/to/bin [\-\-export\-path \(ti/.local/bin] [\-\-extra\-flags \(dqflags\(dq] [\-\-delete] [\-\-sudo]
 .EE
 .PP
 \f[B]App export example\f[R]
@@ -54,7 +54,7 @@ distrobox\-export \-\-app abiword
 .PP
 This tool will simply copy the original \f[CR].desktop\f[R] files along
 with needed icons, add the prefix
-\f[CR]/usr/local/bin/distrobox\-enter \-n distrobox_name \-e ...\f[R] to
+\f[CR]/usr/local/bin/distrobox enter \-n distrobox_name \-e ...\f[R] to
 the commands to run, and save them in your home to be used directly from
 the host as a normal app.
 .IP
@@ -68,29 +68,29 @@ just use the provided file path.
 \f[B]Binary export example\f[R]
 .IP
 .EX
-distrobox\-export \-\-bin /usr/bin/code \-\-extra\-flags \[dq]\-\-foreground\[dq] \-\-export\-path $HOME/.local/bin
+distrobox\-export \-\-bin /usr/bin/code \-\-extra\-flags \(dq\-\-foreground\(dq \-\-export\-path $HOME/.local/bin
 .EE
 .PP
 In the case of exporting binaries, you will have to specify
 \f[B]where\f[R] to export it (\f[CR]\-\-export\-path\f[R]) and the tool
 will create a little wrapper script that will
-\f[CR]distrobox\-enter \-e\f[R] from the host, the desired binary.
+\f[CR]distrobox enter \-e\f[R] from the host, the desired binary.
 This can be handy with the use of \f[CR]direnv\f[R] to have different
 versions of the same binary based on your \f[CR]env\f[R] or project.
 .PP
-The exported binaries will be exported in the
-\[lq]\[en]export\-path\[rq] of choice as a wrapper script that acts
-naturally both on the host and in the container.
+The exported binaries will be exported in the \(lq\(enexport\-path\(rq
+of choice as a wrapper script that acts naturally both on the host and
+in the container.
 .PP
 \f[B]Additional flags\f[R]
 .PP
 You can specify additional flags to add to the command, for example if
 you want to export an electron app, you could add the
-\[lq]\[en]foreground\[rq] flag to the command:
+\(lq\(enforeground\(rq flag to the command:
 .IP
 .EX
-distrobox\-export \-\-app atom \-\-extra\-flags \[dq]\-\-foreground\[dq]
-distrobox\-export \-\-bin /usr/bin/vim \-\-export\-path \[ti]/.local/bin \-\-extra\-flags \[dq]\-p\[dq]
+distrobox\-export \-\-app atom \-\-extra\-flags \(dq\-\-foreground\(dq
+distrobox\-export \-\-bin /usr/bin/vim \-\-export\-path \(ti/.local/bin \-\-extra\-flags \(dq\-p\(dq
 .EE
 .PP
 This works for binaries and apps.
@@ -99,21 +99,21 @@ the host, using them inside the container will not include them.
 .PP
 \f[B]Unexport\f[R]
 .PP
-The option \[lq]\[en]delete\[rq] will un\-export an app or binary
+The option \(lq\(endelete\(rq will un\-export an app or binary
 .IP
 .EX
 distrobox\-export \-\-app atom \-\-delete
-distrobox\-export \-\-bin /usr/bin/vim \-\-export\-path \[ti]/.local/bin \-\-delete
+distrobox\-export \-\-bin /usr/bin/vim \-\-export\-path \(ti/.local/bin \-\-delete
 .EE
 .PP
 \f[B]Run as root in the container\f[R]
 .PP
-The option \[lq]\[en]sudo\[rq] will launch the exported item as root
-inside the distrobox.
+The option \(lq\(ensudo\(rq will launch the exported item as root inside
+the distrobox.
 .PP
 \f[B]Notes\f[R]
 .PP
-Note you can use \[en]app OR \[en]bin but not together.
+Note you can use \(enapp OR \(enbin but not together.
 [IMAGE: \c
 .UR https://user-images.githubusercontent.com/598882/144294795-c7785620-bf68-4d1b-b251-1e1f0a32a08d.png
 app\-export
@@ -125,4 +125,4 @@ NOTE: some electron apps such as vscode and atom need additional flags
 to work from inside the container, use the \f[CR]\-\-extra\-flags\f[R]
 option to provide a series of flags, for example:
 .PP
-\f[CR]distrobox\-export \-\-app atom \-\-extra\-flags \[dq]\-\-foreground\[dq]\f[R]
+\f[CR]distrobox\-export \-\-app atom \-\-extra\-flags \(dq\-\-foreground\(dq\f[R]

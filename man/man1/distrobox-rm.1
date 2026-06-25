@@ -1,24 +1,24 @@
 .\
 .\"
-.TH "DISTROBOX\-RM" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-RM" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox rm
-distrobox\-rm
 .EE
 .SH DESCRIPTION
-distrobox\-rm delete one of the available distroboxes.
+\f[CR]distrobox rm\f[R] deletes one of the available distroboxes.
 .SH SYNOPSIS
 \f[B]distrobox rm\f[R]
 .IP
 .EX
 \-\-all/\-a:       delete all distroboxes
 \-\-force/\-f:     force deletion
-\-\-rm\-home:      remove the mounted home if it differs from the host user\[aq]s one
+\-\-yes/\-Y:       non\-interactive, skip the deletion confirmation prompt
+\-\-rm\-home:      remove the mounted home if it differs from the host user\(aqs one
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-help/\-h:      show this message
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
@@ -26,14 +26,14 @@ distrobox\-rm delete one of the available distroboxes.
 .SH EXAMPLES
 .IP
 .EX
-distrobox\-rm container\-name [\-\-force] [\-\-all]
+distrobox rm container\-name [\-\-force] [\-\-all]
 .EE
 .PP
 You can also use environment variables to specify container manager and
 name:
 .IP
 .EX
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test\-alpine distrobox\-rm
+DBX_CONTAINER_MANAGER=\(dqdocker\(dq DBX_CONTAINER_NAME=test\-alpine distrobox rm
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP

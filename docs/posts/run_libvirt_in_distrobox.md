@@ -48,7 +48,7 @@ Alternatively, command line:
 distrobox create --pull --root --init --unshare-all --image registry.opensuse.org/opensuse/distrobox:latest --name libvirtd --additional-flags "-p 2222:22" \
   --init-hooks "zypper in -y --no-recommends openssh-server patterns-server-kvm_server patterns-server-kvm_tools qemu-arm qemu-ppc qemu-s390x qemu-extra qemu-linux-user qemu-hw-display-virtio-gpu-pci qemu-hw-display-virtio-gpu && systemctl enable sshd.service && systemctl enable virtqemud.socket virtnetworkd.socket virtstoraged.socket virtnodedevd.socket && usermod -aG libvirt $USER"
 
-distrobox-enter --root libvirtd -- distrobox-export --app virt-manager
+distrobox enter --root libvirtd -- distrobox-export --app virt-manager
 ```
 
 ## Launch from the container
