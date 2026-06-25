@@ -215,24 +215,22 @@ func (ac *AssembleCommand) createItem(ctx context.Context, item manifest.Item, d
 }
 
 func (ac *AssembleCommand) joinHooks(hooks []string) string {
-	sb := strings.Builder{}
+	// A hook that already ends in its own terminator (`;` or `&&`) keeps
+	// it; otherwise insert ` && ` so consecutive hooks don't run together.
+	selfTerminated := regexp.MustCompile(`(;|&&)[[:space:]]?$`)
 
+	sb := strings.Builder{}
 	for i, hook := range hooks {
 		sb.WriteString(hook)
-
-		if i < len(hooks)-1 {
-			semicolonRegex := regexp.MustCompile(`;[[:space:]]{0,1}$`)
-			andAndRegex := regexp.MustCompile(`&&[[:space:]]{0,1}$`)
-
-			separator := "  " // two spaces just because v1 does that, so it's comparable in regression tests
-			if !semicolonRegex.MatchString(hook) && !andAndRegex.MatchString(hook) {
-				separator = " && "
-			}
-
-			sb.WriteString(separator)
+		if i == len(hooks)-1 {
+			continue
+		}
+		if selfTerminated.MatchString(hook) {
+			sb.WriteString(" ")
+		} else {
+			sb.WriteString(" && ")
 		}
 	}
-
 	return sb.String()
 }
 

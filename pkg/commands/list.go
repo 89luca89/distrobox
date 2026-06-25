@@ -29,7 +29,7 @@ func NewListCommand(cfg *config.Values, cm containermanager.ContainerManager) *L
 func (c *ListCommand) Execute(ctx context.Context) (*ListResult, error) {
 	containers, err := c.containerManager.ListContainers(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed while listing contaiers: %w", err)
+		return nil, fmt.Errorf("failed while listing containers: %w", err)
 	}
 
 	var distroboxes []containermanager.Container

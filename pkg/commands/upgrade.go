@@ -85,8 +85,7 @@ func (c *UpgradeCommand) Execute(ctx context.Context, opts *UpgradeOptions) erro
 		// Per-container banner, matching the shell (distrobox-upgrade:267).
 		c.printer.Println("Upgrading %s...", name)
 		if err := c.upgradeContainer(ctx, name); err != nil {
-			//nolint:forbidigo // FIXME: waiting for the logger implementation
-			fmt.Printf("error upgrading %s: %s\n", name, err)
+			c.printer.PrintErrorln("error upgrading %s: %s", name, err)
 
 			lastErr = err
 

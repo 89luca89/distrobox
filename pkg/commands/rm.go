@@ -66,7 +66,7 @@ func (c *RmCommand) Execute(ctx context.Context, options RmOptions) (*RmResult, 
 
 	listResult, err := c.listCmd.Execute(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed while listing contaiers: %w", err)
+		return nil, fmt.Errorf("failed while listing containers: %w", err)
 	}
 
 	distroboxesToRemove := getContainersToRemove(listResult.Containers, options.ContainerNames, options.All)
