@@ -187,6 +187,13 @@ func subcommands(cfg *config.Values) []*cli.Command {
 		withContainerManager,
 	)
 
+	migrate := cc.apply(
+		newMigrateCommand,
+		withSudoGuard,
+		withRoot,
+		withContainerManager,
+	)
+
 	return []*cli.Command{
 		assemble,
 		create,
@@ -194,6 +201,7 @@ func subcommands(cfg *config.Values) []*cli.Command {
 		ephemeral,
 		generateEntry,
 		list,
+		migrate,
 		rm,
 		stop,
 		upgrade,
