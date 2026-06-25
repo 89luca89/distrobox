@@ -19,10 +19,10 @@ run inside the container (the bare \f[CR]\-\-\f[R] separator works too).
 \f[B]distrobox ephemeral\f[R]
 .IP
 .EX
-\-\-/\-e/\-\-exec:       end arguments execute the rest as command to execute at login   default: default ${USER}\(aqs shell
+\-\-/\-e/\-\-exec:       end arguments execute the rest as command to execute at login   default: default ${USER}\[aq]s shell
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 \-\-verbose/\-v:       show more verbosity
 \-\-help/\-h:      show this message
 \-\-version/\-V:       show version
@@ -44,6 +44,6 @@ man distrobox\-create
 .SH ENVIRONMENT VARIABLES
 .IP
 .EX
-distrobox ephemeral reuses distrobox create\(aqs options; see
+distrobox ephemeral reuses distrobox create\[aq]s options; see
 distrobox\-create(1) for the list of supported environment variables.
 .EE

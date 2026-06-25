@@ -8,7 +8,7 @@ distrobox upgrade
 .EE
 .SH DESCRIPTION
 \f[CR]distrobox upgrade\f[R] will enter the specified list of containers
-and will perform an upgrade using the container\(cqs package manager.
+and will perform an upgrade using the container\[cq]s package manager.
 .SH SYNOPSIS
 \f[B]distrobox upgrade\f[R]
 .IP
@@ -18,8 +18,8 @@ and will perform an upgrade using the container\(cqs package manager.
 \-\-running:      perform only for running distroboxes (requires \-\-all)
 \-\-yes/\-Y:       accepted for compatibility; upgrades never prompt
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
 .EE
@@ -53,7 +53,7 @@ distrobox upgrade alpine\-linux ubuntu22 my\-distrobox123
 You can create a systemd service to run \f[CR]distrobox upgrade\f[R]
 automatically; this example shows how to run it daily:
 .PP
-\(ti/.config/systemd/user/distrobox\-upgrade.service
+\[ti]/.config/systemd/user/distrobox\-upgrade.service
 .IP
 .EX
 [Unit]
@@ -65,7 +65,7 @@ ExecStart=distrobox upgrade \-\-all
 StandardOutput=null
 .EE
 .PP
-\(ti/.config/systemd/user/distrobox\-upgrade.timer
+\[ti]/.config/systemd/user/distrobox\-upgrade.timer
 .IP
 .EX
 [Unit]
