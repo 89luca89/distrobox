@@ -1,62 +1,32 @@
 #compdef distrobox
+compdef _distrobox distrobox
 
-local curcontext="$curcontext" state line
-typeset -A opt_args
+# Shell completion script for distrobox (zsh).
+#
+# Mirrors urfave/cli v3.5.0's zsh autocomplete template, with the
+# same one-line fix as the bash variant: when the current word is
+# exactly "--", omit it from the completion request so urfave's
+# checkShellCompleteFlag doesn't bail out on the bare separator.
 
-_distrobox_commands() {
-  local -a commands
-  commands=(
-    'assemble:Handle distrobox assembly tasks'
-    'create:Create a new distrobox container'
-    'enter:Enter an existing distrobox container'
-    'list:List all distrobox containers'
-    'ls:Alias for list'
-    'rm:Remove a distrobox container'
-    'stop:Stop a running distrobox container'
-    'upgrade:Upgrade a distrobox container'
-    'ephemeral:Create a temporary distrobox container'
-    'generate-entry:Generate a desktop entry for a distrobox container'
-    'version:Show distrobox version'
-  )
-  _describe -t commands 'distrobox command' commands
+_distrobox() {
+	local -a opts
+	local current
+	current=${words[-1]}
+	if [[ "$current" == "-"* && "$current" != "--" ]]; then
+		opts=("${(@f)$(${words[@]:0:#words[@]-1} ${current} --generate-shell-completion)}")
+	else
+		opts=("${(@f)$(${words[@]:0:#words[@]-1} --generate-shell-completion)}")
+	fi
+
+	if [[ "${opts[1]}" != "" ]]; then
+		_describe 'values' opts
+	else
+		_files
+	fi
 }
 
-_arguments -C \
-  '1: :_distrobox_commands' \
-  '*:: :->args'
-
-case $state in
-  args)
-    case $line[1] in
-      assemble)
-        _distrobox-assemble
-        ;;
-      create)
-        _distrobox-create
-        ;;
-      enter)
-        _distrobox-enter
-        ;;
-      list|ls)
-        _distrobox-list
-        ;;
-      rm)
-        _distrobox-rm
-        ;;
-      stop)
-        _distrobox-stop
-        ;;
-      upgrade)
-        _distrobox-upgrade
-        ;;
-      ephemeral)
-        _distrobox-ephemeral
-        ;;
-      generate-entry)
-        _distrobox-generate-entry
-        ;;
-      version)
-        # No additional completions needed for version
-        ;;
-    esac
-esac
+# Don't run the completion function when being source-ed or eval-ed.
+# See https://github.com/urfave/cli/issues/1874 for discussion.
+if [ "$funcstack[1]" = "_distrobox" ]; then
+	_distrobox
+fi

@@ -48,12 +48,9 @@ graphical apps (X11/Wayland), and audio.
 - [Assemble Distrobox](#assemble-distrobox)
 - [Configure Distrobox](#configure-distrobox)
 - [Installation](#installation)
-  - [Alternative methods](#alternative-methods)
-    - [Curl or Wget](#curl-or-wget)
-    - [Git](#git)
+  - [Building from source](#building-from-source)
   - [Dependencies](#dependencies)
     - [Install Podman without root](compatibility.md#install-podman-in-a-static-manner)
-  - [Uninstallation](#uninstallation)
 - [Compatibility](compatibility.md)
   - [Supported container managers](compatibility.md#supported-container-managers)
   - [Host Distros](compatibility.md#host-distros)
@@ -156,30 +153,28 @@ the Wayland and X11 sockets, networking, removable devices (like USB sticks),
 systemd journal, SSH agent, D-Bus,
 ulimits, /dev and the udev database, etc...
 
-It implements the same concepts introduced by <https://github.com/containers/toolbox>
-but in a simplified way, using POSIX sh and aiming at broader compatibility.
+It implements the same concepts introduced by <https://github.com/containers/toolbox>,
+keeping integration and broad host compatibility as primary goals.
 
 All the props go to them as they had the great idea to implement this stuff.
 
-It is divided into 12 commands:
+`distrobox` is shipped as a single binary providing the following subcommands:
 
-- `distrobox-assemble` – create and destroy containers based on a config file
-- `distrobox-create` – create a container
-- `distrobox-enter`  – enter a container
-- `distrobox-ephemeral`  – create a temporal container, destroy it when exiting the shell
-- `distrobox-list` – list containers created with distrobox
-- `distrobox-rm` – delete a container created with distrobox
-- `distrobox-stop` – stop a running container created with distrobox
-- `distrobox-upgrade` – upgrade one or more running containers created with distrobox at once
-- `distrobox-generate-entry` – create an entry of a created container in the applications list
-- `distrobox-init`   – entry point of the container (not meant to be used manually)
-- `distrobox-export` – use inside the container,
-  export apps and services from the container to the host
-- `distrobox-host-exec` – run commands/programs from the host, while inside
- of the container
+- `distrobox assemble` – create and destroy containers based on a config file
+- `distrobox create` – create a container
+- `distrobox enter` – enter a container
+- `distrobox ephemeral` – create a temporary container, destroy it when exiting the shell
+- `distrobox list` (alias: `ls`) – list containers created with distrobox
+- `distrobox rm` – delete a container created with distrobox
+- `distrobox stop` – stop a running container created with distrobox
+- `distrobox upgrade` – upgrade one or more containers created with distrobox at once
+- `distrobox generate-entry` – create an entry of a created container in the applications list
 
-It also includes a little wrapper to launch commands with `distrobox COMMAND`
-instead of calling the single files.
+Plus three helpers that run inside the container:
+
+- `distrobox-init` – container entrypoint (not meant to be invoked manually)
+- `distrobox-export` – export apps and services from the container to the host
+- `distrobox-host-exec` – run commands/programs from the host while inside the container
 
 Please check [the usage docs](usage/usage.md) and [see some handy tips on how to use it](useful_tips.md).
 
@@ -211,8 +206,8 @@ Refer to the compatibility list for an overview of the supported host distros
 
 This project aims to bring **any distro userland to any other distro**
 supporting `podman`, `docker`, or `lilipod`.
-It has been written in POSIX shell to be as portable as possible and it does not have
-problems with dependencies and `glibc` version's compatibility.
+It is implemented as a single statically-linked Go binary, while the in-container
+helpers remain POSIX shell so they keep working on any distro the binary can run.
 
 Refer [HERE](compatibility.md#supported-container-managers) for a list of
 supported container managers and minimum supported versions.
@@ -220,7 +215,7 @@ supported container managers and minimum supported versions.
 It also aims to enter the container **as fast as possible**, every millisecond
 adds up if you use the container as your default environment for your terminal:
 
-These are some sample results of `distrobox-enter` on the same container on my
+These are some sample results of `distrobox enter` on the same container on my
 weak laptop:
 
 ```console
@@ -296,9 +291,9 @@ and check a [comprehensive list of useful tips HERE](useful_tips.md).
 # Assemble Distrobox
 
 Manifest files can be used to declare a set of distroboxes and use
-`distrobox-assemble` to create/destroy them in batch.
+`distrobox assemble` to create/destroy them in batch.
 
-Head over the [usage docs of distrobox-assemble](usage/distrobox-assemble.md)
+Head over the [usage docs of distrobox assemble](usage/distrobox-assemble.md)
 for a more detailed guide.
 
 # Configure Distrobox
@@ -333,6 +328,21 @@ skip_workdir="0"
 PATH="$PATH:/path/to/custom/podman"
 ```
 
+> **Note — configuration files are parsed as INI, not sourced as shell.**
+> The original shell distrobox *sourced* `distrobox.conf` and `${HOME}/.distroboxrc`,
+> so they could contain arbitrary shell (variable expansion, command substitution,
+> conditionals, `export`, etc.). The new Go implementation instead reads them as plain
+> `key=value` (INI) files. As a consequence:
+>
+> - Values are taken **literally**: `container_user_custom_home="$HOME/..."` and
+>   `PATH="$PATH:..."` are *not* expanded — use absolute paths. The `$HOME`/`$PATH`
+>   entries in the example above illustrate the old sourcing behavior and will not
+>   be expanded here.
+> - Arbitrary shell logic in `.distroboxrc` is **not executed**; only recognized
+>   `key=value` settings take effect.
+> - The reference key `distrobox_sudo_program` is accepted (mapped onto
+>   `sudo_program`).
+
 Alternatively, it is possible to specify preferences using ENV variables:
 
 - DBX_CONTAINER_ALWAYS_PULL
@@ -357,80 +367,35 @@ Thanks to the maintainers for their work: [M0Rf30](https://github.com/M0Rf30),
 [alcir](https://github.com/alcir), [dfaggioli](https://github.com/dfaggioli),
 [AtilaSaraiva](https://github.com/AtilaSaraiva), [michel-slm](https://github.com/michel-slm)
 
-## Alternative methods
+## Building from source
 
-Here is a list of alternative ways to install `distrobox`.
+To build distrobox from source, you need [Go](https://go.dev/) >= 1.25 and `make`.
 
-### Curl or Wget
-
-If you like to live your life dangerously, or you want the latest release,
-you can trust me and simply run this in your terminal:
+Clone the repository and build:
 
 ```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
+git clone https://github.com/89luca89/distrobox.git
+cd distrobox
+make build
 ```
 
-or using wget
+Then install:
 
 ```sh
-wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh
+sudo make install
 ```
 
-or if you want to select a custom directory to install without sudo:
+This installs the `distrobox` binary to `/usr/local/bin` by default.
+For a local install without sudo:
 
 ```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
+make install PREFIX=~/.local
 ```
-
-or using wget
-
-```sh
-wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local
-```
-
-If you want to install the last development version, directly from the last commit on Git, you can use:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --next
-```
-
-or using wget
-
-```sh
-wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh -s -- --next
-```
-
-or:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
-```
-
-or using wget
-
-```sh
-wget -qO- https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --next --prefix ~/.local
-```
-
-### Upgrading
-
-Just run the `curl` or `wget` command again.
 
 > [!WARNING]
-> Remember to add prefix-path-you-choose/bin to your PATH, to make it work.
+> Make sure the destination directory is in your `PATH`.
 
-### Git
-
-Alternatively, you can clone the project using `git clone` or using the latest
-release [HERE](https://github.com/89luca89/distrobox/releases/latest).
-
-Enter the directory and run `./install`, by default it will attempt to install
-in `~/.local` but if you run the script as root, it will default to `/usr/local`.
-You can specify a custom directory with the `--prefix` flag
-such as `./install --prefix ~/.distrobox`.
-
-Prefix explained: main distrobox files get installed to `${prefix}/bin` whereas
-the man pages get installed to `${prefix}/share/man`.
+To uninstall, run `make uninstall` with the same `PREFIX` used during installation.
 
 ---
 
@@ -451,28 +416,6 @@ There are ways to install
 This should play well with completely sudoless setups and with devices like the Steam Deck (SteamOS).
 
 ---
-
-## Uninstallation
-
-If you installed `distrobox` using the `install` script in the default install
-directory use this:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sudo sh
-```
-
-or if you specified a custom path:
-
-```sh
-curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/uninstall | sh -s -- --prefix ~/.local
-```
-
-Else, if you cloned the project using `git clone` or using the latest archive release
-from [HERE](https://github.com/89luca89/distrobox/releases/latest),
-
-enter the directory and run `./uninstall`, by default it will assume the installation
-directory was `/usr/local` if ran as root or `~/.local`,
-you can specify another directory if needed with `./uninstall --prefix ~/.local`
 
 ---
 

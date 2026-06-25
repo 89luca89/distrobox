@@ -30,7 +30,7 @@ jobs:
       distrobox_changed: ${{ steps.check_file_changed.outputs.distrobox_changed }}
     steps:
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # Checkout as many commits as needed for the diff
           fetch-depth: 2
@@ -38,7 +38,7 @@ jobs:
       # Fetch from compatibility table all the distros supported
       - id: check_file_changed
         run: |
-          if git diff --name-only HEAD^ HEAD | grep -Ev "host-exec|generate-entry|ephemeral|upgrade" | grep -E "^distrobox|compatibility.md"; then
+          if git diff --name-only HEAD^ HEAD | grep -E '\.go$|go\.mod|go\.sum|Makefile|docs/compatibility\.md|internal/inside-distrobox/assets/'; then
             echo "::set-output name=distrobox_changed::True"
           else
             echo "::set-output name=distrobox_changed::False"
@@ -55,7 +55,7 @@ jobs:
       github.event.inputs.run_always == 'True'
     steps:
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       # Fetch from compatibility table all the distros supported
       - id: set-matrix
@@ -85,7 +85,17 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: go.mod
+
+      - name: Build distrobox binary
+        run: |
+          make build
+          cp ./bin/distrobox ./distrobox
 
       # Ensure distrobox create works:
       - name: Distrobox create

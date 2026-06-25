@@ -79,7 +79,7 @@ so that it appears on your login manager (Be it SDDM or GDM)
 [Desktop Entry]
 Name=GNOME on Wayland (fedora-rawhide distrobox)
 Comment=This session logs you into GNOME
-Exec=/usr/local/bin/distrobox-enter -n fedora-rawhide -- /usr/bin/gnome-session
+Exec=/usr/local/bin/distrobox enter -n fedora-rawhide -- /usr/bin/gnome-session
 Type=Application
 DesktopNames=GNOME
 X-GDM-SessionRegisters=true
@@ -112,7 +112,7 @@ so that it appears on your login manager (Be it SSDM or GDM)
 
 ```shell
 [Desktop Entry]
-Exec=/usr/local/bin/distrobox-enter -- /usr/libexec/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland
+Exec=/usr/local/bin/distrobox enter -- /usr/libexec/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland
 DesktopNames=KDE
 Name=Plasma on Wayland (fedora-rawhide distrobox)
 X-KDE-PluginInfo-Version=5.23.3
@@ -165,14 +165,14 @@ create a container with access to `dri` and `input` devices, along with the dbus
 socket that Wayland will use. Simply use this as a template:
 
 ```shell
-distrobox-create -n hyprbox -i archlinux:latest \
+distrobox create -n hyprbox -i archlinux:latest \
    --additional-flags "--device /dev/dri --device /dev/input -v /run/dbus/system_bus_socket:/run/dbus/system_bus_socket"
 ```
 
 Install Hyprland inside the container and then use the following line to start Hyprland:
 
 ```shell
-distrobox-enter hyprbox -- bash -c '
+distrobox enter hyprbox -- bash -c '
   #export XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR
   #export WAYLAND_DISPLAY=$WAYLAND_DISPLAY
 

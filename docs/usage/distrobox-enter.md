@@ -2,15 +2,14 @@
 # NAME
 
 	distrobox enter
-	distrobox-enter
 
 # DESCRIPTION
 
-distrobox-enter takes care of entering the container with the name specified.
+`distrobox enter` takes care of entering the container with the name specified.
 Default command executed is your SHELL, but you can specify different shells or
 entire commands to execute.
 If using it inside a script, an application, or a service, you can specify the
---headless mode to disable tty and interactivity.
+`--no-tty` mode to disable tty and interactivity.
 
 # SYNOPSIS
 
@@ -18,9 +17,11 @@ If using it inside a script, an application, or a service, you can specify the
 
 	--name/-n:		name for the distrobox						default: my-distrobox
 	--/-e:			end arguments execute the rest as command to execute at login	default: default ${USER}'s shell
-	--no-tty/-T:		do not instantiate a tty
+	--no-tty/-T:		do not instantiate a tty (alias: -H)
 	--no-workdir/-nw:	always start the container from container's home directory
+	--clean-path/-c:	reset PATH inside the container to FHS standard
 	--additional-flags/-a:	additional flags to pass to the container manager command
+	--yes/-y:		non-interactive, auto-create the container if it does not exist
 	--help/-h:		show this message
 	--root/-r:		launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
 				way over "sudo distrobox" (note: if using a program other than 'sudo' for root privileges is necessary,
@@ -33,25 +34,25 @@ If using it inside a script, an application, or a service, you can specify the
 
 Enter a distrobox named "example"
 
-	distrobox-enter example
+	distrobox enter example
 
 Enter a distrobox specifying a command
 
-	distrobox-enter --name fedora-toolbox-35 -- bash -l
-	distrobox-enter my-alpine-container -- sh -l
+	distrobox enter --name fedora-toolbox-35 -- bash -l
+	distrobox enter my-alpine-container -- sh -l
 
 Use additional podman/docker/lilipod flags while entering a distrobox
 
-	distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
+	distrobox enter --additional-flags "--preserve-fds" --name test -- bash -l
 
 Specify additional environment variables while entering a distrobox
 
-	distrobox-enter --additional-flags "--env MY_VAR=value" --name test -- bash -l
-	MY_VAR=value distrobox-enter --additional-flags "--preserve-fds" --name test -- bash -l
+	distrobox enter --additional-flags "--env MY_VAR=value" --name test -- bash -l
+	MY_VAR=value distrobox enter --additional-flags "--preserve-fds" --name test -- bash -l
 
 You can also use environment variables to specify container manager and container name:
 
-	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-enter
+	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox enter
 
 # ENVIRONMENT VARIABLES
 

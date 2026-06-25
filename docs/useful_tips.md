@@ -189,7 +189,7 @@ replace with the path to your script). Afterwards, make sure `SUDO_ASKPASS` is s
 and also ensure `DBX_SUDO_PROGRAM` is set to `sudo --askpass`, and you should be good to go. For example,
 running the below command should only prompt the root authentication GUI once throughout the whole process:
 
-`SUDO_ASKPASS="$HOME/.local/bin/my-password-prompt" DBX_SUDO_PROGRAM="sudo --askpass" distrobox-ephemeral -r`
+`SUDO_ASKPASS="$HOME/.local/bin/my-password-prompt" DBX_SUDO_PROGRAM="sudo --askpass" distrobox ephemeral -r`
 
 You may make these options persist by specifying those environment variables in your shell's rc file (such as `~/.bashrc`).
 Note that this will also work if `distrobox_sudo_program="sudo --askpass"` is specified in one of distrobox's config files

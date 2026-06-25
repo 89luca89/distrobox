@@ -2,11 +2,10 @@
 # NAME
 
 	distrobox stop
-	distrobox-stop
 
 # DESCRIPTION
 
-distrobox-stop stop a running distrobox.
+`distrobox stop` stops a running distrobox.
 
 Distroboxes are left running, even after exiting out of them, so that
 subsequent enters are really quick. This is how they can be stopped.
@@ -26,13 +25,13 @@ subsequent enters are really quick. This is how they can be stopped.
 
 # EXAMPLES
 
-	distrobox-stop container-name1 container-name2
-	distrobox-stop container-name
-	distrobox-stop --all
+	distrobox stop container-name1 container-name2
+	distrobox stop container-name
+	distrobox stop --all
 
 You can also use environment variables to specify container manager and name:
 
-	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox-stop
+	DBX_CONTAINER_MANAGER="docker" DBX_CONTAINER_NAME=test-alpine distrobox stop
 
 # ENVIRONMENT VARIABLES
 

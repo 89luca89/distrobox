@@ -1,14 +1,13 @@
 .\
 .\"
-.TH "DISTROBOX\-STOP" "1" "May 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-STOP" "1" "Jun 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
 distrobox stop
-distrobox\-stop
 .EE
 .SH DESCRIPTION
-distrobox\-stop stop a running distrobox.
+\f[CR]distrobox stop\f[R] stops a running distrobox.
 .PP
 Distroboxes are left running, even after exiting out of them, so that
 subsequent enters are really quick.
@@ -21,24 +20,24 @@ This is how they can be stopped.
 \-\-yes/\-Y:       non\-interactive, stop without asking
 \-\-help/\-h:      show this message
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
+            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
 .EE
 .SH EXAMPLES
 .IP
 .EX
-distrobox\-stop container\-name1 container\-name2
-distrobox\-stop container\-name
-distrobox\-stop \-\-all
+distrobox stop container\-name1 container\-name2
+distrobox stop container\-name
+distrobox stop \-\-all
 .EE
 .PP
 You can also use environment variables to specify container manager and
 name:
 .IP
 .EX
-DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test\-alpine distrobox\-stop
+DBX_CONTAINER_MANAGER=\(dqdocker\(dq DBX_CONTAINER_NAME=test\-alpine distrobox stop
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP

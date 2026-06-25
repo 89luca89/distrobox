@@ -1,69 +1,42 @@
-# shellcheck disable=all
+#!/bin/bash
+# Shell completion script for distrobox (bash).
+#
+# Mirrors urfave/cli v3.5.0's bash autocomplete template, with one
+# fix: when the current word is exactly "--" (user typed
+# `distrobox <cmd> --<TAB>`), don't inject it into the request line.
+# urfave's checkShellCompleteFlag bails out as soon as it sees "--"
+# in argv, so injecting it ahead of --generate-shell-completion
+# silently disables completion. Skipping the injection lets the
+# binary's ShellComplete callback emit the full candidate set;
+# bash filters by prefix via compgen.
 
-_generate_from_help() {
-	command=$1
-	# if command does not exist, try with `distrobox subcommand`
-	if ! $command --help >/dev/null 2>/dev/null ; then
-		command="$(echo $command | tr '-' ' ')"
-	fi
-
-	local list cur prev totalopts opts diropts
-
-	COMPREPLY=()
-
-	cur="${COMP_WORDS[COMP_CWORD]}"
-	prev="${COMP_WORDS[COMP_CWORD - 1]}"
-	opts="$($command --help 2>/dev/null | sed 's|^\t||g' | grep '^--' | cut -d':' -f1 | tr '/' ' ' | tr '\n' ' ')"
-	totalopts="$(echo $opts | tr ' ' '|')"
-	diropts="-H|--home|--volume"
-	fileopts="--file"
-
-	if [[ ${prev} =~ ${diropts} ]]; then
-		mapfile -t COMPREPLY < <(
-			IFS=$'\n'
-			realpath $(compgen -d -- ${cur}) 2>/dev/null
-		)
-		compopt -o filenames
-		return 0
-	fi
-
-	if [[ ${prev} =~ ${fileopts} ]]; then
-		COMPREPLY=($(compgen -f -- ${cur}))
-		compopt -o filenames
-		return 0
-	fi
-	if [[ ${prev} == "assemble" ]]; then
-		COMPREPLY+=($(compgen -W "create rm" -- ${cur}))
-		return 0
-	fi
-
-	if [[ ${prev} == "--image" ]] || [[ ${prev} == "-i" ]]; then
-		COMPREPLY+=($(compgen -W "$(distrobox-create --compatibility)" -- ${cur}))
-		return 0
-	fi
-
-	if [[ ${cur} == -* ]]; then
-		COMPREPLY+=($(compgen -W "${opts}" -- ${cur}))
-		return 0
-	elif [[ ${command} != *"create"* ]] && [[ ${command} != *"ephemeral"* ]] &&
-		[[ ${command} != *"list"* ]] && [[ ${command} != *"assemble"* ]] &&
-		[[ ${command} != *"version"* ]] && [[ ${command} != *"help"* ]]; then
-		while IFS= read -r line; do
-			list+="$line "
-		done < <(distrobox-list --no-color | tail -n+2 | cut -d'|' -f2)
-		COMPREPLY=($(compgen -W "${list}" "${cur}"))
-		return 0
-	fi
+# Macs have bash3 for which the bash-completion package doesn't include
+# _init_completion. This is a minimal version of that function.
+__distrobox_init_completion() {
+  COMPREPLY=()
+  _get_comp_words_by_ref "$@" cur prev words cword
 }
 
-__distrobox() {
-	if [ "${#COMP_WORDS[@]}" == "2" ]; then
-		VALID_WORDS=$(distrobox | tail -n+4 | tr -d '|' | xargs echo)
-		VALID_WORDS+=" --version --help"
-		COMPREPLY=($(compgen -W "${VALID_WORDS}" -- "${COMP_WORDS[1]}"))
-	elif [ "${#COMP_WORDS[@]}" -gt "2" ]; then
-		_generate_from_help distrobox-"${COMP_WORDS[1]}"
-	fi
+__distrobox_bash_autocomplete() {
+  if [[ "${COMP_WORDS[0]}" != "source" ]]; then
+    local cur opts base words
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    if declare -F _init_completion >/dev/null 2>&1; then
+      _init_completion -n "=:" || return
+    else
+      __distrobox_init_completion -n "=:" || return
+    fi
+    words=("${words[@]:0:$cword}")
+    if [[ "$cur" == "-"* && "$cur" != "--" ]]; then
+      requestComp="${words[*]} ${cur} --generate-shell-completion"
+    else
+      requestComp="${words[*]} --generate-shell-completion"
+    fi
+    opts=$(eval "${requestComp}" 2>/dev/null)
+    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+    return 0
+  fi
 }
 
-complete -F __distrobox distrobox
+complete -o bashdefault -o default -o nospace -F __distrobox_bash_autocomplete distrobox

@@ -18,109 +18,98 @@
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
 # POSIX
+# uninstall.sh — remove distrobox (v2) plus any leftover v1 split-script
+# artefacts from the given prefix. The prefix must match the one used at
+# install time (default: /usr/local for root, ~/.local otherwise).
 
+prefix=""
 no_color=0
 verbose=0
 
-# Print usage to stdout.
-# Arguments:
-#   None
-# Outputs:
-#   print usage with examples.
 show_help()
 {
 	cat << EOF
 uninstall --prefix /usr/local
 
 Options:
-	--no-color:		disable color formatting
-	--prefix/-P:		base bath where all files will be deployed (default /usr/local if root, ~/.local if not)
-	--help/-h:		show this message
-	-v:			show more verbosity
+	--prefix/-P:	base path where distrobox was installed
+			(default: /usr/local if root, ~/.local otherwise)
+	--no-color:	disable color formatting
+	--help/-h:	show this message
+	-v/--verbose:	show more verbosity
 EOF
 }
 
-# Parse arguments
-while :; do
+while [ $# -gt 0 ]; do
 	case $1 in
 		-h | --help)
-			# Call a "show_help" function to display a synopsis, then exit.
 			show_help
-			exit
-			;;
-		--no-color)
-			shift
-			no_color=1
+			exit 0
 			;;
 		-v | --verbose)
-			shift
 			verbose=1
+			shift
 			;;
-		-p | --path)
-			if [ -n "$2" ]; then
-				dest_path="$2"
-				shift
-				shift
-			fi
+		--no-color)
+			no_color=1
+			shift
 			;;
 		-P | --prefix)
-			if [ -n "$2" ]; then
+			if [ -n "${2:-}" ]; then
 				prefix="$2"
-				shift
-				shift
+				shift 2
+			else
+				show_help
+				exit 1
 			fi
 			;;
-		*) # Default case: If no more options then break out of the loop.
-			break ;;
+		*)
+			printf >&2 "Error: unknown argument %s\n" "$1"
+			show_help
+			exit 1
+			;;
 	esac
 done
 
-# if we're in not a tty, don't use colors
-BOLD_GREEN=""
-BOLD_RED=""
-CLEAR=""
-if [ -t 0 ] && [ -t 1 ] && [ "${no_color}" -ne 1 ]; then
-	# we're in a tty, use colors
-	BOLD_GREEN='\033[1;32m'
-	BOLD_RED='\033[1;31m'
-	CLEAR='\033[0m'
-fi
-
-if  [ -z "${prefix}" ]; then
-	prefix="/usr/local"
-	# in case we're not root, just default to the home directory
-	if [ "$(id -u)" -ne 0 ]; then
-		prefix="${HOME}/.local"
-	fi
-fi
-dest_path="${prefix}/bin"
-man_dest_path="${prefix}/share/man/man1"
-icon_dest_path="${prefix}/share/icons"
-completion_dest_path="${prefix}/share/bash-completion/completions/"
-
 set -o errexit
 set -o nounset
-# set verbosity
+
+BOLD_GREEN=""
+CLEAR=""
+if [ -t 0 ] && [ -t 1 ] && [ "${no_color}" -ne 1 ]; then
+	BOLD_GREEN='\033[1;32m'
+	CLEAR='\033[0m'
+fi
 if [ "${verbose}" -ne 0 ]; then
 	set -o xtrace
 fi
 
-[ ! -w "${dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${dest_path}" && exit 1
-[ ! -w "${man_dest_path}" ] && printf >&2 "Cannot write into %s, permission denied.\n" "${man_dest_path}" && exit 1
+if [ -z "${prefix}" ]; then
+	prefix="/usr/local"
+	if [ "$(id -u)" -ne 0 ]; then
+		prefix="${HOME}/.local"
+	fi
+fi
 
-# uninstall
-for file in "${dest_path}/distrobox"*; do
-	[ -e "${file}" ] && rm "${file}"
-done
-for file in "${man_dest_path}/distrobox"*; do
-	[ -e "${file}" ] && rm "${file}"
-done
-for file in "${completion_dest_path}/distrobox"*; do
-	[ -e "${file}" ] && rm "${file}"
-done
-[  -e "${icon_dest_path}"/terminal-distrobox-icon.svg ] && rm "${icon_dest_path}"/terminal-distrobox-icon.svg
-[  -e "${icon_dest_path}"/distrobox ] && rm -rf "${icon_dest_path}"/distrobox
+bindir="${prefix}/bin"
+mandir="${prefix}/share/man/man1"
+bashdir="${prefix}/share/bash-completion/completions"
+zshdir="${prefix}/share/zsh/site-functions"
+icondir="${prefix}/share/icons/hicolor"
 
-printf >&2 "%b Thank you for using Distrobox. Uninstall complete.\n%b" "${BOLD_GREEN}" "${CLEAR}"
-printf >&2 "%b Removed shell scripts located in %b%s\n%b" "${CLEAR}" "${BOLD_RED}" "${dest_path}" "${CLEAR}"
-printf >&2 "%b Removed manpages located in %b%s\n%b" "${CLEAR}" "${BOLD_RED}" "${man_dest_path}" "${CLEAR}"
+icon_sizes="16 22 24 32 36 48 64 72 96 128 256"
+
+rm -f "${bindir}/distrobox"
+# v1 installed split shell scripts (distrobox-create, distrobox-enter, …,
+# plus the in-container distrobox-init/export/host-exec) at ${bindir}.
+# v2 ships none of those at ${bindir}, so this glob only catches v1 leftovers.
+rm -f "${bindir}"/distrobox-*
+rm -f "${mandir}/distrobox.1" "${mandir}"/distrobox-*.1
+rm -f "${bashdir}/distrobox"
+rm -f "${zshdir}/_distrobox"
+rm -f "${icondir}/scalable/apps/terminal-distrobox-icon.svg"
+for sz in ${icon_sizes}; do
+	rm -f "${icondir}/${sz}x${sz}/apps/terminal-distrobox-icon.png"
+done
+
+printf >&2 "%b Uninstalled distrobox from %s%b\n" "${BOLD_GREEN}" "${prefix}" "${CLEAR}"

@@ -5,7 +5,7 @@
 
 # DESCRIPTION
 
-distrobox-generate-entry will create a desktop icon for one of the available distroboxes.
+`distrobox generate-entry` will create a desktop icon for one of the available distroboxes.
 This will be then deleted when you remove the matching distrobox.
 
 # SYNOPSIS

@@ -14,17 +14,60 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+env:
+  SHELL_SCRIPTS_DIR: internal/inside-distrobox/assets
+
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: "go.mod"
+      - run: make test
+
+  golangci:
+    name: Golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: "go.mod"
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9.2.0
+        with:
+          version: v2.5.0
+
+  fmtcheck:
+    name: Go fmt check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+        with:
+          go-version-file: "go.mod"
+      - name: format check
+        run: |
+          make fmt
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Code is not formatted. Please run 'make fmt' and commit the changes."
+            git --no-pager diff
+            exit 1
+          fi
+
   dash:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run dash -n
         run: |
           result=0
-          for file in $(find . -type f -not -path "*.git*" -a -not -path "*completions*"); do
+          for file in $(find ${SHELL_SCRIPTS_DIR} -type f); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
               dash -n $file
@@ -37,13 +80,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run shfmt
         run: |
           result=0
           podman pull docker.io/peterdavehello/shfmt:latest
-          for file in $(find . -type f -not -path "*.git*"); do
+          for file in $(find ${SHELL_SCRIPTS_DIR} -type f); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
               podman run --rm -v "$PWD:/mnt" docker.io/peterdavehello/shfmt:latest shfmt -d -s -ci -sr -kp -fn -i=0 -p /mnt/$file
@@ -57,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       # Exclude from bashate the following rules:
       #   - SC2310 we don't want to exit if errors happen inside a check, that's why we have a check...
@@ -67,7 +110,7 @@ jobs:
         run: |
           result=0
           podman pull docker.io/koalaman/shellcheck:stable
-          for file in $(find . -type f -name ".*" -prune -o -print | grep -v '.git'); do
+          for file in $(find ${SHELL_SCRIPTS_DIR} -type f); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
               # Should read the .shellcheckrc file to behave like  -s sh -a -o all -Sstyle -Calways -x -e SC2310,SC2311,SC2312
@@ -85,21 +128,22 @@ jobs:
       security-events: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       - name: Run Differential ShellCheck
-        uses: redhat-plumbers-in-action/differential-shellcheck@v5
+        uses: redhat-plumbers-in-action/differential-shellcheck@d965e66ec0b3b2f821f75c8eff9b12442d9a7d1e # v5.5.6
         with:
           severity: style
+          scan-directory: ${{ env.SHELL_SCRIPTS_DIR }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
   bashate:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       # Exclude from bashate the following rules:
       #   - E002 we use tab indentation as suggested by shfmt.
       #   - E003 we use tab indentation as suggested by shfmt.
@@ -108,7 +152,7 @@ jobs:
       - name: Run bashate
         run: |
           sudo pip3 install -U bashate
-          for file in $(find . -type f -not -path "*.git*"); do
+          for file in $(find ${SHELL_SCRIPTS_DIR} -type f); do
             if file "$file" | grep -qi shell; then
               echo "### Checking file $file..."
                bashate -i E002,E003,E010,E011 --max-line-length 120 $file
@@ -117,24 +161,13 @@ jobs:
           done
           exit $result
 
-  markdownlint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Run markdownlint
-        run: |
-          sudo npm install -g markdownlint-cli
-          markdownlint $(find . -name '*.md' | grep -vF './.git')
-
   codespell:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: codespell-project/actions-codespell@v2
+      - uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 # v2.2
         with:
           skip: .git,*.pdf,*.1,*.css,*.lock
 
@@ -142,12 +175,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run shell-funcheck
         run: |
           curl -L -O https://github.com/89luca89/shell-funcheck/releases/download/v0.0.1/shell-funcheck-amd64
           chmod +x ./shell-funcheck-amd64
-          for i in distrobox*; do
+          for i in ${SHELL_SCRIPTS_DIR}/*; do
           ./shell-funcheck-amd64 check "$i"
           done
+
+  commitlint:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Install commitlint
+        run: npm install -D @commitlint/cli@20.5.0 @commitlint/config-conventional@20.5.0
+      - name: Validate PR commits with commitlint
+        run: npx commitlint --config .github/commitlint.config.js --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
