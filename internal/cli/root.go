@@ -22,10 +22,20 @@ type contextKey string
 const containerManagerKey contextKey = "containerManager"
 
 func NewRootCommand(cfg *config.Values) *cli.Command {
+	subs := subcommands(cfg)
+	// Install flag-aware completion on every command, including nested
+	// `assemble create`/`assemble rm`. The default would only list
+	// subcommand names; this also emits flag names.
+	for _, sub := range subs {
+		installShellCompleteRecursively(sub)
+	}
+
 	return &cli.Command{
-		Name:    "distrobox",
-		Usage:   "Use any Linux distribution inside your terminal",
-		Version: version.Version,
+		Name:                  "distrobox",
+		Usage:                 "Use any Linux distribution inside your terminal",
+		Version:               version.Version,
+		EnableShellCompletion: true,
+		ShellComplete:         flagCompleter,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "verbose",
@@ -40,7 +50,7 @@ func NewRootCommand(cfg *config.Values) *cli.Command {
 				Value:  cfg.SudoProgram,
 			},
 		},
-		Commands: subcommands(cfg),
+		Commands: subs,
 	}
 }
 
