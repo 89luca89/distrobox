@@ -15,10 +15,10 @@ distrobox rm
 \-\-all/\-a:       delete all distroboxes
 \-\-force/\-f:     force deletion
 \-\-yes/\-Y:       non\-interactive, skip the deletion confirmation prompt
-\-\-rm\-home:      remove the mounted home if it differs from the host user\(aqs one
+\-\-rm\-home:      remove the mounted home if it differs from the host user\[aq]s one
 \-\-root/\-r:      launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred
-            way over \(dqsudo distrobox\(dq (note: if using a program other than \(aqsudo\(aq for root privileges is necessary,
-            specify it through the DBX_SUDO_PROGRAM env variable, or \(aqdistrobox_sudo_program\(aq config variable)
+            way over \[dq]sudo distrobox\[dq] (note: if using a program other than \[aq]sudo\[aq] for root privileges is necessary,
+            specify it through the DBX_SUDO_PROGRAM env variable, or \[aq]distrobox_sudo_program\[aq] config variable)
 \-\-help/\-h:      show this message
 \-\-verbose/\-v:       show more verbosity
 \-\-version/\-V:       show version
@@ -33,7 +33,7 @@ You can also use environment variables to specify container manager and
 name:
 .IP
 .EX
-DBX_CONTAINER_MANAGER=\(dqdocker\(dq DBX_CONTAINER_NAME=test\-alpine distrobox rm
+DBX_CONTAINER_MANAGER=\[dq]docker\[dq] DBX_CONTAINER_NAME=test\-alpine distrobox rm
 .EE
 .SH ENVIRONMENT VARIABLES
 .IP

@@ -14,7 +14,7 @@ Under the hood, distrobox\-host\-exec uses \f[CR]host\-spawn\f[R] a
 project that lets us execute commands back on the host.
 If the tool is not found the user will be prompted to install it.
 .SH SYNOPSIS
-Just pass to \(lqdistrobox\-host\-exec\(rq any command and all its
+Just pass to \[lq]distrobox\-host\-exec\[rq] any command and all its
 arguments, if any.
 .IP
 .EX
@@ -27,7 +27,7 @@ arguments, if any.
                             This behaviour is default when running in a non\-interactive shell.
 .EE
 .PP
-If no command is provided, it will execute \(lq$SHELL\(rq.
+If no command is provided, it will execute \[lq]$SHELL\[rq].
 .PP
 Alternatively, you can symlink a command name to
 \f[CR]distrobox\-host\-exec\f[R] and then call that command by its name
@@ -44,8 +44,8 @@ distrobox\-host\-exec podman ps \-a
 .SS Drop into host shell
 .IP
 .EX
-\(ti$: distrobox\-host\-exec # No command, executes \(dq$SHELL\(dq on the host
-\(ti$: distrobox\-host\-exec # This command now runs on the host
+\[ti]$: distrobox\-host\-exec # No command, executes \[dq]$SHELL\[dq] on the host
+\[ti]$: distrobox\-host\-exec # This command now runs on the host
 You must run  distrobox\-host\-exec inside a container!
 .EE
 .SS Symlinking host commands
@@ -54,19 +54,19 @@ Use the host command name to create a symlink to
 You can then call the host command from within the container.
 .IP
 .EX
-\(ti$: git # We do not have git in the container
+\[ti]$: git # We do not have git in the container
 bash: git: command not found
-\(ti$: sudo ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/git
-\(ti$: git version
+\[ti]$: sudo ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/git
+\[ti]$: git version
 git version 2.51.1
 .EE
 .PP
 You can control podman on the host from within the container as follows:
 .IP
 .EX
-\(ti$: ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/podman
-\(ti$: ls \-l /usr/local/bin/podman
+\[ti]$: ln \-s /usr/bin/distrobox\-host\-exec /usr/local/bin/podman
+\[ti]$: ls \-l /usr/local/bin/podman
 lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman \-> /usr/bin/distrobox\-host\-exec
-\(ti$: podman version
+\[ti]$: podman version
 \&...this is executed on host...
 .EE
