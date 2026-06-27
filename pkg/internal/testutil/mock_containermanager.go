@@ -22,6 +22,7 @@ type ContainerManagerSpy struct {
 	Commit           [][]any
 	ImageExists      [][]any
 	PullImage        [][]any
+	NeedsMigration   [][]any
 }
 
 // MockContainerManager is a no-op container manager for testing.
@@ -38,6 +39,11 @@ type ContainerManagerSpy struct {
 // ListContainersResult and InspectContainerResult, when non-nil, override
 // the default zero-value return values of ListContainers and
 // InspectContainer respectively.
+//
+// NeedsMigrationResult, when non-nil, overrides the default return value
+// of NeedsMigration. The default is true, matching how a freshly
+// inspected mock container looks like a v1 container (no version label
+// in InspectContainerResult.Labels).
 type MockContainerManager struct {
 	Spy                    ContainerManagerSpy
 	Root                   bool
@@ -45,6 +51,7 @@ type MockContainerManager struct {
 	ExistsFn               func(containerName string) bool
 	ListContainersResult   []containermanager.Container
 	InspectContainerResult *containermanager.InspectResult
+	NeedsMigrationResult   *bool
 }
 
 func (m *MockContainerManager) Name() string {
@@ -63,6 +70,7 @@ func (m *MockContainerManager) CloneAsRoot() containermanager.ContainerManager {
 			ExistsFn:               m.ExistsFn,
 			ListContainersResult:   m.ListContainersResult,
 			InspectContainerResult: m.InspectContainerResult,
+			NeedsMigrationResult:   m.NeedsMigrationResult,
 		}
 	}
 	return m.RootClone
@@ -115,6 +123,16 @@ func (m *MockContainerManager) InspectContainer(_ context.Context, containerName
 func (m *MockContainerManager) Commit(_ context.Context, containerID string, tag string) error {
 	m.Spy.Commit = append(m.Spy.Commit, []any{containerID, tag})
 	return nil
+}
+
+func (m *MockContainerManager) NeedsMigration(_ context.Context, containerName string) (bool, error) {
+	m.Spy.NeedsMigration = append(m.Spy.NeedsMigration, []any{containerName})
+	if m.NeedsMigrationResult != nil {
+		return *m.NeedsMigrationResult, nil
+	}
+	// Default: a fresh mock container looks like it needs migration
+	// (no version label set on InspectContainerResult).
+	return true, nil
 }
 
 func (m *MockContainerManager) ImageExists(_ context.Context, imageName string) bool {

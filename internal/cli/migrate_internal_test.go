@@ -20,6 +20,11 @@ type migrateSpyContainerManager struct {
 	commits []string
 
 	inspectResult *containermanager.InspectResult
+
+	// needsMigrationResult, when non-nil, overrides the default return
+	// of NeedsMigration. The default is true (migrate), matching a v1
+	// container with no version label.
+	needsMigrationResult *bool
 }
 
 func (s *migrateSpyContainerManager) Name() string                                   { return "spy" }
@@ -56,6 +61,12 @@ func (s *migrateSpyContainerManager) Commit(_ context.Context, containerID strin
 func (s *migrateSpyContainerManager) ImageExists(_ context.Context, _ string) bool { return true }
 func (s *migrateSpyContainerManager) PullImage(_ context.Context, _ string, _ string, _ bool) error {
 	return nil
+}
+func (s *migrateSpyContainerManager) NeedsMigration(_ context.Context, _ string) (bool, error) {
+	if s.needsMigrationResult != nil {
+		return *s.needsMigrationResult, nil
+	}
+	return true, nil
 }
 
 // runMigrate runs the migrate subcommand with the given argv (starting from
@@ -178,6 +189,7 @@ func TestMigrateAction_V2Container_Skipped(t *testing.T) {
 	v2ScriptDir := t.TempDir()
 	t.Setenv("DBX_SCRIPTS_DIR", v2ScriptDir)
 
+	notNeeded := false
 	spy := &migrateSpyContainerManager{
 		inspectResult: &containermanager.InspectResult{
 			ContainerID:     "abc123",
@@ -187,10 +199,11 @@ func TestMigrateAction_V2Container_Skipped(t *testing.T) {
 			IpcMode:         "host",
 			PidMode:         "host",
 			Env:             []string{"HOME=/home/testuser"},
-			Mounts: []containermanager.MountInfo{
-				{Source: v2ScriptDir + "/distrobox-init", Destination: "/usr/bin/entrypoint"},
+			Labels: map[string]string{
+				containermanager.VersionLabelKey: "2",
 			},
 		},
+		needsMigrationResult: &notNeeded,
 	}
 
 	runMigrate(t, spy, "migrate", "my-box")

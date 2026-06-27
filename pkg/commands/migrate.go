@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -86,6 +85,15 @@ func (c *MigrateCommand) Execute(ctx context.Context, opts MigrateOptions) error
 		return ErrMigrateNoContainerSpecified
 	}
 
+	// Provision v2 scripts once, up front: they don't depend on which
+	// container is being migrated and the same files are reused for all.
+	// Skipped in dry-run to avoid host-side file writes.
+	if !opts.DryRun {
+		if _, err := insidedistrobox.ProvisionScripts(); err != nil {
+			return fmt.Errorf("failed to provision v2 scripts: %w", err)
+		}
+	}
+
 	var lastErr error
 	for _, name := range containerNames {
 		if err := c.migrateContainer(ctx, name, opts); err != nil {
@@ -109,9 +117,14 @@ func (c *MigrateCommand) migrateContainer(ctx context.Context, name string, opts
 		return fmt.Errorf("failed to inspect container %s: %w", name, err)
 	}
 
-	// Check if migration is needed
+	// Check if migration is needed. The container manager owns the
+	// version-label rule, so we just ask it.
 	if !opts.Force {
-		if c.isAlreadyMigrated(inspectResult) {
+		needs, err := c.containerManager.NeedsMigration(ctx, name)
+		if err != nil {
+			return fmt.Errorf("failed to determine if %s needs migration: %w", name, err)
+		}
+		if !needs {
 			return ErrMigrateAlreadyMigrated
 		}
 	}
@@ -159,12 +172,7 @@ func (c *MigrateCommand) migrateContainer(ctx context.Context, name string, opts
 		return fmt.Errorf("failed to remove old container %s: %w", name, err)
 	}
 
-	// Step 4: Provision v2 scripts (ensure they exist before creating)
-	if _, err := insidedistrobox.ProvisionScripts(); err != nil {
-		return fmt.Errorf("failed to provision v2 scripts: %w", err)
-	}
-
-	// Step 5: Recreate the container with the committed image and recovered options
+	// Step 4: Recreate the container with the committed image and recovered options
 	createOpts.ContainerImage = commitTag
 	c.printer.Println("Recreating container '%s'...", name)
 	if err := c.containerManager.Create(ctx, createOpts); err != nil {
@@ -173,28 +181,6 @@ func (c *MigrateCommand) migrateContainer(ctx context.Context, name string, opts
 
 	c.printer.Println("Container '%s' migrated successfully.", name)
 	return nil
-}
-
-// isAlreadyMigrated checks whether the container's entrypoint mount source
-// already points to the v2 scripts directory.
-func (c *MigrateCommand) isAlreadyMigrated(inspect *containermanager.InspectResult) bool {
-	v2Dir := insidedistrobox.ScriptsDir()
-	for _, mount := range inspect.Mounts {
-		if mount.Destination == "/usr/bin/entrypoint" {
-			// The source should be <v2Dir>/distrobox-init
-			expected := filepath.Join(v2Dir, "distrobox-init")
-			if mount.Source == expected {
-				return true
-			}
-			// Also accept if the source is within the v2 directory (e.g., symlink resolution)
-			if strings.HasPrefix(mount.Source, v2Dir) {
-				return true
-			}
-			return false
-		}
-	}
-	// If we can't find the entrypoint mount at all, conservatively say not migrated
-	return false
 }
 
 // recoverCreateOptions reconstructs the CreateOptions from the container's

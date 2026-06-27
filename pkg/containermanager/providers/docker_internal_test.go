@@ -77,6 +77,7 @@ func TestDocker_makeCreateCommand(t *testing.T) {
  --pid host
  --label manager=distrobox
  --label distrobox.unshare_groups=0
+ --label distrobox.version=2
  --env SHELL=sh
  --env HOME=/home/user
  --env container=docker

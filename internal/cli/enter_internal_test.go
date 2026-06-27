@@ -55,6 +55,9 @@ func (s *spyContainerManager) InspectContainer(_ context.Context, _ string) (*co
 	return &containermanager.InspectResult{}, nil
 }
 func (s *spyContainerManager) Commit(_ context.Context, _, _ string) error { return nil }
+func (s *spyContainerManager) NeedsMigration(_ context.Context, _ string) (bool, error) {
+	return false, nil
+}
 func (s *spyContainerManager) ImageExists(_ context.Context, _ string) bool {
 	return false
 }

@@ -228,6 +228,11 @@ func (d *Docker) makeCreateCommand(
 		"--label",
 		fmt.Sprintf("distrobox.unshare_groups=%d", containermanager.Btoi(unshareGroups)),
 	)
+	options = append(
+		options,
+		"--label",
+		fmt.Sprintf("%s=%d", containermanager.VersionLabelKey, containermanager.SchemaVersion),
+	)
 	options = append(options, "--env", fmt.Sprintf("SHELL=%s", shellFilepath))
 	options = append(options, "--env", fmt.Sprintf("HOME=%s", containerUserHome))
 	options = append(options, "--env", fmt.Sprintf("container=%s", containerManager))
@@ -618,6 +623,18 @@ func (d *Docker) Commit(ctx context.Context, containerID string, tag string) err
 	return err
 }
 
+// NeedsMigration reports whether the named container was created with a
+// distrobox schema version older than the one this binary supports. A
+// container with no distrobox.version label (or with an unparseable one)
+// is treated as schema version 0, so it always needs migration.
+func (d *Docker) NeedsMigration(ctx context.Context, containerName string) (bool, error) {
+	inspect, err := d.InspectContainer(ctx, containerName)
+	if err != nil {
+		return false, fmt.Errorf("failed to inspect container %s: %w", containerName, err)
+	}
+	return containermanager.NeedsMigrationFromLabels(inspect.Labels), nil
+}
+
 func parseContainerList(output string) ([]containermanager.Container, error) {
 	var containers []containermanager.Container
 
@@ -691,14 +708,8 @@ func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*c
 	config.PidMode = inspect.HostConfig.PidMode
 	config.Env = inspect.Config.Env
 
-	// Docker exposes the entrypoint command (distrobox-init args) as Config.Cmd,
-	// not top-level Args (which is the parsed entrypoint path array). Prefer
-	// top-level Args if present (podman compatibility), else use Config.Cmd.
-	if len(inspect.Args) > 0 {
-		config.Cmd = inspect.Args
-	} else {
-		config.Cmd = inspect.Config.Cmd
-	}
+	// Docker exposes the entrypoint command (distrobox-init args) as Config.Cmd.
+	config.Cmd = inspect.Config.Cmd
 
 	// Populate mount info
 	config.Mounts = make([]containermanager.MountInfo, 0, len(inspect.Mounts))
@@ -714,6 +725,10 @@ func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*c
 	if v, ok := inspect.Config.Labels["distrobox.unshare_groups"]; ok && v == "1" {
 		config.UnshareGroups = true
 	}
+
+	// Expose the full label set so callers (e.g. migrate) can read
+	// distrobox.version and other distrobox-managed labels.
+	config.Labels = inspect.Config.Labels
 
 	// Extract HOME and PATH from container env
 	for _, env := range inspect.Config.Env {
