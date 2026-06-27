@@ -96,15 +96,16 @@ func (c *MigrateCommand) Execute(ctx context.Context, opts MigrateOptions) error
 
 	var lastErr error
 	for _, name := range containerNames {
-		if err := c.migrateContainer(ctx, name, opts); err != nil {
-			if errors.Is(err, ErrMigrateAlreadyMigrated) {
-				c.printer.Println("Container '%s' is already migrated to v2, skipping.", name)
-				continue
-			}
-			c.printer.PrintErrorln("error migrating %s: %s", name, err)
-			lastErr = err
+		err := c.migrateContainer(ctx, name, opts)
+		if err == nil {
 			continue
 		}
+		if errors.Is(err, ErrMigrateAlreadyMigrated) {
+			c.printer.Println("Container '%s' is already migrated to v2, skipping.", name)
+			continue
+		}
+		c.printer.PrintErrorln("error migrating %s: %s", name, err)
+		lastErr = err
 	}
 
 	return lastErr
