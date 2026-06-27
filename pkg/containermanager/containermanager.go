@@ -166,7 +166,7 @@ func (c Container) IsRunning() bool {
 
 // NeedsMigrationFromLabels is the shared rule for whether a container's
 // labels indicate it predates the current distrobox schema. A missing or
-// unparseable distrobox.version label is treated as version 0, which means
+// unparsable distrobox.version label is treated as version 0, which means
 // the container always needs migration. This is the one-time cost of
 // rolling out the version-label scheme: pre-existing v2 containers get
 // recreated once to be tagged, then permanently skipped.

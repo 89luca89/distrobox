@@ -776,7 +776,7 @@ func (p *Podman) Commit(ctx context.Context, containerID string, tag string) err
 
 // NeedsMigration reports whether the named container was created with a
 // distrobox schema version older than the one this binary supports. A
-// container with no distrobox.version label (or with an unparseable one)
+// container with no distrobox.version label (or with an unparsable one)
 // is treated as schema version 0, so it always needs migration.
 func (p *Podman) NeedsMigration(ctx context.Context, containerName string) (bool, error) {
 	inspect, err := p.InspectContainer(ctx, containerName)
