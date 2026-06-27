@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -127,20 +128,19 @@ func TestMigrate_V1Container_TriggersStopCommitRemoveCreate(t *testing.T) {
 func TestMigrate_V2Container_Skipped(t *testing.T) {
 	migrateCmd, mock := newMigrateTestSetup(t)
 
-	// Simulate a v2 container: entrypoint mount source points to v2 dir
-	v2Dir := insidedistrobox.ScriptsDir()
-	v2EntrypointPath := filepath.Join(v2Dir, "distrobox-init")
-
 	ctx := context.Background()
 
+	// Simulate a v2 container: tagged with the current schema version.
 	mock.InspectContainerResult = &containermanager.InspectResult{
 		ContainerID:     "abc123",
 		ContainerStatus: "exited",
 		ContainerImage:  "alpine:latest",
-		Mounts: []containermanager.MountInfo{
-			{Source: v2EntrypointPath, Destination: "/usr/bin/entrypoint"},
+		Labels: map[string]string{
+			containermanager.VersionLabelKey: strconv.Itoa(containermanager.SchemaVersion),
 		},
 	}
+	needs := false
+	mock.NeedsMigrationResult = &needs
 
 	opts := commands.MigrateOptions{
 		ContainerNames: []string{"my-box"},
@@ -225,6 +225,69 @@ func TestMigrate_V2Container_ForceRecreates(t *testing.T) {
 	}
 	if len(mock.Spy.Create) != 1 {
 		t.Errorf("expected 1 Create call, got %d", len(mock.Spy.Create))
+	}
+}
+
+// TestMigrate_UnparseableLabel_TreatedAsV1 covers the case where a
+// container has a distrobox.version label that isn't a valid integer.
+// The shared rule in NeedsMigrationFromLabels treats this as version 0,
+// so the container is migrated.
+func TestMigrate_UnparseableLabel_TreatedAsV1(t *testing.T) {
+	migrateCmd, mock := newMigrateTestSetup(t)
+
+	ctx := context.Background()
+	mock.InspectContainerResult = &containermanager.InspectResult{
+		ContainerID:     "abc123",
+		ContainerStatus: "exited",
+		ContainerImage:  "alpine:latest",
+		Labels: map[string]string{
+			containermanager.VersionLabelKey: "not-a-number",
+		},
+	}
+
+	opts := commands.MigrateOptions{
+		ContainerNames: []string{"my-box"},
+		NonInteractive: true,
+	}
+
+	if err := migrateCmd.Execute(ctx, opts); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(mock.Spy.Commit) != 1 || len(mock.Spy.Remove) != 1 || len(mock.Spy.Create) != 1 {
+		t.Errorf("expected unparseable-label container to be migrated, got stop=%d commit=%d remove=%d create=%d",
+			len(mock.Spy.Stop), len(mock.Spy.Commit), len(mock.Spy.Remove), len(mock.Spy.Create))
+	}
+}
+
+// TestMigrate_DowngradedLabel_StillMigrates covers a container tagged
+// with a strictly older schema version (e.g. label=1 against the
+// current SchemaVersion=2). It must be migrated.
+func TestMigrate_DowngradedLabel_StillMigrates(t *testing.T) {
+	migrateCmd, mock := newMigrateTestSetup(t)
+
+	ctx := context.Background()
+	mock.InspectContainerResult = &containermanager.InspectResult{
+		ContainerID:     "abc123",
+		ContainerStatus: "exited",
+		ContainerImage:  "alpine:latest",
+		Labels: map[string]string{
+			containermanager.VersionLabelKey: "1",
+		},
+	}
+
+	opts := commands.MigrateOptions{
+		ContainerNames: []string{"my-box"},
+		NonInteractive: true,
+	}
+
+	if err := migrateCmd.Execute(ctx, opts); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(mock.Spy.Commit) != 1 || len(mock.Spy.Remove) != 1 || len(mock.Spy.Create) != 1 {
+		t.Errorf("expected downgraded-label container to be migrated, got stop=%d commit=%d remove=%d create=%d",
+			len(mock.Spy.Stop), len(mock.Spy.Commit), len(mock.Spy.Remove), len(mock.Spy.Create))
 	}
 }
 
