@@ -102,14 +102,24 @@ type RmOptions struct {
 	ContainerHome string
 }
 
-// IsDistrobox returns true if any label key or value contains "distrobox".
-// We can't just check manager=distrobox because users can override it with
-// --additional-flags --label=manager=foo (apx does this). The
-// distrobox.unshare_groups label is always set on creation, so the
-// substring match catches those containers too.
+// IsDistrobox returns true when the container was created by distrobox.
+//
+// Two label shapes count as distrobox-owned, mirroring what the create path
+// always sets (pkg/containermanager/providers/{docker,podman}.go):
+//   - manager=distrobox (the standard case)
+//   - any label key prefixed with "distrobox." (e.g. distrobox.unshare_groups)
+//
+// The key-prefix branch keeps the 24b31ed8 fix working for containers whose
+// manager label is overridden via --additional-flags --label=manager=apx,
+// while staying out of label *values* — those are arbitrary tool/user
+// strings (workdirs, mount paths, project names) and substring-matching
+// them produces false positives on unrelated containers.
 func (c Container) IsDistrobox() bool {
-	for key, value := range c.Labels {
-		if strings.Contains(key, "distrobox") || strings.Contains(value, "distrobox") {
+	if c.Labels["manager"] == "distrobox" {
+		return true
+	}
+	for key := range c.Labels {
+		if strings.HasPrefix(key, "distrobox.") {
 			return true
 		}
 	}
