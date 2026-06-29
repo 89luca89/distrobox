@@ -30,14 +30,17 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          mkdir -p ./bin
           make build
-          mv ./bin/distrobox distrobox-${{ matrix.goos }}-${{ matrix.goarch }}
+
+      - name: Package
+        run: |
+          cd ./bin
+          tar czf ../distrobox-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz .
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: distrobox-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: distrobox-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: distrobox-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
 
   release:
     needs: build
