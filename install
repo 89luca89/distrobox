@@ -172,6 +172,22 @@ install -m 0644 src/man/man1/*.1 "${mandir}/"
 install -m 0644 src/completions/bash/distrobox "${bashdir}/distrobox"
 install -m 0644 src/completions/zsh/_distrobox  "${zshdir}/_distrobox"
 
+# v1 subcommand compatibility: argv[0] dispatch via symlinks. Users (and
+# desktop entries written by v1 distrobox-export) still invoke
+# `distrobox-enter foo`; the binary routes by basename.
+for sub in assemble create enter ephemeral generate-entry ls list rm stop upgrade; do
+	ln -sf distrobox "${bindir}/distrobox-${sub}"
+done
+
+# In-container helper scripts. The Go binary embeds these and would
+# extract them at first use, but shipping them here puts them on PATH
+# next to the binary so the runtime detection short-circuits and skips
+# extraction entirely. Same paths v1 used, which also means containers
+# created by v1 keep finding a working bind-mount source.
+install -m 0755 src/internal/inside-distrobox/assets/distrobox-init      "${bindir}/distrobox-init"
+install -m 0755 src/internal/inside-distrobox/assets/distrobox-export    "${bindir}/distrobox-export"
+install -m 0755 src/internal/inside-distrobox/assets/distrobox-host-exec "${bindir}/distrobox-host-exec"
+
 install -d "${icondir}/scalable/apps"
 install -m 0644 src/icons/terminal-distrobox-icon.svg "${icondir}/scalable/apps/"
 for sz in ${icon_sizes}; do

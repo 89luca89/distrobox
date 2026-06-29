@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -35,6 +36,10 @@ func ProvisionScripts() (string, error) {
 	}
 
 	for _, script := range scripts {
+		if exists(script.name) {
+			continue
+		}
+
 		destFilePath := filepath.Join(dir, script.name)
 		//nolint:gosec // 0755 is the same as from distrobox v1, let's keep it for compatibility
 		if err := os.WriteFile(destFilePath, []byte(script.content), 0755); err != nil {
@@ -45,6 +50,23 @@ func ProvisionScripts() (string, error) {
 	return dir, nil
 }
 
+// exists reports whether a script with the given name is already
+// available on the host.
+func exists(name string) bool {
+	if exe, err := os.Executable(); err == nil {
+		dir := filepath.Dir(exe)
+		if _, err := os.Stat(filepath.Join(dir, name)); err == nil {
+			return true
+		}
+	}
+
+	if _, err := exec.LookPath(name); err == nil {
+		return true
+	}
+
+	return false
+}
+
 // hostDir returns the directory path where the scripts should be stored.
 // Evaluates DBX_SCRIPTS_DIR env var first, then HOME env var, and falls back to default path.
 func hostDir() string {
@@ -53,12 +75,16 @@ func hostDir() string {
 		return dir
 	}
 
+	// then check the path where main distrobox is installed
+	if exe, err := os.Executable(); err == nil {
+		return filepath.Dir(exe)
+	}
+
 	// Then, check HOME env var
-	// v2 is added to avoid collisions with v1 installations
 	if home := os.Getenv("HOME"); home != "" {
-		return filepath.Join(home, ".local", "share", "distrobox", "v2")
+		return filepath.Join(home, ".local", "bin")
 	}
 
 	// Fallback to default path
-	return "/var/lib/distrobox/v2"
+	return "/usr/bin"
 }
