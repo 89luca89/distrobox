@@ -31,5 +31,5 @@ func run() error {
 	cmd := cli.NewRootCommand(cfg)
 
 	//nolint:wrapcheck // main reports errors as-is
-	return cmd.Run(ctx, os.Args)
+	return cmd.Run(ctx, cli.ResolveArgs(os.Args))
 }

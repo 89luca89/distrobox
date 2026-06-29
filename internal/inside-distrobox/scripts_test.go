@@ -11,47 +11,108 @@ import (
 	insidedistrobox "github.com/89luca89/distrobox/internal/inside-distrobox"
 )
 
-func TestProvisionScripts_CustomDir(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("DBX_SCRIPTS_DIR", tmpDir)
+// expectedScripts is the canonical triad of in-container helper scripts.
+// ProvisionScripts must always end with all three present in the returned
+// directory, regardless of which resolution branch produced it.
+//
+//nolint:gochecknoglobals // shared fixture across the suite, behaves like a constant
+var expectedScripts = []string{
+	"distrobox-host-exec",
+	"distrobox-init",
+	"distrobox-export",
+}
 
-	scriptsDir, err := insidedistrobox.ProvisionScripts()
-	require.NoError(t, err, "ProvisionScripts failed")
-	defer os.RemoveAll(scriptsDir)
-
-	require.Equal(t, tmpDir, scriptsDir)
-
-	expectedScripts := []string{
-		"distrobox-host-exec",
-		"distrobox-init",
-		"distrobox-export",
-	}
-
-	for _, scriptName := range expectedScripts {
-		scriptPath := filepath.Join(scriptsDir, scriptName)
-		assert.FileExists(t, scriptPath, "Expected script %s to exist", scriptName)
+func assertAllScripts(t *testing.T, dir string) {
+	t.Helper()
+	for _, name := range expectedScripts {
+		assert.FileExists(t, filepath.Join(dir, name), "expected %s in %s", name, dir)
 	}
 }
 
-func TestProvisionScripts_HomeDir(t *testing.T) {
+// isolatePath wipes PATH for the duration of the test so the PATH branch
+// of exists() never finds a system-installed distrobox-init while we are
+// trying to exercise other resolution branches.
+func isolatePath(t *testing.T) {
+	t.Helper()
+	t.Setenv("PATH", "")
+}
+
+// TestProvisionScripts_CustomDir checks the DBX_SCRIPTS_DIR override:
+// when set to an empty directory, ProvisionScripts writes all three
+// scripts there and returns that directory.
+func TestProvisionScripts_CustomDir(t *testing.T) {
 	tmpDir := t.TempDir()
-	t.Setenv("HOME", tmpDir)
+	t.Setenv("DBX_SCRIPTS_DIR", tmpDir)
+	isolatePath(t)
 
-	scriptsDir, err := insidedistrobox.ProvisionScripts()
-	require.NoError(t, err, "ProvisionScripts failed")
-	defer os.RemoveAll(scriptsDir)
+	dir, err := insidedistrobox.ProvisionScripts()
+	require.NoError(t, err)
+	require.Equal(t, tmpDir, dir)
+	assertAllScripts(t, dir)
+}
 
-	expected := filepath.Join(tmpDir, ".local", "share", "distrobox", "v2")
-	require.Equal(t, expected, scriptsDir)
-
-	expectedScripts := []string{
-		"distrobox-host-exec",
-		"distrobox-init",
-		"distrobox-export",
+// TestProvisionScripts_DetectOnPath confirms the skip-write shortcut via
+// the PATH branch of exists(): when the helper scripts already exist
+// somewhere on PATH, ProvisionScripts leaves them byte-for-byte
+// untouched rather than overwriting from the embedded copies.
+func TestProvisionScripts_DetectOnPath(t *testing.T) {
+	scriptsDir := t.TempDir()
+	marker := "#!/bin/sh\n# pre-existing-marker\n"
+	for _, name := range expectedScripts {
+		require.NoError(t, os.WriteFile(filepath.Join(scriptsDir, name), []byte(marker), 0755))
 	}
 
-	for _, scriptName := range expectedScripts {
-		scriptPath := filepath.Join(scriptsDir, scriptName)
-		assert.FileExists(t, scriptPath, "Expected script %s to exist", scriptName)
+	t.Setenv("PATH", scriptsDir)
+	t.Setenv("DBX_SCRIPTS_DIR", t.TempDir())
+
+	_, err := insidedistrobox.ProvisionScripts()
+	require.NoError(t, err)
+
+	for _, name := range expectedScripts {
+		got, err := os.ReadFile(filepath.Join(scriptsDir, name))
+		require.NoError(t, err)
+		require.Equal(t, marker, string(got), "%s was overwritten despite existing on PATH", name)
 	}
+}
+
+// TestProvisionScripts_ExtractsAdjacentToBinary verifies the default
+// resolution: with no DBX_SCRIPTS_DIR override and nothing on PATH,
+// ProvisionScripts writes to the directory containing the running
+// binary. That is the layout a fresh `go install` or curl-only deploy
+// produces.
+func TestProvisionScripts_ExtractsAdjacentToBinary(t *testing.T) {
+	t.Setenv("DBX_SCRIPTS_DIR", "")
+	isolatePath(t)
+	t.Setenv("HOME", t.TempDir())
+
+	exe, err := os.Executable()
+	require.NoError(t, err)
+	exeDir := filepath.Dir(exe)
+	if !isDirWritable(exeDir) {
+		t.Skipf("binary-adjacent dir %s is not writable; cannot exercise this branch here", exeDir)
+	}
+	t.Cleanup(func() {
+		for _, name := range expectedScripts {
+			_ = os.Remove(filepath.Join(exeDir, name))
+		}
+	})
+
+	dir, err := insidedistrobox.ProvisionScripts()
+	require.NoError(t, err)
+	require.Equal(t, exeDir, dir)
+	assertAllScripts(t, dir)
+}
+
+// isDirWritable does a probing-write into dir to determine whether a
+// non-root user can create files there. Used by the extraction-adjacent
+// test as a defensive skip when the binary's directory isn't writable
+// (e.g. read-only test harness, distros with hardened tmpfs).
+func isDirWritable(dir string) bool {
+	probe, err := os.CreateTemp(dir, ".dbx-write-probe-")
+	if err != nil {
+		return false
+	}
+	defer os.Remove(probe.Name())
+	defer probe.Close()
+	return true
 }

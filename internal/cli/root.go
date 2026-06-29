@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/urfave/cli/v3"
@@ -20,6 +21,31 @@ import (
 type contextKey string
 
 const containerManagerKey contextKey = "containerManager"
+
+// ResolveArgs supports v1-style subcommand invocation by basename. v1 shipped
+// separate scripts (distrobox-create, distrobox-enter, …); v2 ships one binary
+// with subcommands.
+//
+//	distrobox                       → no change
+//	distrobox-enter foo             → distrobox enter foo
+//	distrobox-;s                    → distrobox ls
+//
+// argv[0] is normalised to "distrobox" so help/usage output reads naturally
+// regardless of which symlink was invoked.
+func ResolveArgs(args []string) []string {
+	if len(args) == 0 {
+		return args
+	}
+	sub, ok := strings.CutPrefix(filepath.Base(args[0]), "distrobox-")
+	if !ok || sub == "" {
+		return args
+	}
+
+	out := make([]string, 0, len(args)+1)
+	out = append(out, "distrobox", sub)
+	out = append(out, args[1:]...)
+	return out
+}
 
 func NewRootCommand(cfg *config.Values) *cli.Command {
 	subs := subcommands(cfg)
