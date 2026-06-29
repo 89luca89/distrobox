@@ -58,6 +58,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           version="${GITHUB_REF_NAME}"
+          # If a release for this tag already exists (e.g. it was drafted
+          # from the web UI, which pushes the tag along with the draft),
+          # delete it so we can re-create it with the freshly built artifacts
+          # and auto-generated notes. The tag itself is left untouched.
+          if gh release view "${version}" >/dev/null 2>&1; then
+            gh release delete "${version}" --yes
+          fi
           gh release create "${version}" \
             --title "${version}" \
             --generate-notes \
