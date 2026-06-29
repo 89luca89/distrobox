@@ -37,3 +37,55 @@ func TestContainer_IsDistrobox_NilLabels(t *testing.T) {
 	c := containermanager.Container{Labels: nil}
 	assert.False(t, c.IsDistrobox())
 }
+
+// Regression: a label *value* that happens to contain the substring "distrobox"
+// (e.g. another tool tagging the container with a workdir under a directory
+// named "distrobox") must NOT make us claim the container as ours. Only label
+// keys with the distrobox. prefix, or manager=distrobox, count.
+func TestContainer_IsDistrobox_LabelValueSubstringIgnored(t *testing.T) {
+	c := containermanager.Container{
+		Labels: map[string]string{
+			"example.dir": "/home/luca/distrobox",
+		},
+	}
+	assert.False(t, c.IsDistrobox())
+}
+
+// A foreign manager label combined with a distrobox-suffixed value must not
+// trigger detection on the value side either. The container has to actually
+// carry a distrobox.* key (or manager=distrobox) to be ours.
+func TestContainer_IsDistrobox_ForeignManagerWithDistroboxValue(t *testing.T) {
+	c := containermanager.Container{
+		Labels: map[string]string{
+			"manager":           "compose",
+			"com.example.image": "registry.opensuse.org/opensuse/distrobox",
+		},
+	}
+	assert.False(t, c.IsDistrobox())
+}
+
+// Keys that merely contain the substring "distrobox" but don't use the
+// reserved distrobox. namespace (e.g. another project's labels) must not
+// be treated as ours. Matches the docs at pkg/containermanager/providers
+// where create always sets distrobox.<something>=… keys.
+func TestContainer_IsDistrobox_UnrelatedKeyContainingSubstring(t *testing.T) {
+	c := containermanager.Container{
+		Labels: map[string]string{
+			"my-distrobox-thing": "1",
+		},
+	}
+	assert.False(t, c.IsDistrobox())
+}
+
+// The manager-label override case (24b31ed8): the user supplied
+// --additional-flags --label=manager=apx, so manager!=distrobox, but the
+// distrobox.unshare_groups label is still set by the create path and is
+// enough to identify the container.
+func TestContainer_IsDistrobox_DistroboxKeyPrefix(t *testing.T) {
+	c := containermanager.Container{
+		Labels: map[string]string{
+			"distrobox.unshare_groups": "0",
+		},
+	}
+	assert.True(t, c.IsDistrobox())
+}
