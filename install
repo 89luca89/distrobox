@@ -18,19 +18,34 @@
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
 # POSIX
-# install.sh — fetch the v2 distrobox binary from GitHub releases for the
-# detected architecture, then pull man pages, shell completions, and icons
-# from the source archive at the same tag. To undo, run ./uninstall.
+# install.sh — fetch distrobox from GitHub. v1 (the legacy POSIX
+# shell-script release) is the default and recommended for production;
+# pass --v2 to install the v2 Go release candidate instead. To undo,
+# run ./uninstall.
 #
-# Intended as a one-liner curl install for users who don't want to build
-# from source. If you have Go and a checkout, prefer `make install`.
+# v1 (default): pulls the source tarball at $VERSION and installs every
+# distrobox* shell script plus man pages, completions, and icons. No
+# architecture detection is needed (pure POSIX shell).
+#
+# v2 (--v2 or any 2.* tag): fetches the bundled release artefact
+# (distrobox-linux-{amd64,arm64}.tar.gz) for the detected architecture
+# plus the source tarball for the in-container helpers
+# (init/export/host-exec), man pages, completions, and icons.
+#
+# Intended as a one-liner curl install for users who don't want to
+# build from source. If you have Go and a checkout, prefer
+# `make install`.
 
 REPO="89luca89/distrobox"
 # Bump on every release. Override with --version to install a different tag.
-VERSION="2.0.0-rc.1"
+LEGACY_VERSION="1.8.2.5"
+V2_VERSION="2.0.0-rc.3"
+VERSION="${LEGACY_VERSION}"
 prefix=""
 no_color=0
 verbose=0
+force_v2=0
+explicit_version=0
 
 show_help()
 {
@@ -40,13 +55,18 @@ install --prefix /usr/local
 Options:
 	--prefix/-P:	base path where files will be deployed
 			(default: /usr/local if root, ~/.local otherwise)
-	--version/-V:	release tag to install (default: ${VERSION})
+	--version/-V:	release tag to install (default: ${LEGACY_VERSION} for v1,
+			${V2_VERSION} for v2). The install path is chosen
+			from the tag prefix: 1.x → v1, anything else → v2.
+	--v2:		install the v2 Go release instead of the legacy v1
+			shell scripts. Forces the v2 install path even if
+			--version points at a 1.x tag.
 	--no-color:	disable color formatting
 	--help/-h:	show this message
 	-v/--verbose:	show more verbosity
 
-Requires: tar plus either curl or wget. Detected architecture must be
-amd64 or arm64 (matching the published release artefacts).
+Requires: tar plus either curl or wget. The v2 path additionally needs
+linux-amd64 or linux-arm64 (matching the published release artefacts).
 
 To uninstall, use the companion ./uninstall script.
 EOF
@@ -66,6 +86,10 @@ while [ $# -gt 0 ]; do
 			no_color=1
 			shift
 			;;
+		--v2)
+			force_v2=1
+			shift
+			;;
 		-P | --prefix)
 			if [ -n "${2:-}" ]; then
 				prefix="$2"
@@ -78,6 +102,7 @@ while [ $# -gt 0 ]; do
 		-V | --version)
 			if [ -n "${2:-}" ]; then
 				VERSION="$2"
+				explicit_version=1
 				shift 2
 			else
 				show_help
@@ -91,6 +116,22 @@ while [ $# -gt 0 ]; do
 			;;
 	esac
 done
+
+# If --v2 was passed without an explicit --version, swap to the v2
+# default so the banner and any error messages name the right release.
+if [ "${force_v2}" -eq 1 ] && [ "${explicit_version}" -ne 1 ]; then
+	VERSION="${V2_VERSION}"
+fi
+
+# Dispatch: v1 by default, v2 if the tag is 2.x or --v2 was passed.
+install_v1=1
+case "${VERSION}" in
+	1.*) ;;
+	*)   install_v1=0 ;;
+esac
+if [ "${force_v2}" -eq 1 ]; then
+	install_v1=0
+fi
 
 set -o errexit
 set -o nounset
@@ -135,28 +176,38 @@ if ! command -v tar > /dev/null 2>&1; then
 	exit 1
 fi
 
-case "$(uname -m)" in
-	x86_64 | amd64) arch="amd64" ;;
-	aarch64 | arm64) arch="arm64" ;;
-	*)
-		printf >&2 "Error: unsupported architecture %s (release artefacts are linux-amd64 and linux-arm64)\n" "$(uname -m)"
-		exit 1
-		;;
-esac
+# Arch detection is only needed for the v2 pre-built binary path.
+arch="posix"
+if [ "${install_v1}" -ne 1 ]; then
+	case "$(uname -m)" in
+		x86_64 | amd64) arch="amd64" ;;
+		aarch64 | arm64) arch="arm64" ;;
+		*)
+			printf >&2 "Error: unsupported architecture %s (release artefacts are linux-amd64 and linux-arm64)\n" "$(uname -m)"
+			exit 1
+			;;
+	esac
+fi
 
-printf >&2 "%b Installing distrobox %s for linux-%s into %s%b\n" \
-	"${BOLD_GREEN}" "${VERSION}" "${arch}" "${prefix}" "${CLEAR}"
+if [ "${install_v1}" -eq 1 ]; then
+	printf >&2 "%b Installing distrobox v1 %s (legacy) into %s%b\n" \
+		"${BOLD_GREEN}" "${VERSION}" "${prefix}" "${CLEAR}"
+else
+	printf >&2 "%b Installing distrobox v2 %s for linux-%s into %s%b\n" \
+		"${BOLD_GREEN}" "${VERSION}" "${arch}" "${prefix}" "${CLEAR}"
+fi
 
 tmp="$(mktemp -d)"
 # shellcheck disable=SC2064
 trap "rm -rf '${tmp}'" EXIT
 cd "${tmp}"
 
-printf >&2 "%b Downloading binary...%b\n" "${BOLD_RED}" "${CLEAR}"
-# shellcheck disable=SC2086
-${download} distrobox "https://github.com/${REPO}/releases/download/${VERSION}/distrobox-linux-${arch}"
-
-printf >&2 "%b Downloading man pages, completions, and icons...%b\n" "${BOLD_RED}" "${CLEAR}"
+# Both paths need the source tarball: v1 ships everything from it
+# (the split scripts, the helpers, the completions, the man pages,
+# the icons); v2 needs it for the helpers, completions, man pages,
+# and icons. The v2 Go binary itself comes from the bundled release
+# artefact in the v2 branch below.
+printf >&2 "%b Downloading source tarball...%b\n" "${BOLD_RED}" "${CLEAR}"
 # shellcheck disable=SC2086
 ${download} src.tar.gz "https://github.com/${REPO}/archive/refs/tags/${VERSION}.tar.gz"
 mkdir -p src
@@ -167,34 +218,78 @@ if ! install -d "${bindir}" "${mandir}" "${bashdir}" "${zshdir}"; then
 	exit 1
 fi
 
-install -m 0755 distrobox "${bindir}/distrobox"
-install -m 0644 src/man/man1/*.1 "${mandir}/"
-install -m 0644 src/completions/bash/distrobox "${bashdir}/distrobox"
-install -m 0644 src/completions/zsh/_distrobox  "${zshdir}/_distrobox"
+if [ "${install_v1}" -eq 1 ]; then
+	# v1 ships as split POSIX shell scripts at the tarball root:
+	# the main `distrobox` plus per-subcommand wrappers
+	# (distrobox-create, distrobox-enter, …) and the in-container
+	# helpers (distrobox-init/export/host-exec). Install every
+	# `distrobox*` script in one pass — that's exactly the v1
+	# release artefact set.
+	for file in src/distrobox*; do
+		install -m 0755 "${file}" "${bindir}/"
+	done
 
-# v1 subcommand compatibility: argv[0] dispatch via symlinks. Users (and
-# desktop entries written by v1 distrobox-export) still invoke
-# `distrobox-enter foo`; the binary routes by basename.
-for sub in assemble create enter ephemeral generate-entry ls list rm stop upgrade; do
-	ln -sf distrobox "${bindir}/distrobox-${sub}"
-done
+	# v1 ships per-subcommand bash and zsh completions. Install all
+	# of them.
+	if [ -d src/completions/bash ]; then
+		for file in src/completions/bash/*; do
+			install -m 0644 "${file}" "${bashdir}/"
+		done
+	fi
+	if [ -d src/completions/zsh ]; then
+		for file in src/completions/zsh/*; do
+			install -m 0644 "${file}" "${zshdir}/"
+		done
+	fi
+else
+	# v2 path. The release artefact is a tarball (per #2141); extract
+	# it to get the pre-built Go binary.
+	printf >&2 "%b Downloading bundled binary...%b\n" "${BOLD_RED}" "${CLEAR}"
+	# shellcheck disable=SC2086
+	${download} bundle.tar.gz "https://github.com/${REPO}/releases/download/${VERSION}/distrobox-linux-${arch}.tar.gz"
+	mkdir -p bundle
+	tar -xzf bundle.tar.gz -C bundle
 
-# In-container helper scripts. The Go binary embeds these and would
-# extract them at first use, but shipping them here puts them on PATH
-# next to the binary so the runtime detection short-circuits and skips
-# extraction entirely. Same paths v1 used, which also means containers
-# created by v1 keep finding a working bind-mount source.
-install -m 0755 src/internal/inside-distrobox/assets/distrobox-init      "${bindir}/distrobox-init"
-install -m 0755 src/internal/inside-distrobox/assets/distrobox-export    "${bindir}/distrobox-export"
-install -m 0755 src/internal/inside-distrobox/assets/distrobox-host-exec "${bindir}/distrobox-host-exec"
+	# Main binary from the bundled release artefact.
+	install -m 0755 bundle/distrobox "${bindir}/distrobox"
 
-install -d "${icondir}/scalable/apps"
-install -m 0644 src/icons/terminal-distrobox-icon.svg "${icondir}/scalable/apps/"
-for sz in ${icon_sizes}; do
-	install -d "${icondir}/${sz}x${sz}/apps"
-	install -m 0644 "src/icons/hicolor/${sz}x${sz}/apps/terminal-distrobox-icon.png" \
-		"${icondir}/${sz}x${sz}/apps/"
-done
+	# In-container helper scripts. The Go binary embeds these and
+	# would extract them at first use, but shipping them here puts
+	# them on PATH next to the binary so the runtime detection
+	# short-circuits and skips extraction entirely. Same paths v1
+	# used, which also means containers created by v1 keep finding
+	# a working bind-mount source.
+	install -m 0755 src/internal/inside-distrobox/assets/distrobox-init      "${bindir}/distrobox-init"
+	install -m 0755 src/internal/inside-distrobox/assets/distrobox-export    "${bindir}/distrobox-export"
+	install -m 0755 src/internal/inside-distrobox/assets/distrobox-host-exec "${bindir}/distrobox-host-exec"
+
+	# v1 subcommand compatibility: argv[0] dispatch via symlinks.
+	# Users (and desktop entries written by v1 distrobox-export) still
+	# invoke `distrobox-enter foo`; the binary routes by basename.
+	for sub in assemble create enter ephemeral generate-entry ls list rm stop upgrade; do
+		ln -sf distrobox "${bindir}/distrobox-${sub}"
+	done
+
+	# v2 ships a single combined completion per shell.
+	install -m 0644 src/completions/bash/distrobox "${bashdir}/distrobox"
+	install -m 0644 src/completions/zsh/_distrobox  "${zshdir}/_distrobox"
+fi
+
+# Man pages and icons are common to both versions.
+if [ -d src/man ]; then
+	for file in src/man/man1/*; do
+		install -m 0644 "${file}" "${mandir}/"
+	done
+fi
+if [ -e src/icons/terminal-distrobox-icon.svg ]; then
+	install -d "${icondir}/scalable/apps"
+	install -m 0644 src/icons/terminal-distrobox-icon.svg "${icondir}/scalable/apps/"
+	for sz in ${icon_sizes}; do
+		install -d "${icondir}/${sz}x${sz}/apps"
+		install -m 0644 "src/icons/hicolor/${sz}x${sz}/apps/terminal-distrobox-icon.png" \
+			"${icondir}/${sz}x${sz}/apps/"
+	done
+fi
 
 printf >&2 "%b Installation successful!%b\n" "${BOLD_GREEN}" "${CLEAR}"
 printf >&2 "%b distrobox is at %s%b\n" "${CLEAR}" "${bindir}/distrobox" "${CLEAR}"
