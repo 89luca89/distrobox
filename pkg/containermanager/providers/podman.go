@@ -214,6 +214,11 @@ func (p *Podman) makeCreateCommand(
 		"--label",
 		fmt.Sprintf("distrobox.unshare_groups=%d", containermanager.Btoi(unshareGroups)),
 	)
+	options = append(
+		options,
+		"--label",
+		fmt.Sprintf("%s=%d", containermanager.VersionLabelKey, containermanager.SchemaVersion),
+	)
 	options = append(options, "--env", fmt.Sprintf("SHELL=%s", shellFilepath))
 	options = append(options, "--env", fmt.Sprintf("HOME=%s", containerUserHome))
 	options = append(options, "--env", "container=podman")
@@ -769,6 +774,18 @@ func (p *Podman) Commit(ctx context.Context, containerID string, tag string) err
 	return err
 }
 
+// NeedsMigration reports whether the named container was created with a
+// distrobox schema version older than the one this binary supports. A
+// container with no distrobox.version label (or with an unparsable one)
+// is treated as schema version 0, so it always needs migration.
+func (p *Podman) NeedsMigration(ctx context.Context, containerName string) (bool, error) {
+	inspect, err := p.InspectContainer(ctx, containerName)
+	if err != nil {
+		return false, fmt.Errorf("failed to inspect container %s: %w", containerName, err)
+	}
+	return containermanager.NeedsMigrationFromLabels(inspect.Labels), nil
+}
+
 func (p *Podman) InspectContainer(ctx context.Context, containerName string) (*containermanager.InspectResult, error) {
 	config := containermanager.InspectResult{}
 	args := []string{"inspect", "--type", "container", "--format", "json", containerName}
@@ -787,12 +804,41 @@ func (p *Podman) InspectContainer(ctx context.Context, containerName string) (*c
 	}
 
 	inspect := inspects[0]
+	config.ContainerID = inspect.ID
 	config.ContainerStatus = inspect.State.Status
+	config.ContainerImage = inspect.ImageName
+	config.NetworkMode = inspect.HostConfig.NetworkMode
+	config.IpcMode = inspect.HostConfig.IpcMode
+	config.PidMode = inspect.HostConfig.PidMode
+	config.Env = inspect.Config.Env
+
+	// Podman exposes the distrobox-init arguments as top-level Args.
+	// Docker exposes them as Config.Cmd. Prefer top-level Args if present,
+	// else fall back to Config.Cmd (for docker compatibility).
+	if len(inspect.Args) > 0 {
+		config.Cmd = inspect.Args
+	} else {
+		config.Cmd = inspect.Config.Cmd
+	}
+
+	// Populate mount info
+	config.Mounts = make([]containermanager.MountInfo, 0, len(inspect.Mounts))
+	for _, m := range inspect.Mounts {
+		config.Mounts = append(config.Mounts, containermanager.MountInfo{
+			Source:      m.Source,
+			Destination: m.Destination,
+			Options:     strings.Join(m.Options, ","),
+		})
+	}
 
 	// Check for unshare_groups label
 	if v, ok := inspect.Config.Labels["distrobox.unshare_groups"]; ok && v == "1" {
 		config.UnshareGroups = true
 	}
+
+	// Expose the full label set so callers (e.g. migrate) can read
+	// distrobox.version and other distrobox-managed labels.
+	config.Labels = inspect.Config.Labels
 
 	// Extract HOME and PATH from container env
 	for _, env := range inspect.Config.Env {

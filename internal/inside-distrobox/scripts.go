@@ -70,6 +70,13 @@ func exists(name string) bool {
 // hostDir returns the directory path where the scripts should be stored.
 // Evaluates DBX_SCRIPTS_DIR env var first, then HOME env var, and falls back to default path.
 func hostDir() string {
+	return ScriptsDir()
+}
+
+// ScriptsDir returns the directory path where the distrobox scripts should be
+// stored on the host. This is the fixed v2 location that containers are
+// expected to bind-mount their entrypoint/export/host-exec scripts from.
+func ScriptsDir() string {
 	// First check DBX_SCRIPTS_DIR env var
 	if dir := os.Getenv("DBX_SCRIPTS_DIR"); dir != "" {
 		return dir

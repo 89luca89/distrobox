@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -43,6 +44,15 @@ func ReadOnlyBindPropagation() string {
 
 const (
 	RunningStatus = "running"
+
+	// SchemaVersion is the distrobox container schema version that the
+	// currently running binary is compatible with. Containers tagged with
+	// a strictly older version (or no version at all) need to be migrated.
+	SchemaVersion = 2
+
+	// VersionLabelKey is the container label used to record the distrobox
+	// schema version a container was created with.
+	VersionLabelKey = "distrobox.version"
 )
 
 type Container struct {
@@ -59,6 +69,34 @@ type InspectResult struct {
 	ContainerHome   string
 	ContainerPath   string
 	UnshareGroups   bool
+
+	// ContainerImage is the image name used to create the container
+	ContainerImage string
+	// Mounts are the bind mounts applied to the container
+	Mounts []MountInfo
+	// NetworkMode is the container's network mode (e.g., "host")
+	NetworkMode string
+	// IpcMode is the container's IPC mode (e.g., "host")
+	IpcMode string
+	// PidMode is the container's PID mode (e.g., "host")
+	PidMode string
+	// Cmd is the command (and args) the entrypoint was called with,
+	// i.e., the distrobox-init arguments for the container.
+	Cmd []string
+	// Env is the full list of environment variables set on the container
+	// (e.g., "HOME=/home/user", "HOSTNAME=...").
+	Env []string
+	// Labels is the full set of container labels, as key/value pairs.
+	Labels map[string]string
+}
+
+// MountInfo represents a single bind mount of a container.
+// Source is the host path, Destination is the in-container path,
+// Options is a comma-separated list of mount options.
+type MountInfo struct {
+	Source      string
+	Destination string
+	Options     string
 }
 
 type CreateOptions struct {
@@ -83,6 +121,11 @@ type CreateOptions struct {
 	Init                    bool
 	Nvidia                  bool
 	DryRun                  bool
+	// Labels are extra container labels to set at creation time. The
+	// provider may add its own labels (e.g. distrobox.version); entries
+	// here are merged in and the provider's defaults win on conflict for
+	// keys the provider manages.
+	Labels map[string]string
 }
 
 type EnterOptions struct {
@@ -131,6 +174,24 @@ func (c Container) IsRunning() bool {
 	return strings.Contains(s, "up") || strings.Contains(s, "running")
 }
 
+// NeedsMigrationFromLabels is the shared rule for whether a container's
+// labels indicate it predates the current distrobox schema. A missing or
+// unparsable distrobox.version label is treated as version 0, which means
+// the container always needs migration. This is the one-time cost of
+// rolling out the version-label scheme: pre-existing v2 containers get
+// recreated once to be tagged, then permanently skipped.
+func NeedsMigrationFromLabels(labels map[string]string) bool {
+	raw, ok := labels[VersionLabelKey]
+	if !ok {
+		return true
+	}
+	ver, err := strconv.Atoi(raw)
+	if err != nil {
+		return true
+	}
+	return ver < SchemaVersion
+}
+
 //nolint:revive // ContainerManagerType is intentionally named for clarity despite the stutter
 type ContainerManagerType string
 
@@ -149,6 +210,11 @@ type ContainerManager interface {
 	InspectContainer(ctx context.Context, containerName string) (*InspectResult, error)
 	PullImage(ctx context.Context, imageName string, platform string, dryRun bool) error
 	Commit(ctx context.Context, containerID string, imageTag string) error
+	// NeedsMigration reports whether the named container was created with a
+	// distrobox schema version older than the one this binary supports. A
+	// container with no distrobox.version label is treated as schema
+	// version 0, so it always needs migration.
+	NeedsMigration(ctx context.Context, containerName string) (bool, error)
 }
 
 func PathExists(path string) bool {
