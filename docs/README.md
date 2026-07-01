@@ -397,6 +397,28 @@ make install PREFIX=~/.local
 
 To uninstall, run `make uninstall` with the same `PREFIX` used during installation.
 
+## Standalone install script
+
+The `install` and `uninstall` scripts at the repository root work without a
+local checkout. They download distrobox from GitHub and deploy it to a
+prefix.
+
+The script defaults to the **v1** stable line (recommended for production).
+Pass `--v2` to install the v2 Go release candidate instead; the script
+also picks the v2 path automatically if `--version` points at a 2.x tag.
+
+```sh
+# v1 (default) — latest stable
+curl -fsSL https://raw.githubusercontent.com/89luca89/distrobox/legacy/install | sh
+
+# v2 — Go release candidate
+curl -fsSL https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --v2
+```
+
+The same flags (`--prefix`, `--version`, `--no-color`, `--verbose`) work in
+both modes. The companion `./uninstall` script removes whatever was
+installed, regardless of version.
+
 ---
 
 Check the [Host Distros](compatibility.md#host-distros) compatibility list for

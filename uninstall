@@ -18,9 +18,11 @@
 # along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
 # POSIX
-# uninstall.sh — remove distrobox (v2) plus any leftover v1 split-script
-# artefacts from the given prefix. The prefix must match the one used at
-# install time (default: /usr/local for root, ~/.local otherwise).
+# uninstall.sh — remove distrobox (v1 legacy or v2 Go) from the given
+# prefix. The prefix must match the one used at install time (default:
+# /usr/local for root, ~/.local otherwise). Both the v1 split-script
+# layout and the v2 single-binary layout are wiped in a single pass,
+# so you don't need to remember which version you installed.
 
 prefix=""
 no_color=0
@@ -30,6 +32,8 @@ show_help()
 {
 	cat << EOF
 uninstall --prefix /usr/local
+
+Removes distrobox (v1 or v2) from the given prefix.
 
 Options:
 	--prefix/-P:	base path where distrobox was installed
@@ -100,13 +104,14 @@ icondir="${prefix}/share/icons/hicolor"
 icon_sizes="16 22 24 32 36 48 64 72 96 128 256"
 
 rm -f "${bindir}/distrobox"
-# v1 installed split shell scripts (distrobox-create, distrobox-enter, …,
-# plus the in-container distrobox-init/export/host-exec) at ${bindir}.
-# v2 ships none of those at ${bindir}, so this glob only catches v1 leftovers.
+# `distrobox-*` matches v1 split scripts and v2 argv[0] symlinks alike
+# (the helpers distrobox-init/export/host-exec are also picked up here).
 rm -f "${bindir}"/distrobox-*
 rm -f "${mandir}/distrobox.1" "${mandir}"/distrobox-*.1
-rm -f "${bashdir}/distrobox"
-rm -f "${zshdir}/_distrobox"
+# v1 ships per-subcommand bash/zsh completions; the v2 release only
+# ships a single `distrobox` / `_distrobox`. The globs cover both.
+rm -f "${bashdir}/distrobox" "${bashdir}"/distrobox-*
+rm -f "${zshdir}/_distrobox" "${zshdir}"/_distrobox-*
 rm -f "${icondir}/scalable/apps/terminal-distrobox-icon.svg"
 for sz in ${icon_sizes}; do
 	rm -f "${icondir}/${sz}x${sz}/apps/terminal-distrobox-icon.png"
