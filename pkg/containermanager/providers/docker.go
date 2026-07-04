@@ -46,7 +46,7 @@ func (d *Docker) Name() string {
 	return "docker"
 }
 
-// dockerContainer represents the JSON output from `docker ps --format json`.
+// dockerContainer represents the JSON output from `docker ps --format '{{json .}}'`.
 type dockerContainer struct {
 	ID     string `json:"ID"`
 	Image  string `json:"Image"`
@@ -78,7 +78,7 @@ type InspectImageOutput struct {
 }
 
 func (d *Docker) ListContainers(ctx context.Context) ([]containermanager.Container, error) {
-	args := []string{"ps", "-a", "--no-trunc", "--format", "json"}
+	args := []string{"ps", "-a", "--no-trunc", "--format", "{{json .}}"}
 	out, err := d.run(ctx, args, runOptions{})
 	if err != nil {
 		return nil, err
@@ -653,7 +653,7 @@ func parseLabels(labels string) map[string]string {
 
 func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*containermanager.InspectResult, error) {
 	config := containermanager.InspectResult{}
-	args := []string{"inspect", "--type", "container", "--format", "json", containerName}
+	args := []string{"inspect", "--type", "container", containerName}
 	output, err := d.run(ctx, args, runOptions{})
 	if err != nil {
 		return nil, err
@@ -690,7 +690,7 @@ func (d *Docker) InspectContainer(ctx context.Context, containerName string) (*c
 }
 
 func (d *Docker) ImageExists(ctx context.Context, imageName string) bool {
-	args := []string{"inspect", "--type", "image", "--format", "json", imageName}
+	args := []string{"inspect", "--type", "image", imageName}
 	output, err := d.run(ctx, args, runOptions{})
 	if err != nil {
 		return false
