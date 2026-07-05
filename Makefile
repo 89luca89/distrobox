@@ -34,8 +34,6 @@ ICONDIR     ?= $(PREFIX)/share/icons/hicolor
 
 ICON_SIZES := 16 22 24 32 36 48 64 72 96 128 256
 
-V1_SUBCOMMANDS := assemble create enter ephemeral generate-entry ls list rm stop upgrade
-
 .PHONY: install
 install: build
 	install -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR) $(DESTDIR)$(BASHCOMPDIR) $(DESTDIR)$(ZSHCOMPDIR)
@@ -43,9 +41,6 @@ install: build
 	install -m 0644 man/man1/*.1 $(DESTDIR)$(MANDIR)/
 	install -m 0644 completions/bash/distrobox $(DESTDIR)$(BASHCOMPDIR)/distrobox
 	install -m 0644 completions/zsh/_distrobox $(DESTDIR)$(ZSHCOMPDIR)/_distrobox
-	for sub in $(V1_SUBCOMMANDS); do \
-		ln -sf distrobox $(DESTDIR)$(BINDIR)/distrobox-$${sub}; \
-	done
 	install -m 0755 internal/inside-distrobox/assets/distrobox-init      $(DESTDIR)$(BINDIR)/distrobox-init
 	install -m 0755 internal/inside-distrobox/assets/distrobox-export    $(DESTDIR)$(BINDIR)/distrobox-export
 	install -m 0755 internal/inside-distrobox/assets/distrobox-host-exec $(DESTDIR)$(BINDIR)/distrobox-host-exec
