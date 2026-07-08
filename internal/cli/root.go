@@ -56,6 +56,15 @@ func NewRootCommand(cfg *config.Values) *cli.Command {
 		installShellCompleteRecursively(sub)
 	}
 
+	//nolint:reassign // urfave/cli/v3 explicitly supports reassigning VersionFlag
+	cli.VersionFlag = &cli.BoolFlag{
+		Name:        "version",
+		Aliases:     []string{"V"},
+		Usage:       "print the version",
+		HideDefault: true,
+		Local:       true,
+	}
+
 	return &cli.Command{
 		Name:                  "distrobox",
 		Usage:                 "Use any Linux distribution inside your terminal",
