@@ -2423,16 +2423,6 @@ elif grep -q "^root" /etc/group; then
 	additional_groups="root"
 fi
 
-# If we're rootful, search for host's groups, if we're not in anyone, let's not
-# add the current user to any sudoers group, so that host's sudo settings are
-# respected
-if [ "${rootful}" -eq 1 ] &&
-	! grep -q "^wheel.*${container_user_name}" /run/host/etc/group &&
-	! grep -q "^wheel.*${container_user_name}" /run/host/etc/group &&
-	! grep -q "^sudo.*${container_user_name}" /run/host/etc/group; then
-	additional_groups=""
-fi
-
 # Let's add our user to the container. if the user already exists, enforce properties.
 #
 # In case of AD or LDAP usernames, it is possible we will have a backslach in the name.
@@ -2457,6 +2447,18 @@ if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/pass
 			"${container_user_gid}" "${container_user_name}" \
 			"${container_user_home}" "${SHELL:-"/bin/bash"}" >> /etc/passwd
 		printf "%s::1::::::" "${container_user_name}" >> /etc/shadow
+
+		# Also add user to any additional groups when useradd failed
+		for group in ${additional_groups}; do
+			if ! grep -q "^${group}.*${container_user_name}" /etc/group; then
+				group_line="$(grep "^${group}.*" /etc/group)"
+				if grep -q "^${group}.*:$" /etc/group; then
+					sed -i "s|${group_line}|${group_line}${container_user_name}|g" /etc/group
+				else
+					sed -i "s|${group_line}|${group_line},${container_user_name}|g" /etc/group
+				fi
+			fi
+		done
 	fi
 # Ensure we're not using the specified SHELL. Run it only once, so that future
 # user's preferences are not overwritten at each start.
