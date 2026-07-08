@@ -191,6 +191,8 @@ func (p *Podman) makeCreateCommand(
 
 	if !unshareNetNS {
 		options = append(options, "--network", "host")
+	} else {
+		options = append(options, "--env", "DISTROBOX_UNSHARE_NETNS=1")
 	}
 
 	if !unshareProcess {
