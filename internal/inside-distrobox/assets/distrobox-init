@@ -2450,9 +2450,9 @@ if ! grep -q "^$(printf '%s' "${container_user_name}" | tr '\\' '.'):" /etc/pass
 
 		# Also add user to any additional groups when useradd failed
 		for group in ${additional_groups}; do
-			if ! grep -q "^${group}.*${container_user_name}" /etc/group; then
-				group_line="$(grep "^${group}.*" /etc/group)"
-				if grep -q "^${group}.*:$" /etc/group; then
+			if grep -q "^${group}:" /etc/group && ! grep -q "^${group}.*${container_user_name}" /etc/group; then
+				group_line="$(grep "^${group}:" /etc/group)"
+				if grep -q "^${group}:.*:$" /etc/group; then
 					sed -i "s|${group_line}|${group_line}${container_user_name}|g" /etc/group
 				else
 					sed -i "s|${group_line}|${group_line},${container_user_name}|g" /etc/group
