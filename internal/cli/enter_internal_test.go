@@ -102,27 +102,27 @@ func TestEnterCommand_CustomCommandVariants(t *testing.T) {
 	}{
 		{
 			name: "short -e flag",
-			argv: []string{"enter", "suse", "-e", "echo", "ciao"},
+			argv: []string{"enter", "suse", "-e", "echo", "hello"},
 		},
 		{
 			name: "long --exec flag",
-			argv: []string{"enter", "suse", "--exec", "echo", "ciao"},
+			argv: []string{"enter", "suse", "--exec", "echo", "hello"},
 		},
 		{
 			name: "bare -- separator",
-			argv: []string{"enter", "suse", "--", "echo", "ciao"},
+			argv: []string{"enter", "suse", "--", "echo", "hello"},
 		},
 		{
 			name: "implicit (no -e/--exec/--)",
-			argv: []string{"enter", "suse", "echo", "ciao"},
+			argv: []string{"enter", "suse", "echo", "hello"},
 		},
 		{
 			name: "explicit --name with -e",
-			argv: []string{"enter", "--name", "suse", "-e", "echo", "ciao"},
+			argv: []string{"enter", "--name", "suse", "-e", "echo", "hello"},
 		},
 		{
 			name: "explicit --name with --",
-			argv: []string{"enter", "--name", "suse", "--", "echo", "ciao"},
+			argv: []string{"enter", "--name", "suse", "--", "echo", "hello"},
 		},
 		{
 			// Regression: the custom command itself contains a short
@@ -151,7 +151,7 @@ func TestEnterCommand_CustomCommandVariants(t *testing.T) {
 
 			assert.Equal(t, "suse", opts.ContainerName)
 
-			want := []string{"echo", "ciao"}
+			want := []string{"echo", "hello"}
 			if strings.HasPrefix(tc.name, "custom command with short flag") ||
 				strings.HasPrefix(tc.name, "-e before the container name") ||
 				strings.HasPrefix(tc.name, "short flag combo with --no-tty") {
@@ -175,7 +175,7 @@ func TestFindExecMarkerIndex(t *testing.T) {
 		},
 		{
 			name: "no marker",
-			args: []string{"suse", "echo", "ciao"},
+			args: []string{"suse", "echo", "hello"},
 			want: -1,
 		},
 		{
@@ -228,6 +228,190 @@ func TestFindExecMarkerIndex(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			assert.Equal(t, tc.want, findExecMarkerIndex(tc.args))
+		})
+	}
+}
+
+func TestExtractAdditionalFlagsFromPositionals(t *testing.T) {
+	cases := []struct {
+		name     string
+		args     []string
+		wantArgs []string
+		wantFlag string
+	}{
+		{
+			name:     "empty args",
+			args:     nil,
+			wantArgs: nil,
+			wantFlag: "",
+		},
+		{
+			name:     "no additional-flags",
+			args:     []string{"suse", "echo", "hello"},
+			wantArgs: []string{"suse", "echo", "hello"},
+			wantFlag: "",
+		},
+		{
+			name:     "long --additional-flags with value",
+			args:     []string{"suse", "--additional-flags", "--tty", "echo", "hello"},
+			wantArgs: []string{"suse", "echo", "hello"},
+			wantFlag: "--tty",
+		},
+		{
+			name:     "short -a with value",
+			args:     []string{"suse", "-a", "--tty", "echo", "hello"},
+			wantArgs: []string{"suse", "echo", "hello"},
+			wantFlag: "--tty",
+		},
+		{
+			name:     "--additional-flags with = syntax",
+			args:     []string{"suse", "--additional-flags=--tty", "echo", "hello"},
+			wantArgs: []string{"suse", "echo", "hello"},
+			wantFlag: "--tty",
+		},
+		{
+			name:     "-a with = syntax",
+			args:     []string{"suse", "-a=--tty", "echo", "hello"},
+			wantArgs: []string{"suse", "echo", "hello"},
+			wantFlag: "--tty",
+		},
+		{
+			name:     "--additional-flags at end with no value",
+			args:     []string{"suse", "--additional-flags"},
+			wantArgs: []string{"suse"},
+			wantFlag: "",
+		},
+		{
+			name:     "--additional-flags before -e marker",
+			args:     []string{"suse", "--additional-flags", "--tty", "-e", "echo", "hello"},
+			wantArgs: []string{"suse", "-e", "echo", "hello"},
+			wantFlag: "--tty",
+		},
+		{
+			name:     "--additional-flags at the very start",
+			args:     []string{"--additional-flags", "--tty", "suse", "echo", "hello"},
+			wantArgs: []string{"suse", "echo", "hello"},
+			wantFlag: "--tty",
+		},
+		{
+			name:     "-a at end with no value",
+			args:     []string{"suse", "echo", "hello", "-a"},
+			wantArgs: []string{"suse", "echo", "hello"},
+			wantFlag: "",
+		},
+		{
+			name:     "only flag with = value",
+			args:     []string{"--additional-flags=--preserve-fds"},
+			wantArgs: []string{},
+			wantFlag: "--preserve-fds",
+		},
+		{
+			name:     "value is a single hyphen flag",
+			args:     []string{"test", "--additional-flags", "--tty"},
+			wantArgs: []string{"test"},
+			wantFlag: "--tty",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			gotArgs, gotFlag := extractAdditionalFlagsFromPositionals(tc.args)
+			assert.Equal(t, tc.wantArgs, gotArgs)
+			assert.Equal(t, tc.wantFlag, gotFlag)
+		})
+	}
+}
+
+// TestEnterCommand_AdditionalFlagsFromTail verifies that --additional-flags
+// placed after the container name (i.e. in the positional tail) is correctly
+// extracted and passed as AdditionalFlags to the container manager, rather
+// than ending up in the custom command. This is the regression introduced
+// in the Go rewrite (v2.0.0-rc.3).
+func TestEnterCommand_AdditionalFlagsFromTail(t *testing.T) {
+	cases := []struct {
+		name string
+		argv []string
+		want containermanager.EnterOptions
+	}{
+		{
+			// Primary regression: Ptyxis uses this invocation pattern.
+			name: "--additional-flags after container name (Ptyxis pattern)",
+			argv: []string{"enter", "--no-tty", "test", "--additional-flags", "--tty"},
+			want: containermanager.EnterOptions{
+				ContainerName:   "test",
+				AdditionalFlags: "--tty",
+				NoTTY:           true,
+				// No custom command → Go returns empty slice, not nil
+				CustomCommand: []string{},
+			},
+		},
+		{
+			name: "-a after container name with custom command",
+			argv: []string{"enter", "test", "-a", "--env", "FOO=bar", "echo", "hello"},
+			want: containermanager.EnterOptions{
+				ContainerName:   "test",
+				AdditionalFlags: "--env",
+				CustomCommand:   []string{"FOO=bar", "echo", "hello"},
+			},
+		},
+		{
+			name: "--additional-flags before container name (normal parsing)",
+			argv: []string{"enter", "--additional-flags", "--tty", "test", "echo", "hello"},
+			want: containermanager.EnterOptions{
+				ContainerName:   "test",
+				AdditionalFlags: "--tty",
+				CustomCommand:   []string{"echo", "hello"},
+			},
+		},
+		{
+			name: "--additional-flags after container name with --exec",
+			argv: []string{"enter", "--no-tty", "test", "--additional-flags", "--tty", "-e", "echo", "hello"},
+			want: containermanager.EnterOptions{
+				ContainerName:   "test",
+				AdditionalFlags: "--tty",
+				NoTTY:           true,
+				CustomCommand:   []string{"echo", "hello"},
+			},
+		},
+		{
+			name: "--additional-flags with = syntax after container name",
+			argv: []string{"enter", "test", "--additional-flags=--preserve-fds", "--", "bash", "-l"},
+			want: containermanager.EnterOptions{
+				ContainerName:   "test",
+				AdditionalFlags: "--preserve-fds",
+				// Note: when StopOnNthArg triggers on a non-`--` arg,
+				// urfave/cli returns before the `--` separator check,
+				// so `--` remains in the positional tail.
+				CustomCommand: []string{"--", "bash", "-l"},
+			},
+		},
+		{
+			name: "no additional-flags should leave field empty",
+			argv: []string{"enter", "test", "echo", "hello"},
+			want: containermanager.EnterOptions{
+				ContainerName:   "test",
+				AdditionalFlags: "",
+				CustomCommand:   []string{"echo", "hello"},
+			},
+		},
+		{
+			name: "--name flag with --additional-flags before positional (normal parsing)",
+			argv: []string{"enter", "--name", "mybox", "--additional-flags", "--tty", "echo", "hello"},
+			want: containermanager.EnterOptions{
+				ContainerName:   "mybox",
+				AdditionalFlags: "--tty",
+				CustomCommand:   []string{"echo", "hello"},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			opts := runEnter(t, tc.argv...)
+			assert.Equal(t, tc.want.ContainerName, opts.ContainerName)
+			assert.Equal(t, tc.want.AdditionalFlags, opts.AdditionalFlags)
+			assert.Equal(t, tc.want.CustomCommand, opts.CustomCommand)
+			assert.Equal(t, tc.want.NoTTY, opts.NoTTY)
 		})
 	}
 }

@@ -93,6 +93,17 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 
 	args := cmd.Args().Slice()
 
+	// When --additional-flags (or -a) is placed after the first positional
+	// argument it lands in the positional tail instead of being consumed as
+	// a flag, because urfave/cli's StopOnNthArg: 1 stops flag parsing after
+	// the first positional arg. We recover it here.
+	args, tailAdditionalFlags := extractAdditionalFlagsFromPositionals(args)
+
+	additionalFlags := cmd.String("additional-flags")
+	if tailAdditionalFlags != "" {
+		additionalFlags = tailAdditionalFlags
+	}
+
 	// If the user placed -e/--exec AFTER the container name, it lands in
 	// the positional tail. In that case the first positional arg is still
 	// the container name and the custom command starts right after the
@@ -136,7 +147,7 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 
 	options := commands.EnterOptions{
 		ContainerName:   containerName,
-		AdditionalFlags: cmd.String("additional-flags"),
+		AdditionalFlags: additionalFlags,
 		CustomCommand:   customCommand,
 		DryRun:          dryRun,
 		NoTTY:           cmd.Bool("no-tty"),
