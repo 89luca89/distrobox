@@ -30,6 +30,10 @@ func run() error {
 
 	cmd := cli.NewRootCommand(cfg)
 
+	// PrepareArgs lets `enter`/`ephemeral` accept distrobox flags after the
+	// container name by splicing a "--" in front of the custom command.
+	args := cli.PrepareArgs(cmd, cli.ResolveArgs(os.Args))
+
 	//nolint:wrapcheck // main reports errors as-is
-	return cmd.Run(ctx, cli.ResolveArgs(os.Args))
+	return cmd.Run(ctx, args)
 }

@@ -68,7 +68,6 @@ func newEnterCommand(cfg *config.Values) *cli.Command {
 			},
 		},
 		UseShortOptionHandling: false,
-		StopOnNthArg:           ptr(1),
 		SkipFlagParsing:        false,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			return enterAction(ctx, cmd, cfg)
@@ -82,36 +81,18 @@ func enterAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) erro
 		return errors.New("container manager not found in context")
 	}
 
-	// Container name: --name flag takes priority, otherwise first positional arg.
-	// Everything after the container name (or after --) is the custom command.
-	//
-	// The CLI is configured with StopOnNthArg: 1, so urfave/cli stops flag
-	// parsing as soon as the first positional arg is seen. The trailing
-	// positional args (which include the custom command and any -e/--exec
-	// marker that came after the container name) are returned verbatim.
+	// --name (or DBX_CONTAINER_NAME) wins; otherwise the first positional is
+	// the name. PrepareArgs (parse.go) already split the command off behind a
+	// "--", so the tail is [name?] + command.
 	containerName := cmd.String("name")
 
 	args := cmd.Args().Slice()
 
-	// If the user placed -e/--exec AFTER the container name, it lands in
-	// the positional tail. In that case the first positional arg is still
-	// the container name and the custom command starts right after the
-	// marker. When the marker is consumed as a flag (i.e. it appeared
-	// before the container name) the tail is just the custom command.
-	markerIndex := findExecMarkerIndex(args)
-
 	var customCommand []string
-	switch {
-	case markerIndex >= 0:
-		// -e/--exec was placed after the container name.
-		if containerName == "" {
-			containerName = args[0]
-		}
-		customCommand = args[markerIndex+1:]
-	case containerName == "" && len(args) > 0:
+	if containerName == "" && len(args) > 0 {
 		containerName = args[0]
 		customCommand = args[1:]
-	default:
+	} else {
 		customCommand = args
 	}
 

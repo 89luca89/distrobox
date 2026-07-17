@@ -56,16 +56,10 @@ Examples:
     distrobox ephemeral --root --image fedora:39
     distrobox ephemeral -- bash -c "echo hello"`,
 		Flags: flags,
-		// StopOnNthArg: 1 mirrors the semantics of the original bash
-		// distrobox-ephemeral: every flag must appear before the first
-		// positional arg, and everything from the first positional arg
-		// onward is treated as the custom command. Without this, short
-		// flags inherited from `distrobox-create` (e.g. -c for --clone)
-		// would be eaten out of the custom command. The bare `--`
-		// separator still works because urfave/cli checks for it before
-		// honouring StopOnNthArg.
+		// PrepareArgs (parse.go) splits the command off behind a "--", so
+		// inherited create flags (e.g. -c/--clone) are parsed wherever they
+		// appear instead of being eaten out of the custom command.
 		UseShortOptionHandling: false,
-		StopOnNthArg:           ptr(1),
 		SkipFlagParsing:        false,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			return ephemeralAction(ctx, cmd, cfg)
@@ -79,21 +73,9 @@ func ephemeralAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) 
 		return errors.New("container manager not found in context")
 	}
 
-	// The CLI is configured with StopOnNthArg: 1, so urfave/cli stops
-	// flag parsing as soon as it sees the first positional arg. From
-	// that point on, anything — including the -e/--exec marker, if the
-	// user placed it after a positional arg — is captured verbatim into
-	// the positional tail. We use findExecMarkerIndex to split the
-	// custom command out of the tail.
-	args := cmd.Args().Slice()
-	markerIndex := findExecMarkerIndex(args)
-
-	var customCommand []string
-	if markerIndex >= 0 {
-		customCommand = args[markerIndex+1:]
-	} else {
-		customCommand = args
-	}
+	// ephemeral has no positional name, so after PrepareArgs the whole
+	// positional tail is the custom command.
+	customCommand := cmd.Args().Slice()
 
 	opts := commands.EphemeralOptions{
 		CreateOptions: commands.CreateOptions{

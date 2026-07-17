@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"io"
 	"strings"
 	"sync"
 	"testing"
@@ -81,7 +82,9 @@ func runEnter(t *testing.T, argv ...string) containermanager.EnterOptions {
 	}
 
 	root := &cli.Command{Commands: []*cli.Command{cmd}}
-	full := append([]string{"distrobox"}, argv...)
+	// The real entrypoint (cmd/distrobox/main.go) always runs argv through
+	// PrepareArgs before handing it to urfave; mirror that here.
+	full := PrepareArgs(root, append([]string{"distrobox"}, argv...))
 
 	require.NoError(t, root.Run(context.Background(), full))
 	require.NotEmpty(t, spy.calls, "expected Enter to be called for argv %v", argv)
@@ -162,72 +165,82 @@ func TestEnterCommand_CustomCommandVariants(t *testing.T) {
 	}
 }
 
-func TestFindExecMarkerIndex(t *testing.T) {
-	cases := []struct {
-		name string
-		args []string
-		want int
-	}{
-		{
-			name: "empty args",
-			args: nil,
-			want: -1,
-		},
-		{
-			name: "no marker",
-			args: []string{"suse", "echo", "ciao"},
-			want: -1,
-		},
-		{
-			name: "short -e is the only arg",
-			args: []string{"-e"},
-			want: 0,
-		},
-		{
-			name: "long --exec is the only arg",
-			args: []string{"--exec"},
-			want: 0,
-		},
-		{
-			name: "-e at the start",
-			args: []string{"-e", "bash", "-c", "echo"},
-			want: 0,
-		},
-		{
-			name: "--exec in the middle",
-			args: []string{"suse", "--exec", "bash", "-c", "echo"},
-			want: 1,
-		},
-		{
-			name: "-e at the end with no command after it",
-			args: []string{"suse", "-e"},
-			want: 1,
-		},
-		{
-			name: "first match wins when both forms are present",
-			args: []string{"-e", "suse", "--exec", "echo"},
-			want: 0,
-		},
-		{
-			name: "marker-looking arg inside the custom command is not a match",
-			// `bash` happens to start with `b`, not `-`, so it must
-			// never be picked up. This guards against a future
-			// regression that would substring-match.
-			args: []string{"suse", "bash", "-e", "echo"},
-			want: 2,
-		},
-		{
-			name: "looks similar but is not the marker",
-			// `--exec-foo` shares a prefix with `--exec` but is a
-			// distinct token; it must not be treated as the marker.
-			args: []string{"suse", "--exec-foo", "echo"},
-			want: -1,
-		},
+// TestEnterCommand_FlagsAfterContainerName is the regression suite for the
+// bug this change fixes: distrobox flags placed after the bare container name
+// must be parsed as distrobox flags (not swallowed into the custom command),
+// mirroring the original bash distrobox-enter.
+func TestEnterCommand_FlagsAfterContainerName(t *testing.T) {
+	t.Run("additional-flags after name is consumed", func(t *testing.T) {
+		opts := runEnter(t, "enter", "suse", "--additional-flags", "--env FOO=bar", "--", "printenv", "FOO")
+		assert.Equal(t, "suse", opts.ContainerName)
+		assert.Equal(t, "--env FOO=bar", opts.AdditionalFlags)
+		assert.Equal(t, []string{"printenv", "FOO"}, opts.CustomCommand)
+	})
+
+	t.Run("short -a after name, implicit command", func(t *testing.T) {
+		opts := runEnter(t, "enter", "suse", "-a", "--pids-limit 100", "bash")
+		assert.Equal(t, "suse", opts.ContainerName)
+		assert.Equal(t, "--pids-limit 100", opts.AdditionalFlags)
+		assert.Equal(t, []string{"bash"}, opts.CustomCommand)
+	})
+
+	t.Run("--no-tty after name is consumed", func(t *testing.T) {
+		opts := runEnter(t, "enter", "suse", "--no-tty", "--", "bash")
+		assert.Equal(t, "suse", opts.ContainerName)
+		assert.True(t, opts.NoTTY)
+		assert.Equal(t, []string{"bash"}, opts.CustomCommand)
+	})
+
+	// Regression for the naive StopOnNthArg:2 fix: when --name supplies the
+	// name, the command's own short flag (-c) must not be parsed as
+	// --clean-path.
+	t.Run("--name then command with short flag", func(t *testing.T) {
+		opts := runEnter(t, "enter", "--name", "suse", "bash", "-c", "echo")
+		assert.Equal(t, "suse", opts.ContainerName)
+		assert.False(t, opts.CleanPath)
+		assert.Equal(t, []string{"bash", "-c", "echo"}, opts.CustomCommand)
+	})
+
+	// A flag that follows the command word belongs to the command.
+	t.Run("flag after command word stays in the command", func(t *testing.T) {
+		opts := runEnter(t, "enter", "suse", "vim", "--help")
+		assert.Equal(t, "suse", opts.ContainerName)
+		assert.Equal(t, []string{"vim", "--help"}, opts.CustomCommand)
+	})
+}
+
+// runEnterRaw runs enter through PrepareArgs and returns the spy plus the Run
+// error, without asserting either — for cases that intentionally stop before
+// Enter (help, invalid flag).
+func runEnterRaw(t *testing.T, argv ...string) (*spyContainerManager, error) {
+	t.Helper()
+
+	spy := &spyContainerManager{existsResult: true}
+	cmd := newEnterCommand(config.DefaultValues())
+	cmd.Before = func(ctx context.Context, _ *cli.Command) (context.Context, error) {
+		return context.WithValue(ctx, containerManagerKey, spy), nil
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, findExecMarkerIndex(tc.args))
-		})
-	}
+	root := &cli.Command{Commands: []*cli.Command{cmd}, Writer: io.Discard, ErrWriter: io.Discard}
+	full := PrepareArgs(root, append([]string{"distrobox"}, argv...))
+
+	return spy, root.Run(context.Background(), full)
+}
+
+// TestEnterCommand_NoEnterAfterName pins down that a recognized help flag
+// after the name shows help, and an unrecognized flag after the name is
+// rejected — in both cases without entering the container.
+func TestEnterCommand_NoEnterAfterName(t *testing.T) {
+	t.Run("--help after name shows help, does not enter", func(t *testing.T) {
+		spy, err := runEnterRaw(t, "enter", "suse", "--help")
+		require.NoError(t, err)
+		assert.Empty(t, spy.calls, "expected help, not Enter")
+	})
+
+	t.Run("unknown flag after name errors, does not enter", func(t *testing.T) {
+		spy, err := runEnterRaw(t, "enter", "suse", "--frobnicate")
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "not defined")
+		assert.Empty(t, spy.calls, "expected error, not Enter")
+	})
 }

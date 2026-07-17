@@ -31,7 +31,8 @@ func runEphemeral(t *testing.T, argv ...string) containermanager.EnterOptions {
 	}
 
 	root := &cli.Command{Commands: []*cli.Command{cmd}}
-	full := append([]string{"distrobox"}, argv...)
+	// Mirror the real entrypoint, which runs argv through PrepareArgs.
+	full := PrepareArgs(root, append([]string{"distrobox"}, argv...))
 
 	require.NoError(t, root.Run(context.Background(), full))
 	require.NotEmpty(t, spy.calls, "expected Enter to be called for argv %v", argv)
