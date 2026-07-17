@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 )
 
@@ -58,10 +57,6 @@ func exists(name string) bool {
 		if _, err := os.Stat(filepath.Join(dir, name)); err == nil {
 			return true
 		}
-	}
-
-	if _, err := exec.LookPath(name); err == nil {
-		return true
 	}
 
 	return false

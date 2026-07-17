@@ -29,21 +29,12 @@ func assertAllScripts(t *testing.T, dir string) {
 	}
 }
 
-// isolatePath wipes PATH for the duration of the test so the PATH branch
-// of exists() never finds a system-installed distrobox-init while we are
-// trying to exercise other resolution branches.
-func isolatePath(t *testing.T) {
-	t.Helper()
-	t.Setenv("PATH", "")
-}
-
 // TestProvisionScripts_CustomDir checks the DBX_SCRIPTS_DIR override:
 // when set to an empty directory, ProvisionScripts writes all three
 // scripts there and returns that directory.
 func TestProvisionScripts_CustomDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("DBX_SCRIPTS_DIR", tmpDir)
-	isolatePath(t)
 
 	dir, err := insidedistrobox.ProvisionScripts()
 	require.NoError(t, err)
@@ -51,38 +42,13 @@ func TestProvisionScripts_CustomDir(t *testing.T) {
 	assertAllScripts(t, dir)
 }
 
-// TestProvisionScripts_DetectOnPath confirms the skip-write shortcut via
-// the PATH branch of exists(): when the helper scripts already exist
-// somewhere on PATH, ProvisionScripts leaves them byte-for-byte
-// untouched rather than overwriting from the embedded copies.
-func TestProvisionScripts_DetectOnPath(t *testing.T) {
-	scriptsDir := t.TempDir()
-	marker := "#!/bin/sh\n# pre-existing-marker\n"
-	for _, name := range expectedScripts {
-		require.NoError(t, os.WriteFile(filepath.Join(scriptsDir, name), []byte(marker), 0755))
-	}
-
-	t.Setenv("PATH", scriptsDir)
-	t.Setenv("DBX_SCRIPTS_DIR", t.TempDir())
-
-	_, err := insidedistrobox.ProvisionScripts()
-	require.NoError(t, err)
-
-	for _, name := range expectedScripts {
-		got, err := os.ReadFile(filepath.Join(scriptsDir, name))
-		require.NoError(t, err)
-		require.Equal(t, marker, string(got), "%s was overwritten despite existing on PATH", name)
-	}
-}
-
 // TestProvisionScripts_ExtractsAdjacentToBinary verifies the default
-// resolution: with no DBX_SCRIPTS_DIR override and nothing on PATH,
+// resolution: with no DBX_SCRIPTS_DIR override,
 // ProvisionScripts writes to the directory containing the running
 // binary. That is the layout a fresh `go install` or curl-only deploy
 // produces.
 func TestProvisionScripts_ExtractsAdjacentToBinary(t *testing.T) {
 	t.Setenv("DBX_SCRIPTS_DIR", "")
-	isolatePath(t)
 	t.Setenv("HOME", t.TempDir())
 
 	exe, err := os.Executable()
