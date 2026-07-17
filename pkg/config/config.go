@@ -31,6 +31,12 @@ type Values struct {
 	SkipWorkDir         bool
 	UsernsNoLimit       bool
 	RmCustomHome        bool
+
+	// ScriptsDir is the directory path where the helper scripts
+	// (distrobox-init, distrobox-export, distrobox-host-exec) are stored.
+	// Resolved from DBX_SCRIPTS_DIR env var first, then the directory of the
+	// running binary, then ~/.local/bin, falling back to /usr/bin.
+	ScriptsDir string
 }
 
 func defaultsMap() map[string]string {
@@ -96,6 +102,7 @@ func toStruct(configMap map[string]string) *Values {
 		SkipWorkDir:           toBool(configMap["container_skip_workdir"]),
 		UsernsNoLimit:         toBool(configMap["userns_nolimit"]),
 		RmCustomHome:          toBool(configMap["rm_home"]),
+		ScriptsDir:            resolveScriptsDir(),
 	}
 }
 
@@ -240,4 +247,26 @@ func readEnv() map[string]string {
 	}
 
 	return envConfig
+}
+
+// resolveScriptsDir returns the directory path where the helper scripts should
+// be stored.
+func resolveScriptsDir() string {
+	// First check DBX_SCRIPTS_DIR env var
+	if dir := os.Getenv("DBX_SCRIPTS_DIR"); dir != "" {
+		return dir
+	}
+
+	// then check the path where main distrobox is installed
+	if exe, err := os.Executable(); err == nil {
+		return filepath.Dir(exe)
+	}
+
+	// Then, check host's HOME env var
+	if home := os.Getenv("HOME"); home != "" {
+		return filepath.Join(home, ".local", "bin")
+	}
+
+	// Fallback to default path
+	return "/usr/bin"
 }

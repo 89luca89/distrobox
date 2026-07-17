@@ -29,27 +29,54 @@ func assertAllScripts(t *testing.T, dir string) {
 	}
 }
 
-// TestProvisionScripts_CustomDir checks the DBX_SCRIPTS_DIR override:
-// when set to an empty directory, ProvisionScripts writes all three
-// scripts there and returns that directory.
+// isolatePath wipes PATH for the duration of the test so the PATH branch
+// of exists() never finds a system-installed distrobox-init while we are
+// trying to exercise other resolution branches.
+func isolatePath(t *testing.T) {
+	t.Helper()
+	t.Setenv("PATH", "")
+}
+
+// TestProvisionScripts_CustomDir checks that ProvisionScripts writes all three
+// scripts into the given directory and returns it unchanged.
 func TestProvisionScripts_CustomDir(t *testing.T) {
 	tmpDir := t.TempDir()
-	t.Setenv("DBX_SCRIPTS_DIR", tmpDir)
+	isolatePath(t)
 
-	dir, err := insidedistrobox.ProvisionScripts()
+	dir, err := insidedistrobox.ProvisionScripts(tmpDir)
 	require.NoError(t, err)
 	require.Equal(t, tmpDir, dir)
 	assertAllScripts(t, dir)
 }
 
-// TestProvisionScripts_ExtractsAdjacentToBinary verifies the default
-// resolution: with no DBX_SCRIPTS_DIR override,
-// ProvisionScripts writes to the directory containing the running
-// binary. That is the layout a fresh `go install` or curl-only deploy
-// produces.
+// TestProvisionScripts_DetectOnPath confirms the skip-write shortcut via
+// the PATH branch of exists(): when the helper scripts already exist
+// somewhere on PATH, ProvisionScripts leaves them byte-for-byte
+// untouched rather than overwriting from the embedded copies.
+func TestProvisionScripts_DetectOnPath(t *testing.T) {
+	writeDir := t.TempDir()
+	scriptsDir := t.TempDir()
+	marker := "#!/bin/sh\n# pre-existing-marker\n"
+	for _, name := range expectedScripts {
+		require.NoError(t, os.WriteFile(filepath.Join(scriptsDir, name), []byte(marker), 0755))
+	}
+
+	t.Setenv("PATH", scriptsDir)
+
+	_, err := insidedistrobox.ProvisionScripts(writeDir)
+	require.NoError(t, err)
+
+	for _, name := range expectedScripts {
+		got, err := os.ReadFile(filepath.Join(scriptsDir, name))
+		require.NoError(t, err)
+		require.Equal(t, marker, string(got), "%s was overwritten despite existing on PATH", name)
+	}
+}
+
+// TestProvisionScripts_ExtractsAdjacentToBinary verifies that ProvisionScripts
+// writes to the given directory.
 func TestProvisionScripts_ExtractsAdjacentToBinary(t *testing.T) {
-	t.Setenv("DBX_SCRIPTS_DIR", "")
-	t.Setenv("HOME", t.TempDir())
+	isolatePath(t)
 
 	exe, err := os.Executable()
 	require.NoError(t, err)
@@ -63,7 +90,7 @@ func TestProvisionScripts_ExtractsAdjacentToBinary(t *testing.T) {
 		}
 	})
 
-	dir, err := insidedistrobox.ProvisionScripts()
+	dir, err := insidedistrobox.ProvisionScripts(exeDir)
 	require.NoError(t, err)
 	require.Equal(t, exeDir, dir)
 	assertAllScripts(t, dir)

@@ -92,7 +92,7 @@ func (d *Docker) Create(
 ) error {
 	userEnv := userenv.LoadUserEnvironment(ctx)
 
-	scriptsDir, err := insidedistrobox.ProvisionScripts()
+	scriptsDir, err := insidedistrobox.ProvisionScripts(opts.ScriptsDir)
 	if err != nil {
 		return fmt.Errorf("failed to provision scripts: %w", err)
 	}

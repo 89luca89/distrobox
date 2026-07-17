@@ -149,6 +149,7 @@ func (c *CreateCommand) Execute(ctx context.Context, opts CreateOptions) (*Creat
 			Init:                    opts.Init,
 			Nvidia:                  opts.Nvidia,
 			DryRun:                  opts.DryRun,
+			ScriptsDir:              c.cfg.ScriptsDir,
 		},
 	)
 

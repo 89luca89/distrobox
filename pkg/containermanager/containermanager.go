@@ -83,6 +83,11 @@ type CreateOptions struct {
 	Init                    bool
 	Nvidia                  bool
 	DryRun                  bool
+	// ScriptsDir is the directory where helper scripts (distrobox-init,
+	// distrobox-export, distrobox-host-exec) are stored. It is resolved
+	// by config.Values.ScriptsDir and passed through so the provider can
+	// mount them into the container.
+	ScriptsDir string
 }
 
 type EnterOptions struct {
