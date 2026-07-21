@@ -23,6 +23,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -82,6 +83,14 @@ func TestDocker_makeCreateCommand(t *testing.T) {
 		selinuxVolume = " --volume /sys/fs/selinux"
 	}
 
+	// Group forwarding mirrors os.Getgroups(), which varies by host.
+	groupAddFlags := ""
+	if groups, err := os.Getgroups(); err == nil {
+		for _, gid := range groups {
+			groupAddFlags += " --group-add " + strconv.Itoa(gid)
+		}
+	}
+
 	expected := oneline(`
  create
  --hostname my-hostname
@@ -120,6 +129,7 @@ func TestDocker_makeCreateCommand(t *testing.T) {
  --volume /etc/hosts:/etc/hosts:ro
  --volume /etc/resolv.conf:/etc/resolv.conf:ro
  --volume /dev/null:/run/.distrobox.rootless:ro
+ ` + groupAddFlags + `
  --volume /path/to/my-volume:/var/local/my-volume:ro
  --volume /path/to/distrobox-init:/usr/bin/entrypoint:ro
  --entrypoint /usr/bin/entrypoint
