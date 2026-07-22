@@ -14,6 +14,7 @@ bin/
 coverage.*
 *.coverprofile
 profile.cov
+hack/test/out
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
