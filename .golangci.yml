@@ -126,7 +126,7 @@ linters:
     #- exhaustruct # [highly recommend to enable] checks if all structure fields are initialized
     #- ginkgolinter # [if you use ginkgo/gomega] enforces standards of using ginkgo and gomega
     #- godox # detects usage of FIXME, TODO and other keywords inside comments
-    #- goheader # checks is file header matches to pattern
+    - goheader # checks that each file starts with the project license header
     #- inamedparam # [great idea, but too strict, need to ignore a lot of cases by default] reports interfaces with unnamed method parameters
     #- interfacebloat # checks the number of methods inside an interface
     #- ireturn # accept interfaces, return concrete types
@@ -322,6 +322,32 @@ linters:
 
     gocyclo:
       min-complexity: 35
+
+    goheader:
+      # Every source file must open with the GPL-3.0-only header carried by the
+      # original shell implementation (see the `legacy` branch). The year is pinned
+      # to the project's inception (2021) to stay consistent with the shell sources
+      # still shipped under internal/inside-distrobox/assets, so no {{ YEAR }}
+      # placeholder is used here.
+      template: |-
+        SPDX-License-Identifier: GPL-3.0-only
+
+        This file is part of the distrobox project:
+           https://github.com/89luca89/distrobox
+
+        Copyright (C) 2021 distrobox contributors
+
+        distrobox is free software; you can redistribute it and/or modify it
+        under the terms of the GNU General Public License version 3
+        as published by the Free Software Foundation.
+
+        distrobox is distributed in the hope that it will be useful, but
+        WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+        General Public License for more details.
+
+        You should have received a copy of the GNU General Public License
+        along with distrobox; if not, see <http://www.gnu.org/licenses/>.
 
     govet:
       # Enable all analyzers.
