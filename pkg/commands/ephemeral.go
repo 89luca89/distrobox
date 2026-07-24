@@ -24,7 +24,6 @@ type EphemeralOptions struct {
 	// ephemeral container instead of the default login shell. It is forwarded
 	// to the underlying enter command.
 	CustomCommand []string
-	DryRun        bool
 }
 
 type EphemeralCommand struct {
@@ -68,7 +67,6 @@ func (c *EphemeralCommand) Execute(ctx context.Context, opts EphemeralOptions) e
 	createOpts.ContainerName = name
 	// override options not relevant for creating ephemeral containers
 	createOpts.GenerateEntry = false
-	createOpts.DryRun = opts.DryRun
 	createOpts.NonInteractive = true
 	if _, createErr := c.createCmd.Execute(ctx, createOpts); createErr != nil {
 		return fmt.Errorf("ephemeral: %w", createErr)

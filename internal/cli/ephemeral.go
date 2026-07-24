@@ -100,9 +100,9 @@ func ephemeralAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) 
 			ContainerPlatform:       cmd.String("platform"),
 			GenerateEntry:           false,
 			Rootful:                 cmd.Bool("root"),
+			DryRun:                  cmd.Bool("dry-run"),
 		},
 		CustomCommand: customCommand,
-		DryRun:        cmd.Bool("dry-run"),
 	}
 
 	progress := ui.NewProgress(os.Stderr)

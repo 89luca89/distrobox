@@ -32,9 +32,9 @@ func TestEphemeralCommand_PassesCustomCommandToEnter(t *testing.T) {
 		CreateOptions: commands.CreateOptions{
 			ContainerName:  "ephemeral-test",
 			ContainerImage: "alpine:latest",
+			DryRun:         true,
 		},
 		CustomCommand: customCommand,
-		DryRun:        true,
 	})
 	require.NoError(t, err)
 
@@ -52,8 +52,8 @@ func TestEphemeralCommand_EmptyCustomCommandIsNotForwardedAsArgs(t *testing.T) {
 		CreateOptions: commands.CreateOptions{
 			ContainerName:  "ephemeral-no-cmd",
 			ContainerImage: "alpine:latest",
+			DryRun:         true,
 		},
-		DryRun: true,
 	})
 	require.NoError(t, err)
 
