@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -151,12 +152,10 @@ func getConfigFilePaths() ([]string, error) {
 	}, nil
 }
 
-func mergeConfigMaps(maps ...map[string]string) map[string]string {
+func mergeConfigMaps(configMaps ...map[string]string) map[string]string {
 	merged := make(map[string]string)
-	for _, m := range maps {
-		for k, v := range m {
-			merged[k] = v
-		}
+	for _, m := range configMaps {
+		maps.Copy(merged, m)
 	}
 	return merged
 }
