@@ -369,5 +369,5 @@ func BuildCommandArgs(customCommand []string, user string, noTTY bool, unshareGr
 }
 
 func TimestampNow() string {
-	return time.Now().UTC().Format("2006-01-02T15:04:05.000000000+00:00")
+	return time.Now().UTC().Format(time.RFC3339Nano)
 }
