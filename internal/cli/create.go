@@ -163,11 +163,6 @@ may require additional packages depending on the container image: https://github
 				Usage:   "only print the container manager command generated",
 			},
 			&cli.BoolFlag{
-				Name:    "verbose",
-				Aliases: []string{"v"},
-				Usage:   "show more verbosity",
-			},
-			&cli.BoolFlag{
 				Name:  "absolutely-disable-root-password-i-am-really-positively-sure",
 				Usage: `⚠️ ⚠️ when setting up a rootful distrobox, this will skip user password setup, leaving it blank. ⚠️ ⚠️`,
 			},
