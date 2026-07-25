@@ -475,6 +475,26 @@ EOF
 	fi
 }
 
+# setup_tmpfiles_exceptions masks the systemd-tmpfiles configs that chown paths
+# bind mounted from the host.
+# Arguments:
+#   None
+# Expected global variables:
+#   None
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_tmpfiles_exceptions()
+{
+	mkdir -p /etc/tmpfiles.d
+	for tmpfiles_conf in \
+		tmp.conf x11.conf systemd-tmp.conf openssh-client.conf \
+		tpm-udev.conf tpm2-tss-fapi.conf; do
+		ln -sf /dev/null "/etc/tmpfiles.d/${tmpfiles_conf}"
+	done
+}
+
 # setup_deb_exceptions will create path-excludes for host mounts, dpkg/apt only.
 # Arguments:
 #   None
@@ -1796,6 +1816,10 @@ check_missing_packages()
 
 # Ensure we have the least minimal path of standard Linux File System set
 PATH="${PATH}:/bin:/sbin:/usr/bin:/usr/sbin"
+
+# Mask systemd-tmpfiles rules over host-shared paths before any package manager
+# runs its maintainer scripts.
+setup_tmpfiles_exceptions
 
 # Setup pkg manager exceptions and excludes
 if command -v apt-get; then
