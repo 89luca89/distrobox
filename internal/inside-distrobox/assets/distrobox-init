@@ -1707,9 +1707,21 @@ EOF
 		libvulkan_intel
 		libvulkan_radeon
 	"
-	# Mark gpg errors (exit code 106) as non-fatal, but don't pull anything from unverified repos
+	# zypper reserves exit codes >= 100 as informational: the transaction
+	# committed, but something is worth noting - e.g. 106 (a repo was skipped) or
+	# 107 (a package %post script failed, common in containers). Treat those as
+	# non-fatal warnings. 105 (interrupted by a signal) shares the range but is a
+	# genuine abort, so it stays fatal.
 	# shellcheck disable=SC2086,SC2046
-	zypper -n install -y $(zypper -n -q se --match-exact ${deps} | grep -e 'package$' | cut -d'|' -f2) || [ ${?} = 106 ]
+	zypper -n install -y $(zypper -n -q se --match-exact ${deps} | grep -e 'package$' | cut -d'|' -f2) || zypper_rc=${?}
+	case "${zypper_rc:-0}" in
+		0) ;;
+		105) exit "${zypper_rc}" ;;
+		1[0-9][0-9])
+			printf "Warning: zypper exited %s (informational); packages installed, continuing.\n" "${zypper_rc}"
+			;;
+		*) exit "${zypper_rc}" ;;
+	esac
 
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
