@@ -651,6 +651,7 @@ setup_apk()
 			script
 		"
 	elif apk add alpine-base; then
+		apk upgrade -Ua
 		deps="
 			bash-completion
 			docs
@@ -671,8 +672,6 @@ setup_apk()
 	elif apk add base-bootstrap; then
 		# Prevent "ADB schema error" while installing tzdb in rootful container on currently old image
 		apk upgrade -Ua
-		# Prevent "fchownat() of /tmp failed: Operation not permitted" from sd-tools trigger script
-		sed -i '' '/^q \/tmp/ s/^/#/' /usr/lib/tmpfiles.d/tmp.conf
 		# Setup rest of packages while also allowing install of extras from user repo
 		apk add chimera-repo-user
 		apk update
