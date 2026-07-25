@@ -475,6 +475,26 @@ EOF
 	fi
 }
 
+# setup_tmpfiles_exceptions masks the systemd-tmpfiles configs that chown paths
+# bind mounted from the host.
+# Arguments:
+#   None
+# Expected global variables:
+#   None
+# Expected env variables:
+#   None
+# Outputs:
+#   None
+setup_tmpfiles_exceptions()
+{
+	mkdir -p /etc/tmpfiles.d
+	for tmpfiles_conf in \
+		tmp.conf x11.conf systemd-tmp.conf openssh-client.conf \
+		tpm-udev.conf tpm2-tss-fapi.conf; do
+		ln -sf /dev/null "/etc/tmpfiles.d/${tmpfiles_conf}"
+	done
+}
+
 # setup_deb_exceptions will create path-excludes for host mounts, dpkg/apt only.
 # Arguments:
 #   None
@@ -651,6 +671,7 @@ setup_apk()
 			script
 		"
 	elif apk add alpine-base; then
+		apk upgrade -Ua
 		deps="
 			bash-completion
 			docs
@@ -671,8 +692,6 @@ setup_apk()
 	elif apk add base-bootstrap; then
 		# Prevent "ADB schema error" while installing tzdb in rootful container on currently old image
 		apk upgrade -Ua
-		# Prevent "fchownat() of /tmp failed: Operation not permitted" from sd-tools trigger script
-		sed -i '' '/^q \/tmp/ s/^/#/' /usr/lib/tmpfiles.d/tmp.conf
 		# Setup rest of packages while also allowing install of extras from user repo
 		apk add chimera-repo-user
 		apk update
@@ -1708,9 +1727,21 @@ EOF
 		libvulkan_intel
 		libvulkan_radeon
 	"
-	# Mark gpg errors (exit code 106) as non-fatal, but don't pull anything from unverified repos
+	# zypper reserves exit codes >= 100 as informational: the transaction
+	# committed, but something is worth noting - e.g. 106 (a repo was skipped) or
+	# 107 (a package %post script failed, common in containers). Treat those as
+	# non-fatal warnings. 105 (interrupted by a signal) shares the range but is a
+	# genuine abort, so it stays fatal.
 	# shellcheck disable=SC2086,SC2046
-	zypper -n install -y $(zypper -n -q se --match-exact ${deps} | grep -e 'package$' | cut -d'|' -f2) || [ ${?} = 106 ]
+	zypper -n install -y $(zypper -n -q se --match-exact ${deps} | grep -e 'package$' | cut -d'|' -f2) || zypper_rc=${?}
+	case "${zypper_rc:-0}" in
+		0) ;;
+		105) exit "${zypper_rc}" ;;
+		1[0-9][0-9])
+			printf "Warning: zypper exited %s (informational); packages installed, continuing.\n" "${zypper_rc}"
+			;;
+		*) exit "${zypper_rc}" ;;
+	esac
 
 	# In case the locale is not available, install it
 	# will ensure we don't fallback to C.UTF-8
@@ -1785,6 +1816,10 @@ check_missing_packages()
 
 # Ensure we have the least minimal path of standard Linux File System set
 PATH="${PATH}:/bin:/sbin:/usr/bin:/usr/sbin"
+
+# Mask systemd-tmpfiles rules over host-shared paths before any package manager
+# runs its maintainer scripts.
+setup_tmpfiles_exceptions
 
 # Setup pkg manager exceptions and excludes
 if command -v apt-get; then
