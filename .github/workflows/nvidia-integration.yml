@@ -1,0 +1,92 @@
+---
+name: NVIDIA integration
+
+# distrobox-init holds the --nvidia mirroring logic, so only run this expensive
+# VM-based test when that script (or the test harness itself) changes.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - internal/inside-distrobox/assets/distrobox-init
+      - hack/test/**
+      - .github/workflows/nvidia-integration.yml
+  workflow_dispatch:
+
+# A new push to the same PR/branch cancels the run still in progress, so only
+# the latest commit is tested (and expensive VM runners are not wasted).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nvidia-test:
+    name: ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      # Boot the three host VMs in parallel and keep going if one fails, so a
+      # single distro regression still reports the others and their logs.
+      fail-fast: false
+      matrix:
+        distro: [ubuntu, fedora, arch]
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+
+      - name: Install qemu and cloud-image-utils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            qemu-system-x86 qemu-utils cloud-image-utils curl
+
+      # Fail fast without KVM: qemu would otherwise drop to slow TCG emulation
+      # and the test would time out rather than report a useful result.
+      - name: verify KVM is available
+        run: |
+          if [ ! -e /dev/kvm ]; then
+            echo "::error::/dev/kvm not present on this runner; e2e cannot run."
+            exit 1
+          fi
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm-e2e.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -la /dev/kvm
+
+      # Restore the base cloud image (hundreds of MB) so later runs skip the
+      # download. Keyed on vm-run.sh, which pins the image URLs, so a bump
+      # invalidates it; restore-keys still serves the last image for the distro.
+      - name: Restore cached base cloud image
+        id: img-cache
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ~/.cache/distrobox-vmtest
+          key: qcow2-${{ matrix.distro }}-${{ hashFiles('hack/test/vm-run.sh') }}
+          restore-keys: |
+            qcow2-${{ matrix.distro }}-
+
+      - name: Run --nvidia integration test
+        timeout-minutes: 45
+        run: hack/test/test-nvidia-integration.sh ${{ matrix.distro }}
+
+      # Save even when the test fails - a red run is when we re-run most, and the
+      # plain cache action only saves on success. Skipped on an exact-key hit.
+      - name: Save base cloud image
+        if: always() && steps.img-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ~/.cache/distrobox-vmtest
+          key: qcow2-${{ matrix.distro }}-${{ hashFiles('hack/test/vm-run.sh') }}
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: nvidia-test-logs-${{ matrix.distro }}
+          path: hack/test/out/last-out-${{ matrix.distro }}/
+          if-no-files-found: warn

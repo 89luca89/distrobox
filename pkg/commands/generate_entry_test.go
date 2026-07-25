@@ -32,7 +32,6 @@ import (
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
-	"github.com/89luca89/distrobox/pkg/containermanager/providers"
 	"github.com/89luca89/distrobox/pkg/internal/testutil"
 )
 
@@ -174,9 +173,15 @@ func TestGenerateAllEntriesCommand_Execute(t *testing.T) {
 	tempDir := t.TempDir()
 	defer os.RemoveAll(tempDir)
 
-	// create the list command
-	containerManager := providers.NewDocker(false, "sudo", false)
-	listCmd := commands.NewListCommand(&config.Values{}, containerManager)
+	// Mock manager keeps this deterministic and offline (a real docker made it
+	// fail with exit 127); the non-distro images resolve to the fallback icon.
+	mock := &testutil.MockContainerManager{
+		ListContainersResult: []containermanager.Container{
+			{Name: "boxone", Image: "example.com/appone:1", Status: "Exited", Labels: map[string]string{"manager": "distrobox"}},
+			{Name: "boxtwo", Image: "example.com/apptwo:1", Status: "Exited", Labels: map[string]string{"manager": "distrobox"}},
+		},
+	}
+	listCmd := commands.NewListCommand(&config.Values{}, mock)
 
 	// create the generate all entries command
 	genAllEntriesCmd := commands.NewGenerateEntryCommand(&config.Values{}, listCmd)

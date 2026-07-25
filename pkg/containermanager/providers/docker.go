@@ -414,6 +414,16 @@ func (d *Docker) makeCreateCommand(
 		options = append(options, "--volume", "/dev/null:/run/.distrobox.rootless:ro")
 	}
 
+	// Docker has no run.oci.keep_original_groups equivalent, and the device
+	// nodes we bind carry the host's numeric gid, so the user's supplementary
+	// groups have to be forwarded by number. Rootless podman+runc can't do this
+	// at all (host gids fall outside the userns map), hence podman's crun reliance.
+	if groups, err := os.Getgroups(); err == nil {
+		for _, gid := range groups {
+			options = append(options, "--group-add", strconv.Itoa(gid))
+		}
+	}
+
 	// Add additional flags
 	options = append(options, containerAdditionalFlags...)
 
