@@ -20,7 +20,7 @@
 #
 set -eu
 #
-# hack/test/test-nvidia-integration.sh <ubuntu|fedora|arch>
+# hack/test/test-nvidia-integration.sh <ubuntu|fedora|arch|debian>
 #
 # distrobox --nvidia integration test. Builds distrobox, stages the host binary
 # and the in-VM script (nvidia-test.sh, as the run.sh entry point vm-run.sh
@@ -31,7 +31,7 @@ set -eu
 # ./last-out-<distro>/.
 #
 
-DISTRO="${1:?usage: test-nvidia-integration.sh <ubuntu|fedora|arch>}"
+DISTRO="${1:?usage: test-nvidia-integration.sh <ubuntu|fedora|arch|debian>}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "${HERE}/../.." && pwd)"
 OUT="${HERE}/out/last-out-${DISTRO}"

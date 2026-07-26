@@ -30,7 +30,7 @@ set -u
 DISTRO="${1:-$(cat /mnt/share/distro 2> /dev/null || true)}"
 SERIAL=/dev/ttyS0
 OUT=/mnt/out
-BOX_IMAGES="quay.io/toolbx/ubuntu-toolbox:24.04 registry.fedoraproject.org/fedora-toolbox:44 quay.io/toolbx/arch-toolbox:latest"
+BOX_IMAGES="quay.io/toolbx/ubuntu-toolbox:24.04 registry.fedoraproject.org/fedora-toolbox:44 quay.io/toolbx/arch-toolbox:latest quay.io/toolbx-images/debian-toolbox:latest"
 
 log()
 {
@@ -69,8 +69,8 @@ run_log()
 {
 	{
 		"$@" 2>&1
-		echo       "$?" > /tmp/.rc
-	}                              | tee -a "${OUT}/install.log"
+		echo "$?" > /tmp/.rc
+	} | tee -a "${OUT}/install.log"
 	read -r _rc < /tmp/.rc
 	return "${_rc}"
 }
@@ -89,6 +89,21 @@ case "${DISTRO}" in
 		run_log apt-get install -y ${pkgs} || fail "install nvidia"
 		dpkg --add-architecture i386 && run_log apt-get update -y
 		run_log apt-get install -y "libnvidia-gl-${b}:i386" && pkgs="${pkgs} libnvidia-gl-${b}:i386"
+		# shellcheck disable=SC2086
+		pm_list()
+		{
+			dpkg -L ${pkgs} 2> /dev/null
+		}
+		;;
+	debian)
+		export DEBIAN_FRONTEND=noninteractive
+		sed -i -E 's/^Components:.*/Components: main contrib non-free non-free-firmware/' \
+			/etc/apt/sources.list.d/debian.sources
+		run_log apt-get update -y || fail "apt update"
+		run_log apt-get install -y podman || fail "install podman"
+		pkgs="libcuda1 libnvidia-ml1 libglx-nvidia0 libegl-nvidia0 libgles-nvidia1 libgles-nvidia2 libnvidia-eglcore libnvidia-glcore libnvidia-glvkspirv libnvidia-gpucomp libnvidia-nvvm4 libnvidia-ptxjitcompiler1 libnvidia-rtcore libnvidia-encode1 libnvidia-cfg1 libnvidia-allocator1 libnvidia-fbc1 libnvidia-pkcs11-openssl3 libnvidia-egl-wayland1 nvidia-opencl-icd nvidia-egl-common nvidia-opencl-common nvidia-vulkan-common nvidia-vdpau-driver"
+		# shellcheck disable=SC2086
+		run_log apt-get install -y --no-install-recommends ${pkgs} || fail "install nvidia"
 		# shellcheck disable=SC2086
 		pm_list()
 		{
@@ -138,7 +153,7 @@ install -m0755 /mnt/share/distrobox /usr/local/bin/distrobox || fail "install di
 is_excluded()
 {
 	case "$1" in
-		*/share/doc/* | */share/man/* | */share/lintian/* | */share/licenses/* | */share/metainfo/* | */share/applications/* | */share/icons/* | */share/pixmaps/*) return 0 ;;
+		*/share/doc/* | */share/man/* | */share/lintian/* | */share/licenses/* | */share/metainfo/* | */share/applications/* | */share/icons/* | */share/pixmaps/* | */share/bug/*) return 0 ;;
 		*/include/* | *.h | *.hpp | *.a | *.la) return 0 ;;
 		*/lib/modules/* | *.ko | *.ko.* | */firmware/*) return 0 ;;
 		*/.build-id/* | */lib/debug/* | */systemd/* | *.service | *.socket | */udev/* | *.rules) return 0 ;;
