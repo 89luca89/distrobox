@@ -39,7 +39,7 @@
 REPO="89luca89/distrobox"
 # Bump on every release. Override with --version to install a different tag.
 LEGACY_VERSION="1.8.2.5"
-V2_VERSION="2.0.0-rc.3"
+V2_VERSION="2.0.0-rc.4"
 VERSION="${LEGACY_VERSION}"
 prefix=""
 no_color=0
