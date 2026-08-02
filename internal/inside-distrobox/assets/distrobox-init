@@ -2294,20 +2294,20 @@ test -z "\${DBUS_SESSION_BUS_ADDRESS:-}" && export DBUS_SESSION_BUS_ADDRESS="uni
 # Ensure we have these two variables from the host, so that graphical apps
 # also work in case we use a login session
 if [ -z "\$XAUTHORITY" ]; then
-    export XAUTHORITY="\$(host-spawn sh -c "printf "%s" \\\$XAUTHORITY")"
+    export XAUTHORITY="\$(host-spawn sh -c "printf "%s" \\\$XAUTHORITY" < /dev/null)"
     # if the variable is still empty, unset it, because empty it could be harmful
     [ -z "\$XAUTHORITY" ] && unset XAUTHORITY
 fi
 if [ -z "\$XAUTHLOCALHOSTNAME" ]; then
-    export XAUTHLOCALHOSTNAME="\$(host-spawn sh -c "printf "%s" \\\$XAUTHLOCALHOSTNAME")"
+    export XAUTHLOCALHOSTNAME="\$(host-spawn sh -c "printf "%s" \\\$XAUTHLOCALHOSTNAME" < /dev/null)"
     [ -z "\$XAUTHLOCALHOSTNAME" ] && unset XAUTHLOCALHOSTNAME
 fi
 if [ -z "\$WAYLAND_DISPLAY" ]; then
-    export WAYLAND_DISPLAY="\$(host-spawn sh -c "printf "%s" \\\$WAYLAND_DISPLAY")"
+    export WAYLAND_DISPLAY="\$(host-spawn sh -c "printf "%s" \\\$WAYLAND_DISPLAY" < /dev/null)"
     [ -z "\$WAYLAND_DISPLAY" ] && unset WAYLAND_DISPLAY
 fi
 if [ -z "\$DISPLAY" ]; then
-    export DISPLAY="\$(host-spawn sh -c "printf "%s" \\\$DISPLAY")"
+    export DISPLAY="\$(host-spawn sh -c "printf "%s" \\\$DISPLAY" < /dev/null)"
     [ -z "\$DISPLAY" ] && unset DISPLAY
 fi
 
@@ -2345,20 +2345,20 @@ if status --is-interactive
 	# Ensure we have these two variables from the host, so that graphical apps
 	# also work in case we use a login session
 	if test -z \$XAUTHORITY
-		set -gx XAUTHORITY (host-spawn sh -c "printf "%s" \\\$XAUTHORITY")
+		set -gx XAUTHORITY (host-spawn sh -c "printf "%s" \\\$XAUTHORITY" < /dev/null)
 		# if the variable is still empty, unset it, because empty it could be harmful
 		test -z \$XAUTHORITY ; and set -e XAUTHORITY
 	end
 	if test -z \$XAUTHLOCALHOSTNAME
-		set -gx XAUTHLOCALHOSTNAME (host-spawn sh -c "printf "%s" \\\$XAUTHLOCALHOSTNAME")
+		set -gx XAUTHLOCALHOSTNAME (host-spawn sh -c "printf "%s" \\\$XAUTHLOCALHOSTNAME" < /dev/null)
 		test -z \$XAUTHLOCALHOSTNAME ; and set -e XAUTHLOCALHOSTNAME
 	end
 	if test -z \$WAYLAND_DISPLAY
-		set -gx WAYLAND_DISPLAY (host-spawn sh -c "printf "%s" \\\$WAYLAND_DISPLAY")
+		set -gx WAYLAND_DISPLAY (host-spawn sh -c "printf "%s" \\\$WAYLAND_DISPLAY" < /dev/null)
 		test -z \$WAYLAND_DISPLAY ; and set -e WAYLAND_DISPLAY
 	end
 	if test -z \$DISPLAY
-		set -gx DISPLAY (host-spawn sh -c "printf "%s" \\\$DISPLAY")
+		set -gx DISPLAY (host-spawn sh -c "printf "%s" \\\$DISPLAY" < /dev/null)
 		test -z \$DISPLAY ; and set -e DISPLAY
 	end
 
