@@ -167,7 +167,7 @@ func (c *MigrateCommand) migrateContainer(ctx context.Context, name string, opts
 	createOpts := c.recoverCreateOptions(ctx, name, inspectResult)
 
 	if opts.DryRun {
-		c.printer.Println("[dry-run] Would stop, commit, remove and recreate container '%s' with image '%s'", name, createOpts.ContainerImage)
+		c.printer.Println("[dry-run] Would stop, commit, remove and recreate container '%s' from a temporary committed image (derived from '%s')", name, createOpts.ContainerImage)
 		return nil
 	}
 
@@ -180,7 +180,7 @@ func (c *MigrateCommand) migrateContainer(ctx context.Context, name string, opts
 	}
 
 	// Step 2: Commit the container's filesystem to a temporary image
-	commitTag := fmt.Sprintf("%s:migrate-%s", strings.ToLower(name), time.Now().Format("2006-01-02"))
+	commitTag := fmt.Sprintf("%s:migrate-%s", strings.ToLower(name), time.Now().UTC().Format("20060102-150405"))
 	c.printer.Println("Committing container '%s' to image '%s'...", name, commitTag)
 	if err := c.containerManager.Commit(ctx, inspectResult.ContainerID, commitTag); err != nil {
 		return fmt.Errorf("failed to commit container %s: %w", name, err)
@@ -268,6 +268,7 @@ func (c *MigrateCommand) recoverCreateOptions(
 			if i+1 < len(cmd) {
 				opts.ContainerInitHook = strings.Join(cmd[i+1:], " ")
 			}
+			i = len(cmd) // stop parsing flags after init hook
 		}
 	}
 

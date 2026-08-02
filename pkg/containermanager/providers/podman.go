@@ -825,7 +825,12 @@ func (p *Podman) InspectContainer(ctx context.Context, containerName string) (*c
 	inspect := inspects[0]
 	config.ContainerID = inspect.ID
 	config.ContainerStatus = inspect.State.Status
+	// Podman inspect exposes the image name as top-level ImageName; Docker
+	// inspect does not (it only carries it in Config.Image), so fall back.
 	config.ContainerImage = inspect.ImageName
+	if config.ContainerImage == "" {
+		config.ContainerImage = inspect.Config.Image
+	}
 	config.NetworkMode = inspect.HostConfig.NetworkMode
 	config.IpcMode = inspect.HostConfig.IpcMode
 	config.PidMode = inspect.HostConfig.PidMode
@@ -843,10 +848,15 @@ func (p *Podman) InspectContainer(ctx context.Context, containerName string) (*c
 	// Populate mount info
 	config.Mounts = make([]containermanager.MountInfo, 0, len(inspect.Mounts))
 	for _, m := range inspect.Mounts {
+		// Podman lists mount options in Options; Docker carries them in Mode.
+		mountOptions := strings.Join(m.Options, ",")
+		if mountOptions == "" {
+			mountOptions = m.Mode
+		}
 		config.Mounts = append(config.Mounts, containermanager.MountInfo{
 			Source:      m.Source,
 			Destination: m.Destination,
-			Options:     strings.Join(m.Options, ","),
+			Options:     mountOptions,
 		})
 	}
 
