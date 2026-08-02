@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -83,6 +84,11 @@ func NewMigrateCommand(
 
 // Execute runs the migration for the specified containers.
 func (c *MigrateCommand) Execute(ctx context.Context, opts MigrateOptions) error {
+	// Load the user environment once: the recreated containers are rebuilt
+	// from it (real home, custom home, XDG runtime dir) by the recovery
+	// helpers below.
+	userEnv := userenv.LoadUserEnvironment(ctx)
+
 	var containerNames []string
 
 	switch {
@@ -115,7 +121,7 @@ func (c *MigrateCommand) Execute(ctx context.Context, opts MigrateOptions) error
 
 	var lastErr error
 	for _, name := range containerNames {
-		err := c.migrateContainer(ctx, name, opts)
+		err := c.migrateContainer(ctx, name, opts, userEnv)
 		if err == nil {
 			continue
 		}
@@ -131,7 +137,12 @@ func (c *MigrateCommand) Execute(ctx context.Context, opts MigrateOptions) error
 }
 
 // migrateContainer performs the migration for a single container.
-func (c *MigrateCommand) migrateContainer(ctx context.Context, name string, opts MigrateOptions) error {
+func (c *MigrateCommand) migrateContainer(
+	ctx context.Context,
+	name string,
+	opts MigrateOptions,
+	userEnv *userenv.UserEnvironment,
+) error {
 	inspectResult, err := c.containerManager.InspectContainer(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to inspect container %s: %w", name, err)
@@ -164,7 +175,7 @@ func (c *MigrateCommand) migrateContainer(ctx context.Context, name string, opts
 	c.printer.Println("Migrating '%s'...", name)
 
 	// Recover the original creation options from the inspect data
-	createOpts := c.recoverCreateOptions(ctx, name, inspectResult)
+	createOpts := c.recoverCreateOptions(name, inspectResult, userEnv)
 
 	if opts.DryRun {
 		c.printer.Println("[dry-run] Would stop, commit, remove and recreate container '%s' from a temporary committed image (derived from '%s')", name, createOpts.ContainerImage)
@@ -214,9 +225,9 @@ func (c *MigrateCommand) migrateContainer(ctx context.Context, name string, opts
 //
 //nolint:gocognit,funlen // imperative option reconstruction is inherently linear
 func (c *MigrateCommand) recoverCreateOptions(
-	ctx context.Context,
 	name string,
 	inspect *containermanager.InspectResult,
+	userEnv *userenv.UserEnvironment,
 ) containermanager.CreateOptions {
 	opts := containermanager.CreateOptions{
 		ContainerName: name,
@@ -256,7 +267,6 @@ func (c *MigrateCommand) recoverCreateOptions(
 		case "--home":
 			if i+1 < len(cmd) {
 				home := cmd[i+1]
-				userEnv := userenv.LoadUserEnvironment(ctx)
 				// If the home differs from the user's real home, it's a custom home
 				if home != userEnv.Home {
 					opts.ContainerUserCustomHome = home
@@ -315,14 +325,18 @@ func (c *MigrateCommand) recoverCreateOptions(
 	// Recover additional user volumes: mounts that are not standard distrobox
 	// mounts and are bind-type (have a source that's an absolute path we can
 	// reconstruct as src:dst[:opts])
-	opts.AdditionalVolumes = c.recoverAdditionalVolumes(inspect.Mounts)
+	opts.AdditionalVolumes = c.recoverAdditionalVolumes(userEnv, opts, inspect.Mounts)
 
 	return opts
 }
 
 // recoverAdditionalVolumes extracts user-specified additional volumes from
 // the mount list, filtering out standard distrobox mounts.
-func (c *MigrateCommand) recoverAdditionalVolumes(mounts []containermanager.MountInfo) []string {
+func (c *MigrateCommand) recoverAdditionalVolumes(
+	userEnv *userenv.UserEnvironment,
+	opts containermanager.CreateOptions,
+	mounts []containermanager.MountInfo,
+) []string {
 	// Standard distrobox mount destinations that are managed by the create
 	// command and should not be treated as user volumes.
 	standardDestinations := map[string]bool{
@@ -370,10 +384,17 @@ func (c *MigrateCommand) recoverAdditionalVolumes(mounts []containermanager.Moun
 			continue
 		}
 
-		// Skip user home mount (source == destination == $HOME)
-		if mount.Source == mount.Destination {
-			// This is likely the home directory mount or XDG_RUNTIME_DIR mount
-			// These are handled by create from the user environment
+		// Skip the home directory and XDG_RUNTIME_DIR mounts: create
+		// regenerates both from the user environment. Only skip when the mount
+		// actually is one of those paths, so user volumes with identical source
+		// and destination (e.g. /opt:/opt) are kept.
+		home := userEnv.Home
+		if opts.ContainerUserCustomHome != "" {
+			home = opts.ContainerUserCustomHome
+		}
+		xdgRuntimeDir := filepath.Join("/run", "user", userEnv.UserID)
+		if mount.Source == mount.Destination &&
+			(mount.Destination == home || mount.Destination == xdgRuntimeDir) {
 			continue
 		}
 
