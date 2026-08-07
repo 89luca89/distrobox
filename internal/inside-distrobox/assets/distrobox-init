@@ -65,6 +65,11 @@ HOST_MOUNTS_RO_INIT="
 	/var/lib/systemd/coredump
 	/var/log/journal"
 
+if [ "${DISTROBOX_UNSHARE_NETNS:-0}" -eq 1 ]; then
+	HOST_MOUNTS="$(printf "%s\n" "${HOST_MOUNTS}" | grep -v "/run/systemd/resolve")"
+	HOST_MOUNTS_RO_INIT="$(printf "%s\n" "${HOST_MOUNTS_RO_INIT}" | grep -v "/run/systemd/resolve")"
+fi
+
 # Defaults
 container_additional_packages=""
 init=0
