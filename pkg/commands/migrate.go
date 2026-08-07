@@ -110,11 +110,14 @@ func (c *MigrateCommand) Execute(ctx context.Context, opts MigrateOptions) error
 		return ErrMigrateNoContainerSpecified
 	}
 
-	// Provision v2 scripts once, up front: they don't depend on which
-	// container is being migrated and the same files are reused for all.
+	// Provision the helper scripts once, up front: they don't depend on which
+	// container is being migrated and the same files are reused for all. The
+	// directory comes from the shared config resolution (the same one the
+	// create command uses) so migrated containers mount the same host path as
+	// freshly created ones.
 	// Skipped in dry-run to avoid host-side file writes.
 	if !opts.DryRun {
-		if _, err := insidedistrobox.ProvisionScripts(insidedistrobox.ScriptsDir()); err != nil {
+		if _, err := insidedistrobox.ProvisionScripts(c.cfg.ScriptsDir); err != nil {
 			return fmt.Errorf("failed to provision v2 scripts: %w", err)
 		}
 	}
@@ -203,8 +206,8 @@ func (c *MigrateCommand) migrateContainer(
 		return fmt.Errorf("failed to remove old container %s: %w", name, err)
 	}
 
-	// Step 4: Provision v2 scripts (ensure they exist before creating)
-	if _, err := insidedistrobox.ProvisionScripts(insidedistrobox.ScriptsDir()); err != nil {
+	// Step 4: Provision the helper scripts (ensure they exist before creating)
+	if _, err := insidedistrobox.ProvisionScripts(c.cfg.ScriptsDir); err != nil {
 		return fmt.Errorf("failed to provision v2 scripts: %w", err)
 	}
 
@@ -231,6 +234,10 @@ func (c *MigrateCommand) recoverCreateOptions(
 ) containermanager.CreateOptions {
 	opts := containermanager.CreateOptions{
 		ContainerName: name,
+		// Recreate with the same scripts directory the create command uses,
+		// so the rebuilt container mounts its helper scripts from the same
+		// host path as a freshly created one.
+		ScriptsDir: c.cfg.ScriptsDir,
 	}
 
 	// Use the committed image as the container image (set later by caller)
@@ -398,9 +405,12 @@ func (c *MigrateCommand) recoverAdditionalVolumes(
 			continue
 		}
 
-		// Skip mounts from the v2 scripts directory
-		v2Dir := insidedistrobox.ScriptsDir()
-		if strings.HasPrefix(mount.Source, v2Dir) {
+		// Skip mounts sourced from the helper scripts directory. The create
+		// command regenerates those mounts from the configured scripts dir,
+		// so carrying them over as user volumes would duplicate (or worse,
+		// resurrect the old v1 script paths) on the recreated container.
+		scriptsDir := c.cfg.ScriptsDir
+		if isPathWithin(scriptsDir, mount.Source) {
 			continue
 		}
 
@@ -419,4 +429,20 @@ func (c *MigrateCommand) recoverAdditionalVolumes(
 	}
 
 	return volumes
+}
+
+// isPathWithin reports whether child is parent itself or lives underneath it.
+// Unlike a plain strings.HasPrefix check, it honours path boundaries so a
+// sibling like /home/user/distrobox-v2-old does not match the parent
+// /home/user/distrobox/v2.
+func isPathWithin(parent, child string) bool {
+	if parent == "" {
+		return false
+	}
+	parent = filepath.Clean(parent)
+	child = filepath.Clean(child)
+	if child == parent {
+		return true
+	}
+	return strings.HasPrefix(child, parent+"/")
 }

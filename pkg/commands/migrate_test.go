@@ -29,7 +29,6 @@ import (
 	"strings"
 	"testing"
 
-	insidedistrobox "github.com/89luca89/distrobox/internal/inside-distrobox"
 	"github.com/89luca89/distrobox/pkg/commands"
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
@@ -37,7 +36,7 @@ import (
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
-func newMigrateTestSetup(t *testing.T) (*commands.MigrateCommand, *testutil.MockContainerManager) {
+func newMigrateTestSetup(t *testing.T) (*commands.MigrateCommand, *testutil.MockContainerManager, string) {
 	t.Helper()
 	t.Setenv("USER", "testuser")
 	t.Setenv("HOME", "/home/testuser")
@@ -53,11 +52,11 @@ func newMigrateTestSetup(t *testing.T) (*commands.MigrateCommand, *testutil.Mock
 	prompter := ui.NewPrompter(*bufio.NewReader(strings.NewReader("")), nil)
 
 	migrateCmd := commands.NewMigrateCommand(cfg, mock, printer, prompter)
-	return migrateCmd, mock
+	return migrateCmd, mock, cfg.ScriptsDir
 }
 
 func TestMigrate_V1Container_TriggersStopCommitRemoveCreate(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, _ := newMigrateTestSetup(t)
 
 	// Simulate a v1 container: entrypoint mount source does NOT point to v2 dir
 	v1EntrypointPath := "/usr/lib/distrobox/distrobox-init"
@@ -146,7 +145,7 @@ func TestMigrate_V1Container_TriggersStopCommitRemoveCreate(t *testing.T) {
 }
 
 func TestMigrate_V2Container_Skipped(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, _ := newMigrateTestSetup(t)
 
 	ctx := context.Background()
 
@@ -188,9 +187,8 @@ func TestMigrate_V2Container_Skipped(t *testing.T) {
 }
 
 func TestMigrate_V2Container_ForceRecreates(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, v2Dir := newMigrateTestSetup(t)
 
-	v2Dir := insidedistrobox.ScriptsDir()
 	v2EntrypointPath := filepath.Join(v2Dir, "distrobox-init")
 
 	ctx := context.Background()
@@ -253,7 +251,7 @@ func TestMigrate_V2Container_ForceRecreates(t *testing.T) {
 // The shared rule in NeedsMigrationFromLabels treats this as version 0,
 // so the container is migrated.
 func TestMigrate_UnparseableLabel_TreatedAsV1(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, _ := newMigrateTestSetup(t)
 
 	ctx := context.Background()
 	mock.InspectContainerResult = &containermanager.InspectResult{
@@ -284,7 +282,7 @@ func TestMigrate_UnparseableLabel_TreatedAsV1(t *testing.T) {
 // with a strictly older schema version (e.g. label=1 against the
 // current SchemaVersion=2). It must be migrated.
 func TestMigrate_DowngradedLabel_StillMigrates(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, _ := newMigrateTestSetup(t)
 
 	ctx := context.Background()
 	mock.InspectContainerResult = &containermanager.InspectResult{
@@ -312,7 +310,7 @@ func TestMigrate_DowngradedLabel_StillMigrates(t *testing.T) {
 }
 
 func TestMigrate_DryRun_NoSideEffects(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, _ := newMigrateTestSetup(t)
 
 	// Use a v1 container (entrypoint not in v2 dir)
 	v1EntrypointPath := "/usr/lib/distrobox/distrobox-init"
@@ -371,7 +369,7 @@ func TestMigrate_DryRun_NoSideEffects(t *testing.T) {
 }
 
 func TestMigrate_OptionReconstruction(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, _ := newMigrateTestSetup(t)
 
 	v1EntrypointPath := "/usr/lib/distrobox/distrobox-init"
 
@@ -484,7 +482,7 @@ func TestMigrate_OptionReconstruction(t *testing.T) {
 }
 
 func TestMigrate_AdditionalVolumes_PreservesSameSourceDestination(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, _ := newMigrateTestSetup(t)
 
 	// The XDG_RUNTIME_DIR mount is derived from the real uid by the
 	// userenv package, so compute the expected path the same way.
@@ -565,7 +563,7 @@ func TestMigrate_AdditionalVolumes_PreservesSameSourceDestination(t *testing.T) 
 }
 
 func TestMigrate_OptionReconstruction_UnshareFlags(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, _ := newMigrateTestSetup(t)
 
 	v1EntrypointPath := "/usr/lib/distrobox/distrobox-init"
 
@@ -629,7 +627,7 @@ func TestMigrate_OptionReconstruction_UnshareFlags(t *testing.T) {
 }
 
 func TestMigrate_OptionReconstruction_CustomHome(t *testing.T) {
-	migrateCmd, mock := newMigrateTestSetup(t)
+	migrateCmd, mock, _ := newMigrateTestSetup(t)
 
 	v1EntrypointPath := "/usr/lib/distrobox/distrobox-init"
 	customHome := "/custom/home/mybox"
@@ -684,7 +682,7 @@ func TestMigrate_OptionReconstruction_CustomHome(t *testing.T) {
 }
 
 func TestMigrate_NoContainerSpecified(t *testing.T) {
-	migrateCmd, _ := newMigrateTestSetup(t)
+	migrateCmd, _, _ := newMigrateTestSetup(t)
 
 	ctx := context.Background()
 
@@ -697,7 +695,7 @@ func TestMigrate_NoContainerSpecified(t *testing.T) {
 }
 
 func TestMigrate_All_NoContainers(t *testing.T) {
-	migrateCmd, _ := newMigrateTestSetup(t)
+	migrateCmd, _, _ := newMigrateTestSetup(t)
 
 	ctx := context.Background()
 
