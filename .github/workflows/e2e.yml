@@ -1,0 +1,39 @@
+---
+name: E2E
+
+# Gating suite on EVERY pull request: the e2e matrix over the gating image subset
+# (Makefile E2E_IMAGES) plus the distro-agnostic commands. The full matrix runs in
+# compatibility.yml (main / CI-labelled); both share e2e-matrix.yml.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    uses: ./.github/workflows/e2e-matrix.yml
+    with:
+      images_var: E2E_IMAGES
+
+  # Distro-agnostic subcommands, once per backend on a fast image.
+  commands:
+    name: commands (${{ matrix.backend }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [podman, docker]
+    env:
+      XDG_CACHE_HOME: "/tmp/"
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - run: make e2e-commands CM="${{ matrix.backend }}"
