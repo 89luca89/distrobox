@@ -1,0 +1,2 @@
+{"Command":"sleep infinity","CreatedAt":"2 hours ago","ID":"abc123def456000000000000000000000000000000000000000000000000abcd","Image":"fedora-toolbox:39","Labels":"manager=distrobox,distrobox.unshare_groups=0","Names":"fedora-box","State":"running","Status":"Up 2 hours"}
+{"Command":"/bin/bash","CreatedAt":"3 hours ago","ID":"def456abc123000000000000000000000000000000000000000000000000ef01","Image":"ubuntu:22.04","Labels":"manager=distrobox","Names":"ubuntu-box","State":"exited","Status":"Exited (0) 1 hour ago"}
