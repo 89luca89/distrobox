@@ -105,6 +105,7 @@ func TestDocker_makeCreateCommand(t *testing.T) {
  --pid host
  --label manager=distrobox
  --label distrobox.unshare_groups=0
+ --label distrobox.version=2
  --env SHELL=sh
  --env HOME=/home/user
  --env container=docker
@@ -562,6 +563,100 @@ func TestDockerEnterPropagatesExecError(t *testing.T) {
 	assert.ErrorContains(t, err, "exit status 7")
 }
 
+func TestDockerInspectContainer(t *testing.T) {
+	installFakeDockerRuntime(t)
+
+	tests := []struct {
+		name    string
+		inspect string
+		want    containermanager.InspectResult
+	}{
+		{
+			name:    "docker output",
+			inspect: dockerFakeInspectFullJSON(),
+			want: containermanager.InspectResult{
+				ContainerID:     "abc123def456ghi789",
+				ContainerStatus: "running",
+				ContainerImage:  "registry.fedoraproject.org/fedora:40",
+				ContainerHome:   "/home/user",
+				ContainerPath:   "/usr/local/bin:/usr/bin:/bin",
+				UnshareGroups:   true,
+				NetworkMode:     "host",
+				IpcMode:         "host",
+				PidMode:         "host",
+				// Docker exposes the entrypoint args as Config.Cmd, so the
+				// top-level Args field must be ignored.
+				Cmd: []string{"/usr/bin/entrypoint", "my-box", "init", "--nvidia"},
+				Env: []string{
+					"HOME=/home/user",
+					"PATH=/usr/local/bin:/usr/bin:/bin",
+					"HOSTNAME=my-box",
+				},
+				Labels: map[string]string{
+					"distrobox":                "1",
+					"distrobox.unshare_groups": "1",
+					"distrobox.version":        "2.0.0",
+				},
+				Mounts: []containermanager.MountInfo{
+					{Source: "/home/user/.local/share/distrobox/v2/distrobox-init", Destination: "/usr/bin/entrypoint", Options: "ro,z"},
+					{Source: "/home/user", Destination: "/home/user", Options: "rw"},
+				},
+			},
+		},
+		{
+			// Same parser is used for podman inspect output (ImageName and
+			// mount Options are present there, and must take precedence).
+			name:    "podman-shaped output",
+			inspect: `[{"Id":"pod123","State":{"Status":"running"},"ImageName":"docker.io/library/ubuntu:24.04","Args":["/usr/bin/entrypoint","box","init"],"Config":{"Image":"ignored","Labels":{"distrobox":"1"},"Env":["HOME=/root","PATH=/usr/sbin:/usr/bin"],"Cmd":["/usr/bin/entrypoint","box","init"]},"Mounts":[{"Type":"bind","Source":"/root","Destination":"/root","Options":["rbind","rw"]}],"HostConfig":{"NetworkMode":"private","IpcMode":"shareable","PidMode":""}}]`,
+			want: containermanager.InspectResult{
+				ContainerID:     "pod123",
+				ContainerStatus: "running",
+				ContainerImage:  "docker.io/library/ubuntu:24.04",
+				ContainerHome:   "/root",
+				ContainerPath:   "/usr/sbin:/usr/bin",
+				NetworkMode:     "private",
+				IpcMode:         "shareable",
+				Cmd:             []string{"/usr/bin/entrypoint", "box", "init"},
+				Env:             []string{"HOME=/root", "PATH=/usr/sbin:/usr/bin"},
+				Labels:          map[string]string{"distrobox": "1"},
+				Mounts: []containermanager.MountInfo{
+					{Source: "/root", Destination: "/root", Options: "rbind,rw"},
+				},
+			},
+		},
+		{
+			name:    "minimal container",
+			inspect: `[{"Id":"min","State":{"Status":"exited"},"Config":{"Labels":{"distrobox.unshare_groups":"0"}}}]`,
+			want: containermanager.InspectResult{
+				ContainerID:     "min",
+				ContainerStatus: "exited",
+				Labels:          map[string]string{"distrobox.unshare_groups": "0"},
+				Mounts:          []containermanager.MountInfo{},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("FAKE_INSPECT_STDOUT", tt.inspect)
+			got, err := NewDocker(false, "sudo", false).InspectContainer(t.Context(), "my-box")
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			assert.Equal(t, tt.want, *got)
+		})
+	}
+}
+
+func TestDockerInspectContainerNotFound(t *testing.T) {
+	installFakeDockerRuntime(t)
+	t.Setenv("FAKE_INSPECT_STDOUT", "[]")
+
+	got, err := NewDocker(false, "sudo", false).InspectContainer(t.Context(), "missing-box")
+	require.Nil(t, got)
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "container not found")
+}
+
 func installFakeDockerRuntime(t *testing.T) {
 	t.Helper()
 
@@ -613,4 +708,55 @@ esac
 
 func dockerFakeInspectJSON(status string) string {
 	return `[{"Id":"container-id","State":{"Status":"` + status + `"},"Config":{"Labels":{"distrobox.unshare_groups":"0"},"Env":["HOME=/home/testuser","PATH=/usr/bin:/bin"]}}]`
+}
+
+// dockerFakeInspectFullJSON mirrors the shape of real `docker inspect` output:
+// the image name lives in Config.Image (no top-level ImageName field) and
+// bind-mount options live in Mode (there is no Options field).
+func dockerFakeInspectFullJSON() string {
+	return `[{
+  "Id": "abc123def456ghi789",
+  "Created": "2026-06-25T18:25:46Z",
+  "Path": "/usr/bin/entrypoint",
+  "Args": ["my-box"],
+  "State": {"Status": "running"},
+  "Image": "sha256:2a5415177518478c9cacb7becb2c27cffc5f1d5e147667024a9b7bb4dddec284",
+  "HostConfig": {
+    "NetworkMode": "host",
+    "IpcMode": "host",
+    "PidMode": "host"
+  },
+  "Mounts": [
+    {
+      "Type": "bind",
+      "Source": "/home/user/.local/share/distrobox/v2/distrobox-init",
+      "Destination": "/usr/bin/entrypoint",
+      "Mode": "ro,z",
+      "RW": false,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/home/user",
+      "Destination": "/home/user",
+      "Mode": "rw",
+      "RW": true,
+      "Propagation": "rprivate"
+    }
+  ],
+  "Config": {
+    "Image": "registry.fedoraproject.org/fedora:40",
+    "Labels": {
+      "distrobox": "1",
+      "distrobox.unshare_groups": "1",
+      "distrobox.version": "2.0.0"
+    },
+    "Env": [
+      "HOME=/home/user",
+      "PATH=/usr/local/bin:/usr/bin:/bin",
+      "HOSTNAME=my-box"
+    ],
+    "Cmd": ["/usr/bin/entrypoint", "my-box", "init", "--nvidia"]
+  }
+}]`
 }
