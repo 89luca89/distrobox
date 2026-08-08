@@ -1,7 +1,7 @@
 '\" t
 .\
 .\"
-.TH "DISTROBOX\-ASSEMBLE" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ASSEMBLE" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -441,7 +441,7 @@ nvidia=true
 '\" t
 .\
 .\"
-.TH "DISTROBOX" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH COMPATIBILITY
 This project \f[B]does not need a dedicated image\f[R].
 It can use any OCI images from docker\-hub, quay.io, or any registry of
@@ -510,7 +510,7 @@ _
 T{
 AlmaLinux (Toolbox)
 T}@T{
-8  9
+8  9  10
 T}@T{
 quay.io/toolbx\-images/almalinux\-toolbox:8 
 quay.io/toolbx\-images/almalinux\-toolbox:9 
@@ -519,9 +519,8 @@ T}
 T{
 Alpine (Toolbox)
 T}@T{
-3.20  3.21  3.22  edge
+3.21  3.22  edge
 T}@T{
-quay.io/toolbx\-images/alpine\-toolbox:3.20 
 quay.io/toolbx\-images/alpine\-toolbox:3.21 
 quay.io/toolbx\-images/alpine\-toolbox:3.22 
 quay.io/toolbx\-images/alpine\-toolbox:edge 
@@ -530,7 +529,7 @@ T}
 T{
 AmazonLinux (Toolbox)
 T}@T{
-2  2022
+2  2023
 T}@T{
 quay.io/toolbx\-images/amazonlinux\-toolbox:2 
 quay.io/toolbx\-images/amazonlinux\-toolbox:2023 
@@ -581,13 +580,10 @@ T}
 T{
 Fedora (Toolbox)
 T}@T{
-38  39  40  41  42  43  Rawhide
+42  43  44  Rawhide
 T}@T{
-registry.fedoraproject.org/fedora\-toolbox:38 
-registry.fedoraproject.org/fedora\-toolbox:39 
-registry.fedoraproject.org/fedora\-toolbox:40 
-quay.io/fedora/fedora\-toolbox:41  quay.io/fedora/fedora\-toolbox:42 
-quay.io/fedora/fedora\-toolbox:43 
+quay.io/fedora/fedora\-toolbox:42  quay.io/fedora/fedora\-toolbox:43 
+quay.io/fedora/fedora\-toolbox:44 
 quay.io/fedora/fedora\-toolbox:rawhide
 T}
 T{
@@ -599,10 +595,11 @@ T}
 T{
 RedHat (Toolbox)
 T}@T{
-8  9
+8  9  10
 T}@T{
 registry.access.redhat.com/ubi8/toolbox 
-registry.access.redhat.com/ubi9/toolbox
+registry.access.redhat.com/ubi9/toolbox 
+registry.access.redhat.com/ubi10/toolbox
 T}
 T{
 Rocky Linux (Toolbox)
@@ -616,13 +613,14 @@ T}
 T{
 Ubuntu (Toolbox)
 T}@T{
-16.04  18.04  20.04  22.04  24.04
+16.04  18.04  20.04  22.04  24.04  26.04
 T}@T{
 quay.io/toolbx/ubuntu\-toolbox:16.04 
 quay.io/toolbx/ubuntu\-toolbox:18.04 
 quay.io/toolbx/ubuntu\-toolbox:20.04 
 quay.io/toolbx/ubuntu\-toolbox:22.04 
 quay.io/toolbx/ubuntu\-toolbox:24.04 
+quay.io/toolbx/ubuntu\-toolbox:26.04 
 quay.io/toolbx/ubuntu\-toolbox:latest
 T}
 T{
@@ -646,25 +644,25 @@ T}
 T{
 AlmaLinux
 T}@T{
-8  8\-minimal  9  9\-minimal
+8  8\-minimal  9  9\-minimal  10
 T}@T{
-docker.io/library/almalinux:8  docker.io/library/almalinux:9
+docker.io/library/almalinux:8  docker.io/library/almalinux:9 
+docker.io/library/almalinux:10
 T}
 T{
 Alpine Linux
 T}@T{
-3.20  3.21  3.22  edge
+3.21  3.22  3.23  3.24  edge
 T}@T{
-docker.io/library/alpine:3.20  docker.io/library/alpine:3.21 
-docker.io/library/alpine:3.22  docker.io/library/alpine:edge 
-docker.io/library/alpine:latest
+docker.io/library/alpine:3.21  docker.io/library/alpine:3.22 
+docker.io/library/alpine:3.23  docker.io/library/alpine:3.24 
+docker.io/library/alpine:edge  docker.io/library/alpine:latest
 T}
 T{
 AmazonLinux
 T}@T{
-1  2  2023
+2  2023
 T}@T{
-public.ecr.aws/amazonlinux/amazonlinux:1 
 public.ecr.aws/amazonlinux/amazonlinux:2 
 public.ecr.aws/amazonlinux/amazonlinux:2023
 T}
@@ -683,10 +681,9 @@ T}
 T{
 CentOS Stream
 T}@T{
-8  9  10
+9  10
 T}@T{
-quay.io/centos/centos:stream8  quay.io/centos/centos:stream9 
-quay.io/centos/centos:stream10
+quay.io/centos/centos:stream9  quay.io/centos/centos:stream10
 T}
 T{
 Chainguard Wolfi
@@ -735,10 +732,8 @@ T}
 T{
 Fedora
 T}@T{
-38  39  40  41  42  43  44  Rawhide
+42  43  44  Rawhide
 T}@T{
-quay.io/fedora/fedora:38  quay.io/fedora/fedora:39 
-quay.io/fedora/fedora:40  quay.io/fedora/fedora:41 
 quay.io/fedora/fedora:42  quay.io/fedora/fedora:43 
 quay.io/fedora/fedora:44  quay.io/fedora/fedora:rawhide
 T}
@@ -809,23 +804,27 @@ T}
 T{
 RedHat (UBI)
 T}@T{
-7  8  9
+8  9  10
 T}@T{
-registry.access.redhat.com/ubi7/ubi  registry.access.redhat.com/ubi8/ubi
-\ registry.access.redhat.com/ubi8/ubi\-init 
+registry.access.redhat.com/ubi8/ubi 
+registry.access.redhat.com/ubi8/ubi\-init 
 registry.access.redhat.com/ubi8/ubi\-minimal 
 registry.access.redhat.com/ubi9/ubi 
 registry.access.redhat.com/ubi9/ubi\-init 
-registry.access.redhat.com/ubi9/ubi\-minimal
+registry.access.redhat.com/ubi9/ubi\-minimal 
+registry.access.redhat.com/ubi10/ubi 
+registry.access.redhat.com/ubi10/ubi\-init 
+registry.access.redhat.com/ubi10/ubi\-minimal
 T}
 T{
 Rocky Linux
 T}@T{
-8  8\-minimal  9
+8  8\-minimal  9  10
 T}@T{
 quay.io/rockylinux/rockylinux:8 
 quay.io/rockylinux/rockylinux:8\-minimal 
-quay.io/rockylinux/rockylinux:9  quay.io/rockylinux/rockylinux:latest
+quay.io/rockylinux/rockylinux:9  quay.io/rockylinux/rockylinux:10 
+quay.io/rockylinux/rockylinux:latest
 T}
 T{
 Slackware
@@ -922,7 +921,7 @@ Alternatively, you can use the nvidia\-container\-toolkit utility to set
 up the integration independently from the distrobox\[cq]s own flag.
 .\
 .\"
-.TH "DISTROBOX\-CREATE" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-CREATE" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1246,7 +1245,7 @@ Ubuntu 18.04 and newer
 Void Linux (glibc)
 .\
 .\"
-.TH "DISTROBOX\-ENTER" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-ENTER" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1357,7 +1356,7 @@ such as \f[CR]\[ti]/.distroboxrc\f[R], you can also append the line
 run distrobox commands involving rootful containers using `doas'.
 .\
 .\"
-.TH "DISTROBOX\-EPHEMERAL" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EPHEMERAL" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1406,7 +1405,7 @@ distrobox\-create(1) for the list of supported environment variables.
 .EE
 .\
 .\"
-.TH "DISTROBOX\-EXPORT" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-EXPORT" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1534,7 +1533,7 @@ option to provide a series of flags, for example:
 \f[CR]distrobox\-export \-\-app atom \-\-extra\-flags \[dq]\-\-foreground\[dq]\f[R]
 .\
 .\"
-.TH "DISTROBOX\-GENERATE\-ENTRY" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-GENERATE\-ENTRY" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1582,7 +1581,7 @@ distrobox generate\-entry container\-name \-\-delete
 .EE
 .\
 .\"
-.TH "DISTROBOX\-HOST\-EXEC" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-HOST\-EXEC" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1654,7 +1653,7 @@ lrwxrwxrwx. 1 root root 51 Jul 11 19:26 /usr/local/bin/podman \-> /usr/bin/distr
 .EE
 .\
 .\"
-.TH "DISTROBOX\-INIT" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-INIT" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1700,7 +1699,7 @@ distrobox\-init \-\-upgrade
 .EE
 .\
 .\"
-.TH "DISTROBOX\-LIST" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-LIST" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1748,7 +1747,7 @@ image
 image
 .\
 .\"
-.TH "DISTROBOX\-RM" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-RM" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1793,7 +1792,7 @@ DBX_SUDO_PROGRAM
 .EE
 .\
 .\"
-.TH "DISTROBOX\-STOP" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-STOP" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
@@ -1842,7 +1841,7 @@ DBX_SUDO_PROGRAM
 .EE
 .\
 .\"
-.TH "DISTROBOX\-UPGRADE" "1" "Jul 2026" "Distrobox" "User Manual"
+.TH "DISTROBOX\-UPGRADE" "1" "Aug 2026" "Distrobox" "User Manual"
 .SH NAME
 .IP
 .EX
