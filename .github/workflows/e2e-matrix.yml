@@ -1,0 +1,44 @@
+---
+name: e2e-matrix
+
+# Reusable: run the per-distro e2e matrix (image list x both backends) via
+# `make e2e-one`. The image list is read from the Makefile variable named by
+# `images_var`, so the list lives only there.
+on:
+  workflow_call:
+    inputs:
+      images_var:
+        description: Makefile variable holding the image list (e.g. E2E_IMAGES).
+        required: true
+        type: string
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.set.outputs.images }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - id: set
+        env:
+          VAR: ${{ inputs.images_var }}
+        run: echo "images=$(make -s print-"$VAR" | jq -R -c 'split(" ") | map(select(length > 0))')" >> "$GITHUB_OUTPUT"
+
+  e2e:
+    name: ${{ matrix.image }} (${{ matrix.backend }})
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.setup.outputs.images) }}
+        backend: [podman, docker]
+    env:
+      XDG_CACHE_HOME: "/tmp/"
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+      - run: make e2e-one IMAGE="${{ matrix.image }}" CM="${{ matrix.backend }}"

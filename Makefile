@@ -79,3 +79,61 @@ lint:
 .PHONY: lint-fix
 lint-fix:
 	$(GO_BUILD_ENV) golangci-lint run --fix
+
+# ---------------------------------------------------------------------------
+# Local e2e via the hack/ci/*.sh scripts, on the freshly-built binary. Pulled
+# images are kept so repeated runs do not re-download. Targets:
+#   e2e          mirrors the per-PR gate (.github/workflows/e2e.yml): the gating
+#                image subset + commands.sh, on both backends (podman, docker).
+#   e2e-full     the whole compatibility matrix (docs/compatibility.md) + commands.
+#   e2e-one      one e2e.sh run for a single image + backend; override IMAGE=/CM=.
+#   e2e-commands just commands.sh on one image/backend; override IMAGE=/CM=.
+# ---------------------------------------------------------------------------
+IMAGE ?= docker.io/library/alpine:latest
+CM    ?= podman
+E2E_ENV := DBX="$(CURDIR)/bin/distrobox" DBX_E2E_KEEP_IMAGE=1
+
+E2E_IMAGES := \
+	docker.io/library/alpine:latest \
+	docker.io/library/debian:stable \
+	docker.io/library/ubuntu:24.04 \
+	docker.io/library/fedora:latest \
+	registry.opensuse.org/opensuse/distrobox:latest \
+	docker.io/library/archlinux:latest \
+	registry.access.redhat.com/ubi9/ubi-init
+
+# Full compatibility matrix, derived from docs/compatibility.md like compatibility.yml
+# (no drift). Lazy '=' so the pipeline runs only when e2e-full is invoked.
+E2E_FULL_SKIP := bazzite|chimera|slackware|stream8|ublue|neon|steamos
+E2E_FULL_IMAGES = $(shell sed -n -e '/| Alma/,/| Void/ p' docs/compatibility.md | cut -d'|' -f 4 | sed 's/<br>/\n/g' | tr -d ' ' | sed '/^[[:space:]]*$$/d' | sort -u | grep -Ev '$(E2E_FULL_SKIP)')
+
+# print-<VAR> — echo a make variable; the CI matrices build from these lists.
+.PHONY: print-%
+print-%:
+	@echo '$($*)'
+
+.PHONY: e2e-one
+e2e-one: build
+	echo ">>> e2e: $(IMAGE) / $(CM)"; \
+	$(E2E_ENV) hack/ci/e2e.sh "$(IMAGE)" "$(CM)"
+
+.PHONY: e2e-commands
+e2e-commands: build
+	echo ">>> commands: $(IMAGE) / $(CM)"; \
+	$(E2E_ENV) hack/ci/commands.sh "$(IMAGE)" "$(CM)"
+
+.PHONY: e2e
+e2e: build
+	@for img in $(E2E_IMAGES); do \
+		for cm in podman docker; do \
+			$(MAKE) --no-print-directory e2e-one IMAGE="$$img" CM="$$cm" || exit 1; \
+		done; \
+	done
+	@for cm in podman docker; do \
+		$(MAKE) --no-print-directory e2e-commands CM="$$cm" || exit 1; \
+	done
+
+# Full compatibility sweep (100+ images x 2 backends); local twin of compatibility.yml.
+.PHONY: e2e-full
+e2e-full:
+	$(MAKE) --no-print-directory e2e E2E_IMAGES="$(E2E_FULL_IMAGES)"
