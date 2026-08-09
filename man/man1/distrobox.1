@@ -168,7 +168,8 @@ additional_packages
 T}@T{
 string_list
 T}@T{
-Additional packages to install inside the container
+Additional packages to install inside the container.
+Runs every time container starts.
 T}
 T{
 home
@@ -211,14 +212,16 @@ init_hooks
 T}@T{
 string_list
 T}@T{
-Commands to run inside the container, after the packages setup
+Commands to run inside the container, after the packages setup.
+Runs every time container starts.
 T}
 T{
 pre_init_hooks
 T}@T{
 string_list
 T}@T{
-Commands to run inside the container, before the packages setup
+Commands to run inside the container, before the packages setup.
+Runs every time container starts.
 T}
 T{
 volume
