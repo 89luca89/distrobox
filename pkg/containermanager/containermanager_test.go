@@ -20,6 +20,7 @@
 package containermanager_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -107,4 +108,31 @@ func TestContainer_IsDistrobox_DistroboxKeyPrefix(t *testing.T) {
 		},
 	}
 	assert.True(t, c.IsDistrobox())
+}
+
+// TestIsTTY_DevNullNotATerminal guards against the char-device heuristic:
+// /dev/null is a character device but NOT a terminal, and treating it as one
+// made headless invocations (`enter ... > /dev/null 2>&1`) allocate a --tty
+// that docker exec rejects with "cannot attach stdin to a TTY-enabled
+// container because stdin is not a terminal".
+func TestIsTTY_DevNullNotATerminal(t *testing.T) {
+	// Swap both stdio fds to /dev/null for the duration of the test.
+	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
+	if err != nil {
+		t.Fatalf("open %s: %v", os.DevNull, err)
+	}
+	defer devNull.Close()
+
+	origStdin := os.Stdin
+	origStdout := os.Stdout
+	defer func() {
+		os.Stdin = origStdin
+		os.Stdout = origStdout
+	}()
+
+	os.Stdin = devNull
+	os.Stdout = devNull
+
+	assert.False(t, containermanager.IsTTY(),
+		"stdin/stdout pointing at /dev/null must not be considered a tty")
 }

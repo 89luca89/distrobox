@@ -25,6 +25,8 @@ import (
 	"fmt"
 	"os"
 
+	"golang.org/x/term"
+
 	"github.com/urfave/cli/v3"
 
 	"github.com/89luca89/distrobox/pkg/commands"
@@ -90,7 +92,9 @@ func printResult(result *commands.ListResult, noColor bool) {
 	}
 }
 
+// isTerminal reports whether stdout is a real terminal. A char-device test
+// would treat /dev/null (or any redirect) as a terminal and emit color
+// codes into pipes/files.
 func isTerminal() bool {
-	stat, _ := os.Stdout.Stat()
-	return (stat.Mode() & os.ModeCharDevice) != 0
+	return term.IsTerminal(int(os.Stdout.Fd()))
 }

@@ -30,6 +30,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/term"
+
 	"github.com/89luca89/distrobox/pkg/ui"
 )
 
@@ -401,14 +403,13 @@ func FilterEnvVars() []string {
 
 // IsTTY returns true if both stdin and stdout are terminals.
 // Mirrors the shell's: if [ ! -t 0 ] || [ ! -t 1 ]; then headless=1; fi
+//
+// A real isatty check is required: a char-device test would treat
+// /dev/null as a terminal, making a headless `distrobox enter ...
+// > /dev/null 2>&1` allocate a --tty and fail on engines that refuse
+// to attach a non-terminal stdin to a tty (e.g. docker exec).
 func IsTTY() bool {
-	if fi, err := os.Stdin.Stat(); err != nil || fi.Mode()&os.ModeCharDevice == 0 {
-		return false
-	}
-	if fi, err := os.Stdout.Stat(); err != nil || fi.Mode()&os.ModeCharDevice == 0 {
-		return false
-	}
-	return true
+	return term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
 }
 
 func GetWorkDir(containerHome string, noWorkDir bool) (string, error) {
