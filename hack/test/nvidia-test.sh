@@ -355,7 +355,9 @@ if ! command -v vulkaninfo > /dev/null 2>&1; then
 		elif command -v dnf > /dev/null 2>&1; then
 			timeout 300 sudo -n dnf install -y -q vulkan-tools vulkan-loader
 		elif command -v pacman > /dev/null 2>&1; then
-			timeout 300 sudo -n pacman -Sy --noconfirm --needed vulkan-tools vulkan-icd-loader
+			# Full upgrade (not -Sy): the arch toolbox image can lag the repos, and a
+			# partial upgrade can leave the loader/libs inconsistent.
+			timeout 300 sudo -n pacman -Syu --noconfirm --needed vulkan-tools vulkan-icd-loader
 		fi
 	} > /dev/null 2>&1
 fi
