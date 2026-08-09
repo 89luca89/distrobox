@@ -414,6 +414,52 @@ mount_bind()
 	return 0
 }
 
+# has_submounts returns 0 if the given directory is itself a mountpoint or
+# contains mountpoints below it (e.g. a user-provided --volume), 1 otherwise.
+# Used to avoid shadowing user mounts when bind-mounting host directories
+# over them.
+# Arguments:
+#	target_dir: string directory to check
+# Expected env variables:
+#	None
+# Expected global variables:
+#	None
+# Outputs:
+#	None
+has_submounts()
+{
+	target_dir="${1%/}"
+
+	# only directories can host mounts
+	[ -d "${target_dir}" ] || return 1
+
+	# Mount points are the 5th whitespace-separated field of
+	# /proc/self/mountinfo; look for the target itself or anything below
+	if command -v awk > /dev/null 2>&1; then
+		awk -v t="${target_dir}" '
+			{
+				split($5, m, " ")
+				mp = m[1]
+				if (mp == t || index(mp, t "/") == 1) {
+					found = 1
+				}
+			}
+			END { exit !found }
+		' /proc/self/mountinfo
+		return $?
+	fi
+
+	# Fallback for minimal systems without awk
+	while read -r _ _ _ _ mountpoint _; do
+		if [ "${mountpoint}" = "${target_dir}" ] ||
+			[ "${mountpoint#"${target_dir}"/}" != "${mountpoint}" ]; then
+			return 0
+		fi
+	done < /proc/self/mountinfo
+
+	return 1
+}
+
 if [ -n "${pre_init_hook}" ]; then
 	printf "distrobox: Executing pre-init hooks...\n"
 	# execute pre-init hooks if specified
@@ -1987,6 +2033,13 @@ if [ -e "/var/home/${container_user_name}" ]; then
 fi
 
 for host_mount in ${HOST_MOUNTS}; do
+	# Skip host directories that already contain user-provided mounts
+	# (e.g. --volume /dir:/mnt/foo): binding the whole host directory over
+	# them would shadow the user's mount.
+	if has_submounts "${host_mount}"; then
+		printf "Warning: %s contains active mounts, skipping host bind\n" "${host_mount}"
+		continue
+	fi
 	if ! mount_bind /run/host"${host_mount}" "${host_mount}"; then
 		printf "Warning: Cannot bind mount %s to /run/host%s\n" "${host_mount}" "${host_mount}"
 	fi
