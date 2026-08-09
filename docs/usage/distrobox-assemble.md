@@ -121,14 +121,14 @@ declared multiple times to be compounded:
 | Flag Name | Type | |
 | - | - | - |
 | additional_flags | string_list | Additional flags to pass to the container manager |
-| additional_packages | string_list | Additional packages to install inside the container |
+| additional_packages | string_list | Additional packages to install inside the container. Runs every time container starts. |
 | home | string | Which home directory should the container use |
 | hostname | string | Set hostname of the container |
 | image | string | Which image should the container use, look [here](../compatibility.md) for a list |
 | clone | string | Name of the Distrobox container to use as the base for a new container (the container must be stopped). |
 | include | string | Name of the entry in the manifest to include in the current definition. |
-| init_hooks | string_list | Commands to run inside the container, after the packages setup |
-| pre_init_hooks | string_list | Commands to run inside the container, before the packages setup |
+| init_hooks | string_list | Commands to run inside the container, after the packages setup. Runs every time container starts. |
+| pre_init_hooks | string_list | Commands to run inside the container, before the packages setup. Runs every time container starts. |
 | volume | string_list | Additional volumes to mount inside the containers |
 | exported_apps | string_list | App names or desktopfile paths to export |
 | exported_bins | string_list | Binaries to export |
