@@ -172,7 +172,10 @@ func (c *RmCommand) removeContainer(
 			container.Name,
 			inspectOutput.ContainerHome,
 		)
-		removeHome = c.prompter.Prompt(question, false)
+		// Default to yes: the user explicitly asked to remove the home
+		// with --rm-home, so a bare Enter (or a non-tty stdin) proceeds,
+		// mirroring the other deletion prompts.
+		removeHome = c.prompter.Prompt(question, true)
 	}
 
 	cmOptions := containermanager.RmOptions{
