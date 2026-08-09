@@ -21,9 +21,11 @@ package containermanager_test
 
 import (
 	"os"
+	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/89luca89/distrobox/pkg/containermanager"
 )
@@ -115,23 +117,29 @@ func TestContainer_IsDistrobox_DistroboxKeyPrefix(t *testing.T) {
 // made headless invocations (`enter ... > /dev/null 2>&1`) allocate a --tty
 // that docker exec rejects with "cannot attach stdin to a TTY-enabled
 // container because stdin is not a terminal".
+//
+// os.Stdin/os.Stdout are never reassigned (go-reassign forbids it): the
+// process' real fd 0/1 are dup2'd to /dev/null, which is what IsTTY()
+// ioctls through os.Stdin.Fd()/os.Stdout.Fd().
 func TestIsTTY_DevNullNotATerminal(t *testing.T) {
-	// Swap both stdio fds to /dev/null for the duration of the test.
 	devNull, err := os.OpenFile(os.DevNull, os.O_RDWR, 0)
-	if err != nil {
-		t.Fatalf("open %s: %v", os.DevNull, err)
-	}
+	require.NoError(t, err, "open %s", os.DevNull)
 	defer devNull.Close()
 
-	origStdin := os.Stdin
-	origStdout := os.Stdout
+	// Keep the real fds around so we can restore them on the way out.
+	savedStdin, err := syscall.Dup(syscall.Stdin)
+	require.NoError(t, err, "dup stdin")
+	savedStdout, err := syscall.Dup(syscall.Stdout)
+	require.NoError(t, err, "dup stdout")
 	defer func() {
-		os.Stdin = origStdin
-		os.Stdout = origStdout
+		_ = syscall.Dup2(savedStdin, syscall.Stdin)
+		_ = syscall.Dup2(savedStdout, syscall.Stdout)
+		_ = syscall.Close(savedStdin)
+		_ = syscall.Close(savedStdout)
 	}()
 
-	os.Stdin = devNull
-	os.Stdout = devNull
+	require.NoError(t, syscall.Dup2(int(devNull.Fd()), syscall.Stdin), "dup2 stdin")
+	require.NoError(t, syscall.Dup2(int(devNull.Fd()), syscall.Stdout), "dup2 stdout")
 
 	assert.False(t, containermanager.IsTTY(),
 		"stdin/stdout pointing at /dev/null must not be considered a tty")
