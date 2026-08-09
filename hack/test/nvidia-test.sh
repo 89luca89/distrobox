@@ -30,7 +30,7 @@ set -u
 DISTRO="${1:-$(cat /mnt/share/distro 2> /dev/null || true)}"
 SERIAL=/dev/ttyS0
 OUT=/mnt/out
-BOX_IMAGES="quay.io/toolbx/ubuntu-toolbox:24.04 registry.fedoraproject.org/fedora-toolbox:44 quay.io/toolbx/arch-toolbox:latest quay.io/toolbx-images/debian-toolbox:latest"
+BOX_IMAGES="quay.io/toolbx/ubuntu-toolbox:24.04 quay.io/fedora/fedora-toolbox:latest quay.io/toolbx/arch-toolbox:latest quay.io/toolbx-images/debian-toolbox:latest"
 
 log()
 {
@@ -81,6 +81,7 @@ case "${DISTRO}" in
 	ubuntu)
 		export DEBIAN_FRONTEND=noninteractive
 		run_log apt-get update -y || fail "apt update"
+		run_log apt-get upgrade -y || fail "apt upgrade"
 		run_log apt-get install -y podman || fail "install podman"
 		b="$(apt-cache search --names-only '^nvidia-utils-[0-9]+$' | grep -oE '[0-9]+' | sort -rn | head -1)"
 		[ -n "${b}" ] || fail "no nvidia-utils package in this image"
@@ -100,6 +101,7 @@ case "${DISTRO}" in
 		sed -i -E 's/^Components:.*/Components: main contrib non-free non-free-firmware/' \
 			/etc/apt/sources.list.d/debian.sources
 		run_log apt-get update -y || fail "apt update"
+		run_log apt-get upgrade -y || fail "apt upgrade"
 		run_log apt-get install -y podman || fail "install podman"
 		pkgs="libcuda1 libnvidia-ml1 libglx-nvidia0 libegl-nvidia0 libgles-nvidia1 libgles-nvidia2 libnvidia-eglcore libnvidia-glcore libnvidia-glvkspirv libnvidia-gpucomp libnvidia-nvvm4 libnvidia-ptxjitcompiler1 libnvidia-rtcore libnvidia-encode1 libnvidia-cfg1 libnvidia-allocator1 libnvidia-fbc1 libnvidia-pkcs11-openssl3 libnvidia-egl-wayland1 nvidia-opencl-icd nvidia-egl-common nvidia-opencl-common nvidia-vulkan-common nvidia-vdpau-driver"
 		# shellcheck disable=SC2086
@@ -111,6 +113,7 @@ case "${DISTRO}" in
 		}
 		;;
 	fedora)
+		run_log dnf -y --refresh upgrade || fail "update"
 		run_log dnf install -y podman "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" || {
 			tail -25 "${OUT}/install.log" > "${SERIAL}" 2> /dev/null
 			fail "install podman/rpmfusion (see install.log)"
@@ -130,7 +133,8 @@ case "${DISTRO}" in
 		;;
 	arch)
 		sed -i '/^#\[multilib\]/,/^#Include/ s/^#//' /etc/pacman.conf
-		run_log pacman -Sy --noconfirm --needed podman || fail "install podman"
+		run_log pacman -Syyu --noconfirm || fail "update"
+		run_log pacman -Sy --noconfirm --needed podman fuse-overlayfs || fail "install podman"
 		pkgs="nvidia-utils opencl-nvidia"
 		# shellcheck disable=SC2086
 		run_log pacman -S --noconfirm --needed ${pkgs} || fail "install nvidia"
