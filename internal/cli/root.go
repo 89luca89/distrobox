@@ -33,6 +33,7 @@ import (
 	"github.com/89luca89/distrobox/pkg/config"
 	"github.com/89luca89/distrobox/pkg/containermanager"
 	"github.com/89luca89/distrobox/pkg/containermanager/providers"
+	"github.com/89luca89/distrobox/pkg/containermanager/providers/nspawn"
 	"github.com/89luca89/distrobox/pkg/ui"
 	"github.com/89luca89/distrobox/pkg/version"
 )
@@ -119,7 +120,7 @@ func printMissingContainerManager(p *ui.Printer) {
 
 func printInvalidContainerManager(p *ui.Printer, containerManagerType string) {
 	p.Println("Invalid input %s.", containerManagerType)
-	p.Println("The available choices are: 'autodetect', 'podman', 'podman-launcher', 'docker'")
+	p.Println("The available choices are: 'autodetect', 'podman', 'podman-launcher', 'docker', 'nspawn'")
 }
 
 func subcommands(cfg *config.Values) []*cli.Command {
@@ -202,6 +203,7 @@ func subcommands(cfg *config.Values) []*cli.Command {
 		generateEntry,
 		list,
 		migrate,
+		newNspawnHelperCommand(),
 		rm,
 		stop,
 		upgrade,
@@ -287,7 +289,7 @@ func withRoot(_ *config.Values, cmd *cli.Command) *cli.Command {
 	cmd.Flags = append(cmd.Flags, &cli.BoolFlag{
 		Name:    "root",
 		Aliases: []string{"r"},
-		Usage: "launch podman/docker/lilipod with root privileges. Note that if you need root this is the preferred\n" +
+		Usage: "launch podman/docker/nspawn with root privileges. Note that if you need root this is the preferred\n" +
 			"way over \"sudo distrobox\" (note: if using a program other than 'sudo' for root privileges is necessary,\n" +
 			"specify it through the DBX_SUDO_PROGRAM env variable, or 'distrobox_sudo_program' config variable)",
 	})
@@ -367,6 +369,8 @@ func buildContainerManager(
 		return providers.NewPodman(root, sudoCommand, verbose, usernsNoLimit), nil
 	case "podman-launcher":
 		return providers.NewPodmanLauncher(root, sudoCommand, verbose, usernsNoLimit), nil
+	case "nspawn":
+		return nspawn.New(root, sudoCommand, verbose), nil
 	case "autodetect", "":
 		cm, err := providers.NewAutoDetect(root, sudoCommand, verbose, usernsNoLimit)
 		if err != nil {
