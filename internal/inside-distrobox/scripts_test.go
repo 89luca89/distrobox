@@ -66,6 +66,13 @@ func TestProvisionScripts_CustomDir(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, tmpDir, dir)
 	assertAllScripts(t, dir)
+
+	initScript, err := os.ReadFile(filepath.Join(dir, "distrobox-init"))
+	require.NoError(t, err)
+	assert.Contains(t, string(initScript), "systemctl start user@${container_user_uid}.service")
+	assert.Contains(t, string(initScript), "systemctl start user-integration@${container_user_uid}.service")
+	assert.NotContains(t, string(initScript), "systemctl start user@${container_user_name}.service")
+	assert.NotContains(t, string(initScript), "systemctl start user-integration@${container_user_name}.service")
 }
 
 // TestProvisionScripts_DetectOnPath confirms the skip-write shortcut via
