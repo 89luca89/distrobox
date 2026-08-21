@@ -78,7 +78,7 @@ jobs:
       # plain cache action only saves on success. Skipped on an exact-key hit.
       - name: Save base cloud image
         if: always() && steps.img-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/distrobox-vmtest
           key: qcow2-${{ matrix.distro }}-${{ hashFiles('hack/test/vm-run.sh') }}
