@@ -68,6 +68,24 @@ func TestProvisionScripts_CustomDir(t *testing.T) {
 	assertAllScripts(t, dir)
 }
 
+func TestInitScript_UsesUIDForSystemdUserManager(t *testing.T) {
+	tmpDir := t.TempDir()
+	isolatePath(t)
+
+	_, err := insidedistrobox.ProvisionScripts(tmpDir)
+	require.NoError(t, err)
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, "distrobox-init"))
+	require.NoError(t, err)
+	initScript := string(data)
+	assert.Contains(t, initScript, "systemctl start user@${container_user_uid}.service")
+	assert.Contains(t, initScript, "systemctl start user-integration@${container_user_uid}.service")
+	assert.Contains(t, initScript, "loginctl enable-linger ${container_user_uid}")
+	assert.NotContains(t, initScript, "user@${container_user_name}.service")
+	assert.NotContains(t, initScript, "user-integration@${container_user_name}.service")
+	assert.NotContains(t, initScript, "loginctl enable-linger ${container_user_name}")
+}
+
 // TestProvisionScripts_DetectOnPath confirms the skip-write shortcut via
 // the PATH branch of exists(): when the helper scripts already exist
 // somewhere on PATH, ProvisionScripts leaves them byte-for-byte
