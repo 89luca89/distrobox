@@ -38,6 +38,7 @@ exported_app=""
 exported_app_label=""
 exported_bin=""
 exported_delete=0
+force=0
 extra_flags=""
 enter_flags=""
 # Use DBX_HOST_HOME if defined, else fallback to HOME
@@ -87,7 +88,7 @@ distrobox version: ${version}
 Usage:
 
 	distrobox-export --app mpv [--extra-flags "flags"] [--enter-flags "flags"] [--delete] [--sudo]
-	distrobox-export --bin /path/to/bin [--export-path ~/.local/bin] [--extra-flags "flags"] [--enter-flags "flags"] [--delete] [--sudo]
+	distrobox-export --bin /path/to/bin [--export-path ~/.local/bin] [--extra-flags "flags"] [--enter-flags "flags"] [--delete] [--force] [--sudo]
 
 Options:
 
@@ -96,6 +97,7 @@ Options:
 	--list-apps:		list applications exported from this container
 	--list-binaries:	list binaries exported from this container, use -ep to specify custom paths to search
 	--delete/-d:		delete exported application or binary
+	--force/-f:		overwrite an existing non-distrobox binary export
 	--export-label/-el:	label to add to exported application name.
 				Use "none" to disable.
 				Defaults to (on \$container_name)
@@ -185,6 +187,10 @@ while :; do
 			;;
 		-d | --delete)
 			exported_delete=1
+			shift
+			;;
+		-f | --force)
+			force=1
 			shift
 			;;
 		-*) # Invalid options.
@@ -351,6 +357,7 @@ EOF
 #   dest_path: string path where to export the binary
 #   exported_bin: string path to the binary to export
 #   exported_delete: bool delete the binary exported
+#   force: bool overwrite an existing non-distrobox binary export
 # Expected env variables:
 #   None
 # Outputs:
@@ -382,6 +389,12 @@ export_binary()
 				"${exported_bin}" "${container_name}" "${dest_path}"
 			return 0
 		fi
+		return 1
+	fi
+
+	# Never overwrite a file that was not created by distrobox.
+	if [ -e "${dest_file}" ] && [ "${force}" -eq 0 ] && ! grep -q "^# distrobox_binary$" "${dest_file}"; then
+		printf >&2 "Error: destination file %s already exists and is not a distrobox export; use --force to overwrite it.\n" "${dest_file}"
 		return 1
 	fi
 

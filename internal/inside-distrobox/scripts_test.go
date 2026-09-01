@@ -21,6 +21,7 @@ package insidedistrobox_test
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -90,6 +91,77 @@ func TestProvisionScripts_DetectOnPath(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, marker, string(got), "%s was overwritten despite existing on PATH", name)
 	}
+}
+
+// TestExportBinaryProtectsExistingFiles runs the POSIX distrobox-export script
+// through dash to ensure an existing host file is never replaced unless it is
+// an export created by distrobox itself.
+func TestExportBinaryProtectsExistingFiles(t *testing.T) {
+	dashPath, err := exec.LookPath("dash")
+	require.NoError(t, err)
+
+	originalPath := os.Getenv("PATH")
+	isolatePath(t)
+	scriptsDir := t.TempDir()
+	_, err = insidedistrobox.ProvisionScripts(scriptsDir)
+	require.NoError(t, err)
+	t.Setenv("PATH", originalPath)
+
+	tmpDir := t.TempDir()
+	guestBin := filepath.Join(tmpDir, "guest", "demo-tool")
+	existingPath := filepath.Join(tmpDir, "existing")
+	wrapperPath := filepath.Join(tmpDir, "wrapper")
+	require.NoError(t, os.MkdirAll(filepath.Dir(guestBin), 0755))
+	require.NoError(t, os.WriteFile(guestBin, []byte("#!/bin/sh\necho guest binary\n"), 0755))
+	require.NoError(t, os.MkdirAll(existingPath, 0755))
+	existingFile := filepath.Join(existingPath, "demo-tool")
+	original := []byte("#!/bin/sh\necho host original\n")
+	require.NoError(t, os.WriteFile(existingFile, original, 0755))
+
+	t.Setenv("CONTAINER_ID", "first")
+	t.Setenv("container", "1")
+	t.Setenv("HOME", tmpDir)
+	t.Setenv("DISTROBOX_HOST_HOME", tmpDir)
+	t.Setenv("DISTROBOX_PATH", "distrobox")
+
+	runExport := func(containerName, exportPath string, force bool) ([]byte, error) {
+		t.Setenv("CONTAINER_ID", containerName)
+		t.Setenv("DISTROBOX_EXPORT_PATH", exportPath)
+		args := []string{"--bin", guestBin}
+		if force {
+			args = append(args, "--force")
+		}
+		cmd := exec.Command(dashPath, append([]string{filepath.Join(scriptsDir, "distrobox-export")}, args...)...)
+		return cmd.CombinedOutput()
+	}
+
+	output, err := runExport("first", existingPath, false)
+	require.Error(t, err)
+	assert.Contains(t, string(output), "already exists")
+	got, err := os.ReadFile(existingFile)
+	require.NoError(t, err)
+	assert.Equal(t, original, got)
+
+	output, err = runExport("forced", existingPath, true)
+	require.NoError(t, err, string(output))
+	forced, err := os.ReadFile(existingFile)
+	require.NoError(t, err)
+	assert.Contains(t, string(forced), "# distrobox_binary")
+	assert.Contains(t, string(forced), "# name: forced")
+
+	output, err = runExport("first", wrapperPath, false)
+	require.NoError(t, err, string(output))
+	wrapperFile := filepath.Join(wrapperPath, "demo-tool")
+	wrapper, err := os.ReadFile(wrapperFile)
+	require.NoError(t, err)
+	assert.Contains(t, string(wrapper), "# distrobox_binary")
+
+	output, err = runExport("updated", wrapperPath, false)
+	require.NoError(t, err, string(output))
+	updated, err := os.ReadFile(wrapperFile)
+	require.NoError(t, err)
+	assert.Contains(t, string(updated), "# distrobox_binary")
+	assert.Contains(t, string(updated), "# name: updated")
 }
 
 // TestProvisionScripts_ExtractsAdjacentToBinary verifies that ProvisionScripts
