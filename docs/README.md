@@ -354,6 +354,28 @@ Alternatively, it is possible to specify preferences using ENV variables:
 - DBX_NON_INTERACTIVE
 - DBX_SKIP_WORKDIR
 
+## systemd-nspawn backend (experimental)
+
+In addition to podman and docker, distrobox can manage containers directly
+with systemd-nspawn, without any container engine installed. Select it
+explicitly with `container_manager="nspawn"` (or `DBX_CONTAINER_MANAGER=nspawn`);
+it is never chosen by autodetection.
+
+Images are pulled in-process from any OCI registry and extracted under
+`$XDG_DATA_HOME/distrobox` (rootless) or `/var/lib/distrobox` (`--root`),
+with the image cache in `$XDG_CACHE_HOME/distrobox` or `/var/cache/distrobox`.
+Machines run as systemd-run transient units wrapping systemd-nspawn.
+
+Requirements and limitations:
+
+- Rootless operation needs systemd >= 257 with the `systemd-nsresourced` and
+  `systemd-mountfsd` sockets enabled; otherwise re-run with `--root`.
+- nspawn always gives machines private IPC and PID namespaces: the host
+  IPC/PID sharing podman and docker offer is not available.
+- `--unshare-netns` gives a loopback-only network (no NAT yet).
+- `distrobox create --clone` is not supported yet.
+- `--additional-flags` takes systemd-nspawn syntax with this backend.
+
 ---
 
 # Installation
