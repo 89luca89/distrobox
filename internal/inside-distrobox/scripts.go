@@ -35,15 +35,10 @@ var initScript string
 //go:embed assets/distrobox-export
 var exportScripts string
 
-// ProvisionScripts ensures that all necessary scripts are created in the given directory.
-// It returns scriptsDir unchanged on success.
+// ProvisionScripts ensures the helper scripts exist on disk and returns their
+// directory: scriptsDir when they are already there or it is writable, else a
+// per-user data dir (so a system-wide install still works when run rootless).
 func ProvisionScripts(scriptsDir string) (string, error) {
-	dir := scriptsDir
-	//nolint:gosec // 0755 is the same as from distrobox v1, let's keep it for compatibility
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create scripts directory: %w", err)
-	}
-
 	scripts := []struct {
 		name    string
 		content string
@@ -53,12 +48,34 @@ func ProvisionScripts(scriptsDir string) (string, error) {
 		{"distrobox-export", exportScripts},
 	}
 
+	// Reuse scripts already present (e.g. packaged), even if read-only.
+	allPresent := true
 	for _, script := range scripts {
-		if exists(script.name) {
+		if _, err := os.Stat(filepath.Join(scriptsDir, script.name)); err != nil {
+			allPresent = false
+			break
+		}
+	}
+	if allPresent {
+		return scriptsDir, nil
+	}
+
+	// Extract into scriptsDir, or a per-user dir when it is not writable.
+	dir := scriptsDir
+	//nolint:gosec // 0755 is the same as from distrobox v1, let's keep it for compatibility
+	if err := os.MkdirAll(dir, 0755); err != nil || !dirWritable(dir) {
+		dir = userScriptsDir()
+	}
+	//nolint:gosec // 0755 is the same as from distrobox v1, let's keep it for compatibility
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create scripts directory %s: %w", dir, err)
+	}
+
+	for _, script := range scripts {
+		destFilePath := filepath.Join(dir, script.name)
+		if _, err := os.Stat(destFilePath); err == nil {
 			continue
 		}
-
-		destFilePath := filepath.Join(dir, script.name)
 		//nolint:gosec // 0755 is the same as from distrobox v1, let's keep it for compatibility
 		if err := os.WriteFile(destFilePath, []byte(script.content), 0755); err != nil {
 			return "", fmt.Errorf("failed to write script %s: %w", script.name, err)
@@ -68,15 +85,28 @@ func ProvisionScripts(scriptsDir string) (string, error) {
 	return dir, nil
 }
 
-// exists reports whether a script with the given name is already
-// available on the host.
-func exists(name string) bool {
-	if exe, err := os.Executable(); err == nil {
-		dir := filepath.Dir(exe)
-		if _, err := os.Stat(filepath.Join(dir, name)); err == nil {
-			return true
-		}
+// dirWritable reports whether a file can be created in dir (probes with a temp file).
+func dirWritable(dir string) bool {
+	probe, err := os.CreateTemp(dir, ".dbx-write-probe-")
+	if err != nil {
+		return false
+	}
+	defer func() {
+		_ = probe.Close()
+		_ = os.Remove(probe.Name())
+	}()
+
+	return true
+}
+
+// userScriptsDir is the per-user fallback for extracted scripts.
+func userScriptsDir() string {
+	if xdg := os.Getenv("XDG_DATA_HOME"); xdg != "" {
+		return filepath.Join(xdg, "distrobox")
+	}
+	if home := os.Getenv("HOME"); home != "" {
+		return filepath.Join(home, ".local", "share", "distrobox")
 	}
 
-	return false
+	return filepath.Join(os.TempDir(), "distrobox")
 }
