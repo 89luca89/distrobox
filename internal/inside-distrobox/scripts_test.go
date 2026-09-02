@@ -48,19 +48,9 @@ func assertAllScripts(t *testing.T, dir string) {
 	}
 }
 
-// isolatePath wipes PATH for the duration of the test so the PATH branch
-// of exists() never finds a system-installed distrobox-init while we are
-// trying to exercise other resolution branches.
-func isolatePath(t *testing.T) {
-	t.Helper()
-	t.Setenv("PATH", "")
-}
-
-// TestProvisionScripts_CustomDir checks that ProvisionScripts writes all three
-// scripts into the given directory and returns it unchanged.
+// writes the scripts into a writable dir and returns it unchanged.
 func TestProvisionScripts_CustomDir(t *testing.T) {
 	tmpDir := t.TempDir()
-	isolatePath(t)
 
 	dir, err := insidedistrobox.ProvisionScripts(tmpDir)
 	require.NoError(t, err)
@@ -68,35 +58,27 @@ func TestProvisionScripts_CustomDir(t *testing.T) {
 	assertAllScripts(t, dir)
 }
 
-// TestProvisionScripts_DetectOnPath confirms the skip-write shortcut via
-// the PATH branch of exists(): when the helper scripts already exist
-// somewhere on PATH, ProvisionScripts leaves them byte-for-byte
-// untouched rather than overwriting from the embedded copies.
-func TestProvisionScripts_DetectOnPath(t *testing.T) {
-	writeDir := t.TempDir()
-	scriptsDir := t.TempDir()
+// scripts already in the target dir are reused byte-for-byte, not overwritten.
+func TestProvisionScripts_ReusesPresent(t *testing.T) {
+	dir := t.TempDir()
 	marker := "#!/bin/sh\n# pre-existing-marker\n"
 	for _, name := range expectedScripts {
-		require.NoError(t, os.WriteFile(filepath.Join(scriptsDir, name), []byte(marker), 0755))
+		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(marker), 0755))
 	}
 
-	t.Setenv("PATH", scriptsDir)
-
-	_, err := insidedistrobox.ProvisionScripts(writeDir)
+	got, err := insidedistrobox.ProvisionScripts(dir)
 	require.NoError(t, err)
+	require.Equal(t, dir, got)
 
 	for _, name := range expectedScripts {
-		got, err := os.ReadFile(filepath.Join(scriptsDir, name))
+		b, err := os.ReadFile(filepath.Join(dir, name))
 		require.NoError(t, err)
-		require.Equal(t, marker, string(got), "%s was overwritten despite existing on PATH", name)
+		require.Equal(t, marker, string(b), "%s was overwritten despite already being present", name)
 	}
 }
 
-// TestProvisionScripts_ExtractsAdjacentToBinary verifies that ProvisionScripts
-// writes to the given directory.
+// writes into the given directory when it is writable and empty.
 func TestProvisionScripts_ExtractsAdjacentToBinary(t *testing.T) {
-	isolatePath(t)
-
 	exe, err := os.Executable()
 	require.NoError(t, err)
 	exeDir := filepath.Dir(exe)
@@ -112,6 +94,24 @@ func TestProvisionScripts_ExtractsAdjacentToBinary(t *testing.T) {
 	dir, err := insidedistrobox.ProvisionScripts(exeDir)
 	require.NoError(t, err)
 	require.Equal(t, exeDir, dir)
+	assertAllScripts(t, dir)
+}
+
+// an unwritable target dir falls back to the per-user data dir.
+func TestProvisionScripts_FallsBackWhenUnwritable(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root can write into any directory; cannot exercise the fallback")
+	}
+	roDir := filepath.Join(t.TempDir(), "install")
+	require.NoError(t, os.Mkdir(roDir, 0o500))
+
+	home := t.TempDir()
+	t.Setenv("XDG_DATA_HOME", "")
+	t.Setenv("HOME", home)
+
+	dir, err := insidedistrobox.ProvisionScripts(roDir)
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(home, ".local", "share", "distrobox"), dir)
 	assertAllScripts(t, dir)
 }
 
