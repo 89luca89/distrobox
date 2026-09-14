@@ -18,6 +18,9 @@ on:
         required: true
         type: boolean
 
+permissions:
+  contents: read
+
 jobs:
   check_changes:
     runs-on: ubuntu-latest
@@ -29,6 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           # Checkout as many commits as needed for the diff
           fetch-depth: 2
       - id: check_file_changed
