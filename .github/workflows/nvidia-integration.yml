@@ -12,6 +12,9 @@ on:
       - .github/workflows/nvidia-integration.yml
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 # A new push to the same PR/branch cancels the run still in progress, so only
 # the latest commit is tested (and expensive VM runners are not wasted).
 concurrency:
@@ -32,6 +35,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -72,7 +77,9 @@ jobs:
 
       - name: Run --nvidia integration test
         timeout-minutes: 45
-        run: hack/test/test-nvidia-integration.sh ${{ matrix.distro }}
+        env:
+          DISTRO: ${{ matrix.distro }}
+        run: hack/test/test-nvidia-integration.sh "$DISTRO"
 
       # Save even when the test fails - a red run is when we re-run most, and the
       # plain cache action only saves on success. Skipped on an exact-key hit.

@@ -12,11 +12,15 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
 
   # Check changes, cancel job is not.
   check_changes:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       distrobox_changed: ${{ steps.check_file_changed.outputs.distrobox_changed }}
     steps:
@@ -44,10 +48,12 @@ jobs:
     needs: check_changes
     if: needs.check_changes.outputs.distrobox_changed == 'True'
     permissions:
-      contents: write
+      contents: write # git-auto-commit-action pushes the regenerated man pages
     steps:
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # git-auto-commit-action pushes over the remote that checkout configured,
+      # so the PAT must stay in .git/config for this job.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 # zizmor: ignore[artipacked]
         with:
           token: ${{ secrets.PAT }}
 

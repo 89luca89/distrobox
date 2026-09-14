@@ -14,6 +14,9 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   SHELL_SCRIPTS_DIR: internal/inside-distrobox/assets
 
@@ -23,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: "go.mod"
@@ -33,6 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: "go.mod"
@@ -46,6 +53,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: "go.mod"
@@ -63,6 +72,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run dash -n
         run: |
@@ -81,6 +92,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run shfmt
         run: |
@@ -101,6 +114,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # Exclude from bashate the following rules:
       #   - SC2310 we don't want to exit if errors happen inside a check, that's why we have a check...
@@ -125,11 +140,12 @@ jobs:
 
     permissions:
       contents: read
-      security-events: write
+      security-events: write # upload the SARIF report to the Security tab
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Run Differential ShellCheck
@@ -144,6 +160,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # Exclude from bashate the following rules:
       #   - E002 we use tab indentation as suggested by shfmt.
       #   - E003 we use tab indentation as suggested by shfmt.
@@ -166,6 +184,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: codespell-project/actions-codespell@8f01853be192eb0f849a5c7d721450e7a467c579 # v2.2
         with:
@@ -176,10 +196,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run shell-funcheck
         run: |
-          curl -L -O https://github.com/89luca89/shell-funcheck/releases/download/v0.0.1/shell-funcheck-amd64
+          curl -fsSL -o shell-funcheck-amd64 https://github.com/89luca89/shell-funcheck/releases/download/v0.0.1/shell-funcheck-amd64
+          echo "f7af60f05027b94acebeff1b5a71fecede19c1b79f26efc15ac34b7f03b97947  shell-funcheck-amd64" | sha256sum -c -
           chmod +x ./shell-funcheck-amd64
           for i in ${SHELL_SCRIPTS_DIR}/*; do
           ./shell-funcheck-amd64 check "$i"
@@ -191,8 +214,12 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: Install commitlint
         run: npm install -D @commitlint/cli@20.5.0 @commitlint/config-conventional@20.5.0
       - name: Validate PR commits with commitlint
-        run: npx commitlint --config .github/commitlint.config.js --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: npx commitlint --config .github/commitlint.config.js --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
