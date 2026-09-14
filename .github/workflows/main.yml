@@ -201,7 +201,8 @@ jobs:
 
       - name: Run shell-funcheck
         run: |
-          curl -L -O https://github.com/89luca89/shell-funcheck/releases/download/v0.0.1/shell-funcheck-amd64
+          curl -fsSL -o shell-funcheck-amd64 https://github.com/89luca89/shell-funcheck/releases/download/v0.0.1/shell-funcheck-amd64
+          echo "f7af60f05027b94acebeff1b5a71fecede19c1b79f26efc15ac34b7f03b97947  shell-funcheck-amd64" | sha256sum -c -
           chmod +x ./shell-funcheck-amd64
           for i in ${SHELL_SCRIPTS_DIR}/*; do
           ./shell-funcheck-amd64 check "$i"
