@@ -7,10 +7,17 @@ Add the following line if it’s not already there:
 `export PATH=/home/deck/.local/bin:$PATH`
 
 **2 - Install and configure Distrobox**
-To install Distrobox in the defined $PATH, use one of the following commands
-depending on whether you need the latest version (`--next`) or not:
+To install Distrobox in the defined $PATH, use the following command:
 
 `curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix $HOME/.local`
+
+This installs the v1 stable release by default. To install the v2 Go release candidate instead, add `--v2`:
+
+`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix $HOME/.local --v2`
+
+You can also specify a particular release tag with `--version` (or `-V`):
+
+`curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix $HOME/.local --version 1.8.2.5`
 
 After installing, create the file `~/.distroboxrc` if it doesn't already exist.
 Open it with:
