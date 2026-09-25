@@ -2000,6 +2000,15 @@ done
 # If --nvidia, we try to integrate host's nvidia drivers in to the guest
 if [ "${nvidia}" -eq 1 ]; then
 	printf "distrobox: Setting up host's nvidia integration...\n"
+	# This phase mounts every nvidia library and driver; with xtrace on that
+	# is thousands of lines. The systemd-journald default rate limit then
+	# drops the tail of the container log, including the final
+	# "container_setup_done" marker distrobox-enter waits for, so entering
+	# hangs forever. Silence tracing here, as the keepalive loop below
+	# already does.
+	if [ "${verbose}" -ne 0 ]; then
+		set +x
+	fi
 
 	# Refresh ldconfig cache, also detect if there are empty files remaining
 	# and clean them.
@@ -2177,6 +2186,9 @@ if [ "${nvidia}" -eq 1 ]; then
 
 	# Refresh ldconfig cache
 	ldconfig 2>&1 /dev/null
+	if [ "${verbose}" -ne 0 ]; then
+		set -x
+	fi
 
 fi
 
