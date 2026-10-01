@@ -1,15 +1,20 @@
 ---
 name: NVIDIA integration
 
-# distrobox-init holds the --nvidia mirroring logic, so only run this expensive
-# VM-based test when that script (or the test harness itself) changes.
+# distrobox-init holds the --nvidia mirroring logic, so run this expensive
+# VM-based test when that script (or the test harness itself) changes. Also run
+# it on dependabot PRs — they bump the Go toolchain and the actions this
+# harness depends on, and that can break the build just as easily as a code
+# change.
 on:
   pull_request:
     branches: [main]
     paths:
       - internal/inside-distrobox/assets/distrobox-init
       - hack/test/**
-      - .github/workflows/nvidia-integration.yml
+      - go.mod
+      - go.sum
+      - .github/workflows/**
   workflow_dispatch:
 
 permissions:
