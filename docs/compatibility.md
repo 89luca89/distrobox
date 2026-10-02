@@ -159,6 +159,7 @@ Distrobox guests tested successfully with the following container images:
 | AmazonLinux (Toolbox) | 2 <br> 2023 | quay.io/toolbx-images/amazonlinux-toolbox:2 <br> quay.io/toolbx-images/amazonlinux-toolbox:2023 <br> quay.io/toolbx-images/amazonlinux-toolbox:latest |
 | Archlinux (Toolbox) | | quay.io/toolbx/arch-toolbox:latest |
 | ALT Linux | p10 <br> p11 <br> sisyphus | docker.io/library/alt:p10 <br> docker.io/library/alt:p11 <br> docker.io/library/alt:sisyphus |
+| Azure Linux | 4.0 | mcr.microsoft.com/azurelinux/base/core:4.0 |
 | Steambox | | ghcr.io/ublue-os/steambox:latest <br> ghcr.io/ublue-os/steambox-gnome:latest |
 | Centos (Toolbox) | stream9 <br> stream10 | quay.io/toolbx-images/centos-toolbox:stream9 <br> quay.io/toolbx-images/centos-toolbox:stream10 <br> quay.io/toolbx-images/centos-toolbox:latest |
 | Debian (Toolbox) | 11 <br> 12 <br> 13 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br> quay.io/toolbx-images/debian-toolbox:13 <br> quay.io/toolbx-images/debian-toolbox:testing <br> quay.io/toolbx-images/debian-toolbox:unstable <br> quay.io/toolbx-images/debian-toolbox:latest |
