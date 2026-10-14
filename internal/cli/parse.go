@@ -57,7 +57,7 @@ func PrepareArgs(root *cli.Command, args []string) []string {
 	}
 
 	sub := root.Command(args[i])
-	if sub == nil || (sub.Name != "enter" && sub.Name != "ephemeral") {
+	if sub == nil || (sub.Name != "enter" && sub.Name != "ephemeral") { //nolint:goconst // literal shared with root.go's completer switch
 		return args
 	}
 
