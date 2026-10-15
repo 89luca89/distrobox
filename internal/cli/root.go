@@ -73,6 +73,12 @@ func NewRootCommand(cfg *config.Values) *cli.Command {
 	// subcommand names; this also emits flag names.
 	for _, sub := range subs {
 		installShellCompleteRecursively(sub)
+		switch sub.Name {
+		case "enter", "rm", "stop", "upgrade", "generate-entry":
+			sub.ShellComplete = containerNameCompleter(cfg)
+		case "create", "ephemeral":
+			sub.ShellComplete = imageCompleter()
+		}
 	}
 
 	//nolint:reassign // urfave/cli/v3 explicitly supports reassigning VersionFlag

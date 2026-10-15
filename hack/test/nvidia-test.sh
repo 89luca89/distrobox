@@ -54,9 +54,20 @@ fail()
 	poweroff -f
 	exit 1
 }
+# Box ops run rootless as the cloud user; runuser -u
+# has no login session, so env supplies what rootless podman needs.
+as_user()
+{
+	runuser -u "${TEST_USER}" -- env \
+		HOME="/home/${TEST_USER}" \
+		XDG_RUNTIME_DIR="/run/user/${TEST_UID}" \
+		DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${TEST_UID}/bus" \
+		PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+		"$@"
+}
 dbx()
 {
-	/usr/local/bin/distrobox "$@"
+	as_user /usr/local/bin/distrobox "$@"
 }
 outok()
 {
@@ -152,6 +163,21 @@ esac
 ldconfig 2> /dev/null || true
 
 install -m0755 /mnt/share/distrobox /usr/local/bin/distrobox || fail "install distrobox"
+
+# Rootless prep: cloud images ship no subuid/subgid and lock the user, so grant
+# ranges and start a lingering session (/run/user/<uid> + systemd --user).
+TEST_USER="$(getent passwd 1000 | cut -d: -f1)"
+[ -n "${TEST_USER}" ] || fail "no default non-root user (uid 1000) in ${DISTRO} image"
+TEST_UID="$(id -u "${TEST_USER}")"
+grep -q "^${TEST_USER}:" /etc/subuid 2> /dev/null || printf '%s:100000:65536\n' "${TEST_USER}" >> /etc/subuid
+grep -q "^${TEST_USER}:" /etc/subgid 2> /dev/null || printf '%s:100000:65536\n' "${TEST_USER}" >> /etc/subgid
+loginctl enable-linger "${TEST_USER}" || fail "enable-linger ${TEST_USER}"
+for _ in $(seq 1 30); do
+	[ -S "/run/user/${TEST_UID}/bus" ] && break
+	sleep 1
+done
+[ -S "/run/user/${TEST_UID}/bus" ] || log "WARN: no user bus for ${TEST_USER}; rootless podman will use the cgroupfs manager"
+log "running box tests rootless as ${TEST_USER} (uid ${TEST_UID})"
 
 # Every driver file is required in the guest except these non-runtime bits.
 is_excluded()
@@ -451,6 +477,11 @@ PROBE
 		log "guest ${box}: ${n} problem(s) (of ${nreq} files)"
 		bad="${bad} ${box}"
 	else log "guest ${box}: OK (${nreq} files)"; fi
+
+	# Purge box + image so the next guest reuses the freed blocks (the qcow2 never
+	# shrinks); best-effort.
+	dbx rm --yes --force "${name}" > "${SERIAL}" 2>&1 || true
+	as_user podman rmi --force "${box}" > "${SERIAL}" 2>&1 || true
 done
 
 [ -z "${bad}" ] || fail "guest images failed:${bad}"

@@ -2128,6 +2128,15 @@ mirror_host_ro()
 # If --nvidia, we try to integrate host's nvidia drivers in to the guest
 if [ "${nvidia}" -eq 1 ]; then
 	printf "distrobox: Setting up host's nvidia integration...\n"
+	# This phase mounts every nvidia library and driver, and with xtrace on
+	# that is thousands of lines. systemd-journald's default rate limit
+	# (10k messages / 30s) then drops the tail of the container log, including
+	# the final "container_setup_done" marker distrobox-enter waits for, so
+	# entering the container hangs forever. Silence tracing here, as the
+	# keepalive loop below already does.
+	if [ "${verbose}" -ne 0 ]; then
+		set +x
+	fi
 
 	# Refresh ldconfig cache, also detect if there are empty files remaining
 	# and clean them.
@@ -2294,6 +2303,9 @@ if [ "${nvidia}" -eq 1 ]; then
 		> /etc/ld.so.conf.d/00-distrobox-nvidia.conf
 	ldconfig 2> /dev/null
 
+	if [ "${verbose}" -ne 0 ]; then
+		set -x
+	fi
 fi
 
 ###############################################################################
@@ -2837,7 +2849,14 @@ if [ "${init}" -eq 0 ]; then
 							file_watch_src="/run/host${file_watch_src}"
 						fi
 					fi
-					if ! diff "${file_watch}" "${file_watch_src}" > /dev/null; then
+					# findmnt marks a bind whose host file was replaced as "//deleted";
+					# diff alone misses it when the new content is equal.
+					if [ ! -e "${file_watch_src}" ] ||
+						findmnt -no SOURCE "${file_watch_src}" 2> /dev/null | grep -q '//deleted'; then
+						continue
+					fi
+					if echo "${mount_source}" | grep -q '//deleted' ||
+						! diff "${file_watch}" "${file_watch_src}" > /dev/null; then
 						# We only do this, if the file is actually different
 						umount "${file_watch}" &&
 							mount_bind "${file_watch_src}" "${file_watch}"

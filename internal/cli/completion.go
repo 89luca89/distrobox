@@ -22,9 +22,22 @@ package cli
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/urfave/cli/v3"
+
+	"github.com/89luca89/distrobox/pkg/config"
+	"github.com/89luca89/distrobox/pkg/containermanager"
+	"github.com/89luca89/distrobox/pkg/version"
 )
+
+// imageFetchTimeout: user is waiting at TAB, not at a shell prompt.
+const imageFetchTimeout = 3 * time.Second
 
 // flagCompleter prints the command's subcommand names (with aliases) and
 // long-form flag names to stdout, one per line. urfave/cli v3's default
@@ -71,4 +84,87 @@ func installShellCompleteRecursively(cmd *cli.Command) {
 	for _, sub := range cmd.Commands {
 		installShellCompleteRecursively(sub)
 	}
+}
+
+// containerNameCompleter: urfave bypasses Before during completion so the
+// manager is built inline; errors stay silent to avoid stderr noise in TAB.
+func containerNameCompleter(cfg *config.Values) func(context.Context, *cli.Command) {
+	return func(ctx context.Context, cmd *cli.Command) {
+		flagCompleter(ctx, cmd)
+		cm, err := buildContainerManager(
+			ctx,
+			cmd.String("container-manager"),
+			cmd.String("sudo-command"),
+			false,
+			cmd.Bool("root") || os.Getuid() == 0,
+			cfg.UsernsNoLimit,
+		)
+		if err != nil {
+			return
+		}
+		emitContainerNames(ctx, cm, os.Stdout)
+	}
+}
+
+func emitContainerNames(ctx context.Context, cm containermanager.ContainerManager, w io.Writer) {
+	containers, err := cm.ListContainers(ctx)
+	if err != nil {
+		return
+	}
+	for _, c := range containers {
+		if c.IsDistrobox() {
+			fmt.Fprintln(w, c.Name)
+		}
+	}
+}
+
+func imageCompleter() func(context.Context, *cli.Command) {
+	return func(ctx context.Context, cmd *cli.Command) {
+		if lastTokenRequestsImage(os.Args) {
+			emitCachedImages(ctx, os.Stdout)
+			return
+		}
+		flagCompleter(ctx, cmd)
+	}
+}
+
+// lastTokenRequestsImage: urfave strips --generate-shell-completion before
+// parsing but leaves it in os.Args; the token before it is the user's "prev".
+func lastTokenRequestsImage(args []string) bool {
+	if len(args) < 2 || args[len(args)-1] != "--generate-shell-completion" {
+		return false
+	}
+	switch args[len(args)-2] {
+	case "--image", "-i":
+		return true
+	}
+	return false
+}
+
+func emitCachedImages(ctx context.Context, w io.Writer) {
+	cacheDir, err := compatibilityCacheDir()
+	if err != nil {
+		return
+	}
+	ref := compatibilityRef(version.Version)
+	cachePath := filepath.Join(cacheDir, "distrobox-compatibility-"+sanitizeRefForFilename(ref))
+
+	if content, err := readCompatibilityCache(cachePath); err == nil {
+		fmt.Fprint(w, content)
+		return
+	}
+
+	fetchCtx, cancel := context.WithTimeout(ctx, imageFetchTimeout)
+	defer cancel()
+	markdown, err := fetchCompatibilityMarkdown(fetchCtx, http.DefaultClient, ref)
+	if err != nil {
+		return
+	}
+	images := parseCompatibilityImages(markdown)
+	if len(images) == 0 {
+		return
+	}
+	rendered := strings.Join(images, "\n") + "\n"
+	_ = writeCompatibilityCache(cachePath, rendered)
+	fmt.Fprint(w, rendered)
 }

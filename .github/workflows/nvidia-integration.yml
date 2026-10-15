@@ -1,16 +1,13 @@
 ---
 name: NVIDIA integration
 
-# distrobox-init holds the --nvidia mirroring logic, so only run this expensive
-# VM-based test when that script (or the test harness itself) changes.
 on:
   pull_request:
     branches: [main]
-    paths:
-      - internal/inside-distrobox/assets/distrobox-init
-      - hack/test/**
-      - .github/workflows/nvidia-integration.yml
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 # A new push to the same PR/branch cancels the run still in progress, so only
 # the latest commit is tested (and expensive VM runners are not wasted).
@@ -31,10 +28,12 @@ jobs:
         distro: [ubuntu, fedora, arch, debian]
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
 
@@ -63,7 +62,7 @@ jobs:
       # invalidates it; restore-keys still serves the last image for the distro.
       - name: Restore cached base cloud image
         id: img-cache
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/distrobox-vmtest
           key: qcow2-${{ matrix.distro }}-${{ hashFiles('hack/test/vm-run.sh') }}
@@ -72,7 +71,9 @@ jobs:
 
       - name: Run --nvidia integration test
         timeout-minutes: 45
-        run: hack/test/test-nvidia-integration.sh ${{ matrix.distro }}
+        env:
+          DISTRO: ${{ matrix.distro }}
+        run: hack/test/test-nvidia-integration.sh "$DISTRO"
 
       # Save even when the test fails - a red run is when we re-run most, and the
       # plain cache action only saves on success. Skipped on an exact-key hit.
@@ -85,7 +86,7 @@ jobs:
 
       - name: Upload logs on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: nvidia-test-logs-${{ matrix.distro }}
           path: hack/test/out/last-out-${{ matrix.distro }}/

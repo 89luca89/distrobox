@@ -1,0 +1,38 @@
+---
+name: zizmor
+
+# Static analysis of the GitHub Actions workflows themselves (permissions,
+# credential persistence, template injection, unpinned or vulnerable actions).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # checkout and online audits against public action repos
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # SARIF upload needs security-events: write, which fork PRs never get, so
+      # report as inline annotations and let the zizmor exit code gate the job.
+      # The zizmor version is pinned on purpose: `latest` can add new audits and
+      # break CI without a change in this repo. Bump it together with the action.
+      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+        with:
+          version: 1.24.1
+          advanced-security: false
+          annotations: true
