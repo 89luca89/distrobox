@@ -85,12 +85,9 @@ func TestExportBinaryProtectsExistingFiles(t *testing.T) {
 	dashPath, err := exec.LookPath("dash")
 	require.NoError(t, err)
 
-	originalPath := os.Getenv("PATH")
-	isolatePath(t)
 	scriptsDir := t.TempDir()
 	_, err = insidedistrobox.ProvisionScripts(scriptsDir)
 	require.NoError(t, err)
-	t.Setenv("PATH", originalPath)
 
 	tmpDir := t.TempDir()
 	guestBin := filepath.Join(tmpDir, "guest", "demo-tool")
