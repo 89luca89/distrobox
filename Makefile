@@ -72,13 +72,43 @@ uninstall:
 clean:
 	rm -f ./bin/distrobox
 
+# lint / lint-fix invoke the same golangci-lint version as the Lint CI job
+# (.github/workflows/main.yml: golangci/golangci-lint-action with version:
+# v2.5.0) through a container so local runs cannot drift from CI results.
+# Defaults to podman when it is on PATH, else docker. Override with
+# CONTAINER_RUNTIME=... to pick explicitly.
+GOLANGCI_LINT_VERSION ?= v2.5.0
+GOLANGCI_LINT_IMAGE   ?= docker.io/golangci/golangci-lint:$(GOLANGCI_LINT_VERSION)
+CONTAINER_RUNTIME     ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
+LINT_CACHE_DIR        ?= $(CURDIR)/.cache/lint
+
+LINT_USERNS := $(shell \
+	if [ "$(CONTAINER_RUNTIME)" = "podman" ] && \
+	   podman info --format '{{.Host.Security.Rootless}}' 2>/dev/null | grep -qx true; then \
+		echo "--userns=keep-id"; \
+	fi)
+
+LINT_RUN = $(CONTAINER_RUNTIME) run --rm \
+	--user $(shell id -u):$(shell id -g) \
+	$(LINT_USERNS) \
+	-v $(CURDIR):$(CURDIR) -w $(CURDIR) \
+	-v $(LINT_CACHE_DIR):/cache \
+	-e HOME=/cache \
+	-e GOPATH=/cache/go \
+	-e GOCACHE=/cache/go-build \
+	-e GOMODCACHE=/cache/go/pkg/mod \
+	-e GOLANGCI_LINT_CACHE=/cache/golangci \
+	$(GOLANGCI_LINT_IMAGE) golangci-lint run ./...
+
 .PHONY: lint
 lint:
-	$(GO_BUILD_ENV) golangci-lint run --verbose
+	@mkdir -p $(LINT_CACHE_DIR)/go/pkg/mod $(LINT_CACHE_DIR)/go-build $(LINT_CACHE_DIR)/golangci
+	$(LINT_RUN) --verbose
 
 .PHONY: lint-fix
 lint-fix:
-	$(GO_BUILD_ENV) golangci-lint run --fix
+	@mkdir -p $(LINT_CACHE_DIR)/go/pkg/mod $(LINT_CACHE_DIR)/go-build $(LINT_CACHE_DIR)/golangci
+	$(LINT_RUN) --fix
 
 # ---------------------------------------------------------------------------
 # Local e2e via the hack/ci/*.sh scripts, on the freshly-built binary. Pulled
@@ -104,7 +134,7 @@ E2E_IMAGES := \
 
 # Full compatibility matrix, derived from docs/compatibility.md like compatibility.yml
 # (no drift). Lazy '=' so the pipeline runs only when e2e-full is invoked.
-E2E_FULL_SKIP := bazzite|chimera|slackware|stream8|ublue|neon|steamos
+E2E_FULL_SKIP := bazzite|chimera|slackware|stream8|ublue|neon|steamos|alt:
 E2E_FULL_IMAGES = $(shell sed -n -e '/| Alma/,/| Void/ p' docs/compatibility.md | cut -d'|' -f 4 | sed 's/<br>/\n/g' | tr -d ' ' | sed '/^[[:space:]]*$$/d' | sort -u | grep -Ev '$(E2E_FULL_SKIP)')
 
 # print-<VAR> — echo a make variable; the CI matrices build from these lists.
