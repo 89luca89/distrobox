@@ -127,7 +127,7 @@ E2E_IMAGES := \
 
 # Full compatibility matrix, derived from docs/compatibility.md like compatibility.yml
 # (no drift). Lazy '=' so the pipeline runs only when e2e-full is invoked.
-E2E_FULL_SKIP := bazzite|chimera|slackware|stream8|ublue|neon|steamos
+E2E_FULL_SKIP := bazzite|chimera|slackware|stream8|ublue|neon|steamos|alt:
 E2E_FULL_IMAGES = $(shell sed -n -e '/| Alma/,/| Void/ p' docs/compatibility.md | cut -d'|' -f 4 | sed 's/<br>/\n/g' | tr -d ' ' | sed '/^[[:space:]]*$$/d' | sort -u | grep -Ev '$(E2E_FULL_SKIP)')
 
 # print-<VAR> — echo a make variable; the CI matrices build from these lists.

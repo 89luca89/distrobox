@@ -178,7 +178,7 @@ Distrobox guests tested successfully with the following container images:
 | CentOS Stream | 9 <br> 10 | quay.io/centos/centos:stream9 <br> quay.io/centos/centos:stream10 |
 | Chainguard Wolfi | | cgr.dev/chainguard/wolfi-base:latest |
 | Chimera Linux | | docker.io/chimeralinux/chimera:latest |
-| Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 <br> 12 <br> 13 | docker.io/debian/eol:wheezy <br> docker.io/debian/eol:buster <br> docker.io/debian/eol:bullseye <br> docker.io/library/debian:bookworm-backports <br> docker.io/library/debian:stable-backports |
+| Debian | 8 <br> 9 <br> 11 <br> 12 <br> 13 | docker.io/debian/eol:bullseye <br> docker.io/library/debian:bookworm-backports <br> docker.io/library/debian:stable-backports |
 | Debian | Testing | docker.io/library/debian:testing  <br>  docker.io/library/debian:testing-backports |
 | Debian | Unstable | docker.io/library/debian:unstable |
 | deepin | 20 (apricot) <br> 23 (beige) | docker.io/linuxdeepin/apricot <br> docker.io/linuxdeepin/deepin:beige |
