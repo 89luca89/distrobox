@@ -23,6 +23,7 @@ will automatically be launched from the container it is exported from.
 \-\-list\-apps:        list applications exported from this container
 \-\-list\-binaries     list binaries exported from this container, use \-ep to specify custom paths to search
 \-\-delete/\-d:        delete exported application or binary
+\-\-force/\-f:     overwrite an existing non\-distrobox binary export
 \-\-export\-label/\-el: label to add to exported application name.
             Use \[dq]none\[dq] to disable.
             Defaults to (on \[rs]$container_name)
@@ -43,7 +44,7 @@ will let you use them from the host itself.
 .IP
 .EX
 distrobox\-export \-\-app mpv [\-\-extra\-flags \[dq]flags\[dq]] [\-\-delete] [\-\-sudo]
-distrobox\-export \-\-bin /path/to/bin [\-\-export\-path \[ti]/.local/bin] [\-\-extra\-flags \[dq]flags\[dq]] [\-\-delete] [\-\-sudo]
+distrobox\-export \-\-bin /path/to/bin [\-\-export\-path \[ti]/.local/bin] [\-\-extra\-flags \[dq]flags\[dq]] [\-\-delete] [\-\-force] [\-\-sudo]
 .EE
 .PP
 \f[B]App export example\f[R]
@@ -81,6 +82,10 @@ versions of the same binary based on your \f[CR]env\f[R] or project.
 The exported binaries will be exported in the
 \[lq]\[en]export\-path\[rq] of choice as a wrapper script that acts
 naturally both on the host and in the container.
+.PP
+When the destination already exists, binary export refuses to replace a
+file that was not created by distrobox.
+Use \f[CR]\-\-force\f[R] when intentionally replacing such a file.
 .PP
 \f[B]Additional flags\f[R]
 .PP
