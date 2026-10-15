@@ -6,6 +6,9 @@
 *.dylib
 bin/
 
+# Local tool caches (make lint, etc.)
+.cache/
+
 # Test binary, built with `go test -c`
 *.test
 
