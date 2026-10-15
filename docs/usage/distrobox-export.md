@@ -23,6 +23,7 @@ automatically be launched from the container it is exported from.
 	--list-apps:		list applications exported from this container
 	--list-binaries		list binaries exported from this container, use -ep to specify custom paths to search
 	--delete/-d:		delete exported application or binary
+	--force/-f:		overwrite an existing non-distrobox binary export
 	--export-label/-el:	label to add to exported application name.
 				Use "none" to disable.
 				Defaults to (on \$container_name)
@@ -40,7 +41,7 @@ Using `distrobox-export` from **inside** the container will let you use them fro
 # EXAMPLES
 
 	distrobox-export --app mpv [--extra-flags "flags"] [--delete] [--sudo]
-	distrobox-export --bin /path/to/bin [--export-path ~/.local/bin] [--extra-flags "flags"] [--delete] [--sudo]
+	distrobox-export --bin /path/to/bin [--export-path ~/.local/bin] [--extra-flags "flags"] [--delete] [--force] [--sudo]
 
 **App export example**
 
@@ -66,6 +67,9 @@ your `env` or project.
 
 The exported binaries will be exported in the "--export-path" of choice as a wrapper
 script that acts naturally both on the host and in the container.
+
+When the destination already exists, binary export refuses to replace a file that was not
+created by distrobox. Use `--force` when intentionally replacing such a file.
 
 **Additional flags**
 
