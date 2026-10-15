@@ -161,7 +161,7 @@ Distrobox guests tested successfully with the following container images:
 | ALT Linux | p10 <br> p11 <br> sisyphus | docker.io/library/alt:p10 <br> docker.io/library/alt:p11 <br> docker.io/library/alt:sisyphus |
 | Steambox | | ghcr.io/ublue-os/steambox:latest <br> ghcr.io/ublue-os/steambox-gnome:latest |
 | Centos (Toolbox) | stream9 <br> stream10 | quay.io/toolbx-images/centos-toolbox:stream9 <br> quay.io/toolbx-images/centos-toolbox:stream10 <br> quay.io/toolbx-images/centos-toolbox:latest |
-| Debian (Toolbox) | 11 <br> 12 <br> 13 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:11 <br> quay.io/toolbx-images/debian-toolbox:12 <br> quay.io/toolbx-images/debian-toolbox:13 <br> quay.io/toolbx-images/debian-toolbox:testing <br> quay.io/toolbx-images/debian-toolbox:unstable <br> quay.io/toolbx-images/debian-toolbox:latest |
+| Debian (Toolbox) | 12 <br> 13 <br> testing <br> unstable <br> | quay.io/toolbx-images/debian-toolbox:12 <br> quay.io/toolbx-images/debian-toolbox:13 <br> quay.io/toolbx-images/debian-toolbox:testing <br> quay.io/toolbx-images/debian-toolbox:unstable <br> quay.io/toolbx-images/debian-toolbox:latest |
 | Fedora (Toolbox) | 42 <br> 43 <br> 44 <br> Rawhide | quay.io/fedora/fedora-toolbox:42 <br> quay.io/fedora/fedora-toolbox:43 <br> quay.io/fedora/fedora-toolbox:44 <br> quay.io/fedora/fedora-toolbox:rawhide |
 | openSUSE (Toolbox) | | registry.opensuse.org/opensuse/distrobox:latest |
 | RedHat (Toolbox) | 8 <br> 9 <br> 10 | registry.access.redhat.com/ubi8/toolbox <br> registry.access.redhat.com/ubi9/toolbox <br> registry.access.redhat.com/ubi10/toolbox |
@@ -178,7 +178,7 @@ Distrobox guests tested successfully with the following container images:
 | CentOS Stream | 9 <br> 10 | quay.io/centos/centos:stream9 <br> quay.io/centos/centos:stream10 |
 | Chainguard Wolfi | | cgr.dev/chainguard/wolfi-base:latest |
 | Chimera Linux | | docker.io/chimeralinux/chimera:latest |
-| Debian | 7 <br> 8 <br> 9 <br> 10 <br> 11 <br> 12 <br> 13 | docker.io/debian/eol:wheezy <br> docker.io/debian/eol:buster <br> docker.io/debian/eol:bullseye <br> docker.io/library/debian:bookworm-backports <br> docker.io/library/debian:stable-backports |
+| Debian | 8 <br> 9 <br> 12 <br> 13 | docker.io/library/debian:bookworm-backports <br> docker.io/library/debian:stable-backports |
 | Debian | Testing | docker.io/library/debian:testing  <br>  docker.io/library/debian:testing-backports |
 | Debian | Unstable | docker.io/library/debian:unstable |
 | deepin | 20 (apricot) <br> 23 (beige) | docker.io/linuxdeepin/apricot <br> docker.io/linuxdeepin/deepin:beige |
