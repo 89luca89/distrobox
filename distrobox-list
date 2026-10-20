@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/sh
 # SPDX-License-Identifier: GPL-3.0-only
 #
 # This file is part of the distrobox project:
@@ -228,6 +228,7 @@ fi
 # between a normal container and a distrobox one.
 container_list=$(${container_manager} ps -a --no-trunc --format \
 	"{{.ID}}|{{.Image}}|{{.Names}}|{{.Status}}|{{.Labels}}{{.Mounts}}")
+container_list=$(echo "$container_list" | sed -e ':s' -e 'N' -e '$!bs' -e ':rem' -e 's/\(map\[[^]]*\)\n/\1/' -e 'trem')
 printf "%-12s | %-20s | %-18s | %-30s\n" \
 	"ID" "NAME" "STATUS" "IMAGE"
 IFS='
