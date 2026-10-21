@@ -132,7 +132,7 @@ declared multiple times to be compounded:
 | volume | string_list | Additional volumes to mount inside the containers |
 | exported_apps | string_list | App names or desktopfile paths to export |
 | exported_bins | string_list | Binaries to export |
-| exported_bins_path | string | Optional path where to export binaries (default: $HOME/.local/bin) |
+| exported_bins_path | string | Optional path where to export binaries; a leading `~/` expands to the user's home (default: `$HOME/.local/bin`) |
 | entry | bool | Generate an entry for the container in the app list (default: false) |
 | start_now | bool | Start the container immediately (default: false) |
 | init | bool | Specify if this is an initful container (default: false) |
