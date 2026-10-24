@@ -285,7 +285,13 @@ func (c *CreateCommand) makeContainerUserCustomHome(
 ) string {
 	containerUserCustomHome := strings.TrimRight(opts.ContainerUserCustomHome, "/")
 	if opts.ContainerHomePrefix != "" && containerUserCustomHome == "" {
-		containerUserCustomHome = filepath.Join(opts.ContainerHomePrefix, containerName)
+		containerHomePrefix := opts.ContainerHomePrefix
+		if !strings.HasPrefix(containerHomePrefix, "/") {
+			if homeDir, err := os.UserHomeDir(); err == nil {
+				containerHomePrefix = filepath.Join(homeDir, containerHomePrefix)
+			}
+		}
+		containerUserCustomHome = filepath.Join(containerHomePrefix, containerName)
 	}
 	return containerUserCustomHome
 }
