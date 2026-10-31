@@ -11,6 +11,16 @@ Under the hood, distrobox-host-exec uses `host-spawn` a project that lets us
 execute commands back on the host.
 If the tool is not found the user will be prompted to install it.
 
+When invoked as `xdg-open` (or with `xdg-open` as its command), remote URIs
+are first sent to the host desktop's OpenURI portal if `gdbus` is installed
+inside the container. If the portal call fails or `gdbus` is unavailable,
+Distrobox falls back to `host-spawn`. Local paths and `file://` URIs always
+use `host-spawn`.
+
+Containers without an init system provide this relay in `/usr/local/bin`,
+even when the distribution has its own `/usr/bin/xdg-open`. An existing
+user-provided `/usr/local/bin/xdg-open` is preserved.
+
 # SYNOPSIS
 
 Just pass to "distrobox-host-exec" any command and all its arguments, if any.
