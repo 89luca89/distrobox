@@ -390,3 +390,23 @@ image=img_c
 	require.ErrorContains(t, err, "circular include detected: a")
 	assert.Nil(t, parsed)
 }
+
+func TestParse_ExpandsExportedBinsPathHome(t *testing.T) {
+	t.Setenv("USER", "testuser")
+	t.Setenv("HOME", "/home/testuser")
+
+	rawManifest := `[box]
+exported_bins="/usr/bin/rsync"
+exported_bins_path="~/.local/bin"
+
+
+`
+	manifestPath := t.TempDir() + "/manifest.ini"
+	err := os.WriteFile(manifestPath, []byte(rawManifest), 0o644)
+	require.NoError(t, err)
+
+	parsed, err := manifest.Parse(t.Context(), manifestPath)
+	require.NoError(t, err)
+	require.Len(t, parsed, 1)
+	assert.Equal(t, "/home/testuser/.local/bin", parsed[0].ExportedBinsPath)
+}
