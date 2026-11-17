@@ -106,6 +106,7 @@ func LoadUserEnvironment(ctx context.Context) *UserEnvironment {
 // getPasswdFields returns all fields from passwd entry for a user
 func getPasswdFields(ctx context.Context, userName string) []string {
 	// Use getent passwd (handles LDAP, NIS, local users)
+	//nolint:gosec // G702: no shell, and userName is the invoking user's own identity
 	output, err := exec.CommandContext(ctx, "getent", "passwd", userName).Output()
 	if err != nil {
 		return nil

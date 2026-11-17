@@ -74,7 +74,7 @@ func NewRootCommand(cfg *config.Values) *cli.Command {
 	for _, sub := range subs {
 		installShellCompleteRecursively(sub)
 		switch sub.Name {
-		case "enter", "rm", "stop", "upgrade", "generate-entry":
+		case "enter", "rm", "stop", "upgrade", "generate-entry": //nolint:goconst // literal shared with parse.go's enter/ephemeral checks
 			sub.ShellComplete = containerNameCompleter(cfg)
 		case "create", "ephemeral":
 			sub.ShellComplete = imageCompleter()

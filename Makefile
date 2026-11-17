@@ -74,10 +74,10 @@ clean:
 
 # lint / lint-fix invoke the same golangci-lint version as the Lint CI job
 # (.github/workflows/main.yml: golangci/golangci-lint-action with version:
-# v2.5.0) through a container so local runs cannot drift from CI results.
+# v2.15.0) through a container so local runs cannot drift from CI results.
 # Defaults to podman when it is on PATH, else docker. Override with
 # CONTAINER_RUNTIME=... to pick explicitly.
-GOLANGCI_LINT_VERSION ?= v2.5.0
+GOLANGCI_LINT_VERSION ?= v2.15.0
 GOLANGCI_LINT_IMAGE   ?= docker.io/golangci/golangci-lint:$(GOLANGCI_LINT_VERSION)
 CONTAINER_RUNTIME     ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
 LINT_CACHE_DIR        ?= $(CURDIR)/.cache/lint

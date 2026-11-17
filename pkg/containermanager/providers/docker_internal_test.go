@@ -84,10 +84,10 @@ func TestDocker_makeCreateCommand(t *testing.T) {
 	}
 
 	// Group forwarding mirrors os.Getgroups(), which varies by host.
-	groupAddFlags := ""
+	var groupAddFlags strings.Builder
 	if groups, err := os.Getgroups(); err == nil {
 		for _, gid := range groups {
-			groupAddFlags += " --group-add " + strconv.Itoa(gid)
+			groupAddFlags.WriteString(" --group-add " + strconv.Itoa(gid))
 		}
 	}
 
@@ -130,7 +130,7 @@ func TestDocker_makeCreateCommand(t *testing.T) {
  --volume /etc/hosts:/etc/hosts:ro
  --volume /etc/resolv.conf:/etc/resolv.conf:ro
  --volume /dev/null:/run/.distrobox.rootless:ro
- ` + groupAddFlags + `
+ ` + groupAddFlags.String() + `
  --volume /path/to/my-volume:/var/local/my-volume:ro
  --volume /path/to/distrobox-init:/usr/bin/entrypoint:ro
  --entrypoint /usr/bin/entrypoint
