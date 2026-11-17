@@ -2244,13 +2244,13 @@ if [ "${nvidia}" -eq 1 ]; then
 	# 32-bit plugins rather than shadow it.
 	[ "$(readlink -m "${guest_lib32}")" = "$(readlink -m "${guest_lib64}")" ] && guest_lib32=""
 
-	NVIDIA_LIBS="$(find /run/host/usr/lib*/ -not -type d \
+	NVIDIA_LIBS="$(find /run/host/usr/lib*/ -not -type d \( \
 		-iname "*lib*nvidia*.so*" \
 		-o -iname "*nvidia*.so*" \
 		-o -iname "libcuda*.so*" \
 		-o -iname "libnvcuvid*" \
 		-o -iname "libnvoptix*" \
-		-o -wholename "*/nvidia/wine/*" || :)"
+		-o -wholename "*/nvidia/wine/*" \) || :)"
 	for nvidia_lib in ${NVIDIA_LIBS}; do
 		# Resolve symlinks to the real ELF we mount and read the class from.
 		real_lib="${nvidia_lib}"
