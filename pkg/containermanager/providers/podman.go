@@ -721,9 +721,10 @@ func (p *Podman) supportsKeepIDSize(ctx context.Context, image string) bool {
 }
 
 // usesRunc detects whether podman is configured to use runc as the OCI runtime.
-// Equivalent to shell: podman info 2>/dev/null | grep -q runc.
+// Only the runtime name is checked: since Podman 6.2 the full info output
+// embeds crun's features, which mention "org.opencontainers.runc...".
 func (p *Podman) usesRunc(ctx context.Context) bool {
-	out, err := p.run(ctx, []string{"info"}, runOptions{})
+	out, err := p.run(ctx, []string{"info", "--format", "{{.Host.OCIRuntime.Name}}"}, runOptions{})
 	if err != nil {
 		return false
 	}
