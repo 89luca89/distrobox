@@ -49,6 +49,7 @@ var distroIconMap = []distroIconEntry{
 	{"kdeneon", distroIconBaseURL + "kdeneon-distrobox.png"},
 	{"archlinux", distroIconBaseURL + "arch-distrobox.png"},
 	{"alpinelinux", distroIconBaseURL + "alpine-distrobox.png"},
+	{"azurelinux", distroIconBaseURL + "azurelinux-distrobox.png"},
 	{"kalilinux", distroIconBaseURL + "kali-distrobox.png"},
 	{"clear", distroIconBaseURL + "clear-distrobox.png"},
 	{"alma", distroIconBaseURL + "alma-distrobox.png"},
