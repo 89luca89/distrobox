@@ -792,6 +792,7 @@ setup_apk()
 		util-linux-login
 		util-linux-misc
 		vulkan-loader
+		fuse-overlayfs
 		wget
 		xauth
 		xz
@@ -916,6 +917,7 @@ setup_apt()
 		libglx-mesa0
 		libvulkan1
 		mesa-vulkan-drivers
+		fuse-overlayfs
 	"
 	# shellcheck disable=SC2086,2046
 	apt-get install -y $(apt-cache show ${deps} 2> /dev/null | grep "Package:" | sort -u | cut -d' ' -f2-)
@@ -1171,6 +1173,7 @@ setup_dnf()
 		mesa-dri-drivers
 		mesa-vulkan-drivers
 		vulkan
+		fuse-overlayfs
 	"
 	# shellcheck disable=SC2086,2046,2248
 	${manager} install ${flags} -y $(${manager} list -q ${deps} |
@@ -1247,6 +1250,7 @@ setup_emerge()
 		sys-process/lsof
 		sys-apps/util-linux
 		net-misc/wget
+		sys-fs/fuse-overlayfs
 	"
 	install_pkg=""
 	for dep in ${deps}; do
@@ -1354,6 +1358,7 @@ setup_microdnf()
 		mesa-dri-drivers
 		mesa-vulkan-drivers
 		vulkan
+		fuse-overlayfs
 	"
 	install_pkg=""
 	for dep in ${deps}; do
@@ -1463,6 +1468,7 @@ setup_pacman()
 		mesa
 		vulkan-intel
 		vulkan-radeon
+		fuse-overlayfs
 	"
 	# shellcheck disable=SC2086,2046
 	pacman -S --needed --noconfirm $(pacman -Ssq | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
@@ -1653,6 +1659,7 @@ setup_xbps()
 		vulkan-loader
 		mesa-vulkan-intel
 		mesa-vulkan-radeon
+		fuse-overlayfs
 	"
 	# shellcheck disable=SC2086,2046
 	xbps-install -Sy $(xbps-query -Rs '*' | awk '{print $2}' | sed 's/-[^-]*$//' | grep -E "^($(echo ${deps} | tr ' ' '|'))$")
@@ -1772,6 +1779,7 @@ EOF
 		libvulkan1
 		libvulkan_intel
 		libvulkan_radeon
+		fuse-overlayfs
 	"
 	# zypper reserves exit codes >= 100 as informational: the transaction
 	# committed, but something is worth noting - e.g. 106 (a repo was skipped) or
@@ -2313,6 +2321,8 @@ printf "distrobox: Integrating host's themes, icons, fonts...\n"
 # Themes and icons integration works using a bind mount inside the container
 # of the host's themes and icons directory. This ensures that the host's home will
 # not be littered with files and directories and broken symlinks.
+# Fonts integration uses an overlay mount instead of a bind mount to prevent
+# font cache poisoning. See: https://github.com/89luca89/distrobox/issues/1945
 if ! mount_bind "/run/host/usr/share/themes" "/usr/local/share/themes"; then
 	printf "Warning: Cannot bind mount /run/host/usr/share/themes to /usr/local/share/themes\n"
 	printf "Warning: Themes integration with the host is disabled.\n"
@@ -2321,9 +2331,51 @@ if ! mount_bind "/run/host/usr/share/icons" "/usr/local/share/icons"; then
 	printf "Warning: Cannot bind mount /run/host/usr/share/icons to /usr/local/share/icons\n"
 	printf "Warning: Icons integration with the host is disabled.\n"
 fi
-if ! mount_bind "/run/host/usr/share/fonts" "/usr/local/share/fonts"; then
-	printf "Warning: Cannot bind mount /run/host/usr/share/fonts to /usr/local/share/fonts\n"
-	printf "Warning: Fonts integration with the host is disabled.\n"
+# Fonts integration: merge host's fonts with the container's own fonts using an
+# overlay mount on /usr/share/fonts, so that host and container see fonts at the
+# same path. This prevents font cache poisoning caused by the path mismatch of
+# the old bind mount approach (/usr/local/share/fonts).
+# See: https://github.com/89luca89/distrobox/issues/1945
+fonts_host_dir="/run/host/usr/share/fonts"
+# Adjust fonts_host_dir in order to point to /run/host if it's a symlink
+if [ -L "${fonts_host_dir}" ]; then
+	fonts_host_dir="$(init_readlink "${fonts_host_dir}")"
+	if ! printf "%s" "${fonts_host_dir}" | grep -q "/run/host"; then
+		fonts_host_dir="/run/host${fonts_host_dir}"
+	fi
+fi
+# If the host has no fonts directory there is nothing to integrate.
+if [ -d "${fonts_host_dir}" ]; then
+	fonts_overlay_done=0
+	# The container's own fonts are bind mounted (privately) on a separate path
+	# and used as a lower layer, so that the mountpoint of the overlay is never
+	# one of its own layers. A private mount ensures the overlay does not
+	# propagate into the bind mount, which would make the overlay depend on itself.
+	if mkdir -p /usr/share/fonts /usr/share/fonts-container /usr/share/fonts-upper /usr/share/fonts-work &&
+		mount --bind /usr/share/fonts /usr/share/fonts-container &&
+		mount --make-private /usr/share/fonts-container; then
+		# Changes made inside the container are stored in the upper layer, never on the host.
+		fonts_overlay_opts="lowerdir=/usr/share/fonts-container:${fonts_host_dir}"
+		fonts_overlay_opts="${fonts_overlay_opts},upperdir=/usr/share/fonts-upper"
+		fonts_overlay_opts="${fonts_overlay_opts},workdir=/usr/share/fonts-work"
+		# Try kernel OverlayFS first, then fuse-overlayfs for rootless containers.
+		if mount -t overlay overlay -o "${fonts_overlay_opts}" /usr/share/fonts; then
+			fonts_overlay_done=1
+		elif command -v fuse-overlayfs > /dev/null 2>&1 &&
+			fuse-overlayfs -o "${fonts_overlay_opts}" /usr/share/fonts; then
+			fonts_overlay_done=1
+		fi
+	fi
+
+	if [ "${fonts_overlay_done}" -eq 0 ]; then
+		# No overlay available, fall back to the previous bind mount behaviour.
+		umount /usr/share/fonts-container 2> /dev/null || :
+		printf "Warning: Cannot overlay mount %s to /usr/share/fonts\n" "${fonts_host_dir}"
+		if ! mount_bind "${fonts_host_dir}" "/usr/local/share/fonts"; then
+			printf "Warning: Cannot bind mount %s to /usr/local/share/fonts\n" "${fonts_host_dir}"
+			printf "Warning: Fonts integration with the host is disabled.\n"
+		fi
+	fi
 fi
 ###############################################################################
 
