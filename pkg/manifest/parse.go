@@ -181,6 +181,11 @@ func sectionToItem(section *ini.Section, env *userenv.UserEnvironment) Item { //
 			item.Hostname = last
 		case "exported_bins_path":
 			item.ExportedBinsPath = last
+			if last == "~" {
+				item.ExportedBinsPath = env.Home
+			} else if strings.HasPrefix(last, "~/") {
+				item.ExportedBinsPath = strings.TrimRight(env.Home, "/") + strings.TrimPrefix(last, "~")
+			}
 
 		case "init":
 			item.Init = parseBool(last)
