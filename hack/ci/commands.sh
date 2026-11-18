@@ -153,7 +153,7 @@ if fout="$(dbx create --yes --no-entry --image "${IMAGE}" --name "${fbox}" \
 	--additional-flags '--env CREATEVAR=cval' < /dev/null 2>&1)"; then
 	pass "create with a flag bundle"
 	warmup "${fbox}"
-	eq "--hostname sets the hostname" "$(enter_out "${fbox}" uname -n)" "dbxflagshost"
+	eq "--hostname sets the hostname" "$(enter_out "${fbox}" hostname -s)" "dbxflagshost"
 	ok "--volume mounts a host dir" dbx enter --name "${fbox}" -- test -f /mnt/vol/vfile
 	ok "--init-hooks runs at setup" dbx enter --name "${fbox}" -- test -f /dbx-hook-ran
 	eq "create --additional-flags forwards --env" "$(enter_out "${fbox}" printenv CREATEVAR)" "cval"
