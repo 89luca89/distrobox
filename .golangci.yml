@@ -235,7 +235,7 @@ linters:
       # Default: [ switch ]
       check:
         - switch
-        - map
+        - mapliteral
 
     exhaustruct:
       # List of regular expressions to match type names that should be excluded from processing.
@@ -297,6 +297,13 @@ linters:
       # Minimal code complexity to report.
       # Default: 30 (but we recommend 10-20)
       min-complexity: 20
+
+    goconst:
+      # Ignore constants from specific types.
+      # Default: [Call]
+      exclude-types:
+        - Call # listed again: setting exclude-types replaces the default
+        - CompositeLit # urfave/cli flag names and CLI argv; constants would not read better
 
     gocritic:
       # Settings passed to gocritic.

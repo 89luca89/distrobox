@@ -31,7 +31,7 @@ jobs:
       # report as inline annotations and let the zizmor exit code gate the job.
       # The zizmor version is pinned on purpose: `latest` can add new audits and
       # break CI without a change in this repo. Bump it together with the action.
-      - uses: zizmorcore/zizmor-action@cc914d7f3750a2d13d75c7f184a1060aa0e9d482 # v0.6.4
+      - uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
         with:
           version: 1.24.1
           advanced-security: false
