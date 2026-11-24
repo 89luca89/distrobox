@@ -1606,14 +1606,20 @@ setup_xbps()
 	# Ensure we avoid errors by keeping xbps updated
 	xbps-install -Syu xbps
 
+	shell_package="${shell_pkg}"
+	if [ "${shell_pkg}" = "fish" ]; then
+		shell_package="fish-shell"
+	fi
+
 	# Check if shell_pkg is available in distro's repo. If not we
 	# fall back to bash, and we set the SHELL variable to bash so
 	# that it is set up correctly for the user.
-	if ! xbps-install -Sy "${shell_pkg}"; then
+	if ! xbps-install -Sy "${shell_package}"; then
 		shell_pkg="bash"
+		shell_package="bash"
 	fi
 	deps="
-		${shell_pkg}
+		${shell_package}
 		bash-completion
 		bc
 		bzip2
