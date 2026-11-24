@@ -300,14 +300,14 @@ func printCreateCompleted(progress *ui.Progress, containerName string, rootful b
 	progress.Finalize(msg, containerName, rootFlag, containerName)
 }
 
-// defaultHostname mirrors the shell's `default: $(uname -n)` hint shown in
+// defaultHostname mirrors the shell's `default: $(hostname -s)` hint shown in
 // distrobox-create's --hostname help line. Evaluated once at command-build
 // time; an unreachable hostname call falls back to a literal hint.
 func defaultHostname() string {
 	if h, err := os.Hostname(); err == nil && h != "" {
 		return h
 	}
-	return "$(uname -n)"
+	return "$(hostname -s)"
 }
 
 func printContainerAlreadyExists(progress *ui.Progress, containerName string, rootful bool) {
