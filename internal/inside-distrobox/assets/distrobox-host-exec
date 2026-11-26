@@ -136,6 +136,32 @@ if [ -z "${host_command}" ]; then
 	host_command="${distrobox_host_exec_default_command}"
 fi
 
+# Open remote URIs directly through the host desktop portal. This avoids
+# starting a host process (and its terminal/session lifetime) just to open a link.
+# Keep local files and unsupported invocations on the host-spawn path: OpenURI
+# does not accept file:// URIs. Do not add a mandatory desktop dependency.
+if [ "$(basename "${host_command}")" = "xdg-open" ] && [ "$#" -eq 1 ]; then
+	case "$1" in
+		[fF][iI][lL][eE]:* | /* | ./* | ../*) ;;
+		[[:alpha:]]*:*)
+			if command -v gdbus > /dev/null 2>&1; then
+				# In initful containers the host bus is mounted under /run/host.
+				portal_bus="unix:path=/run/user/$(id -ru)/bus"
+				if [ -S "/run/host/run/user/$(id -ru)/bus" ]; then
+					portal_bus="unix:path=/run/host/run/user/$(id -ru)/bus"
+				fi
+				if gdbus call --timeout 5 --address "${portal_bus}" \
+					--dest org.freedesktop.portal.Desktop \
+					--object-path /org/freedesktop/portal/desktop \
+					--method org.freedesktop.portal.OpenURI.OpenURI \
+					"" "$1" '{}' > /dev/null 2>&1; then
+					exit 0
+				fi
+			fi
+			;;
+	esac
+fi
+
 if [ "$(id -ru)" -ne 0 ]; then
 	if command -v sudo 2> /dev/null > /dev/null; then
 		sudo_command="sudo"
