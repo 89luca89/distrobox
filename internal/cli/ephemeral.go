@@ -124,6 +124,18 @@ func ephemeralAction(ctx context.Context, cmd *cli.Command, cfg *config.Values) 
 		CustomCommand: customCommand,
 	}
 
+	// The inherited create flags carry their resolved defaults in Value, so
+	// cmd.String("name"/"hostname") is never empty. Mirror createAction and
+	// restore "" when neither the flag nor config/env set them, otherwise
+	// every ephemeral box is named "my-distrobox" and the random-name path
+	// in EphemeralCommand.Execute never runs.
+	if !cmd.IsSet("name") && cfg.ContainerName == "" {
+		opts.ContainerName = ""
+	}
+	if !cmd.IsSet("hostname") && cfg.ContainerHostname == "" {
+		opts.ContainerHostname = ""
+	}
+
 	progress := ui.NewProgress(os.Stderr)
 	printer := ui.NewPrinter(os.Stderr, true)
 	prompter := ui.NewPrompter(*bufio.NewReader(os.Stdin), os.Stdout)
