@@ -508,7 +508,13 @@ func (p *Podman) run(ctx context.Context, args []string, opts runOptions) (strin
 		return "", nil
 	}
 
-	cmd := exec.CommandContext(ctx, command, args...)
+	cmdCtx := ctx
+	if opts.Interactive {
+		// Ctrl+C cancels ctx. Killing the engine then would end the whole session
+		// and leave the terminal in raw mode, so the engine handles it itself.
+		cmdCtx = context.WithoutCancel(ctx)
+	}
+	cmd := exec.CommandContext(cmdCtx, command, args...)
 
 	if opts.Interactive {
 		cmd.Stdout = os.Stdout
