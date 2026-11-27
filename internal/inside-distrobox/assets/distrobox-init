@@ -2783,8 +2783,19 @@ if [ -n "${DISTROBOX_HOST_HOME-}" ] && [ -d "/etc/skel" ]; then
 
 		if [ -n "${file_path_for_home}" ] &&
 			[ ! -d "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"}" ]; then
-			mkdir -p "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}"
-			chown "${container_user_uid}":"${container_user_gid}" "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}"
+			# Create each missing directory level and give it to the user,
+			# otherwise mkdir -p leaves the intermediate ones owned by root.
+			dir_path="${container_user_home}"
+			# Disable globbing so skel names containing glob characters are not expanded.
+			set -f
+			for dir_component in $(printf '%s' "${file_path_for_home}" | tr '/' ' '); do
+				dir_path="${dir_path}/${dir_component}"
+				if [ ! -d "${dir_path}" ]; then
+					mkdir "${dir_path}"
+					chown "${container_user_uid}":"${container_user_gid}" "${dir_path}"
+				fi
+			done
+			set +f
 		fi
 
 		if [ ! -f "${container_user_home}/${file_path_for_home:+"${file_path_for_home}"/}${base_file_name}" ] &&
