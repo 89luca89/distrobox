@@ -138,6 +138,16 @@ func TestEphemeralCommand_CustomCommandVariants(t *testing.T) {
 	}
 }
 
+// TestEphemeralCommand_NoDefaultNameWhenUnset ensures that when neither
+// --name nor the config/env sets a container name, ephemeral does not
+// fall back to the inherited "my-distrobox" default. An empty name is
+// what triggers the random-name path in EphemeralCommand.Execute.
+func TestEphemeralCommand_NoDefaultNameWhenUnset(t *testing.T) {
+	opts := runEphemeral(t, "ephemeral", "--image", "alpine", "-e", "echo", "ciao")
+
+	assert.NotEqual(t, "my-distrobox", opts.ContainerName)
+}
+
 // TestEphemeralCommand_ContainerNameFromFlag ensures that an explicit
 // --name is propagated through the create+enter pair. This is the
 // ephemeral-specific path (the normal flow auto-generates a name), so
